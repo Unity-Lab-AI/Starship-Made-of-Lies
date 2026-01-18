@@ -1353,12 +1353,13 @@ namespace IngameScript
         ST(f,20,y,isCreative?"CREATIVE":"SURVIVAL",cAcc,0.45f);y+=18;
         SLB(f,20,y,350,12,"Progress",pct,PctCol(pct),cBdr);y+=28;
         ST(f,20,y,$"Blocks: {tot-rem}/{tot}  Buildable: {prtBuildable}",cTxt,0.4f);y+=18;}
-        int maxC=(int)(6*lcdS);ST(f,20,y,$"Components [{bldScroll+1}-{Math.Min(bldScroll+maxC,cNd.Count)}/{cNd.Count}]:",cSec,0.4f);y+=14;
-        int cc=0,ci=0;foreach(var kv in cNd){if(ci++<bldScroll)continue;if(cc>=maxC)break;int hv=cStk.ContainsKey(kv.Key)?cStk[kv.Key]:0;Color nc=hv>=kv.Value?cOK:cErr;ST(f,20,y,$"{kv.Key}: {hv}/{kv.Value}",nc,0.35f);y+=12;cc++;}
-        if(cMis.Count>0&&cc<maxC){int mc=0;foreach(var kv in cMis){if(cc>=maxC)break;ST(f,25,y,$"-{kv.Key}: {kv.Value}",cErr,0.32f);y+=11;cc++;mc++;}}
-        y+=5;ST(f,20,y,$"Ammo ({ammoNames[ammoTypeIdx]}): {ammoStock}/{ammoTarget}",ammoStock>=ammoTarget?cOK:cWrn,0.4f);
-        y+=8;int refW=0,asmW=0;foreach(var r in padRef)if(r.IsProducing)refW++;foreach(var a in padAsm)if(a.IsProducing)asmW++;
-        ST(f,20,y,$"Refineries: {refW}/{padRef.Count}   Assemblers: {asmW}/{padAsm.Count}",cTxt,0.45f);
+        int maxRows=(int)((lcdH-y*lcdYS-60*lcdYS)/(18*lcdYS));int maxC=Math.Max(8,maxRows);
+        ST(f,20,y,$"Components [{bldScroll+1}-{Math.Min(bldScroll+maxC,cNd.Count)}/{cNd.Count}]:",cSec,0.45f);y+=18;
+        int cc=0,ci=0;foreach(var kv in cNd){if(ci++<bldScroll)continue;if(cc>=maxC)break;int hv=cStk.ContainsKey(kv.Key)?cStk[kv.Key]:0;Color nc=hv>=kv.Value?cOK:cErr;ST(f,20,y,$"{kv.Key}: {hv}/{kv.Value}",nc,0.42f);y+=16;cc++;}
+        if(cMis.Count>0&&cc<maxC){foreach(var kv in cMis){if(cc>=maxC)break;ST(f,25,y,$"-{kv.Key}: {kv.Value}",cErr,0.38f);y+=14;cc++;}}
+        y+=8;ST(f,20,y,$"Ammo ({ammoNames[ammoTypeIdx]}): {ammoStock}/{ammoTarget}",ammoStock>=ammoTarget?cOK:cWrn,0.5f);
+        y+=22;int refW=0,asmW=0;foreach(var r in padRef)if(r.IsProducing)refW++;foreach(var a in padAsm)if(a.IsProducing)asmW++;
+        ST(f,20,y,$"Refineries: {refW}/{padRef.Count}   Assemblers: {asmW}/{padAsm.Count}",cTxt,0.5f);
         f.Dispose();}
         
         void UpdateLCD3(){
