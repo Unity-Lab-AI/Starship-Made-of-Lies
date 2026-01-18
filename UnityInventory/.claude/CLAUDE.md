@@ -3,7 +3,24 @@
 Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 9, 10 with sprite rendering.
 
 **Location:** `Unity Missile System/UnityInventory/`
-**Version:** v01.00 | 2026-01-17
+**Version:** v01.00 | 2026-01-18
+
+---
+
+## BOOT SYSTEM DEPENDENCY
+
+**UnityInventory waits for boot_complete=true before taking LCD control.**
+
+Unity Boot must run first and complete 40 system checks. UnityInventory checks for boot completion via:
+
+```csharp
+bool IsBootComplete(){
+    if(btn==null)return false;
+    return btn.CustomData.Contains("boot_complete=true");
+}
+```
+
+**LCDs controlled by UnityInventory (after boot):** 4, 5, 6, 9, 10
 
 ---
 
@@ -161,7 +178,9 @@ status=FUEL
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityInventory | ~102,000 | 76,656 | 100,000 | OK (23% margin) |
+| UnityInventory | ~98,000 | 78,680 | 100,000 | OK (21% margin) |
+
+*Note: Boot code removed in v01.00 (2026-01-18). Boot functionality moved to Unity Boot.*
 
 ---
 

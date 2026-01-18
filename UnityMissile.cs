@@ -288,7 +288,7 @@ double missileSpeed=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
 if(currentGrav>0.1){UpdateAltitude();}
 terminalGuidanceActive=dist<terminalGuidanceDist;
 double actualArmDist=armDist>0?armDist:detDist*4;
-double safetyDist=Math.Max(climbDist*5,5000);
+double safetyDist=climbDist*5;
 if(!warheadsArmed&&!isSatellite&&distFromPad>safetyDist&&dist<actualArmDist){
 foreach(var w in warheads){w.IsArmed=true;}
 warheadsArmed=true;

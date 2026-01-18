@@ -1,12 +1,79 @@
 # UNITY MISSILE SYSTEM - TODO
 
 **Last Updated:** 2026-01-18
-**Session:** 10-Agent Deep Scan Implementation
-**Status:** 87 ISSUES - FIXES COMPLETE
+**Session:** Documentation and GitHub Push
+**Status:** ALL SYSTEMS OPERATIONAL - READY FOR GITHUB
 
 ---
 
-## 10-AGENT DEEP SCAN RESULTS
+## CURRENT STATUS
+
+| Component | Status | Deployed Size |
+|-----------|--------|---------------|
+| **Unity Boot** | COMPLETE | 12,697 chars |
+| **UnityPad** | COMPLETE | 89,239 chars |
+| **UnityMissile** | COMPLETE | ~26,000 chars |
+| **UnityInventory** | COMPLETE | 78,680 chars |
+| **UnityBeacon** | COMPLETE | ~10,800 chars |
+
+---
+
+## IMAGE SETUP - COMPLETE
+
+All scripts configured with version 2 images:
+
+- [x] Copied version 2 PNGs to thumb.png for MDK builds (script icons in SE)
+- [x] Created .claude/README.md for Unity Boot with image
+- [x] Created .claude/README.md for UnityPad with image
+- [x] Created .claude/README.md for UnityMissile with image
+- [x] Created .claude/README.md for UnityInventory with image
+- [x] Created .claude/README.md for UnityBeacon with image
+- [x] Created main .claude/README.md with system image
+
+### Image Configuration
+
+| Script | thumb.png (MDK Build) | GitHub Display |
+|--------|----------------------|----------------|
+| Unity Boot | Unity Boot 2.png | Unity Boot 2.png |
+| UnityPad | Unity Pad 2.png | Unity Pad 2.png |
+| UnityMissile | Unity Missile 2.png | Unity Missile 2.png |
+| UnityInventory | Unity Inventory 2.png | Unity Inventory 2.png |
+| UnityBeacon | Unity Beacon 2.png | Unity Beacon 2.png |
+| Main System | N/A | Unity Missile System 2.png |
+
+---
+
+## UNITY BOOT EXTRACTION - COMPLETE
+
+Boot functionality has been extracted into a dedicated `Unity Boot.cs` script:
+
+- [x] Created Unity Boot.cs with 40 system checks
+- [x] Created Unity Boot/ MDK project structure
+- [x] Updated wrap-scripts.ps1 for Unity Boot
+- [x] Gutted boot code from UnityPad.cs
+- [x] Gutted boot code from UnityInventory.cs
+- [x] All scripts build successfully under 100k limit
+- [x] Boot handshake protocol via [SYSTEM] CustomData
+
+### Boot Handshake Protocol
+
+```ini
+[SYSTEM]
+boot_complete=false    ; Set TRUE by Unity Boot when 40/40 checks pass
+```
+
+### LCD Control Flow
+
+1. Unity Boot controls ALL 10 LCDs during startup
+2. Runs 40 checks (20 Pad + 20 Inventory)
+3. Sets `boot_complete=true` on success
+4. Disables itself (UpdateFrequency.None)
+5. UnityPad takes LCDs 1,2,3,7,8
+6. UnityInventory takes LCDs 4,5,6,9,10
+
+---
+
+## PREVIOUS SESSION: 10-AGENT DEEP SCAN RESULTS
 
 | Severity | Count | Status |
 |----------|-------|--------|
@@ -21,10 +88,10 @@
 
 ### UnityPad.cs
 
-- [x] **Line 292**: Initialize `lastMslPos` check (`lastMslPos!=Vector3D.Zero`)
-- [x] **Line 300**: Blackout/abort queue - deferred (complex refactor, low impact)
-- [x] **Lines 659-672**: Grid scan consolidation - deferred (optimization, not a bug)
-- [x] **Line 321**: bbLog ring buffer - deferred (optimization, not a bug)
+- [x] **Line 294**: Initialize `lastMslPos` check (`lastMslPos!=Vector3D.Zero`)
+- [x] **Line 377**: Blackout/abort queue - FIXED (controller commands now queue via abtQ)
+- [x] **Lines 727-740**: Grid scan consolidation - FIXED (11 scans → 1 single pass)
+- [x] **Line 323**: bbLog ring buffer - EXISTS (was already implemented)
 - [x] **Line 878**: Add S.AMMO case handler to UpdateState
 
 ### UnityMissile.cs
@@ -32,7 +99,7 @@
 - [x] **Line 318**: Fix stuck detection logic (`dist >= lastDist`, threshold 30)
 - [x] **Line 370**: Fix satellite fallrate + disarm warheads on deorbit
 - [x] **Line 310**: missileSpeed fallback - already safe (fallback before use)
-- [x] **Line 290**: Increase safetyDist to `Math.Max(climbDist*5,5000)`
+- [x] **Line 291**: safetyDist = `climbDist*5` (no 5km floor, supports short-range flights)
 - [x] **Line 384**: Remove satellite auto-detonate (now broadcasts status)
 - [x] **Line 454**: Add command authentication for DETONATE (`DETONATE:{padID}`)
 - [x] **Lines 239,268**: rc null checks - already present in code
@@ -169,9 +236,9 @@ All scripts built and deployed successfully:
 
 | Script | Deployed Size | Budget | Status |
 |--------|--------------|--------|--------|
-| UnityPad | 88,332 | 100,000 | OK |
-| UnityMissile | 25,854 | 100,000 | OK |
-| UnityInventory | 76,862 | 100,000 | OK |
+| UnityPad | 92,414 | 100,000 | OK (grid scan consolidation saved ~500 chars) |
+| UnityMissile | 25,978 | 100,000 | OK |
+| UnityInventory | 82,486 | 100,000 | OK |
 | UnityBeacon | 10,860 | 100,000 | OK |
 
 ---
@@ -179,12 +246,13 @@ All scripts built and deployed successfully:
 ## KEY FIXES SUMMARY
 
 ### Safety Improvements
-1. Warhead arm distance increased to 5km minimum
+1. Warhead arm distance uses climbDist*5 (500m climb = 2.5km safety)
 2. Satellite mode no longer auto-detonates on any enemy
 3. DETONATE command requires pad authentication
 4. LIDAR/Sensor only targets Enemies (no friendly fire)
 5. Stuck detection threshold increased to 5 seconds
 6. Warheads disarmed on satellite deorbit
+7. Controller ABORT commands now queue during blackout
 
 ### Bug Fixes
 1. lastMslPos initialization prevents first velocity error
@@ -197,6 +265,10 @@ All scripts built and deployed successfully:
 8. Miner display sorted consistently (docked first, then by name)
 9. LIDAR clears stale target when lock lost
 10. SendFinalStatus includes actual fuel percentage
+
+### Performance Fixes (2026-01-18)
+1. Grid scan consolidation: 11 GetBlocksOfType → 1 single pass (UnityPad.cs)
+2. Ice counting reuses existing padGen list instead of redundant scan
 
 ---
 

@@ -55,6 +55,7 @@ $success = $success -and (Wrap-Script -Name "UnityPad" -RawFile "UnityPad.cs" -P
 $success = $success -and (Wrap-Script -Name "UnityMissile" -RawFile "UnityMissile.cs" -ProjectFolder "UnityMissile")
 $success = $success -and (Wrap-Script -Name "UnityBeacon" -RawFile "UnityBeacon.cs" -ProjectFolder "UnityBeacon")
 $success = $success -and (Wrap-Script -Name "UnityInventory" -RawFile "UnityInventory.cs" -ProjectFolder "UnityInventory")
+$success = $success -and (Wrap-Script -Name "Unity Boot" -RawFile "Unity Boot.cs" -ProjectFolder "Unity Boot")
 if (-not $success) {Write-Host "WRAP FAILED" -ForegroundColor Red;exit 1}
 
 Write-Host "`nWrapping complete." -ForegroundColor Yellow
@@ -67,6 +68,7 @@ Write-Host "  dotnet build UnityPad -c Debug" -ForegroundColor White
 Write-Host "  dotnet build UnityMissile -c Debug" -ForegroundColor White
 Write-Host "  dotnet build UnityBeacon -c Debug" -ForegroundColor White
 Write-Host "  dotnet build UnityInventory -c Debug" -ForegroundColor White
+Write-Host "  dotnet build `"Unity Boot`" -c Debug" -ForegroundColor White
 Write-Host ""
 Write-Host "DO NOT chain builds. DO NOT build all at once." -ForegroundColor Red
 Write-Host ""

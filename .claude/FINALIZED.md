@@ -1178,5 +1178,131 @@ void CorrelateDockedMiners(){foreach(var kv in trkM)kv.Value.docked=false;int pn
 
 ---
 
+---
+
+## 2026-01-18 - Unity Boot System Extraction
+
+### Created Unity Boot.cs (NEW SCRIPT)
+- [x] Centralized boot controller for ALL 10 LCDs
+- [x] 40 system checks (20 Pad + 20 Inventory)
+- [x] Sprite-based LCD rendering during boot
+- [x] Progress display with colored status bars
+- [x] Error handling with 5-second pause and retry
+- [x] Boot handshake protocol via [SYSTEM] CustomData
+- [x] Self-disables after boot completion (UpdateFrequency.None)
+
+### Unity Boot MDK Project
+- [x] Created Unity Boot/ folder structure
+- [x] Created Unity Boot.csproj with MDK2 packages
+- [x] Created mdk.ini with minify=full
+- [x] Added thumb.png for script browser
+- [x] Updated wrap-scripts.ps1 to include Unity Boot
+
+### Boot Handshake Protocol
+```ini
+[SYSTEM]
+boot_complete=false    ; Set TRUE by Unity Boot when 40/40 checks pass
+```
+
+### LCD Control Flow
+1. Unity Boot controls ALL 10 LCDs during startup
+2. Displays animated boot screen with check progress
+3. Runs 40 checks sequentially (1/40, 2/40, etc.)
+4. On error: pauses 5 seconds, displays error, retries
+5. On success: sets `boot_complete=true`
+6. Disables itself (UpdateFrequency.None)
+7. UnityPad takes LCDs 1,2,3,7,8
+8. UnityInventory takes LCDs 4,5,6,9,10
+
+### Gutted Boot Code from UnityPad.cs
+- [x] Removed boot variables (bootStep, bootTick, bootPhase, bootError, bootErrTicks, bootStatus)
+- [x] Removed RunBoot() function
+- [x] Removed DrawBootScreen() function
+- [x] Removed RunBootCheck() function (20 checks)
+- [x] Kept bootDone=false variable for handshake check
+- [x] Added IsBootComplete() function
+- [x] Updated Main() to wait for boot_complete=true
+
+### Gutted Boot Code from UnityInventory.cs
+- [x] Removed boot variables
+- [x] Removed RunBoot() function
+- [x] Removed DrawBootScreen() function
+- [x] Removed RunBootCheck() function (20 checks)
+- [x] Removed ClearHandshake() function
+- [x] Kept bootDone=false variable for handshake check
+- [x] Added IsBootComplete() function
+- [x] Updated Main() to wait for boot_complete=true
+
+### The 40 Boot Checks
+
+**Pad Checks (1-20):**
+| # | Check | Error Message |
+|---|-------|---------------|
+| 1 | Me.CubeGrid != null | No grid found |
+| 2 | GridTerminalSystem access | GTS unavailable |
+| 3 | Find merge block | Merge block missing |
+| 4 | Find connector | Connector missing |
+| 5 | Find projector | Projector missing |
+| 6 | Find missile RC | Missile RC missing |
+| 7 | Find gyros | No gyros found |
+| 8 | Find thrusters | No thrusters found |
+| 9 | Find warheads | No warheads found |
+| 10 | Find batteries | No batteries found |
+| 11 | Find tanks | No H2 tanks found |
+| 12 | Find cameras | No cameras found |
+| 13 | Find sensors | No sensors found |
+| 14 | Find antennas | No antennas found |
+| 15 | Load waypoints | Waypoints failed |
+| 16 | Find [SYSTEM] panel | System panel missing |
+| 17 | Find LCDs 1,2,3,7,8 | LCDs missing |
+| 18 | Validate CustomData | Config parse failed |
+| 19 | IGC channels ready | IGC init failed |
+| 20 | Final pad ready | Pad boot complete |
+
+**Inventory Checks (21-40):**
+| # | Check | Error Message |
+|---|-------|---------------|
+| 21 | Me.CubeGrid != null | No grid found |
+| 22 | GridTerminalSystem access | GTS unavailable |
+| 23 | Find assemblers | No assemblers found |
+| 24 | Find refineries | No refineries found |
+| 25 | Find storage containers | No storage found |
+| 26 | Find sorters | No sorters found |
+| 27 | Find connectors | No connectors found |
+| 28 | Find O2 generators | No O2 gens found |
+| 29 | Find H2 tanks | No H2 tanks found |
+| 30 | Find O2 tanks | No O2 tanks found |
+| 31 | Count ingots | Ingot scan failed |
+| 32 | Count components | Component scan failed |
+| 33 | Count ores | Ore scan failed |
+| 34 | Count tools | Tool scan failed |
+| 35 | Count ammo | Ammo scan failed |
+| 36 | Find LCDs 4,5,6,9,10 | LCDs missing |
+| 37 | Validate quotas | Quota parse failed |
+| 38 | Check blueprint access | Blueprint access failed |
+| 39 | IGC channels ready | IGC init failed |
+| 40 | Final inventory ready | Inventory boot complete |
+
+### Build Verification
+- [x] wrap-scripts.ps1 updated and executed
+- [x] Unity Boot: 12,697 chars (under 100k limit)
+- [x] UnityPad: 89,239 chars (under 100k limit)
+- [x] UnityInventory: 78,680 chars (under 100k limit)
+- [x] All scripts deployed to AppData
+
+### Bug Fixed During Implementation
+- [x] **Constructor order bug:** ClearBootStatus() was called BEFORE ScanBlocks()
+- [x] Since `btn` (button panel) is set by ScanBlocks(), the handshake was never cleared
+- [x] Fixed by swapping order: ScanBlocks() now called before ClearBootStatus()
+
+### Character Budget Impact
+| Script | Before | After | Change |
+|--------|--------|-------|--------|
+| Unity Boot | N/A | 12,697 | NEW |
+| UnityPad | ~92,000 | 89,239 | -2,761 |
+| UnityInventory | ~82,000 | 78,680 | -3,320 |
+
+---
+
 *Unity AI Lab - Missile Systems Division*
 *Session complete. All systems nominal. Ready for next session.*

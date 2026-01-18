@@ -1,16 +1,17 @@
 # UNITY MISSILE SYSTEM - COMPLETE SETUP GUIDE
 
 **Version:** v01.00
-**Last Updated:** 2026-01-17
+**Last Updated:** 2026-01-18
 
 ---
 
 ## OVERVIEW
 
-The Unity Missile System consists of 4 scripts working together:
+The Unity Missile System consists of 5 scripts working together:
 
 | Script | Location | Purpose |
 |--------|----------|---------|
+| **Unity Boot** | Launch pad PB | Boot controller, 40 system checks, LCD initialization |
 | **UnityPad** | Launch pad PB | Menus, LCDs, targeting, printing, launch control |
 | **UnityMissile** | Missile PB | In-flight guidance, targeting, detonation |
 | **UnityInventory** | Separate pad PB | Inventory, production, sorting, miner handling |
@@ -77,23 +78,38 @@ PRINTER COMPONENTS:
 
 ## PART 2: PROGRAMMABLE BLOCK SETUP
 
-### Step 2.1: Install UnityPad Script
+**IMPORTANT:** Three PBs are required on your launch pad grid:
+1. Unity Boot (runs first, controls boot sequence)
+2. UnityPad (launch control, waits for boot_complete)
+3. UnityInventory (inventory management, waits for boot_complete)
+
+### Step 2.1: Install Unity Boot Script (FIRST)
 
 1. Add Programmable Block near pad controls
+2. Load `Unity Boot` script from workshop/local
+3. **Name the PB:** `[PAD1-BOOT] UNITY BOOT`
+4. Click "Recompile"
+5. Boot runs 40 system checks on all 10 LCDs
+6. Sets `boot_complete=true` in [SYSTEM] CustomData when done
+7. Self-disables after boot (UpdateFrequency.None)
+
+### Step 2.2: Install UnityPad Script
+
+1. Add SECOND Programmable Block on same grid
 2. Load `UnityPad` script from workshop/local
 3. **Name the PB:** `[PAD1] Unity Pad`
 4. Click "Recompile"
-5. Script starts in INIT state
+5. Script waits for boot_complete before taking LCDs 1,2,3,7,8
 
-### Step 2.2: Install UnityInventory Script
+### Step 2.3: Install UnityInventory Script
 
-1. Add SECOND Programmable Block on same grid
+1. Add THIRD Programmable Block on same grid
 2. Load `UnityInventory` script from workshop/local
 3. **Name the PB:** `[PAD1] Unity Inventory`
 4. Click "Recompile"
-5. Script auto-detects pad ID from PB name
+5. Script waits for boot_complete before taking LCDs 4,5,6,9,10
 
-### Step 2.3: Run SETUPMOD
+### Step 2.4: Run SETUPMOD
 
 On the UnityPad PB, run this command:
 
@@ -110,7 +126,7 @@ SETUPMOD
 6. Tags button panel: `[PAD1]`
 7. Tags printer blocks: `[PAD1-PRINT]`
 
-### Step 2.4: Button Panel Setup
+### Step 2.5: Button Panel Setup
 
 Configure button actions:
 
@@ -266,10 +282,11 @@ During flight:
 ### Adding More Pads
 
 1. Build another complete pad module
-2. Add new PB: `[PAD2] Unity Pad`
-3. Add new PB: `[PAD2] Unity Inventory`
-4. Run `SETUPMOD` on PAD2
-5. System auto-claims ID and tags blocks
+2. Add new PB: `[PAD2-BOOT] UNITY BOOT`
+3. Add new PB: `[PAD2] Unity Pad`
+4. Add new PB: `[PAD2] Unity Inventory`
+5. Run `SETUPMOD` on PAD2
+6. System auto-claims ID and tags blocks
 
 ### Shared Resources
 
@@ -285,7 +302,7 @@ Each pad has its own:
 - Docking connector
 - 10 LCDs
 - Button panel
-- 2 Programmable blocks
+- 3 Programmable blocks (Boot, Pad, Inventory)
 
 ### Controller Mode
 
@@ -441,6 +458,7 @@ UnityInventory manages docked miner transfers:
 
 | Script | PB Name Format |
 |--------|----------------|
+| Unity Boot | `[PAD#-BOOT] UNITY BOOT` |
 | UnityPad | `[PAD#] Unity Pad` |
 | UnityMissile | `PAD# Missile #X Unity Missile` |
 | UnityInventory | `[PAD#] Unity Inventory` |
@@ -502,6 +520,7 @@ UnityInventory manages docked miner transfers:
 **Local (after build):**
 ```
 %APPDATA%\SpaceEngineers\IngameScripts\local\
+├── Unity Boot\script.cs
 ├── UnityPad\script.cs
 ├── UnityMissile\script.cs
 ├── UnityInventory\script.cs

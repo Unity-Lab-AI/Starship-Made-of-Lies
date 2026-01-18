@@ -3,7 +3,24 @@
 Launch pad controller for the Unity Missile System. Manages missile printing, fueling, arming, and launch.
 
 **Location:** `Unity Missile System/UnityPad/` (part of Unity Missile System)
-**Version:** v01.00 | 2026-01-17
+**Version:** v01.00 | 2026-01-18
+
+---
+
+## BOOT SYSTEM DEPENDENCY
+
+**UnityPad waits for boot_complete=true before taking LCD control.**
+
+Unity Boot must run first and complete 40 system checks. UnityPad checks for boot completion via:
+
+```csharp
+bool IsBootComplete(){
+    if(btn==null)return false;
+    return btn.CustomData.Contains("boot_complete=true");
+}
+```
+
+**LCDs controlled by UnityPad (after boot):** 1, 2, 3, 7, 8
 
 ---
 
@@ -86,20 +103,17 @@ INIT → IDLE → PRINT → BUILD → DOCK → FUEL → READY → ARM → LAUNCH
 
 ---
 
-## LCD LAYOUT
+## LCD LAYOUT (After Boot Complete)
+
+**UnityPad controls LCDs 1, 2, 3, 7, 8 only.** LCDs 4, 5, 6, 9, 10 are controlled by UnityInventory.
 
 | LCD | Content |
 |-----|---------|
 | 1 | Main menu / flight tracking |
 | 2 | Build status / telemetry |
 | 3 | Missile systems |
-| 4 | Fuel status / cargo |
-| 5 | Power systems |
-| 6 | Graphs (power/H2/O2) |
 | 7 | Comms / targeting |
 | 8 | Target mode info |
-| 9 | Miner fleet (if any) |
-| 10 | Miner details / storage |
 
 ---
 
@@ -117,7 +131,9 @@ INIT → IDLE → PRINT → BUILD → DOCK → FUEL → READY → ARM → LAUNCH
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityPad | ~121,000 | 88,003 | 100,000 | OK (12% margin) |
+| UnityPad | ~110,000 | 89,239 | 100,000 | OK (11% margin) |
+
+*Note: Boot code removed in v01.00 (2026-01-18). Boot functionality moved to Unity Boot.*
 
 ---
 

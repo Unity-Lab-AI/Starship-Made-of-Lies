@@ -4,6 +4,16 @@
 
 ---
 
+## BOOT SYSTEM DEPENDENCY
+
+**UnityPad requires Unity Boot to run first.**
+
+Unity Boot must complete 40 system checks before UnityPad takes control of LCDs 1, 2, 3, 7, 8.
+
+UnityPad waits for `boot_complete=true` in the [SYSTEM] button panel CustomData.
+
+---
+
 ## FEATURES
 
 - **10 LCD Display System** - Full status on all systems
@@ -237,10 +247,12 @@ The pad monitors mining ships via MinerBeacon broadcasts on LCD9/LCD10.
 
 | Metric | Value |
 |--------|-------|
-| Raw Source | ~121,000 chars |
-| Deployed | 88,003 chars |
+| Raw Source | ~110,000 chars |
+| Deployed | 89,239 chars |
 | Budget | 100,000 chars |
-| Status | OK (12% margin) |
+| Status | OK (11% margin) |
+
+*Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 
 ---
 
@@ -278,4 +290,4 @@ All LCDs use modern sprite rendering via `MySpriteDrawFrame`:
 ---
 
 *Unity AI Lab - Missile Systems Division*
-*Version v01.00 | 2026-01-17*
+*Version v01.00 | 2026-01-18*

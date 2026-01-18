@@ -4,6 +4,16 @@
 
 ---
 
+## BOOT SYSTEM DEPENDENCY
+
+**UnityInventory requires Unity Boot to run first.**
+
+Unity Boot must complete 40 system checks before UnityInventory takes control of LCDs 4, 5, 6, 9, 10.
+
+UnityInventory waits for `boot_complete=true` in the [SYSTEM] button panel CustomData.
+
+---
+
 ## FEATURES
 
 - **5 LCD Displays** - LCD4, LCD5, LCD6, LCD9, LCD10 with sprite rendering
@@ -173,10 +183,12 @@ asmWorking=2
 
 | Metric | Value |
 |--------|-------|
-| Raw Source | ~88,809 chars |
-| Deployed | 65,635 chars |
+| Raw Source | ~98,000 chars |
+| Deployed | 78,680 chars |
 | Budget | 100,000 chars |
-| Status | OK (34% margin) |
+| Status | OK (21% margin) |
+
+*Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 
 ---
 
@@ -204,4 +216,4 @@ Deploys to: `%APPDATA%\SpaceEngineers\IngameScripts\local\UnityInventory\script.
 ---
 
 *Unity AI Lab - Inventory Systems Division*
-*Version v01.00 | 2026-01-17*
+*Version v01.00 | 2026-01-18*

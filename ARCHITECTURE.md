@@ -1,15 +1,41 @@
 # UNITY MISSILE SYSTEM - Architecture
 
-*Last scanned: 2026-01-16*
+*Last scanned: 2026-01-18*
 
 ---
 
 ## System Overview
 
-Three-script guided missile system for Space Engineers:
-- **UnityPad** - Pad handles everything pre-launch (menus, fueling, targeting, printing, inventory, fleet tracking)
+Five-script guided missile system for Space Engineers:
+- **Unity Boot** - Boot controller runs 40 system checks, initializes all 10 LCDs
+- **UnityPad** - Pad handles everything pre-launch (menus, fueling, targeting, printing)
+- **UnityInventory** - Inventory management (sorting, production, fleet tracking)
 - **UnityMissile** - Missile handles everything in-flight (guidance, targeting, detonation)
 - **UnityBeacon** - Optional miner fleet status broadcasting
+
+---
+
+## Boot System Architecture
+
+Unity Boot is a dedicated boot controller that runs FIRST before operational scripts.
+
+**Boot Flow:**
+```
+Unity Boot starts → Controls ALL 10 LCDs → Runs 40 checks → Sets boot_complete=true → Self-disables
+                                                                    ↓
+UnityPad waits for boot_complete → Takes LCDs 1,2,3,7,8
+UnityInventory waits for boot_complete → Takes LCDs 4,5,6,9,10
+```
+
+**Handshake Protocol:**
+```ini
+[SYSTEM]
+boot_complete=false    ; Set TRUE by Unity Boot when 40/40 checks pass
+```
+
+**The 40 Boot Checks:**
+- Checks 1-20: Pad systems (grid, merge, connectors, LCDs, printer, power, missile detection)
+- Checks 21-40: Inventory systems (cargo, refineries, assemblers, gas, IGC, stock analysis)
 
 ---
 
@@ -19,12 +45,14 @@ Scripts are loaded onto programmable blocks with specific naming patterns:
 
 | Script | PB Name Format | Example |
 |--------|---------------|---------|
+| **Unity Boot** | `[PAD#-BOOT] UNITY BOOT` | `[PAD1-BOOT] UNITY BOOT` |
 | **UnityPad** | `[PAD#] Unity Pad` | `[PAD1] Unity Pad` |
 | **UnityMissile** | `PAD# Missile #X Unity Missile` | `PAD1 Missile #1 Unity Missile` |
 | **UnityInventory** | `[PAD#] Unity Inventory` | `[PAD1] Unity Inventory` |
 | **UnityBeacon** | `[BEACON] Unity Beacon` | `[BEACON] Unity Beacon` |
 
 **Notes:**
+- Unity Boot must run FIRST before UnityPad and UnityInventory
 - The `[PAD#]` tag in the PB name ties it to a specific pad
 - Missile PB names include the pad ID and missile build number
 - UnityInventory runs on a separate PB for inventory management (same grid as UnityPad)
@@ -275,6 +303,7 @@ All LCDs switch to flight tracking mode showing telemetry, phase, distance, and 
 
 ```
 Unity Missile System/
+├── Unity Boot.cs            # RAW boot script (EDIT THIS)
 ├── UnityPad.cs              # RAW pad script (EDIT THIS)
 ├── UnityMissile.cs          # RAW missile script (EDIT THIS)
 ├── UnityInventory.cs        # RAW inventory script (EDIT THIS)
@@ -286,27 +315,37 @@ Unity Missile System/
 ├── SKILL_TREE.md            # Capabilities
 ├── ROADMAP.md               # Future plans
 │
+├── Unity Boot/              # MDK Project
+│   ├── Program.cs           # Wrapped from Unity Boot.cs
+│   ├── Unity Boot.csproj
+│   ├── mdk.ini              # minify=full
+│   └── .claude/             # Boot-specific workflow
+│
 ├── UnityPad/                # MDK Project
 │   ├── Program.cs           # Wrapped from UnityPad.cs
 │   ├── UnityPad.csproj
-│   └── mdk.ini              # minify=full
+│   ├── mdk.ini              # minify=full
+│   └── .claude/             # Pad-specific workflow
 │
 ├── UnityMissile/            # MDK Project
 │   ├── Program.cs           # Wrapped from UnityMissile.cs
 │   ├── UnityMissile.csproj
-│   └── mdk.ini              # minify=full
+│   ├── mdk.ini              # minify=full
+│   └── .claude/             # Missile-specific workflow
 │
 ├── UnityInventory/          # MDK Project
 │   ├── Program.cs           # Wrapped from UnityInventory.cs
 │   ├── UnityInventory.csproj
-│   └── mdk.ini              # minify=full
+│   ├── mdk.ini              # minify=full
+│   └── .claude/             # Inventory-specific workflow
 │
 ├── UnityBeacon/             # MDK Project
 │   ├── Program.cs           # Wrapped from UnityBeacon.cs
 │   ├── UnityBeacon.csproj
-│   └── mdk.ini              # minify=full
+│   ├── mdk.ini              # minify=full
+│   └── .claude/             # Beacon-specific workflow
 │
-└── .claude/                 # Workflow system
+└── .claude/                 # Main workflow system
     ├── CLAUDE.md            # Rules and enforcement
     ├── TODO.md              # Active tasks
     ├── FINALIZED.md         # Completed tasks
@@ -316,9 +355,9 @@ Unity Missile System/
 
 ---
 
-## UnityInventory.cs Architecture (~28,000 chars deployed)
+## UnityInventory.cs Architecture (~78,680 chars deployed)
 
-Dedicated inventory management script running on a separate PB from UnityPad.
+Dedicated inventory management script running on a separate PB from UnityPad. Waits for boot_complete before taking control of LCDs 4, 5, 6, 9, 10.
 
 **Communication:** Button panel CustomData (shared with UnityPad)
 
@@ -391,13 +430,17 @@ SteelPlate, Construction, SmallTube, LargeTube, Motor, Computer, MetalGrid, Disp
 
 | Script | Lines | Deployed | Limit | Margin | Status |
 |--------|-------|----------|-------|--------|--------|
-| UnityPad | 1,975 | 99,899 | 100,000 | 101 | CRITICAL |
-| UnityMissile | 909 | ~25,000 | 100,000 | 75,000 | OK |
-| UnityInventory | 481 | 28,359 | 100,000 | 71,641 | OK |
-| UnityBeacon | 175 | ~7,648 | 100,000 | 92,352 | OK |
+| Unity Boot | ~250 | 12,697 | 100,000 | 87,303 | OK |
+| UnityPad | ~2,000 | 89,239 | 100,000 | 10,761 | OK |
+| UnityMissile | ~900 | ~26,000 | 100,000 | 74,000 | OK |
+| UnityInventory | ~1,200 | 78,680 | 100,000 | 21,320 | OK |
+| UnityBeacon | ~175 | ~10,800 | 100,000 | 89,200 | OK |
+
+*Note: Boot code extracted from UnityPad and UnityInventory into Unity Boot on 2026-01-18.*
 
 **Check deployed sizes:**
 ```powershell
+(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs" -Raw).Length
 (Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityPad\script.cs" -Raw).Length
 (Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs" -Raw).Length
 (Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs" -Raw).Length

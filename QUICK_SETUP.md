@@ -1,6 +1,6 @@
 # UNITY MISSILE SYSTEM - Quick Setup Guide
 
-**Version:** v01.00 | **Last Updated:** 2026-01-17
+**Version:** v01.00 | **Last Updated:** 2026-01-18
 
 ---
 
@@ -8,6 +8,7 @@
 
 | Script | Purpose | Runs On |
 |--------|---------|---------|
+| **Unity Boot** | Boot controller, 40 system checks, LCD init | Same grid as UnityPad |
 | **UnityPad** | Launch pad controller, targeting, fleet management | Your base/ship with launch pads |
 | **UnityMissile** | Guidance system, flies to target and detonates | The missile itself |
 | **UnityInventory** | Inventory sorting, production, miner transfers | Same grid as UnityPad (separate PB) |
@@ -22,6 +23,7 @@
 Scripts auto-deploy to:
 ```
 %APPDATA%\SpaceEngineers\IngameScripts\local\
+├── Unity Boot\script.cs
 ├── UnityPad\script.cs
 ├── UnityMissile\script.cs
 ├── UnityInventory\script.cs
@@ -32,7 +34,27 @@ In-game: **G Menu → Info → Edit → Browse Workshop → Local Scripts**
 
 ---
 
-### Step 2: UnityPad Setup (Launch Pad)
+### Step 2: Install Boot System (NEW)
+
+**REQUIRED:** Install Unity Boot FIRST on your launch pad grid.
+
+1. Add Programmable Block near pad controls
+2. Load `Unity Boot` script
+3. **Name the PB:** `[PAD1-BOOT] UNITY BOOT`
+4. Click "Recompile"
+5. Boot runs 40 system checks on all 10 LCDs
+6. Sets `boot_complete=true` when done
+7. UnityPad and UnityInventory wait for boot_complete
+
+---
+
+### Step 3: UnityPad Setup (Launch Pad)
+
+1. Add SECOND Programmable Block on same grid
+2. Load `UnityPad` script
+3. **Name the PB:** `[PAD1] Unity Pad`
+4. Click "Recompile"
+5. Script waits for boot_complete before taking LCD control
 
 #### Run SETUPMOD First
 After installing UnityPad script, run `SETUPMOD` to auto-tag all blocks:
@@ -257,7 +279,8 @@ cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 # CRITICAL: Sync source files first!
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 
-# Build all four
+# Build all five
+dotnet build "Unity Boot" -c Debug
 dotnet build UnityPad -c Debug
 dotnet build UnityMissile -c Debug
 dotnet build UnityInventory -c Debug
@@ -267,6 +290,7 @@ dotnet build UnityBeacon -c Debug
 ### Verify Deployment
 ```powershell
 # Check deployed sizes
+(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs" -Raw).Length
 (Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityPad\script.cs" -Raw).Length
 (Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs" -Raw).Length
 (Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs" -Raw).Length
@@ -306,9 +330,10 @@ dotnet build UnityBeacon -c Debug
 
 | Script | Deployed | Limit | Margin |
 |--------|----------|-------|--------|
-| UnityPad | 88,003 | 100,000 | 12% |
+| Unity Boot | 12,697 | 100,000 | 87% |
+| UnityPad | 89,239 | 100,000 | 11% |
 | UnityMissile | 26,058 | 100,000 | 74% |
-| UnityInventory | 62,262 | 100,000 | 38% |
+| UnityInventory | 78,680 | 100,000 | 21% |
 | UnityBeacon | 10,800 | 100,000 | 89% |
 
 ---
@@ -318,10 +343,12 @@ dotnet build UnityBeacon -c Debug
 ```
 Unity Missile System/
 ├── wrap-scripts.ps1         # Wraps all raw .cs to Program.cs
+├── Unity Boot.cs            # Edit this (boot controller)
 ├── UnityPad.cs              # Edit this (pad controller)
 ├── UnityMissile.cs          # Edit this (missile guidance)
 ├── UnityInventory.cs        # Edit this (inventory manager)
 ├── UnityBeacon.cs           # Edit this (fleet beacon)
+├── Unity Boot/              # MDK project
 ├── UnityPad/                # MDK project
 ├── UnityMissile/            # MDK project
 ├── UnityInventory/          # MDK project
@@ -352,4 +379,4 @@ Progress bars automatically change color based on fill percentage.
 ---
 
 *Unity AI Lab - Making Things Go Boom Since 2026*
-*Version v01.00 | 2026-01-17*
+*Version v01.00 | 2026-01-18*

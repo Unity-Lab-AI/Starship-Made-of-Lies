@@ -1,6 +1,6 @@
 # UNITY MISSILE SYSTEM v01.00
 
-**4-Script Modular System | 10 LCD Displays | Sprite-Based Rendering | Full Automation | Satellite Relay | Carpet Bomb | Auto-Attack | Fleet Tracking | Inventory Management**
+**5-Script Modular System | 10 LCD Displays | Sprite-Based Rendering | Full Automation | Satellite Relay | Carpet Bomb | Auto-Attack | Fleet Tracking | Inventory Management**
 
 **Works on LARGE or SMALL grids (auto-detect)**
 **Works in SPACE or ATMOSPHERE (auto-detect)**
@@ -12,6 +12,7 @@
 
 | Script | PB Name | Function |
 |--------|---------|----------|
+| **Unity Boot** | `[PAD1-BOOT] UNITY BOOT` | Boot controller, 40 system checks, LCD init |
 | **UnityPad** | `[PAD1] Unity Pad` | Launch control, LCDs, targeting, printing |
 | **UnityMissile** | `PAD1 Missile #1 Unity Missile` | In-flight guidance, targeting, detonation |
 | **UnityInventory** | `[PAD1] Unity Inventory` | Inventory management, production, sorting |
@@ -95,10 +96,23 @@ Button 4 → Run PB with argument: LAUNCH
 
 #### Step 3: Install Scripts
 
-1. Copy `UnityPad.cs` into the Programmable Block
-2. Click "Check Code" - should show no errors
-3. Click "Run" or "Recompile"
-4. Script starts in INIT state
+**Three PBs required on pad grid:**
+
+1. **Boot PB:**
+   - Copy `Unity Boot.cs` into a Programmable Block
+   - Name it: `[PAD1-BOOT] UNITY BOOT`
+   - Run once to initialize boot sequence
+
+2. **Pad PB:**
+   - Copy `UnityPad.cs` into another Programmable Block
+   - Click "Check Code" - should show no errors
+   - Click "Run" or "Recompile"
+   - Waits for boot_complete before taking LCD control
+
+3. **Inventory PB:**
+   - Copy `UnityInventory.cs` into a third Programmable Block
+   - Name it: `[PAD1] Unity Inventory`
+   - Waits for boot_complete before taking LCD control
 
 #### Step 4: SETUPMOD - Automatic Configuration
 
@@ -746,6 +760,50 @@ In SURVIVAL mode:
 
 ---
 
+## UNITY BOOT SYSTEM
+
+Centralized boot controller that runs 40 system checks before operational scripts take over.
+
+### How It Works
+
+1. **Boot PB starts first** → Takes control of ALL 10 LCDs
+2. **Runs 40 checks** → Displays progress (1/40, 2/40, etc.)
+3. **On error** → Pauses 5 seconds, shows error message, retries
+4. **On success** → Sets `boot_complete=true` in [SYSTEM] CustomData
+5. **Self-disables** → UpdateFrequency.None (stops running)
+6. **Handoff** → UnityPad and UnityInventory detect boot_complete and take their LCDs
+
+### Setup
+
+1. Add a **third** Programmable Block on the pad grid
+2. Load `Unity Boot` script
+3. Name PB: `[PAD1-BOOT] UNITY BOOT`
+4. The boot PB communicates via button panel [SYSTEM] CustomData
+
+### Boot Checks (40 Total)
+
+**Pad Checks (1-20):** Grid, GTS, merge, connector, projector, RC, gyros, thrusters, warheads, batteries, tanks, cameras, sensors, antennas, waypoints, system panel, LCDs, config, IGC, pad ready
+
+**Inventory Checks (21-40):** Grid, GTS, assemblers, refineries, storage, sorters, connectors, O2 gens, H2 tanks, O2 tanks, ingots, components, ores, tools, ammo, LCDs, quotas, blueprints, IGC, inventory ready
+
+### LCD Control
+
+| Phase | LCDs Controlled |
+|-------|-----------------|
+| **Boot** | ALL 10 (animated boot screen) |
+| **After boot_complete** | Boot releases all |
+| **UnityPad** | 1, 2, 3, 7, 8 |
+| **UnityInventory** | 4, 5, 6, 9, 10 |
+
+### Boot Handshake
+
+```ini
+[SYSTEM]
+boot_complete=false    ; Set TRUE by Unity Boot on success
+```
+
+---
+
 ## UNITYINVENTORY SYSTEM
 
 Dedicated inventory management running on a separate PB from UnityPad.
@@ -1183,9 +1241,10 @@ When in SURVIVAL mode, the pad automatically:
 
 | Script | Deployed | Limit | Status |
 |--------|----------|-------|--------|
-| UnityPad | 88,003 | 100,000 | OK (12% margin) |
+| Unity Boot | 12,697 | 100,000 | OK (87% margin) |
+| UnityPad | 89,239 | 100,000 | OK (11% margin) |
 | UnityMissile | 26,058 | 100,000 | OK (74% margin) |
-| UnityInventory | 62,262 | 100,000 | OK (38% margin) |
+| UnityInventory | 78,680 | 100,000 | OK (21% margin) |
 | UnityBeacon | 10,800 | 100,000 | OK (89% margin) |
 
 *Note: The 100k limit applies to DEPLOYED script.cs in AppData. MDK2 with `minify=full` compresses the raw source by ~20-30%.*
@@ -1552,6 +1611,7 @@ Missile #1 [AMMO] Connector
 
 | Script | Location | PB Name | Purpose |
 |--------|----------|---------|---------|
+| **Unity Boot.cs** | `Unity Missile System/` | `[PAD1-BOOT] UNITY BOOT` | Boot controller, 40 system checks, LCD init |
 | **UnityPad.cs** | `Unity Missile System/` | `[PAD1] Unity Pad` | Launch control, LCDs, targeting, printing |
 | **UnityMissile.cs** | `Unity Missile System/` | `PAD1 Missile #1 Unity Missile` | Guided missile with multiple targeting modes |
 | **UnityInventory.cs** | `Unity Missile System/` | `[PAD1] Unity Inventory` | Inventory management, production, auto-sorting |
@@ -1565,6 +1625,7 @@ Scripts use specific PB naming conventions:
 
 | Script | PB Name Format | Example |
 |--------|----------------|---------|
+| **Unity Boot** | `[PAD#-BOOT] UNITY BOOT` | `[PAD1-BOOT] UNITY BOOT` |
 | **UnityPad** | `[PAD#] Unity Pad` | `[PAD1] Unity Pad` |
 | **UnityMissile** | `PAD# Missile #X Unity Missile` | `PAD1 Missile #1 Unity Missile` |
 | **UnityInventory** | `[PAD#] Unity Inventory` | `[PAD1] Unity Inventory` |
@@ -1572,6 +1633,9 @@ Scripts use specific PB naming conventions:
 
 **Notes:**
 - The `[PAD#]` tag in the PB name ties it to a specific pad
+- Unity Boot runs FIRST and controls all 10 LCDs during startup
+- UnityPad takes LCDs 1,2,3,7,8 after boot_complete
+- UnityInventory takes LCDs 4,5,6,9,10 after boot_complete
 - Missile PB names include pad ID and missile build number
 - UnityInventory runs on a SEPARATE PB from UnityPad (same grid)
 - All block tags remain unchanged: `[PAD1]`, `[PAD1:1-10]`, `-ore`, `[DOCK]`, etc.

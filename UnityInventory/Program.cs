@@ -22,9 +22,7 @@ namespace IngameScript
 {
     public partial class Program : MyGridProgram
     {        int padID=0;int tick=0;bool setupDone=false;bool autoOrg=true;int viewIdx=0,graphIdx=0,scrollOff=0;
-        bool booting=true;int bootStep=0;int bootTicks=0;
-        string[] bootChecks={"Initializing Core Systems","Scanning Grid Topology","Detecting Block Types","Loading Pad Configuration","Scanning Cargo Containers","Scanning Refineries","Scanning Assemblers","Loading Inventory Data","Scanning Power Systems","Scanning Gas Systems","Initializing IGC Channels","Syncing Miner Beacons","Analyzing Stock Levels","Calibrating Ore Routing","Configuring Component Queue","Loading Tool Manifests","Initializing Auto-Sort","Validating Connections","Syncing with Pad Controller","System Boot Complete"};
-        IMyBroadcastListener bootL;
+        bool bootDone=false;
         float lcdW=512,lcdH=512,lcdS=1;
         string padTag="[PAD1";
         IMyButtonPanel btn;
@@ -94,7 +92,7 @@ namespace IngameScript
         string prtPhase="CHECKING";int prtState=0,prtRem=0,prtTot=0,prtBld=0;float prtPist=0;bool printing=false;
         const string BP="MyObjectBuilder_BlueprintDefinition/";
         const string OB="MyObjectBuilder_";
-        string[] ammoNames={"Pistol","Rifle","Rapid","Rocket","Gatling"};
+        string[] ammoNames={"5.45x39mm","MR-20","MR-50A","200mm Missile","25x184mm NATO"};
         string[] ammoBPNames={"SemiAutoPistolMagazine","AutomaticRifleGun_Mag_20rd","RapidFireAutomaticRifleGun_Mag_50rd","Missile200mm","NATO_25x184mmMagazine"};
         string[] ammoITNames={"SemiAutoPistolMagazine","AutomaticRifleGun_Mag_20rd","RapidFireAutomaticRifleGun_Mag_50rd","Missile200mm","NATO_25x184mm"};
         MyDefinitionId ammoBP;
@@ -102,7 +100,7 @@ namespace IngameScript
         MyDefinitionId h2BottleBP=MyDefinitionId.Parse(BP+"HydrogenBottle");
         MyDefinitionId o2BottleBP=MyDefinitionId.Parse(BP+"OxygenBottle");
         MyItemType h2BottleType=MyItemType.Parse(OB+"GasContainerObject/HydrogenBottle");
-        MyItemType o2BottleType=MyItemType.Parse(OB+"GasContainerObject/OxygenBottle");
+        MyItemType o2BottleType=MyItemType.Parse(OB+"OxygenContainerObject/OxygenBottle");
         Dictionary<string,MyDefinitionId> compBP=new Dictionary<string,MyDefinitionId>{
         {"SteelPlate",MyDefinitionId.Parse(BP+"SteelPlate")},
         {"Construction",MyDefinitionId.Parse(BP+"ConstructionComponent")},
@@ -124,7 +122,9 @@ namespace IngameScript
         {"Medical",MyDefinitionId.Parse(BP+"MedicalComponent")},
         {"Reactor",MyDefinitionId.Parse(BP+"ReactorComponent")},
         {"SolarCell",MyDefinitionId.Parse(BP+"SolarCell")},
-        {"Superconductor",MyDefinitionId.Parse(BP+"Superconductor")}};
+        {"Superconductor",MyDefinitionId.Parse(BP+"Superconductor")},
+        {"Canvas",MyDefinitionId.Parse(BP+"Canvas")},
+        {"ZoneChip",MyDefinitionId.Parse(BP+"ZoneChip")}};
         string[] tlsNames={"Drill","Welder","Grinder","Rifle","Pistol","Launcher","Flare"};
         string[][] tBP={new[]{"HandDrill","HandDrill2","HandDrill3","HandDrill4"},new[]{"Welder","Welder2","Welder3","Welder4"},new[]{"AngleGrinder","AngleGrinder2","AngleGrinder3","AngleGrinder4"},new[]{"AutomaticRifle","PreciseAutomaticRifle","RapidFireAutomaticRifle","UltimateAutomaticRifle"},new[]{"SemiAutoPistol","FullAutoPistol","ElitePistol"},new[]{"BasicHandHeldLauncher","AdvancedHandHeldLauncher"},new[]{"FlareGun"}};
         string[][] tIT={new[]{"HandDrillItem","HandDrill2Item","HandDrill3Item","HandDrill4Item"},new[]{"WelderItem","Welder2Item","Welder3Item","Welder4Item"},new[]{"AngleGrinderItem","AngleGrinder2Item","AngleGrinder3Item","AngleGrinder4Item"},new[]{"AutomaticRifleItem","PreciseAutomaticRifleItem","RapidFireAutomaticRifleItem","UltimateAutomaticRifleItem"},new[]{"SemiAutoPistolItem","FullAutoPistolItem","ElitePistolItem"},new[]{"BasicHandHeldLauncherItem","AdvancedHandHeldLauncherItem"},new[]{"FlareGunItem"}};
@@ -137,8 +137,11 @@ namespace IngameScript
         UpdatePadTag();
         UpdateAmmoType();
         bcnL=IGC.RegisterBroadcastListener("MINER_BEACON");
-        bootL=IGC.RegisterBroadcastListener("UNITY_BOOT");
         Scan();
+        }
+        bool IsBootComplete(){
+        if(btn==null)return false;
+        return btn.CustomData.Contains("boot_complete=true");
         }
         public void Save(){Storage=$"{padID}|{ammoTarget}|{toolTarget}|{(autoOrg?"1":"0")}";}
         void LoadStorage(){
@@ -160,7 +163,10 @@ namespace IngameScript
         
         public void Main(string a,UpdateType u){
         tick++;
-        if(booting){RunBoot();return;}
+        if(!bootDone){
+        if(!IsBootComplete()){Echo("UNITY INVENTORY");Echo("Waiting for boot...");return;}
+        bootDone=true;Scan();
+        }
         if(tick%3==0){
         int totItems=oStk.Count+iStk.Count+cStk.Count+tStk.Count+pAmmoStk.Count+(pH2B>0?1:0)+(pO2B>0?1:0)+(ammoStock>0?1:0);
         int maxScroll=viewIdx==4?Math.Max(0,(totItems-16)/8):viewIdx==5?Math.Max(0,(cQd.Count-4)/2):0;
@@ -202,61 +208,6 @@ namespace IngameScript
         case"RESCAN":Scan();break;
         case"AUTOORG":autoOrg=!autoOrg;break;
         }}
-        
-        void RunBoot(){
-        bootTicks++;
-        if(btn==null){var blks=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(blks,b=>b.CustomName.Contains(padTag)&&b.CustomName.ToLower().Contains("control"));if(blks.Count>0)btn=blks[0];}
-        if(lcd4==null||lcd5==null||lcd6==null||lcd9==null||lcd10==null){
-        var pnls=new List<IMyTextPanel>();GridTerminalSystem.GetBlocksOfType(pnls,b=>b.CustomName.Contains(padTag));
-        foreach(var p in pnls){string nm=p.CustomName;if(nm.Contains(":4")&&lcd4==null)lcd4=p;else if(nm.Contains(":5")&&lcd5==null)lcd5=p;else if(nm.Contains(":6")&&lcd6==null)lcd6=p;else if(nm.Contains(":9")&&lcd9==null)lcd9=p;else if(nm.Contains(":10")&&lcd10==null)lcd10=p;}}
-        bool padReady=false;
-        if(btn!=null){string cd=btn.CustomData;if(cd.Contains("[UNITY_BOOT]")&&cd.Contains("pad=1"))padReady=true;}
-        if(bootTicks>5&&bootStep<bootChecks.Length){
-        if(bootTicks%(3)==0)bootStep++;
-        if(bootStep>=bootChecks.Length)bootStep=bootChecks.Length-1;}
-        float pct=(float)bootStep/(bootChecks.Length-1);
-        string curCheck=bootStep<bootChecks.Length?bootChecks[bootStep]:"Complete";
-        IMyTextSurface[] lcds={lcd4,lcd5,lcd6,lcd9,lcd10};
-        foreach(var lcd in lcds){if(lcd==null)continue;DrawBootScreen(lcd,pct,curCheck,bootStep,bootChecks.Length,false,padReady);}
-        if(btn!=null&&bootStep>=bootChecks.Length-1){
-        string cd=btn.CustomData;
-        if(!cd.Contains("[UNITY_BOOT]"))cd="[UNITY_BOOT]\n"+cd;
-        if(!cd.Contains("inv=1")){int idx=cd.IndexOf("[UNITY_BOOT]");cd=cd.Insert(idx+12,"\ninv=1");btn.CustomData=cd;}}
-        if(bootStep>=bootChecks.Length-1&&padReady){booting=false;Scan();}
-        Echo("UNITY MISSILE SYSTEM");
-        Echo("Inventory Module Booting...");
-        Echo($"Step {bootStep+1}/{bootChecks.Length}: {curCheck}");
-        if(padReady)Echo("Pad Controller: READY");else Echo("Pad Controller: WAITING");
-        }
-        
-        void DrawBootScreen(IMyTextSurface s,float pct,string check,int step,int total,bool isPad,bool otherReady){
-        s.ContentType=ContentType.SCRIPT;s.Script="";s.ScriptBackgroundColor=cBg;
-        var f=s.DrawFrame();
-        Vector2 sz=s.SurfaceSize;float cx=sz.X/2,cy=sz.Y/2;
-        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,cy),sz,cBg));
-        f.Add(new MySprite(SpriteType.TEXT,"UNITY MISSILE SYSTEM",new Vector2(cx,40),null,cPri,null,TextAlignment.CENTER,1.2f));
-        f.Add(new MySprite(SpriteType.TEXT,"v01.00",new Vector2(cx,75),null,cSec,null,TextAlignment.CENTER,0.5f));
-        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,100),new Vector2(sz.X-60,2),cSec));
-        string mod=isPad?"PAD CONTROLLER":"INVENTORY MODULE";
-        f.Add(new MySprite(SpriteType.TEXT,mod,new Vector2(cx,120),null,cAcc,null,TextAlignment.CENTER,0.6f));
-        f.Add(new MySprite(SpriteType.TEXT,"System Initialization",new Vector2(cx,150),null,cTxt,null,TextAlignment.CENTER,0.55f));
-        float bx=40,by=sz.Y-120,bw=sz.X-80,bh=20;
-        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,by+bh/2),new Vector2(bw,bh),cBdr));
-        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(bx+bw*pct/2,by+bh/2),new Vector2(bw*pct,bh-4),cPri));
-        f.Add(new MySprite(SpriteType.TEXT,$"{(int)(pct*100)}%",new Vector2(cx,by+bh+5),null,cTxt,null,TextAlignment.CENTER,0.45f));
-        f.Add(new MySprite(SpriteType.TEXT,$"[{step+1}/{total}] {check}",new Vector2(cx,by-25),null,cOK,null,TextAlignment.CENTER,0.4f));
-        int startIdx=Math.Max(0,step-4);
-        float ly=180;
-        for(int i=startIdx;i<=step&&i<total;i++){
-        Color lc=i<step?cOK:i==step?cPri:cSec;
-        string prefix=i<step?"[OK]":i==step?"[>>]":"[..]";
-        f.Add(new MySprite(SpriteType.TEXT,$"{prefix} {bootChecks[i]}",new Vector2(30,ly),null,lc,null,TextAlignment.LEFT,0.35f));
-        ly+=18;if(ly>by-50)break;}
-        string syncSt=otherReady?"SYNCED":"WAITING";
-        Color syncC=otherReady?cOK:cWrn;
-        f.Add(new MySprite(SpriteType.TEXT,$"Module Sync: {syncSt}",new Vector2(cx,sz.Y-30),null,syncC,null,TextAlignment.CENTER,0.4f));
-        f.Dispose();
-        }
         
         void Scan(){
         padCargo.Clear();padCargoL.Clear();padCargoM.Clear();padCargoS.Clear();padRef.Clear();padAsm.Clear();padReact.Clear();padGen.Clear();oreC.Clear();btn=null;padCon=null;
@@ -331,10 +282,11 @@ namespace IngameScript
         if(tp.Contains("Ore"))AD(oStk,sub,amt);
         else if(tp.Contains("Ingot"))AD(iStk,sub,amt);
         else if(tp.Contains("Component"))AD(cStk,sub,amt);
-        else if(tp.Contains("GasContainerObject")){if(sub.Contains("Hydrogen"))pH2B+=amt;else if(sub.Contains("Oxygen"))pO2B+=amt;}
+        else if(tp.Contains("GasContainerObject")&&sub.Contains("Hydrogen"))pH2B+=amt;
+        else if(tp.Contains("OxygenContainerObject")&&sub.Contains("Oxygen"))pO2B+=amt;
         else if(tp.Contains("PhysicalGunObject"))AD(tStk,sub,amt);
         }}
-        Cn("SteelPlate",6000);Cn("Construction",3500);Cn("SmallTube",3200);Cn("LargeTube",1500);Cn("Motor",1200);Cn("Computer",1500);Cn("MetalGrid",950);Cn("Display",600);Cn("BulletproofGlass",2050);Cn("PowerCell",800);Cn("Thrust",1050);Cn("Explosives",2600);Cn("Detector",1500);Cn("RadioCommunication",900);Cn("GravityGenerator",600);Cn("InteriorPlate",3000);Cn("Girder",500);Cn("Medical",200);Cn("Reactor",300);Cn("SolarCell",500);Cn("Superconductor",300);
+        Cn("SteelPlate",6000);Cn("Construction",3500);Cn("SmallTube",3200);Cn("LargeTube",1500);Cn("Motor",1200);Cn("Computer",1500);Cn("MetalGrid",950);Cn("Display",600);Cn("BulletproofGlass",2050);Cn("PowerCell",800);Cn("Thrust",1050);Cn("Explosives",2600);Cn("Detector",1500);Cn("RadioCommunication",900);Cn("GravityGenerator",600);Cn("InteriorPlate",3000);Cn("Girder",500);Cn("Medical",200);Cn("Reactor",300);Cn("SolarCell",500);Cn("Superconductor",300);Cn("Canvas",100);Cn("ZoneChip",50);
         cMis.Clear();
         foreach(var kv in cNd){int have=0;if(cStk.ContainsKey(kv.Key))have=cStk[kv.Key];if(have<kv.Value)cMis[kv.Key]=kv.Value-have;}
         ammoStock=0;ammoQueued=0;
@@ -450,13 +402,13 @@ namespace IngameScript
         for(int i=o.ItemCount-1;i>=0;i--){var it=o.GetItemAt(i);if(!it.HasValue)continue;string tid=it.Value.Type.TypeId;
         if(tid.Contains("PhysicalGunObject")&&toolCargo!=null){var tI=toolCargo.GetInventory();if(tI!=null)o.TransferItemTo(tI,i);}
         else if(tid.Contains("AmmoMagazine")){var dest=pAmmoCargo??toolCargo;if(dest!=null){var dI=dest.GetInventory();if(dI!=null)o.TransferItemTo(dI,i);}}
-        else if(tid.Contains("GasContainerObject")&&bottleCargo!=null){var bI=bottleCargo.GetInventory();if(bI!=null)o.TransferItemTo(bI,i);}}
+        else if((tid.Contains("GasContainerObject")||tid.Contains("OxygenContainerObject"))&&bottleCargo!=null){var bI=bottleCargo.GetInventory();if(bI!=null)o.TransferItemTo(bI,i);}}
         var q=new List<MyProductionItem>();a.GetQueue(q);foreach(var i in q){string bn=i.BlueprintId.SubtypeName;AD(tQ,bn,(int)i.Amount);AD(pAmmoQ,bn,(int)i.Amount);}}
         if(pAmmoCargo!=null){var paI=pAmmoCargo.GetInventory();if(paI!=null)foreach(var x in GL(paI)){string s=x.Type.SubtypeId;if(x.Type.TypeId.Contains("AmmoMagazine"))AD(pAmmoStk,s,(int)x.Amount);}}
         else if(toolCargo!=null){var tI=toolCargo.GetInventory();if(tI!=null)foreach(var x in GL(tI)){string s=x.Type.SubtypeId;if(x.Type.TypeId.Contains("AmmoMagazine"))AD(pAmmoStk,s,(int)x.Amount);}}
         if(toolCargo!=null){var tcI=toolCargo.GetInventory();if(tcI!=null)foreach(var x in GL(tcI)){string s=x.Type.SubtypeId;if(x.Type.TypeId.Contains("PhysicalGunObject"))AD(tStk,s,(int)x.Amount);}}
         foreach(var c in padCargo){if(c==toolCargo||c==pAmmoCargo)continue;var cI=c.GetInventory();if(cI!=null)foreach(var x in GL(cI)){string s=x.Type.SubtypeId;if(x.Type.TypeId.Contains("PhysicalGunObject"))AD(tStk,s,(int)x.Amount);else if(x.Type.TypeId.Contains("AmmoMagazine"))AD(pAmmoStk,s,(int)x.Amount);}}
-        for(int t=0;t<tBP.Length;t++){var bps=tBP[t];var itms=tIT[t];for(int r=0;r<bps.Length;r++){int hv=tStk.ContainsKey(itms[r])?tStk[itms[r]]:0,qd=tQ.ContainsKey(bps[r])?tQ[bps[r]]:0;if(hv+qd>=toolTarget)continue;int nd=toolTarget-hv-qd;int ph=0;if(r>0){ph=tStk.ContainsKey(itms[r-1])?tStk[itms[r-1]]:0;if(ph<1)continue;nd=Math.Min(nd,ph);}var bpId=MyDefinitionId.Parse(BP+bps[r]);foreach(var a in padAsm){if(nd<=0)break;int mk=nd;if(r>0){var pt=MyItemType.Parse(OB+"PhysicalGunObject/"+itms[r-1]);var aI=a.GetInventory(0);if(aI==null)continue;int ia=(int)aI.GetItemAmount(pt);if(ia<1){foreach(var src in padCargo){var cI=src.GetInventory();if(cI==null)continue;int ch=(int)cI.GetItemAmount(pt);if(ch>0){var cL=GL(cI);for(int ci=cL.Count-1;ci>=0&&ia<mk;ci--)if(cL[ci].Type==pt){int xf=Math.Min((int)cL[ci].Amount,mk-ia);cI.TransferItemTo(aI,ci,null,true,(MyFixedPoint)xf);ia+=xf;}break;}}}if(ia<1)continue;mk=Math.Min(mk,ia);}a.AddQueueItem(bpId,(MyFixedPoint)mk);AD(tQ,bps[r],mk);nd-=mk;}}}
+        for(int t=0;t<tBP.Length;t++){var bps=tBP[t];var itms=tIT[t];for(int r=0;r<bps.Length;r++){int hv=tStk.ContainsKey(itms[r])?tStk[itms[r]]:0,qd=tQ.ContainsKey(bps[r])?tQ[bps[r]]:0;if(hv+qd>=toolTarget)continue;int nd=toolTarget-hv-qd;var bpId=MyDefinitionId.Parse(BP+bps[r]);if(r>0){int ph=tStk.ContainsKey(itms[r-1])?tStk[itms[r-1]]:0;if(ph<1)continue;nd=Math.Min(nd,ph);foreach(var a in padAsm){if(nd<=0)break;if(!a.CanUseBlueprint(bpId))continue;var pt=MyItemType.Parse(OB+"PhysicalGunObject/"+itms[r-1]);var aI=a.GetInventory(0);if(aI==null)continue;int ia=(int)aI.GetItemAmount(pt);if(ia<1){foreach(var src in padCargo){var cI=src.GetInventory();if(cI==null)continue;int ch=(int)cI.GetItemAmount(pt);if(ch>0){var cL=GL(cI);for(int ci=cL.Count-1;ci>=0&&ia<nd;ci--)if(cL[ci].Type==pt){int xf=Math.Min((int)cL[ci].Amount,nd-ia);cI.TransferItemTo(aI,ci,null,true,(MyFixedPoint)xf);ia+=xf;}break;}}}if(ia<1)continue;int mk=Math.Min(nd,ia);a.AddQueueItem(bpId,(MyFixedPoint)mk);AD(tQ,bps[r],mk);nd-=mk;}}else{foreach(var a in padAsm){if(nd<=0)break;if(a.CanUseBlueprint(bpId)){a.AddQueueItem(bpId,(MyFixedPoint)nd);AD(tQ,bps[r],nd);nd=0;}}}}}
         for(int i=0;i<pAmmoBP.Length;i++){string bp=pAmmoBP[i];string it=pAmmoIT[i];int hv=pAmmoStk.ContainsKey(it)?pAmmoStk[it]:0;int qd=pAmmoQ.ContainsKey(bp)?pAmmoQ[bp]:0;if(hv+qd>=pAmmoTarget)continue;int nd=pAmmoTarget-hv-qd;var bpId=MyDefinitionId.Parse(BP+bp);foreach(var a in padAsm){if(nd<=0)break;if(a.CanUseBlueprint(bpId)){a.AddQueueItem(bpId,(MyFixedPoint)nd);nd=0;}}}
         }
         
@@ -494,12 +446,12 @@ namespace IngameScript
         foreach(var rc in padReact){var rI=rc.GetInventory();if(rI==null)continue;int h=0;foreach(var x in GL(rI))if(x.Type.SubtypeId=="Uranium")h+=(int)x.Amount;if(h>=50)continue;int n=50-h;foreach(var r in padRef){var O=r.GetInventory(1);if(O==null)continue;var rL=GL(O);for(int i=rL.Count-1;i>=0&&n>0;i--)if(rL[i].Type.SubtypeId=="Uranium"){int xf=Math.Min((int)rL[i].Amount,n);O.TransferItemTo(rI,i,null,true,(MyFixedPoint)xf);n-=xf;}}Action<IMyCargoContainer>pu=c=>{if(n<=0||c==null)return;var I=c.GetInventory();if(I==null)return;var cL=GL(I);for(int i=cL.Count-1;i>=0&&n>0;i--)if(cL[i].Type.SubtypeId=="Uranium"){int xf=Math.Min((int)cL[i].Amount,n);I.TransferItemTo(rI,i,null,true,(MyFixedPoint)xf);n-=xf;}};pu(ingotCargo);foreach(var c in padCargo)pu(c);}
         Action<IMyCargoContainer>fi=c=>{if(c==null)return;var I=c.GetInventory();if(I==null)return;for(int i=I.ItemCount-1;i>=0;i--){var x=I.GetItemAt(i);if(x.HasValue&&x.Value.Type.SubtypeId=="Ice")foreach(var g in padGen){var gI=g.GetInventory();if(gI!=null&&HS(gI,.9f)){I.TransferItemTo(gI,i,null,true,null);break;}}}};
         fi(oreCargo);foreach(var c in padCargo)fi(c);
-        foreach(var g in padGen){var gI=g.GetInventory();if(gI==null)continue;for(int i=gI.ItemCount-1;i>=0;i--){var it=gI.GetItemAt(i);if(!it.HasValue)continue;if(!it.Value.Type.TypeId.Contains("GasContainerObject"))continue;if(bottleCargo!=null){var bI=bottleCargo.GetInventory();if(bI!=null&&HS(bI,.95f))gI.TransferItemTo(bI,i);}}}
-        Action<IMyCargoContainer>fb=c=>{if(c==null||c==bottleCargo)return;var I=c.GetInventory();if(I==null)return;for(int i=I.ItemCount-1;i>=0;i--){var x=I.GetItemAt(i);if(!x.HasValue||!x.Value.Type.TypeId.Contains("GasContainerObject"))continue;if(bottleCargo!=null){var bI=bottleCargo.GetInventory();if(bI!=null&&HS(bI,.95f)&&I.CanTransferItemTo(bI,x.Value.Type)){I.TransferItemTo(bI,i);continue;}}foreach(var g in padGen){var gI=g.GetInventory();if(gI!=null&&HS(gI,.8f)&&I.CanTransferItemTo(gI,x.Value.Type)){I.TransferItemTo(gI,i);break;}}}};
+        foreach(var g in padGen){var gI=g.GetInventory();if(gI==null)continue;for(int i=gI.ItemCount-1;i>=0;i--){var it=gI.GetItemAt(i);if(!it.HasValue)continue;string tid=it.Value.Type.TypeId;if(!tid.Contains("GasContainerObject")&&!tid.Contains("OxygenContainerObject"))continue;if(bottleCargo!=null){var bI=bottleCargo.GetInventory();if(bI!=null&&HS(bI,.95f))gI.TransferItemTo(bI,i);}}}
+        Action<IMyCargoContainer>fb=c=>{if(c==null||c==bottleCargo)return;var I=c.GetInventory();if(I==null)return;for(int i=I.ItemCount-1;i>=0;i--){var x=I.GetItemAt(i);if(!x.HasValue)continue;string tid=x.Value.Type.TypeId;if(!tid.Contains("GasContainerObject")&&!tid.Contains("OxygenContainerObject"))continue;if(bottleCargo!=null){var bI=bottleCargo.GetInventory();if(bI!=null&&HS(bI,.95f)&&I.CanTransferItemTo(bI,x.Value.Type)){I.TransferItemTo(bI,i);continue;}}foreach(var g in padGen){var gI=g.GetInventory();if(gI!=null&&HS(gI,.8f)&&I.CanTransferItemTo(gI,x.Value.Type)){I.TransferItemTo(gI,i);break;}}}};
         foreach(var c in padCargo)fb(c);
         }
         
-        IMyCargoContainer GD(MyItemType t){string p=t.TypeId,s=t.SubtypeId;return p.Contains("Ore")?oreCargo:p.Contains("Ingot")?ingotCargo:p.Contains("Component")?compCargo:p.Contains("PhysicalGunObject")?toolCargo:p.Contains("AmmoMagazine")?(s.Contains("Pistol")||s.Contains("RifleGun")||s.Contains("Flare")?(pAmmoCargo??toolCargo):(ammoCargo??toolCargo)):p.Contains("GasContainerObject")?bottleCargo:null;}
+        IMyCargoContainer GD(MyItemType t){string p=t.TypeId,s=t.SubtypeId;return p.Contains("Ore")?oreCargo:p.Contains("Ingot")?ingotCargo:p.Contains("Component")?compCargo:p.Contains("PhysicalGunObject")?toolCargo:p.Contains("AmmoMagazine")?(s.Contains("Pistol")||s.Contains("RifleGun")||s.Contains("Flare")?(pAmmoCargo??toolCargo):(ammoCargo??toolCargo)):(p.Contains("GasContainerObject")||p.Contains("OxygenContainerObject"))?bottleCargo:null;}
         bool HS(IMyInventory i,float t)=>i!=null&&(float)i.CurrentVolume<(float)i.MaxVolume*t;
         List<MyInventoryItem>GL(IMyInventory v){var L=new List<MyInventoryItem>();if(v!=null)v.GetItems(L);return L;}
         void AD(Dictionary<string,int>d,string k,int v){if(d.ContainsKey(k))d[k]+=v;else d[k]=v;}
@@ -560,52 +512,71 @@ namespace IngameScript
         
         void WriteBtnData(){
         if(btn==null)return;
-        string exist=btn.CustomData;string padCfg="";
-        int ps=exist.IndexOf("[PAD_CFG]");
-        if(ps>=0){int pe=exist.IndexOf("[",ps+1);padCfg=pe>0?exist.Substring(ps,pe-ps):exist.Substring(ps);}
+        string exist=btn.CustomData;
+        string mslSec="",wpSec="",sysBoot="";
+        int mi=exist.IndexOf("[MISSILE]");
+        if(mi>=0){int me=exist.IndexOf("\n[CONFIG]");if(me<0)me=exist.IndexOf("\n[SYSTEM]");mslSec=me>mi?exist.Substring(mi,me-mi):"";}
+        int wi=exist.IndexOf("[WAYPOINTS]");
+        if(wi>=0){int we=exist.IndexOf("\n[SYSTEM]");if(we<0)we=exist.Length;wpSec=we>wi?exist.Substring(wi,we-wi).Trim():"";}
+        int si=exist.IndexOf("[SYSTEM]");
+        if(si>=0){int se=exist.IndexOf("\n[ORE]");if(se<0)se=exist.IndexOf("\n[",si+8);if(se<0)se=Math.Min(si+100,exist.Length);sysBoot=exist.Substring(si,se-si).Trim();}
         var c=new StringBuilder();
-        c.AppendLine($"[PAD{padID} INV] @{DateTime.Now:HH:mm}");
-        c.AppendLine("=====================================");
-        c.AppendLine("[TARGETS] Edit values below:");
-        c.AppendLine($"ammo     = {ammoTarget}");
-        c.AppendLine($"load     = {ammoLoad}");
-        c.AppendLine($"ice      = {iceTarget}");
-        c.AppendLine($"uran     = {uranTarget}");
-        c.AppendLine($"h2       = {h2Target}");
-        c.AppendLine($"o2       = {o2Target}");
-        c.AppendLine($"tool     = {toolTarget}");
-        c.AppendLine($"pAmmo    = {pAmmoTarget}");
-        if(padCfg.Length>0){if(!padCfg.EndsWith("\n"))padCfg+="\n";c.Append(padCfg);}
-        c.AppendLine("=====================================");
-        c.AppendLine("[CMP] Item = Stock + Queued / Target");
-        string[] cmpOrder={"SteelPlate","Construction","InteriorPlate","SmallTube","LargeTube","Motor","Computer","MetalGrid","Display","BulletproofGlass","PowerCell","Thrust","Explosives","Detector","RadioCommunication","GravityGenerator","Girder","Medical","Reactor","SolarCell","Superconductor"};
-        foreach(var cn in cmpOrder){int stk=cStk.ContainsKey(cn)?cStk[cn]:0;int qd=cQd.ContainsKey(cn)?cQd[cn]:0;int tg=cNd.ContainsKey(cn)?cNd[cn]:0;c.AppendLine($"{cn,-20}= {stk,5} + {qd,4} / {tg,5}");}
-        c.AppendLine("-------------------------------------");
-        c.AppendLine("[AMO]");
-        c.AppendLine($"{ammoNames[ammoTypeIdx],-20}= {ammoStock,5} + {ammoQueued,4} / {ammoTarget,5}");
-        c.AppendLine("-------------------------------------");
-        c.AppendLine("[BTL]");
-        c.AppendLine($"{"Hydrogen",-20}= {pH2B,5} + {h2Queued,4} / {h2Target,5}");
-        c.AppendLine($"{"Oxygen",-20}= {pO2B,5} + {o2Queued,4} / {o2Target,5}");
-        c.AppendLine("-------------------------------------");
-        c.AppendLine("[TLS] Tool = T1/T2/T3/T4 | Target");
-        for(int i=0;i<tlsNames.Length;i++){var s="";for(int j=0;j<tIT[i].Length;j++)s+=$"{(tStk.ContainsKey(tIT[i][j])?tStk[tIT[i][j]]:0)}/";c.AppendLine($"{tlsNames[i],-12}= {s.TrimEnd('/'),-12}| {toolTarget}");}
-        c.AppendLine("-------------------------------------");
-        c.AppendLine("[PAMMO] Personal Ammo = Stock + Queued / Target");
-        string[] pAmmoNames={"RifleMag20","RifleMag5","RifleMag50","RifleMag30","PistolSemi","PistolFull","PistolElite","Rocket","Flare"};
-        for(int i=0;i<pAmmoBP.Length;i++){int stk=pAmmoStk.ContainsKey(pAmmoIT[i])?pAmmoStk[pAmmoIT[i]]:0;int qd=pAmmoQ.ContainsKey(pAmmoBP[i])?pAmmoQ[pAmmoBP[i]]:0;c.AppendLine($"{pAmmoNames[i],-12}= {stk,5} + {qd,4} / {pAmmoTarget,5}");}
-        c.AppendLine("=====================================");
+        c.AppendLine("==========================================");
+        c.AppendLine("    UNITY MISSILE SYSTEM v01.00");
+        c.AppendLine($"    [PAD{padID}] Controls - {DateTime.Now:HH:mm}");
+        c.AppendLine("==========================================");
+        c.AppendLine("");
+        c.AppendLine("# SECTION 1: MISSILE DATA (Read Only)");
+        c.AppendLine("------------------------------------------");
+        if(mslSec.Length>0)c.AppendLine(mslSec);
+        else{c.AppendLine("[MISSILE]");c.AppendLine($"status={mslPhase}|target={mslTarget}|dist={mslDist:F0}");c.AppendLine($"speed={mslSpeed:F0}|alt={mslAlt:F0}|fuel={mslFuel:F0}");c.AppendLine($"bat={mslBatPct:F0}|h2={mslH2Pct:F0}|o2={mslO2Pct:F0}");c.AppendLine($"armed={mslArmed}|ready={mslReady}|count={mslCount}");}
+        c.AppendLine("");
+        c.AppendLine("# SECTION 2: USER CONFIG (Edit These!)");
+        c.AppendLine("------------------------------------------");
+        c.AppendLine("[CONFIG]");
+        c.AppendLine($"ammo     = {ammoTarget,-6} ; Gatling ammo target");
+        c.AppendLine($"load     = {ammoLoad,-6} ; Ammo per missile");
+        c.AppendLine($"ice      = {iceTarget,-6} ; Ice target (kg)");
+        c.AppendLine($"uran     = {uranTarget,-6} ; Uranium target (kg)");
+        c.AppendLine($"h2       = {h2Target,-6} ; H2 bottles target");
+        c.AppendLine($"o2       = {o2Target,-6} ; O2 bottles target");
+        c.AppendLine($"tool     = {toolTarget,-6} ; Tool sets target");
+        c.AppendLine($"pAmmo    = {pAmmoTarget,-6} ; Personal ammo target");
+        c.AppendLine($"type     = {ammoTypeIdx,-6} ; 0=Pistol,1=Rifle,2=Rapid,3=Rocket,4=Gatling");
+        c.AppendLine("");
+        if(wpSec.Length>0){c.AppendLine(wpSec);}
+        else{c.AppendLine("[WAYPOINTS]");c.AppendLine("; Add GPS waypoints below:");
+        c.AppendLine("; GPS:TargetName:X:Y:Z:#FF75C9F1:");}
+        c.AppendLine("");
+        c.AppendLine("# SECTION 3: SYSTEM DATA (Auto-Updated)");
+        c.AppendLine("------------------------------------------");
+        if(sysBoot.Length>0)c.AppendLine(sysBoot);
+        else c.AppendLine("[SYSTEM]");
+        c.AppendLine("");
         c.AppendLine("[ORE]");
-        foreach(var k in oStk)if(k.Value>0)c.AppendLine($"{k.Key,-12}= {k.Value}");
+        foreach(var k in oStk)if(k.Value>0)c.Append($"{k.Key}={k.Value}|");
+        c.AppendLine("");
         c.AppendLine("[ING]");
-        foreach(var k in iStk)if(k.Value>0){string dn=k.Key=="Stone"?"Gravel":k.Key;c.AppendLine($"{dn,-12}= {k.Value}");}
-        c.AppendLine("=====================================");
+        foreach(var k in iStk)if(k.Value>0){string dn=k.Key=="Stone"?"Gravel":k.Key;c.Append($"{dn}={k.Value}|");}
+        c.AppendLine("");
+        c.AppendLine("[CMP]");
+        string[] cmpOrd={"SteelPlate","Construction","InteriorPlate","SmallTube","LargeTube","Motor","Computer","MetalGrid","Display","BulletproofGlass","PowerCell","Thrust","Explosives","Detector","RadioCommunication","GravityGenerator","Girder","Medical","Reactor","SolarCell","Superconductor"};
+        foreach(var cn in cmpOrd){int stk=cStk.ContainsKey(cn)?cStk[cn]:0;int qd=cQd.ContainsKey(cn)?cQd[cn]:0;int tg=cNd.ContainsKey(cn)?cNd[cn]:0;c.Append($"{cn}={stk}+{qd}/{tg}|");}
+        c.AppendLine("");
+        c.AppendLine("[AMO]");
+        c.AppendLine($"{ammoNames[ammoTypeIdx]}={ammoStock}+{ammoQueued}/{ammoTarget}");
+        c.AppendLine("[BTL]");
+        c.AppendLine($"H2={pH2B}+{h2Queued}/{h2Target}|O2={pO2B}+{o2Queued}/{o2Target}");
+        c.AppendLine("[TLS]");
+        for(int i=0;i<tlsNames.Length;i++){var s="";for(int j=0;j<tIT[i].Length;j++)s+=$"{(tStk.ContainsKey(tIT[i][j])?tStk[tIT[i][j]]:0)}/";c.Append($"{tlsNames[i]}={s.TrimEnd('/')}|");}
+        c.AppendLine("");
+        c.AppendLine("[PAMMO]");
+        string[] pAN={"Rifle20","Rifle5","Rifle50","Rifle30","PistolS","PistolF","PistolE","Rocket","Flare"};
+        for(int i=0;i<pAmmoBP.Length;i++){int stk=pAmmoStk.ContainsKey(pAmmoIT[i])?pAmmoStk[pAmmoIT[i]]:0;int qd=pAmmoQ.ContainsKey(pAmmoBP[i])?pAmmoQ[pAmmoBP[i]]:0;c.Append($"{pAN[i]}={stk}+{qd}/{pAmmoTarget}|");}
+        c.AppendLine("");
         c.AppendLine("[STAT]");
         int refW=0,asmW=0;foreach(var r in padRef)if(r.IsProducing)refW++;foreach(var a in padAsm)if(a.IsProducing)asmW++;
-        c.AppendLine($"Refineries  = {refW}/{padRef.Count} working");
-        c.AppendLine($"Assemblers  = {asmW}/{padAsm.Count} working");
-        c.AppendLine($"Cargo       = {padCargoPct:F0}% (L:{padCargoL.Count} M:{padCargoM.Count} S:{padCargoS.Count})");
-        c.AppendLine($"AutoOrg     = {(autoOrg?"ON":"OFF")}");
+        c.AppendLine($"ref={refW}/{padRef.Count}|asm={asmW}/{padAsm.Count}|cargo={padCargoPct:F0}%|autoOrg={(autoOrg?"1":"0")}");
         btn.CustomData=c.ToString();
         }
         
@@ -613,20 +584,21 @@ namespace IngameScript
         if(btn==null)return;
         string d=btn.CustomData;
         if(string.IsNullOrEmpty(d))return;
-        bool inTgt=false,inCfg=false,inStat=false;var ls=d.Split('\n');
+        bool inCfg=false,inMsl=false,inSys=false;var ls=d.Split('\n');
         foreach(var l in ls){
         string lt=l.Trim();
-        if(lt.StartsWith("[TARGETS]")||lt.StartsWith("[SET]")){inTgt=true;inCfg=false;inStat=false;continue;}
-        if(lt.StartsWith("[PAD_CFG]")){inCfg=true;inTgt=false;inStat=false;continue;}
-        if(lt.StartsWith("[PAD_STATUS]")){inStat=true;inTgt=false;inCfg=false;continue;}
-        if(lt.StartsWith("[")&&!lt.StartsWith("[TARGETS]")&&!lt.StartsWith("[SET]")&&!lt.StartsWith("[PAD_CFG]")&&!lt.StartsWith("[PAD_STATUS]")){inTgt=false;inCfg=false;inStat=false;continue;}
-        if(lt.StartsWith("====")||lt.StartsWith("----")||!lt.Contains("="))continue;
-        if(!inTgt&&!inCfg&&!inStat)continue;
+        if(lt.StartsWith("[CONFIG]")||lt.StartsWith("[TARGETS]")){inCfg=true;inMsl=false;inSys=false;continue;}
+        if(lt.StartsWith("[MISSILE]")){inMsl=true;inCfg=false;inSys=false;continue;}
+        if(lt.StartsWith("[SYSTEM]")){inSys=true;inCfg=false;inMsl=false;continue;}
+        if(lt.StartsWith("[")&&!lt.StartsWith("[CONFIG]")&&!lt.StartsWith("[TARGETS]")&&!lt.StartsWith("[MISSILE]")&&!lt.StartsWith("[SYSTEM]")){inCfg=false;inMsl=false;inSys=false;continue;}
+        if(lt.StartsWith("====")||lt.StartsWith("----")||lt.StartsWith("#")||lt.StartsWith(";")||!lt.Contains("="))continue;
+        if(!inCfg&&!inMsl&&!inSys)continue;
         var ps=lt.Split('|');
         foreach(var p in ps){
         var kv=p.Split('=');
-        if(kv.Length!=2)continue;
-        string k=kv[0].Trim(),v=kv[1].Trim();
+        if(kv.Length<2)continue;
+        string k=kv[0].Trim();
+        string v=kv[1].Split(';')[0].Trim();
         if(k=="mode"){padMode=v;continue;}
         if(k=="phase"){mslPhase=v;continue;}
         if(k=="target"){mslTarget=v;continue;}

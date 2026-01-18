@@ -10,6 +10,7 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
 
 | Component | Script | PB Name | Deployed To |
 |-----------|--------|---------|-------------|
+| **Boot Controller** | `Unity Boot.cs` | `[PAD1-BOOT] UNITY BOOT` | `%APPDATA%\...\Unity Boot\` |
 | **Launch Pad** | `UnityPad.cs` | `[PAD1] Unity Pad` | `%APPDATA%\...\UnityPad\` |
 | **Missile** | `UnityMissile.cs` | `PAD1 Missile #1 Unity Missile` | `%APPDATA%\...\UnityMissile\` |
 | **Inventory** | `UnityInventory.cs` | `[PAD1] Unity Inventory` | `%APPDATA%\...\UnityInventory\` |
@@ -28,6 +29,7 @@ cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 
 # Step 2: Build all projects
+dotnet build "Unity Boot" -c Debug
 dotnet build UnityPad -c Debug
 dotnet build UnityMissile -c Debug
 dotnet build UnityInventory -c Debug
@@ -39,6 +41,7 @@ dotnet build UnityBeacon -c Debug
 All scripts deploy automatically to:
 ```
 C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\
+├── Unity Boot\script.cs
 ├── UnityPad\script.cs
 ├── UnityMissile\script.cs
 ├── UnityInventory\script.cs
@@ -48,7 +51,7 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\
 ### Wrapper Script
 
 The `wrap-scripts.ps1` script:
-- Reads raw `.cs` files (UnityPad.cs, UnityMissile.cs, UnityInventory.cs, UnityBeacon.cs)
+- Reads raw `.cs` files (Unity Boot.cs, UnityPad.cs, UnityMissile.cs, UnityInventory.cs, UnityBeacon.cs)
 - Wraps them with MDK2 namespace structure
 - Writes to `[Project]/Program.cs`
 
@@ -174,15 +177,17 @@ namespaces=IngameScript
 
 | Script | Lines | MDK Deployed | Budget | Status |
 |--------|-------|--------------|--------|--------|
-| UnityPad | ~2,000 | ~87,500 | 100,000 | OK |
+| Unity Boot | ~250 | ~15,000 | 100,000 | OK |
+| UnityPad | ~2,000 | ~92,000 | 100,000 | OK |
 | UnityMissile | ~900 | ~26,000 | 100,000 | OK |
-| UnityInventory | ~1,480 | 76,656 | 100,000 | OK |
+| UnityInventory | ~1,480 | ~82,000 | 100,000 | OK |
 | UnityBeacon | ~175 | ~10,800 | 100,000 | OK |
 
 ### Character Count Commands
 
 ```powershell
 # ONLY check deployed script.cs - this is the ONLY number that matters
+(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs" -Raw).Length
 (Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityPad\script.cs" -Raw).Length
 (Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs" -Raw).Length
 (Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs" -Raw).Length
@@ -210,11 +215,24 @@ namespaces=IngameScript
 
 ## MISSILE SYSTEM ARCHITECTURE
 
+### Unity Boot.cs (Boot Controller)
+- **Purpose:** Centralized boot system for all LCDs
+- **Boot Checks:** 40 total (20 Pad + 20 Inventory)
+- **Handshake:** Sets `boot_complete=true` in [SYSTEM] CustomData
+- **LCDs:** Controls all 10 during boot, releases after completion
+- **Self-Disables:** Sets UpdateFrequency.None after boot
+
 ### UnityPad.cs (Launch Pad Controller)
 - **State Machine:** INIT → IDLE → PRINT → BUILD → DOCK → FUEL → AMMO → READY → ARM → LAUNCH → GONE
-- **LCDs:** 10 standard + 8 controller variants
+- **LCDs:** 1,2,3,7,8 (after boot_complete)
 - **Block Tags:** `[PAD#]` for merge/connector/buttons, `[PAD#:1-10]` for LCDs
 - **Features:** Multi-pad controller mode, salvo/carpet bombing, printer integration, miner fleet tracking
+- **Boot Check:** Waits for `boot_complete=true` before taking LCD control
+
+### UnityInventory.cs (Inventory Module)
+- **LCDs:** 4,5,6,9,10 (after boot_complete)
+- **Features:** Auto-production, stock management, tool crafting, miner tracking
+- **Boot Check:** Waits for `boot_complete=true` before taking LCD control
 
 ### UnityMissile.cs (Missile Guidance)
 - **Flight Phases:** IDLE → CLIMB → ARM → COAST → REENTRY → TARGET → DETONATE
@@ -258,6 +276,7 @@ Read tool parameters MUST be:
 | `unity-coder.md` | Unity coding persona |
 | `unity-persona.md` | Unity core personality |
 | `unity-missile.md` | Missile system agent |
+| `unity-boot.md` | Boot controller agent |
 
 ---
 
@@ -267,12 +286,44 @@ Read tool parameters MUST be:
 # Wrap and build all
 cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
+dotnet build "Unity Boot" -c Debug
 dotnet build UnityPad -c Debug
 dotnet build UnityMissile -c Debug
+dotnet build UnityInventory -c Debug
 dotnet build UnityBeacon -c Debug
 
 # Deployed scripts location
 C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\
+```
+
+---
+
+## BOOT HANDSHAKE PROTOCOL
+
+### CustomData Structure (Button Panel [SYSTEM])
+
+```ini
+[SYSTEM]
+boot_complete=false    ; Set TRUE by Unity Boot when 40/40 checks pass
+```
+
+### Boot Flow
+
+1. **Unity Boot starts** → Takes control of ALL 10 LCDs
+2. **Runs 40 checks** → Updates progress on all LCDs
+3. **If error** → Pauses 5 seconds, shows error, retries
+4. **If success** → Sets `boot_complete=true` in CustomData
+5. **Unity Boot disables itself** → UpdateFrequency.None
+6. **UnityPad sees boot_complete=true** → Takes LCDs 1,2,3,7,8
+7. **UnityInventory sees boot_complete=true** → Takes LCDs 4,5,6,9,10
+
+### Checking Boot Status in Operational Scripts
+
+```csharp
+bool IsBootComplete(){
+    if(btn==null)return false;
+    return btn.CustomData.Contains("boot_complete=true");
+}
 ```
 
 ---
