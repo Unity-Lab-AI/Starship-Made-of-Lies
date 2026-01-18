@@ -26,6 +26,8 @@ namespace IngameScript
         public enum T{GPS,ANTENNA,SENSOR,LIDAR,MANUAL,SATELLITE}
         public enum E{UNKNOWN,SPACE,PLANET,MOON}
         S cS=S.INIT;M cM=M.MAIN;T tM=T.GPS;E env=E.UNKNOWN;int sel=0;
+        bool booting=true;int bootStep=0;int bootTicks=0;
+        string[] bootChecks={"Initializing Core Systems","Scanning Grid Topology","Detecting Merge Blocks","Loading Pad Configuration","Scanning Connectors","Detecting LCD Panels","Initializing Button Interface","Scanning Printers","Loading Projector Data","Scanning Power Systems","Scanning Fuel Systems","Scanning Missile Components","Loading Targeting Data","Initializing IGC Channels","Registering Broadcast Listeners","Loading Waypoint Data","Calibrating Launch Systems","Validating Pad Status","Syncing with Inventory Controller","System Boot Complete"};
         float lcdW=512,lcdH=512,lcdS=1;
         int viewLCD=0;int[] lcdScroll=new int[9];
         int graphTimeIdx=0;
@@ -280,6 +282,7 @@ namespace IngameScript
         
         public void Main(string a,UpdateType u){
         tick++;
+        if(booting){RunBoot();return;}
         if(a!="")HandleArg(a);
         if(tick%2==0)Scan();
         if(tick%2==1){UpdateState();CheckStateLog();}
@@ -604,6 +607,61 @@ namespace IngameScript
         case"BBRESET":bbLog="";WriteCustomData();break;
         }
         if(a.ToUpper().StartsWith("GPS:")){var p=a.Substring(4).Split(',');if(p.Length==3){double x,y,z;if(double.TryParse(p[0],out x)&&double.TryParse(p[1],out y)&&double.TryParse(p[2],out z)){tgtGPS=new Vector3D(x,y,z);tgtSet=true;tgtName="MANUAL GPS";}}}
+        }
+        
+        void RunBoot(){
+        bootTicks++;
+        if(btn==null){var blks=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(blks,b=>b.CustomName.Contains(padTag)&&b.CustomName.ToLower().Contains("control"));if(blks.Count>0)btn=blks[0];}
+        if(lcd1==null||lcd2==null||lcd3==null){
+        var pnls=new List<IMyTextPanel>();GridTerminalSystem.GetBlocksOfType(pnls,b=>b.CustomName.Contains(padTag));
+        foreach(var p in pnls){string nm=p.CustomName;if(nm.Contains(":1")&&!nm.Contains(":10")&&lcd1==null)lcd1=p;else if(nm.Contains(":2")&&lcd2==null)lcd2=p;else if(nm.Contains(":3")&&lcd3==null)lcd3=p;else if(nm.Contains(":7")&&lcd7==null)lcd7=p;else if(nm.Contains(":8")&&lcd8==null)lcd8=p;}}
+        bool invReady=false;
+        if(btn!=null){string cd=btn.CustomData;if(cd.Contains("[UNITY_BOOT]")&&cd.Contains("inv=1"))invReady=true;}
+        if(bootTicks>5&&invReady&&bootStep<bootChecks.Length){
+        if(bootTicks%(3)==0)bootStep++;
+        if(bootStep>=bootChecks.Length)bootStep=bootChecks.Length-1;}
+        float pct=(float)bootStep/(bootChecks.Length-1);
+        string curCheck=bootStep<bootChecks.Length?bootChecks[bootStep]:"Complete";
+        IMyTextPanel[] lcds={lcd1,lcd2,lcd3,lcd7,lcd8};
+        foreach(var lcd in lcds){if(lcd==null)continue;DrawBootScreen(lcd,pct,curCheck,bootStep,bootChecks.Length,true,invReady);}
+        if(btn!=null&&bootStep>=bootChecks.Length-1){
+        string cd=btn.CustomData;
+        if(!cd.Contains("[UNITY_BOOT]"))cd="[UNITY_BOOT]\n"+cd;
+        if(!cd.Contains("pad=1")){int idx=cd.IndexOf("[UNITY_BOOT]");if(idx>=0)cd=cd.Insert(idx+12,"\npad=1");btn.CustomData=cd;}}
+        if(bootStep>=bootChecks.Length-1&&invReady){booting=false;Scan();DetectEnvironment();}
+        Echo("UNITY MISSILE SYSTEM");
+        Echo("Pad Controller Booting...");
+        Echo($"Step {bootStep+1}/{bootChecks.Length}: {curCheck}");
+        if(invReady)Echo("Inventory Module: READY");else Echo("Inventory Module: WAITING");
+        }
+        
+        void DrawBootScreen(IMyTextPanel s,float pct,string check,int step,int total,bool isPad,bool otherReady){
+        s.ContentType=ContentType.SCRIPT;s.Script="";s.ScriptBackgroundColor=cBg;
+        var f=s.DrawFrame();
+        Vector2 sz=s.SurfaceSize;float cx=sz.X/2,cy=sz.Y/2;
+        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,cy),sz,cBg));
+        f.Add(new MySprite(SpriteType.TEXT,"UNITY MISSILE SYSTEM",new Vector2(cx,40),null,cPri,null,TextAlignment.CENTER,1.2f));
+        f.Add(new MySprite(SpriteType.TEXT,"v01.00",new Vector2(cx,75),null,cSec,null,TextAlignment.CENTER,0.5f));
+        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,100),new Vector2(sz.X-60,2),cSec));
+        string mod=isPad?"PAD CONTROLLER":"INVENTORY MODULE";
+        f.Add(new MySprite(SpriteType.TEXT,mod,new Vector2(cx,120),null,cAcc,null,TextAlignment.CENTER,0.6f));
+        f.Add(new MySprite(SpriteType.TEXT,"System Initialization",new Vector2(cx,150),null,cTxt,null,TextAlignment.CENTER,0.55f));
+        float bx=40,by=sz.Y-120,bw=sz.X-80,bh=20;
+        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,by+bh/2),new Vector2(bw,bh),cBdr));
+        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(bx+bw*pct/2,by+bh/2),new Vector2(bw*pct,bh-4),cPri));
+        f.Add(new MySprite(SpriteType.TEXT,$"{(int)(pct*100)}%",new Vector2(cx,by+bh+5),null,cTxt,null,TextAlignment.CENTER,0.45f));
+        f.Add(new MySprite(SpriteType.TEXT,$"[{step+1}/{total}] {check}",new Vector2(cx,by-25),null,cOK,null,TextAlignment.CENTER,0.4f));
+        int startIdx=Math.Max(0,step-4);
+        float ly=180;
+        for(int i=startIdx;i<=step&&i<total;i++){
+        Color lc=i<step?cOK:i==step?cPri:cSec;
+        string prefix=i<step?"[OK]":i==step?"[>>]":"[..]";
+        f.Add(new MySprite(SpriteType.TEXT,$"{prefix} {bootChecks[i]}",new Vector2(30,ly),null,lc,null,TextAlignment.LEFT,0.35f));
+        ly+=18;if(ly>by-50)break;}
+        string syncSt=otherReady?"SYNCED":"WAITING";
+        Color syncC=otherReady?cOK:cWrn;
+        f.Add(new MySprite(SpriteType.TEXT,$"Module Sync: {syncSt}",new Vector2(cx,sz.Y-30),null,syncC,null,TextAlignment.CENTER,0.4f));
+        f.Dispose();
         }
         
         void Scan(){
