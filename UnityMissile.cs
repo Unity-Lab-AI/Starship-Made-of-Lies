@@ -53,6 +53,7 @@ Vector3D padLaserPos;
 bool useLaser=false;
 int mslNumber=0;
 int padID=1;
+int tgtRel=0;
 List<IMyBatteryBlock> batteries=new List<IMyBatteryBlock>();
 List<IMyGasTank> h2tanks=new List<IMyGasTank>();
 List<IMyGasGenerator> generators=new List<IMyGasGenerator>();
@@ -381,7 +382,7 @@ if(batteries.Count>0)bat/=batteries.Count;
 double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;
 if(h2tanks.Count>0)h2/=h2tanks.Count;
 if(bat<0.1||h2<0.1){isSatellite=false;phase=F.TARGET;EnableThrust(true);}
-foreach(var s in sensors){var det=new List<MyDetectedEntityInfo>();s.DetectedEntities(det);foreach(var e in det){if(e.Relationship==MyRelationsBetweenPlayerAndBlock.Enemies){BroadcastSatStatus();}}}
+foreach(var s in sensors){var det=new List<MyDetectedEntityInfo>();s.DetectedEntities(det);foreach(var e in det){if(IsValidTgt(e.Relationship)){BroadcastSatStatus();}}}
 CheckSatCommands();
 RelayMissileTraffic();
 BroadcastSatStatus();
@@ -491,6 +492,7 @@ if(line.StartsWith("FlightMode=")){int f;if(int.TryParse(line.Substring(11),out 
 if(line.StartsWith("PadLaser=")){var lp=line.Substring(9).Split(',');if(lp.Length==3){double lx,ly,lz;if(double.TryParse(lp[0],out lx)&&double.TryParse(lp[1],out ly)&&double.TryParse(lp[2],out lz)){padLaserPos=new Vector3D(lx,ly,lz);useLaser=true;}}}
 if(line.StartsWith("MslNumber=")){int n;if(int.TryParse(line.Substring(10),out n))mslNumber=n;}
 if(line.StartsWith("PadID=")){int p;if(int.TryParse(line.Substring(6),out p))padID=p;}
+if(line.StartsWith("TargetRel=")){int t;if(int.TryParse(line.Substring(10),out t))tgtRel=t;}
 if(line.StartsWith("SatAlt=")){double a;if(double.TryParse(line.Substring(7),out a))satTargetAlt=a;}
 if(line.StartsWith("SatID=")){int s;if(int.TryParse(line.Substring(6),out s))satID=s;}
 if(line.StartsWith("EvadeAmp=")){double a;if(double.TryParse(line.Substring(9),out a)){evadeAmplitude=a;evadeEnabled=a>0;}}
@@ -663,7 +665,7 @@ foreach(var s in sensors){
 var det=new List<MyDetectedEntityInfo>();
 s.DetectedEntities(det);
 foreach(var e in det){
-if(e.Relationship==MyRelationsBetweenPlayerAndBlock.Enemies){
+if(IsValidTgt(e.Relationship)){
 double d=Vector3D.Distance(myPos,e.Position);
 if(d<closestDist){closestDist=d;closest=e.Position;}
 }}}
@@ -674,24 +676,30 @@ Vector3D? GetLidarTarget(){
 foreach(var c in cameras){
 if(c.CanScan(lidarRange)){
 lidarHit=c.Raycast(lidarRange,0,0);
-if(!lidarHit.IsEmpty()&&lidarHit.Relationship==MyRelationsBetweenPlayerAndBlock.Enemies){
+if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)){
 lidarLock=true;
 lidarTgt=lidarHit.Position;
 return lidarHit.Position;
 }
 for(double a=lidarAng;a<=45;a+=lidarAng){
 lidarHit=c.Raycast(lidarRange,(float)a,0);
-if(!lidarHit.IsEmpty()&&lidarHit.Relationship==MyRelationsBetweenPlayerAndBlock.Enemies){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
 lidarHit=c.Raycast(lidarRange,(float)-a,0);
-if(!lidarHit.IsEmpty()&&lidarHit.Relationship==MyRelationsBetweenPlayerAndBlock.Enemies){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
 lidarHit=c.Raycast(lidarRange,0,(float)a);
-if(!lidarHit.IsEmpty()&&lidarHit.Relationship==MyRelationsBetweenPlayerAndBlock.Enemies){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
 lidarHit=c.Raycast(lidarRange,0,(float)-a);
-if(!lidarHit.IsEmpty()&&lidarHit.Relationship==MyRelationsBetweenPlayerAndBlock.Enemies){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
 }}}
 lidarLock=false;
 lidarTgt=null;
 return tgtGPS;
+}
+
+bool IsValidTgt(MyRelationsBetweenPlayerAndBlock rel){
+if(tgtRel==0)return rel==MyRelationsBetweenPlayerAndBlock.Enemies;
+if(tgtRel==1)return rel==MyRelationsBetweenPlayerAndBlock.Enemies||rel==MyRelationsBetweenPlayerAndBlock.Neutral;
+return rel!=MyRelationsBetweenPlayerAndBlock.Owner&&rel!=MyRelationsBetweenPlayerAndBlock.FactionShare;
 }
 
 void AimAt(Vector3D target){

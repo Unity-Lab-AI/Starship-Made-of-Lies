@@ -67,7 +67,7 @@ namespace IngameScript
         bool tgtSet=false,antBC=true,counting=false;
         List<MyWaypointInfo> wpts=new List<MyWaypointInfo>(),customWP=new List<MyWaypointInfo>();
         List<string> detAnts=new List<string>();
-        int wpIdx=0,antIdx=0,clbDst=500,detDist=50,cntDn=10,sensorRng=50,lidarRng=500,lidarAng=5,brnT=5,reDst=500,fltMd=2;
+        int wpIdx=0,antIdx=0,clbDst=500,detDist=50,cntDn=10,sensorRng=50,lidarRng=500,lidarAng=5,brnT=5,reDst=500,fltMd=2,tgtRel=0;
         DateTime armTime;
         IMyBroadcastListener mslL,relL;
         string mslPhase="",lKPh="",mslOutcome="",finalPhase="";
@@ -952,7 +952,7 @@ namespace IngameScript
         if(padLsr.Count>0){var lp=padLsr[0].GetPosition();padLaserStr=$"\nPadLaser={lp.X:F0},{lp.Y:F0},{lp.Z:F0}";}
         if(mslPB!=null){
         bool inSpace=fltMd==0?!hasGrav:fltMd==2;
-        string cfg=$"[UNITY_MISSILE]\nMode={tM}\nGPS={tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}\nAntenna={tgtAntenna}\nBroadcast={bcTag}\nClimb={clbDst}\nDetonate={detDist}\nSensorRange={sensorRng}\nLidarRange={lidarRng}\nLidarAngle={lidarAng}\nAntBroadcast={(antBC?"1":"0")}\nInSpace={(inSpace?"1":"0")}\nGravity={gravStr:F2}\nBurnTime={brnT}\nReentryDist={reDst}\nFlightMode={fltMd}{padLaserStr}\nMslNumber={bldNum}\nPadID={padID}";
+        string cfg=$"[UNITY_MISSILE]\nMode={tM}\nGPS={tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}\nAntenna={tgtAntenna}\nBroadcast={bcTag}\nClimb={clbDst}\nDetonate={detDist}\nSensorRange={sensorRng}\nLidarRange={lidarRng}\nLidarAngle={lidarAng}\nAntBroadcast={(antBC?"1":"0")}\nInSpace={(inSpace?"1":"0")}\nGravity={gravStr:F2}\nBurnTime={brnT}\nReentryDist={reDst}\nFlightMode={fltMd}{padLaserStr}\nMslNumber={bldNum}\nPadID={padID}\nTargetRel={tgtRel}";
         mslPB.CustomData=cfg;
         mslPB.TryRun("LAUNCH");
         }
@@ -1125,8 +1125,9 @@ namespace IngameScript
         else if(sel==26){tlmTO+=300;if(tlmTO>1800)tlmTO=300;}
         else if(sel==27){graphTimeIdx=(graphTimeIdx+1)%graphLabels.Length;}
         else if(sel==28){bldNum=0;}
-        else if(sel==29){clbDst=500;detDist=50;cntDn=10;sensorRng=50;lidarRng=500;brnT=5;reDst=500;antBC=true;fltMd=2;tgtGPS=new Vector3D(0,0,0);tgtName="";tgtSet=false;wpIdx=0;tM=T.GPS;isCreative=false;ammoLoad=10106;ammoEject=10106;ammoTarget=50000;tlmTO=1000;ammoTypeIdx=0;graphTimeIdx=0;iceTarget=1000;uranTarget=50;h2PT=90;o2PT=90;h2Target=20;o2Target=20;bldNum=0;toolTarget=10;mergePaused=false;UpdateAmmoType();}
-        else if(sel==30){cM=M.MAIN;sel=0;}
+        else if(sel==29){clbDst=500;detDist=50;cntDn=10;sensorRng=50;lidarRng=500;brnT=5;reDst=500;antBC=true;fltMd=2;tgtGPS=new Vector3D(0,0,0);tgtName="";tgtSet=false;wpIdx=0;tM=T.GPS;isCreative=false;ammoLoad=10106;ammoEject=10106;ammoTarget=50000;tlmTO=1000;ammoTypeIdx=0;graphTimeIdx=0;iceTarget=1000;uranTarget=50;h2PT=90;o2PT=90;h2Target=20;o2Target=20;bldNum=0;toolTarget=10;mergePaused=false;tgtRel=0;UpdateAmmoType();}
+        else if(sel==30){tgtRel=(tgtRel+1)%3;}
+        else if(sel==31){cM=M.MAIN;sel=0;}
         break;
         case M.WIZARD:
         if(sel==0){DetectEnvironment();Scan();}
@@ -1437,8 +1438,8 @@ namespace IngameScript
         else if(tM==T.ANTENNA){
         if(detAnts.Count==0){ST(f,256,y,"No antennas in range",cWrn,0.55f,TextAlignment.CENTER);y+=25;ST(f,256,y,"Scanning...",cSec,0.5f,TextAlignment.CENTER);}
         else{ST(f,20,y,$"Antennas [{detAnts.Count}]:",cTxt,0.45f);y+=20;int ac=0;foreach(var a in detAnts){if(ac>=8)break;string nm=a;if(nm.Length>22)nm=nm.Substring(0,22);bool sl=ac==antIdx&&tgtSet;ST(f,20,y,sl?"> "+nm:"  "+nm,sl?cAcc:cTxt,0.42f);y+=16;ac++;}}}
-        else if(tM==T.SENSOR){ST(f,20,y,$"Range: {sensorRng}m",cTxt);y+=25;ST(f,20,y,"Proximity Lock Mode",cSec);}
-        else if(tM==T.LIDAR){ST(f,20,y,$"Range: {lidarRng}m",cTxt);y+=22;ST(f,20,y,$"Angle: {lidarAng}Â°",cTxt);y+=25;ST(f,20,y,"Camera Lock Mode",cSec);}
+        else if(tM==T.SENSOR){ST(f,20,y,$"Range: {sensorRng}m",cTxt);y+=22;string tr=tgtRel==0?"ENEMIES":tgtRel==1?"HOSTILE":"ALL";ST(f,20,y,$"Target: {tr}",cTxt);y+=25;ST(f,20,y,"Proximity Lock Mode",cSec);}
+        else if(tM==T.LIDAR){ST(f,20,y,$"Range: {lidarRng}m",cTxt);y+=22;ST(f,20,y,$"Angle: {lidarAng}Â°",cTxt);y+=22;string tr2=tgtRel==0?"ENEMIES":tgtRel==1?"HOSTILE":"ALL";ST(f,20,y,$"Target: {tr2}",cTxt);y+=25;ST(f,20,y,"Camera Lock Mode",cSec);}
         else{ST(f,256,y,"Remote Control Mode",cSec,0.55f,TextAlignment.CENTER);}
         f.Dispose();}
         
