@@ -634,7 +634,7 @@ namespace IngameScript
         else if(LCDMatch(pn,8)&&lcd8==null)lcd8=p;
         else if(LCDMatch(pn,9)&&lcd9==null)lcd9=p;
         }
-        if(b is IMyButtonPanel&&btn==null)btn=b as IMyButtonPanel;
+        if(b is IMyButtonPanel&&b.CustomName.Contains(padTag)&&btn==null)btn=b as IMyButtonPanel;
         }
         bbLCDs.Clear();
         var allPanels=new List<IMyTextPanel>();
@@ -1315,9 +1315,11 @@ namespace IngameScript
         f.Dispose();return;}
         SH(f,y,"BUILD STATUS",cPri);y+=32;
         if(prtProj==null){ST(f,256,y,"NO PROJECTOR",cWrn,0.6f,TextAlignment.CENTER);f.Dispose();return;}
-        if(prtProj.RemainingBlocks==0){
+        if(prtProj.RemainingBlocks==0&&prtProj.TotalBlocks>0&&mslFound){
         ST(f,256,y,"BUILD COMPLETE",cOK,0.6f,TextAlignment.CENTER);y+=22;
         ST(f,256,y,"Update Missile PB",cWrn,0.45f,TextAlignment.CENTER);y+=20;
+        }else if(prtProj.RemainingBlocks==0){
+        ST(f,256,y,mslFound?"READY":"NO BLUEPRINT",mslFound?cOK:cSec,0.6f,TextAlignment.CENTER);y+=22;
         }else{
         int tot=prtProj.TotalBlocks,rem=prtProj.RemainingBlocks;float pct=tot>0?(float)(tot-rem)/tot:0;
         ST(f,20,y,isCreative?"CREATIVE":"SURVIVAL",cAcc,0.45f);y+=18;
@@ -1356,7 +1358,8 @@ namespace IngameScript
         ST(f,20,y,$"Phase: {ps}   Blocks: {tot-rem}/{tot}",cTxt,0.45f);y+=22;
         if(bld>0)ST(f,20,y,$"Ready to weld: {bld}",cOK,0.45f);
         else if(rem>0)ST(f,20,y,$"Remaining: {rem}",cWrn,0.45f);
-        else ST(f,20,y,"Build complete!",cOK,0.5f);
+        else if(tot>0)ST(f,20,y,"Build complete!",cOK,0.5f);
+        else ST(f,20,y,"No blueprint loaded",cSec,0.45f);
         }else{ST(f,20,y,"No projector found",cSec,0.45f);}
         f.Dispose();return;}
         string gs=padMerge!=null?(padMerge.CubeGrid.GridSize>1?"LARGE":"SMALL"):"?";

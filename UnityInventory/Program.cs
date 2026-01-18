@@ -159,8 +159,8 @@ namespace IngameScript
         if(tick%3==0){
         int totItems=oStk.Count+iStk.Count+cStk.Count+tStk.Count+pAmmoStk.Count+(pH2B>0?1:0)+(pO2B>0?1:0)+(ammoStock>0?1:0);
         int maxScroll=viewIdx==4?Math.Max(0,(totItems-16)/8):viewIdx==5?Math.Max(0,(cQd.Count-4)/2):0;
-        if(scrollOff<maxScroll)scrollOff++;
-        else if(scrollOff==maxScroll){scrollOff++;}
+        int viewPause=viewIdx==4?40:10;
+        if(scrollOff<maxScroll+viewPause)scrollOff++;
         else{scrollOff=0;viewIdx=(viewIdx+1)%7;}
         graphIdx=(graphIdx+1)%12;}
         if(a!="")HandleArg(a);
