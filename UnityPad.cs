@@ -611,8 +611,9 @@ else if(LCDMatch(pn,7)&&lcd7==null)lcd7=p;
 else if(LCDMatch(pn,8)&&lcd8==null)lcd8=p;
 else if(LCDMatch(pn,9)&&lcd9==null)lcd9=p;
 }
-if(b is IMyButtonPanel&&b.CustomName.Contains(padTag)&&btn==null)btn=b as IMyButtonPanel;
+if(b is IMyButtonPanel&&b.CustomName.ToLower().Contains("control")&&btn==null)btn=b as IMyButtonPanel;
 }
+if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
 bbLCDs.Clear();
 var allPanels=new List<IMyTextPanel>();
 GridTerminalSystem.GetBlocksOfType(allPanels,p=>p.CustomName.ToUpper().Contains("[BLACKBOX]"));

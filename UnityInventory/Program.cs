@@ -205,7 +205,7 @@ namespace IngameScript
         var blks=new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType(blks,b=>b.CubeGrid==Me.CubeGrid);
         foreach(var b in blks){
-        if(b is IMyButtonPanel&&b.CustomName.Contains(padTag)&&btn==null)btn=b as IMyButtonPanel;
+        if(b is IMyButtonPanel&&b.CustomName.Contains(padTag)&&b.CustomName.ToLower().Contains("control")&&btn==null)btn=b as IMyButtonPanel;
         if(b is IMyRefinery)padRef.Add(b as IMyRefinery);
         if(b is IMyAssembler)padAsm.Add(b as IMyAssembler);
         if(b is IMyReactor)padReact.Add(b as IMyReactor);
@@ -599,8 +599,8 @@ namespace IngameScript
         else if(k=="o2")o2Target=n;
         else if(k=="tool")toolTarget=n;
         else if(k=="pAmmo")pAmmoTarget=n;
+        else if(k=="type"){if(n!=ammoTypeIdx&&n>=0&&n<5){ammoTypeIdx=n;ammoBP=MyDefinitionId.Parse(BP+ammoBPNames[ammoTypeIdx]);ammoType=MyItemType.Parse(OB+"AmmoMagazine/"+ammoITNames[ammoTypeIdx]);}}
         else if(k=="ammoReq")ammoReq=n==1;
-        else if(k=="type")ammoReqType=Math.Max(0,Math.Min(4,n));
         else if(k=="need")ammoReqNeed=n;
         else if(k=="have")ammoReqHave=n;
         else if(k=="mslCount")mslCount=n;
