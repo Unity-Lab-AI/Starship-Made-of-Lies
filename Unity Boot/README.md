@@ -1,3 +1,5 @@
+![Unity Boot](Unity%20Boot%202.png)
+
 # Unity Boot - Boot Controller Script
 
 **Version:** v01.00 | **Last Updated:** 2026-01-18

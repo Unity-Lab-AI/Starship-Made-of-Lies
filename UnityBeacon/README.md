@@ -1,3 +1,5 @@
+![Unity Beacon](Unity%20Beacon%202.png)
+
 # UnityBeacon v01.00 - Miner Status Broadcaster
 
 Part of the **Unity Missile System** - broadcasts miner status via IGC so the UnityPad can track your mining fleet whether docked or flying. Features sprite-based LCD rendering for crisp status displays.
