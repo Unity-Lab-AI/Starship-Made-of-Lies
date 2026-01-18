@@ -556,7 +556,7 @@ BASE BETA (Orbital Station):
 - **10 LCD Display System** - Two additional LCDs for miner fleet status
 - **MINER_BEACON Channel** - Receives miner status broadcasts (battery, cargo, H2, drills, state)
 - **Auto-Correlation** - Matches docked ships to beacon data by EntityId
-- **Works with PAM Miner** - MinerBeacon runs alongside PAM (2019 Steam Workshop version)
+- **Works with [PAM] Path Auto Miner** - MinerBeacon runs alongside PAM by Keks (https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929)
 
 ## WHAT'S IN v3.4
 
@@ -1574,10 +1574,15 @@ When miner docks at ORE connector:
 Miners with no beacon signal for 120+ seconds (and not docked) are removed from tracking.
 
 ### PAM Compatibility
-MinerBeacon runs alongside PAM Miner (2019 Steam Workshop):
+
+MinerBeacon is designed to work perfectly alongside **[PAM] Path Auto Miner** by **Keks**:
+
+**Steam Workshop:** https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
+
 - Use dual-tag: `[PAM] [BEACON] Remote Control`
 - MinerBeacon only reads - never controls autopilot
 - Both scripts run in separate PBs
+- PAM handles mining, UnityBeacon handles status reporting
 
 ---
 
@@ -1618,6 +1623,26 @@ Missile #1 [AMMO] Connector
 | **UnityMissile.cs** | `Unity Missile System/` | `PAD1 Missile #1 Unity Missile` | Guided missile with multiple targeting modes |
 | **UnityInventory.cs** | `Unity Missile System/` | `[PAD1] Unity Inventory` | Inventory management, production, auto-sorting |
 | **UnityBeacon.cs** | `Unity Missile System/` | `[BEACON] Unity Beacon` | Broadcasts miner status to pad |
+
+---
+
+## CREDITS & ACKNOWLEDGEMENTS
+
+### PAM - Path Auto Miner by Keks
+
+The **UnityBeacon** fleet tracking system is designed to work seamlessly alongside the fantastic **[PAM] Path Auto Miner** script by **Keks**.
+
+**Steam Workshop:** https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
+
+PAM is a powerful autonomous mining script that handles pathfinding, mining operations, and automated transportation. UnityBeacon complements PAM by providing real-time status broadcasting to your launch pad, allowing you to monitor your entire mining fleet from one location.
+
+**Why PAM + UnityBeacon?**
+- PAM handles the autopilot and mining operations
+- UnityBeacon broadcasts status (battery, cargo, position, drill state) to your base
+- Both scripts run on separate PBs without interference
+- Dual-tag blocks: `[PAM] [BEACON] Remote Control`
+
+All credit for the PAM miner script goes to **Keks** - we just built the beacon system to track PAM-controlled ships!
 
 ---
 

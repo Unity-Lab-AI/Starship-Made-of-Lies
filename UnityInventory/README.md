@@ -127,6 +127,10 @@ Tag containers for automatic routing:
 
 Receives broadcasts from MinerBeacon scripts on mining ships.
 
+**Works with [PAM] Path Auto Miner by Keks** - https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
+
+MinerBeacon is designed to complement PAM - PAM handles autopilot and mining, UnityBeacon broadcasts status to your base. All credit for PAM goes to **Keks**!
+
 ### Tracked Data
 - Ship name and status
 - Battery, cargo, H2 percentages

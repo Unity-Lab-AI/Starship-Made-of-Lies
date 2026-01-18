@@ -4,6 +4,8 @@
 
 Part of the **Unity Missile System** - broadcasts miner status via IGC so the UnityPad can track your mining fleet whether docked or flying. Features sprite-based LCD rendering for crisp status displays.
 
+**Designed to work with [PAM] Path Auto Miner by Keks** - the fantastic autonomous mining script from the Steam Workshop.
+
 **Location:** `Unity Missile System/UnityBeacon/`
 **Version:** v01.00 | 2026-01-17
 
@@ -15,12 +17,12 @@ Part of the **Unity Missile System** - broadcasts miner status via IGC so the Un
 +------------------+                    +------------------+
 |   YOUR MINER     |     IGC Radio     |   UNITY PAD      |
 |------------------|    ==========>    |------------------|
-| [BEACON] Blocks  |   MINER_BEACON    | LCD 9: Fleet     |
-| MinerBeacon PB   |                   | LCD 10: Details  |
+| [PAM] Autopilot  |   MINER_BEACON    | LCD 9: Fleet     |
+| [BEACON] Status  |                   | LCD 10: Details  |
 +------------------+                    +------------------+
 ```
 
-**Works alongside PAM Miner** - doesn't interfere with autopilot or mining operations.
+**Works alongside [PAM] Path Auto Miner** (https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929) by **Keks** - doesn't interfere with autopilot or mining operations. PAM handles the mining, UnityBeacon handles the status reporting!
 
 ---
 
@@ -71,12 +73,18 @@ Tag these blocks with `[BEACON]` in their name:
 
 ## PAM Compatibility
 
-**MinerBeacon runs alongside PAM without issues:**
+**MinerBeacon is designed to work perfectly alongside [PAM] Path Auto Miner by Keks:**
 
-1. Use a **separate PB** for MinerBeacon
+**Steam Workshop:** https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
+
+PAM is a fantastic autonomous mining script that handles pathfinding, mining operations, and automated transportation. All credit for PAM goes to **Keks** - we just built the beacon system to track PAM-controlled ships!
+
+**How to use together:**
+1. Use a **separate PB** for MinerBeacon (PAM has its own PB)
 2. **Dual-tag** blocks: `[PAM] [BEACON] Remote Control`
 3. MinerBeacon only **reads** - never controls autopilot
 4. Add a second Remote Control if needed (orientation doesn't matter)
+5. PAM handles mining, UnityBeacon handles status reporting to your base
 
 ---
 

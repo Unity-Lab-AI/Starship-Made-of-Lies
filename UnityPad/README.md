@@ -216,10 +216,14 @@ Controller can:
 
 The pad monitors mining ships via MinerBeacon broadcasts on LCD9/LCD10.
 
+**Works with [PAM] Path Auto Miner by Keks** - https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
+
+UnityBeacon is designed to complement PAM - PAM handles the autopilot and mining, UnityBeacon broadcasts status to your base. All credit for PAM goes to **Keks**!
+
 ### Setup
 1. Build ORE connectors on pad (name contains "ORE")
 2. Install MinerBeacon script on each miner (separate project)
-3. Tag miner blocks with `[BEACON]`
+3. Tag miner blocks with `[BEACON]` (or dual-tag `[PAM] [BEACON]`)
 4. Add LCD9 `[PAD1:9]` and LCD10 `[PAD1:10]` to pad
 5. Miners auto-appear when broadcasting
 

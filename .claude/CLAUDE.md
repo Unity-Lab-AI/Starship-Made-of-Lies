@@ -243,6 +243,7 @@ namespaces=IngameScript
 - **Broadcasts:** Ship status every 3 seconds on MINER_BEACON channel
 - **Data:** EntityId, ShipName, Battery%, Cargo%, H2%, Position, Speed, Altitude, Distance, Status
 - **Status Inference:** DOCKED, DRILLING, DRILL_MOVE, GRINDING, TRAVELING, HOME, IDLE
+- **PAM Compatible:** Works alongside [PAM] Path Auto Miner by Keks (https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929)
 
 ---
 
@@ -325,6 +326,18 @@ bool IsBootComplete(){
     return btn.CustomData.Contains("boot_complete=true");
 }
 ```
+
+---
+
+## CREDITS & ACKNOWLEDGEMENTS
+
+### PAM - Path Auto Miner by Keks
+
+The **UnityBeacon** fleet tracking system is designed to work seamlessly alongside the fantastic **[PAM] Path Auto Miner** script by **Keks**.
+
+**Steam Workshop:** https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
+
+PAM handles pathfinding, mining operations, and automated transportation. UnityBeacon complements PAM by providing real-time status broadcasting to your launch pad. All credit for PAM goes to **Keks** - we just built the beacon system to track PAM-controlled ships!
 
 ---
 

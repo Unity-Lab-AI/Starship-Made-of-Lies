@@ -2,6 +2,8 @@
 
 IGC beacon script for mining ships. Broadcasts status to UnityPad for fleet tracking. Features sprite-based LCD rendering.
 
+**Designed to work with [PAM] Path Auto Miner by Keks** - https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
+
 **Location:** `Unity Missile System/UnityBeacon/` (part of Unity Missile System)
 **Version:** v01.00 | 2026-01-17
 
@@ -215,7 +217,13 @@ cTxt = Light (220,220,220)   // Text
 
 ## PAM COMPATIBILITY
 
-Works alongside PAM Miner (2019 Steam Workshop version):
+**UnityBeacon is designed to work perfectly alongside [PAM] Path Auto Miner by Keks:**
+
+**Steam Workshop:** https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
+
+PAM is a fantastic autonomous mining script that handles pathfinding, mining operations, and automated transportation. All credit for PAM goes to **Keks** - we just built the beacon system to track PAM-controlled ships!
+
+**How it works together:**
 - Doesn't interfere with PAM's operation
 - Shares blocks via dual-tagging: `[PAM] [BEACON] Block Name`
 - Reads ship state independently
