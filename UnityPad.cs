@@ -821,7 +821,7 @@ void CheckStateLog(){if(cS!=lastBBState){lastBBState=cS;string sn=cS==S.BUILD?"B
 void UpdateState(){
 if(padMerge==null||padCon==null){cS=S.INIT;return;}
 if(mergePaused){if(padMerge.IsConnected){mergePaused=false;padMerge.Enabled=true;}else{cS=S.IDLE;return;}}
-if(!merged&&cS!=S.GONE&&cS!=S.PRINT){if(cS==S.LAUNCH||cS==S.ARM)cS=S.GONE;else if(!printing)cS=S.IDLE;}
+if(!merged&&cS!=S.GONE&&cS!=S.PRINT){if(cS==S.LAUNCH||cS==S.ARM){cS=S.GONE;sel=0;}else if(!printing)cS=S.IDLE;}
 if(cS==S.GONE||cS==S.PRINT)return;
 switch(cS){
 case S.INIT:case S.IDLE:
@@ -899,8 +899,8 @@ if(!merged){
 if(padLsr.Count>0&&mslMerge!=null){
 Vector3D mslPos=mslMerge.GetPosition();
 foreach(var l in padLsr){l.Enabled=true;l.SetTargetCoords($"GPS:MSL:{mslPos.X:F0}:{mslPos.Y:F0}:{mslPos.Z:F0}:");l.Connect();}}
-cS=S.GONE;}
-else if(lnchTk>10)cS=S.GONE;
+cS=S.GONE;sel=0;}
+else if(lnchTk>10){cS=S.GONE;sel=0;}
 break;
 }}
 
