@@ -24,6 +24,7 @@ namespace IngameScript
     {        string bcTag="MINER_BEACON";
         string shipName="Miner";
         string blockTag="[BEACON]";
+        float lcdW=512,lcdH=512,lcdS=1,lcdYS=1;
         Color cPri=new Color(0,180,255);Color cSec=new Color(100,100,100);Color cAcc=new Color(255,200,0);
         Color cOK=new Color(0,255,100);Color cWrn=new Color(255,180,0);Color cErr=new Color(255,60,60);
         Color cBg=new Color(10,10,15);Color cBdr=new Color(40,40,50);Color cTxt=new Color(220,220,220);
@@ -236,13 +237,13 @@ namespace IngameScript
         
         string FmtSec(double s){if(s<60)return$"{s:F0}s";if(s<3600)return$"{(int)(s/60)}:{(int)(s%60):D2}";return$"{(int)(s/3600)}:{(int)((s%3600)/60):D2}:{(int)(s%60):D2}";}
         
-        MySpriteDrawFrame BL(IMyTextSurface s){s.ContentType=ContentType.SCRIPT;s.Script="";var f=s.DrawFrame();f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(256,256),new Vector2(512,512),cBg));return f;}
-        void SH(MySpriteDrawFrame f,float y,string t,Color c){f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(256,y+12),new Vector2(500,24),c*0.3f));f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(256,y),null,c,"White",TextAlignment.CENTER,0.8f));f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(256,y+24),new Vector2(480,2),c));}
-        void SB(MySpriteDrawFrame f,float x,float y,float w,float h,float pct,Color fg,Color bg){f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+w/2,y+h/2),new Vector2(w,h),bg));float fw=w*Math.Max(0,Math.Min(1,pct));if(fw>1)f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+fw/2,y+h/2),new Vector2(fw,h),fg));}
-        void SLB(MySpriteDrawFrame f,float x,float y,float w,float h,string lbl,float pct,Color fg,Color bg){f.Add(new MySprite(SpriteType.TEXT,lbl,new Vector2(x,y-2),null,cTxt,"Monospace",TextAlignment.LEFT,0.45f));SB(f,x+80,y,w,h,pct,fg,bg);f.Add(new MySprite(SpriteType.TEXT,$"{pct*100:0}%",new Vector2(x+w+90,y-2),null,fg,"Monospace",TextAlignment.LEFT,0.45f));}
-        void ST(MySpriteDrawFrame f,float x,float y,string t,Color c,float sz=0.5f,TextAlignment a=TextAlignment.LEFT){f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(x,y),null,c,"Monospace",a,sz));}
+        MySpriteDrawFrame BL(IMyTextSurface s){s.ContentType=ContentType.SCRIPT;s.Script="";lcdW=s.SurfaceSize.X;lcdH=s.SurfaceSize.Y;lcdS=lcdW/512f;lcdYS=lcdH/512f;var f=s.DrawFrame();f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,lcdH/2),new Vector2(lcdW,lcdH),cBg));return f;}
+        void SH(MySpriteDrawFrame f,float y,string t,Color c){float cy=y*lcdYS,cx=lcdW/2;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,cy+12*lcdYS),new Vector2(lcdW-12*lcdS,24*lcdYS),c*0.3f));f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(cx,cy),null,c,"White",TextAlignment.CENTER,0.8f*lcdS));f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,cy+24*lcdYS),new Vector2(lcdW-32*lcdS,2*lcdYS),c));}
+        void SB(MySpriteDrawFrame f,float x,float y,float w,float h,float pct,Color fg,Color bg){x*=lcdS;y*=lcdYS;w*=lcdS;h*=lcdYS;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+w/2,y+h/2),new Vector2(w,h),bg));float fw=w*Math.Max(0,Math.Min(1,pct));if(fw>1)f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+fw/2,y+h/2),new Vector2(fw,h),fg));}
+        void SLB(MySpriteDrawFrame f,float x,float y,float w,float h,string lbl,float pct,Color fg,Color bg){float sx=x*lcdS,sy=y*lcdYS,sw=w*lcdS;f.Add(new MySprite(SpriteType.TEXT,lbl,new Vector2(sx,sy-2*lcdYS),null,cTxt,"Monospace",TextAlignment.LEFT,0.45f*lcdS));SB(f,x+80,y,w,h,pct,fg,bg);f.Add(new MySprite(SpriteType.TEXT,$"{pct*100:0}%",new Vector2(sx+sw+90*lcdS,sy-2*lcdYS),null,fg,"Monospace",TextAlignment.LEFT,0.45f*lcdS));}
+        void ST(MySpriteDrawFrame f,float x,float y,string t,Color c,float sz=0.5f,TextAlignment a=TextAlignment.LEFT){f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(x*lcdS,y*lcdYS),null,c,"Monospace",a,sz*lcdS));}
         Color PctCol(float p){return p>.7f?cOK:p>.3f?cWrn:cErr;}
-        void SD(MySpriteDrawFrame f,float y){f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(256,y),new Vector2(480,1),cSec));}
+        void SD(MySpriteDrawFrame f,float y){f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,y*lcdYS),new Vector2(lcdW-32*lcdS,1*lcdYS),cSec));}
         
     }
 }
