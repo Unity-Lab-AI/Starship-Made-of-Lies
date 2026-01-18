@@ -11,7 +11,18 @@ Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 
 
 **UnityInventory waits for boot_complete=true before taking LCD control.**
 
-Unity Boot must run first and complete 40 system checks. UnityInventory checks for boot completion via:
+Unity Boot runs first with 21 unified checks using real PB-to-PB IGC handshaking.
+
+### Pre-Boot Ready Flag
+
+UnityInventory writes `inv_ready=true` to the button panel CustomData on compile:
+```csharp
+WriteReadyFlag("inv_ready");
+```
+
+Unity Boot waits for this flag before starting checks. Scripts can be compiled in any order.
+
+### Boot Completion Check
 
 ```csharp
 bool IsBootComplete(){
@@ -21,6 +32,46 @@ bool IsBootComplete(){
 ```
 
 **LCDs controlled by UnityInventory (after boot):** 4, 5, 6, 9, 10
+
+---
+
+## BOOT RESPONSE PROTOCOL
+
+UnityInventory responds to Unity Boot's handshake requests during boot sequence.
+
+### IGC Channels
+
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| `UNITY_BOOT_REQ` | Boot → Inv | Request system status |
+| `UNITY_BOOT_RSP` | Inv → Boot | Respond with block counts |
+
+### Response Format
+
+```
+INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
+```
+
+### Boot Response Functions
+
+```csharp
+void CheckBootRequest(){
+    // Listen for IGC requests
+    while(bootReqL!=null&&bootReqL.HasPendingMessage){
+        var msg=bootReqL.AcceptMessage();
+        if(msg.Data.ToString()=="INV_CHECK")SendBootResponse();
+    }
+    // Also check CustomData fallback
+    if(btn!=null&&btn.CustomData.Contains("inv_check=request"))
+        SendBootResponse();
+}
+
+void SendBootResponse(){
+    // Send block counts via IGC and CustomData
+    string rsp=$"INV|OK|cargo={cc},ref={rc},asm={ac},gen={gc},h2={h2c},o2={o2c}";
+    IGC.SendBroadcastMessage("UNITY_BOOT_RSP",rsp);
+}
+```
 
 ---
 
@@ -113,6 +164,37 @@ cTxt = Light (220,220,220)   // Text
 
 ---
 
+## UNIFIED PRODUCTION SYSTEM
+
+UnityInventory uses a dictionary-based quota system for all craftable items.
+
+### Quota Dictionaries
+
+| Dictionary | Item Type | Default Min |
+|------------|-----------|-------------|
+| `cNd` | Components | Hardcoded per-item |
+| `tNd` | Tools & Weapons | 20 each |
+| `paNd` | Personal Ammo | 20 each |
+| `bNd` | Bottles (H2/O2) | 20 each |
+
+### Minimum Quota Enforcement
+
+All quotas for tools, weapons, personal ammo, and bottles have a minimum of 20:
+```csharp
+void SetToolQuotas(int t){if(t<20)t=20;foreach(var k in tBPx.Keys)Tn(k,t);}
+void SetPAmmoQuotas(int t){if(t<20)t=20;foreach(var k in paBPx.Keys)PAn(k,t);}
+void SetBottleQuotas(){int h=Math.Max(20,h2Target);int o=Math.Max(20,o2Target);...}
+```
+
+### Production Flow
+
+1. `CountStocks()` - Count items in all containers
+2. `CalcMissing()` - Compare stock vs quotas, calculate shortfall
+3. `QueueProduction()` - Queue missing items to assemblers
+4. `QueueMissing()` - Generic queue function for tools/ammo/bottles
+
+---
+
 ## INVENTORY MANAGEMENT
 
 ### Container Routing
@@ -131,15 +213,15 @@ cTxt = Light (220,220,220)   // Text
 
 | Function | Purpose |
 |----------|---------|
-| `ManageInventory()` | Main inventory orchestrator |
-| `RouteItem()` | Find destination for item type |
+| `CountStocks()` | Count all items, calc missing, queue production |
+| `CalcMissing()` | Calculate shortfall vs quotas |
+| `QueueProduction()` | Queue missing items to assemblers |
+| `QueueMissing()` | Generic queue for tools/ammo/bottles |
 | `FeedRefineries()` | Supply ore to refineries |
 | `FeedAssemblers()` | Supply ingots to assemblers |
-| `CraftTools()` | Queue tool production |
+| `RecycleExcess()` | Disassemble excess items |
 | `GD()` | Get designated container |
 | `HS()` | Check if has space |
-| `HT()` | Check if has item type |
-| `ID()` | Check if container is designated |
 
 ---
 
@@ -178,9 +260,9 @@ status=FUEL
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityInventory | ~98,000 | 78,680 | 100,000 | OK (21% margin) |
+| UnityInventory | ~112,600 | ~83,800 | 100,000 | OK (16% margin) |
 
-*Note: Boot code removed in v01.00 (2026-01-18). Boot functionality moved to Unity Boot.*
+*Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 
 ---
 

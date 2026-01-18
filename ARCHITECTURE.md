@@ -7,7 +7,7 @@
 ## System Overview
 
 Five-script guided missile system for Space Engineers:
-- **Unity Boot** - Boot controller runs 40 system checks, initializes all 10 LCDs
+- **Unity Boot** - Boot controller runs 20 unified checks with real IGC handshaking
 - **UnityPad** - Pad handles everything pre-launch (menus, fueling, targeting, printing)
 - **UnityInventory** - Inventory management (sorting, production, fleet tracking)
 - **UnityMissile** - Missile handles everything in-flight (guidance, targeting, detonation)
@@ -17,25 +17,61 @@ Five-script guided missile system for Space Engineers:
 
 ## Boot System Architecture
 
-Unity Boot is a dedicated boot controller that runs FIRST before operational scripts.
+Unity Boot is a dedicated boot controller that runs FIRST before operational scripts. Uses real PB-to-PB IGC handshaking to verify all systems are running.
 
 **Boot Flow:**
 ```
-Unity Boot starts → Controls ALL 10 LCDs → Runs 40 checks → Sets boot_complete=true → Self-disables
-                                                                    ↓
+Unity Boot starts → Controls ALL 10 LCDs → Runs 20 checks → Sets boot_complete=true → Self-disables
+                           ↓                      ↓
+                    Sends IGC requests      Validates responses
+                    to Pad & Inventory      from both PBs
+                                                  ↓
 UnityPad waits for boot_complete → Takes LCDs 1,2,3,7,8
 UnityInventory waits for boot_complete → Takes LCDs 4,5,6,9,10
 ```
 
-**Handshake Protocol:**
-```ini
-[SYSTEM]
-boot_complete=false    ; Set TRUE by Unity Boot when 40/40 checks pass
+**IGC Channels (Boot Handshake):**
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| `UNITY_BOOT_REQ` | Boot → Pad/Inv | Request system status |
+| `UNITY_BOOT_RSP` | Pad/Inv → Boot | Respond with block counts |
+
+**Response Formats:**
+```
+PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
+INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
 ```
 
-**The 40 Boot Checks:**
-- Checks 1-20: Pad systems (grid, merge, connectors, LCDs, printer, power, missile detection)
-- Checks 21-40: Inventory systems (cargo, refineries, assemblers, gas, IGC, stock analysis)
+**CustomData Structure (Button Panel [SYSTEM]):**
+```ini
+[SYSTEM]
+boot_complete=false    ; Set TRUE by Unity Boot when 20/20 checks pass
+pad_check=none         ; Boot writes "request", Pad writes "done"
+pad_status=waiting     ; Pad writes response data here
+inv_check=none         ; Boot writes "request", Inv writes "done"
+inv_status=waiting     ; Inventory writes response data here
+```
+
+**The 20 Unified Boot Checks:**
+| # | Check | Method |
+|---|-------|--------|
+| 1-4 | Grid, Panel, LCDs, IGC | Local block scan |
+| 5 | Request Pad Status | IGC + CustomData |
+| 6 | Await Pad Response | Real handshake |
+| 7-10 | Validate Pad Merge/Power/Fuel | Parse response |
+| 11 | Request Inv Status | IGC + CustomData |
+| 12 | Await Inv Response | Real handshake |
+| 13-16 | Validate Inv Cargo/Ref/Asm/Gas | Parse response |
+| 17-20 | Cross-Validate, Sync, Config, Ready | Finalize boot |
+
+**Module Sync (Check #17):**
+Boot detects physically connected modules via connectors tagged `[PAD#-CON1]` and `[PAD#-CON2]`. If a connector is locked to another grid, it counts as a connected module.
+
+| Connectors | Status |
+|------------|--------|
+| None connected | Standalone mode |
+| CON1 connected | Syncing 1 module(s) |
+| Both connected | Syncing 2 module(s) |
 
 ---
 
@@ -178,6 +214,8 @@ Miner fleet status broadcaster. Runs on mining ships to report back to pad.
 **IGC Channels:**
 | Channel | Sender | Receiver | Purpose |
 |---------|--------|----------|---------|
+| `UNITY_BOOT_REQ` | Boot | Pad/Inv | Request system status |
+| `UNITY_BOOT_RSP` | Pad/Inv | Boot | Respond with block counts |
 | `UNITY_MSL` | Missile | Pad | Telemetry broadcast |
 | `UNITY_MSL_CMD` | Pad | Missile | Commands (DETONATE, ABORT) |
 | `UNITY_PAD_CMD` | Controller | Slaves | Mass commands |

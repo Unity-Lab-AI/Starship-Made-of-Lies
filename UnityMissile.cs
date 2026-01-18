@@ -382,7 +382,7 @@ if(batteries.Count>0)bat/=batteries.Count;
 double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;
 if(h2tanks.Count>0)h2/=h2tanks.Count;
 if(bat<0.1||h2<0.1){isSatellite=false;phase=F.TARGET;EnableThrust(true);}
-foreach(var s in sensors){var det=new List<MyDetectedEntityInfo>();s.DetectedEntities(det);foreach(var e in det){if(IsValidTgt(e.Relationship)){BroadcastSatStatus();}}}
+foreach(var s in sensors){var det=new List<MyDetectedEntityInfo>();s.DetectedEntities(det);foreach(var e in det){if(IsValidTgt(e.Relationship)){IGC.SendBroadcastMessage("ENEMY_SIGNAL",$"{e.Position.X:F0},{e.Position.Y:F0},{e.Position.Z:F0}");BroadcastSatStatus();}}}
 CheckSatCommands();
 RelayMissileTraffic();
 BroadcastSatStatus();

@@ -8,7 +8,7 @@
 
 | Script | Purpose | Runs On |
 |--------|---------|---------|
-| **Unity Boot** | Boot controller, 40 system checks, LCD init | Same grid as UnityPad |
+| **Unity Boot** | Boot controller, 20 unified checks with IGC handshaking | Same grid as UnityPad |
 | **UnityPad** | Launch pad controller, targeting, fleet management | Your base/ship with launch pads |
 | **UnityMissile** | Guidance system, flies to target and detonates | The missile itself |
 | **UnityInventory** | Inventory sorting, production, miner transfers | Same grid as UnityPad (separate PB) |
@@ -42,8 +42,9 @@ In-game: **G Menu → Info → Edit → Browse Workshop → Local Scripts**
 2. Load `Unity Boot` script
 3. **Name the PB:** `[PAD1-BOOT] UNITY BOOT`
 4. Click "Recompile"
-5. Boot runs 40 system checks on all 10 LCDs
-6. Sets `boot_complete=true` when done
+5. Boot runs 20 checks with real PB-to-PB IGC handshaking
+6. Sends requests to Pad and Inventory, validates responses
+7. Sets `boot_complete=true` when done
 7. UnityPad and UnityInventory wait for boot_complete
 
 ---
@@ -258,6 +259,8 @@ Connect a printer/projector/welder setup for auto-rebuilding:
 
 | Channel | Direction | Data |
 |---------|-----------|------|
+| `UNITY_BOOT_REQ` | Boot → Pad/Inv | Request system status |
+| `UNITY_BOOT_RSP` | Pad/Inv → Boot | Block count responses |
 | `UNITY_MSL` | Missile → Pad | Telemetry |
 | `UNITY_MSL_CMD` | Pad → Missile | Commands |
 | `MINER_BEACON` | Miner → Pad | Fleet status |

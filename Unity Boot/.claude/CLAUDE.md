@@ -1,20 +1,22 @@
 # Unity Boot - .claude Workflow System
 
-Centralized boot controller for the Unity Missile System. Handles ALL 10 LCD boot screens and releases control to operational scripts after 40/40 system checks pass.
+Centralized boot controller for the Unity Missile System. Uses real PB-to-PB handshaking via IGC to verify all systems are running before releasing LCD control.
 
 **Location:** `Unity Missile System/Unity Boot/`
-**Version:** v01.00 | 2026-01-18
 
 ---
 
 ## PURPOSE
 
 Unity Boot is a dedicated boot controller that:
-1. Takes control of ALL 10 LCDs during startup
-2. Runs 40 system checks (20 Pad + 20 Inventory)
-3. Displays unified boot progress across all displays
-4. Signals `boot_complete=true` in CustomData when ready
-5. Self-disables after boot, releasing LCDs to operational scripts
+1. Waits for all required scripts to compile (pre-boot ready sync)
+2. Takes control of ALL 10 LCDs during startup
+3. Runs 21 unified system checks with real IGC handshaking
+4. Sends requests to Pad and Inventory PBs, awaits responses
+5. Validates response data (block counts, system status)
+6. Detects miner fleet via MINER_BEACON broadcasts (check 20)
+7. Signals `boot_complete=true` in CustomData when ready
+8. Self-disables after boot, releasing LCDs to operational scripts
 
 ---
 
@@ -50,89 +52,119 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\scr
 
 ---
 
-## HANDSHAKE PROTOCOL
+## PRE-BOOT READY SYNC
+
+Scripts can be compiled in ANY order. Unity Boot waits for all required scripts before starting:
+
+| Script | Ready Flag | Required |
+|--------|------------|----------|
+| Unity Boot | `boot_ready=true` | Yes (auto) |
+| UnityPad | `pad_ready=true` | Yes |
+| UnityInventory | `inv_ready=true` | Yes |
+| UnityBeacon | (detected via MINER_BEACON) | No (optional) |
+
+When waiting, shows "WAITING FOR SCRIPTS" screen on all 10 LCDs.
+
+---
+
+## REAL HANDSHAKE PROTOCOL
+
+Unlike simple block scanning, Unity Boot uses actual PB-to-PB communication via IGC.
+
+### IGC Channels
+
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| `UNITY_BOOT_REQ` | Boot → Pad/Inv | Request system status |
+| `UNITY_BOOT_RSP` | Pad/Inv → Boot | Respond with block counts |
+| `MINER_BEACON` | Beacon → Boot | Fleet status broadcasts |
+
+### Response Format
+
+```
+PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
+INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
+MB|EntityId|ShipName|Bat%|Cargo%|H2%|...  (miner beacon)
+```
 
 ### CustomData Structure (Button Panel [SYSTEM])
 
 ```ini
 [SYSTEM]
-boot_complete=false    ; Set TRUE by Unity Boot when 40/40 checks pass
+; Pre-boot ready flags
+boot_ready=true
+pad_ready=true
+inv_ready=true
+
+; Boot state
+boot_complete=false
+boot_phase=RUNNING
+
+; PB handshake data
+pad_check=none
+pad_status=waiting
+inv_check=none
+inv_status=waiting
+
+; Miner fleet data (from check 20)
+miner_count=0
+miner_names=
+beacon_optional=true
+
+[QUOTAS]
+ammo_target=50000
+h2_target=20
+o2_target=20
+
+[BLACKBOX]
+pad_errors=
+inv_errors=
+last_launch=
 ```
 
 ### Boot Flow
 
-1. **Unity Boot starts** → Clears boot_complete, takes all 10 LCDs
-2. **Runs 40 system checks** → Updates progress on all LCDs
-3. **If error** → Pauses 5 seconds, shows error, retries
-4. **If success** → Sets `boot_complete=true` in CustomData
-5. **Unity Boot disables itself** → `UpdateFrequency.None`
-6. **UnityPad sees boot_complete=true** → Takes LCDs 1,2,3,7,8
-7. **UnityInventory sees boot_complete=true** → Takes LCDs 4,5,6,9,10
-
-### How Operational Scripts Check Boot Status
-
-UnityPad and UnityInventory must check for `boot_complete=true` before taking LCD control:
-
-```csharp
-bool IsBootComplete(){
-    if(btn==null)return false;
-    return btn.CustomData.Contains("boot_complete=true");
-}
-```
+1. **Scripts compile** → Each writes its ready flag (pad_ready, inv_ready, boot_ready)
+2. **Unity Boot checks flags** → If not all ready, shows "WAITING FOR SCRIPTS" screen
+3. **All ready** → Clears stale data, starts 21/21 checks
+4. **Checks 1-4** → Local block scan (grid, panel, LCDs, IGC)
+5. **Checks 5-10** → Pad handshake and validation (merge, power, fuel)
+6. **Checks 11-16** → Inventory handshake and validation (cargo, ref, asm, gas)
+7. **Checks 17-19** → Cross-validate, module sync, write config
+8. **Check 20** → Beacon detection - listens for MINER_BEACON, stores miner names
+9. **Check 21** → System ready
+10. **If success** → Sets `boot_complete=true` in CustomData
+11. **Unity Boot disables itself** → `UpdateFrequency.None`
+12. **UnityPad sees boot_complete=true** → Takes LCDs 1,2,3,7,8
+13. **UnityInventory sees boot_complete=true** → Takes LCDs 4,5,6,9,10
 
 ---
 
-## THE 40 BOOT CHECKS
+## THE 21 UNIFIED CHECKS
 
-### Pad Checks (1-20)
-
-| # | Check | Error if Failed |
-|---|-------|-----------------|
-| 1 | Grid block count | Grid < 5 blocks |
-| 2 | Main grid topology | Grid < 10 blocks |
-| 3 | Merge blocks | No merge found |
-| 4 | Control panel | No btn panel |
-| 5 | Connectors | No connectors |
-| 6 | LCD panels (1,2,3,7,8) | No LCDs |
-| 7 | Button interface | Interface missing |
-| 8 | Printer pistons/welders | (optional) |
-| 9 | Projector | (optional) |
-| 10 | Batteries | No batteries |
-| 11 | Fuel tanks | (info only) |
-| 12 | Missile detection | (info only) |
-| 13 | Targeting data | (info only) |
-| 14 | IGC channels | (info only) |
-| 15 | Broadcast listeners | (info only) |
-| 16 | Waypoints | (info only) |
-| 17 | Launch calibration | (info only) |
-| 18 | Pad status | (validation) |
-| 19 | Module sync | (sibling check) |
-| 20 | Pad boot complete | DONE |
-
-### Inventory Checks (21-40)
-
-| # | Check | Error if Failed |
-|---|-------|-----------------|
-| 21 | Grid block count | Grid < 5 blocks |
-| 22 | Main grid topology | Grid < 10 blocks |
-| 23 | LCD panels (4,5,6,9,10) | No LCDs |
-| 24 | Control panel | No btn panel |
-| 25 | Cargo containers | No cargo |
-| 26 | Refineries | No refineries |
-| 27 | Assemblers | CRITICAL: None |
-| 28 | Inventory data | (info only) |
-| 29 | Power systems | (optional) |
-| 30 | Gas systems | (info only) |
-| 31 | IGC channels | (info only) |
-| 32 | Miner tracking | (info only) |
-| 33 | Stock analysis | (info only) |
-| 34 | Ore routing | (info only) |
-| 35 | Component queue | (info only) |
-| 36 | Tool manifests | (info only) |
-| 37 | Auto-sort status | (info only) |
-| 38 | Connection validation | All valid |
-| 39 | Module sync | (validation) |
-| 40 | Inventory boot complete | DONE |
+| # | Check | Method | Verifies |
+|---|-------|--------|----------|
+| 1 | Initializing Core | Local | Grid has blocks |
+| 2 | Scanning Grid | Local | Grid topology |
+| 3 | Button Panel | Local | Control panel found |
+| 4 | Detecting LCDs | Local | At least 1 LCD tagged |
+| 5 | IGC Channels | Local | Channels registered |
+| 6 | Request Pad Status | CustomData/IGC | pad_check=request sent |
+| 7 | Await Pad Response | CustomData/IGC | pad_status != waiting |
+| 8 | Validate Pad Merge | Response | merge block count |
+| 9 | Validate Pad Power | Response | battery count |
+| 10 | Validate Pad Fuel | Response | tank counts |
+| 11 | Request Inv Status | CustomData/IGC | inv_check=request sent |
+| 12 | Await Inv Response | CustomData/IGC | inv_status != waiting |
+| 13 | Validate Inv Cargo | Response | cargo containers |
+| 14 | Validate Inv Refinery | Response | refineries |
+| 15 | Validate Inv Assembler | Response | assemblers |
+| 16 | Validate Inv Gas | Response | generators |
+| 17 | Cross-Validate | Both | All systems accounted |
+| 18 | Module Sync | CustomData | Multi-pad coordination |
+| 19 | Write Config | CustomData | Load/verify quotas |
+| 20 | Beacon Detection | MINER_BEACON | Detect miners, store names |
+| 21 | System Ready | CustomData | boot_complete=true |
 
 ---
 
@@ -160,6 +192,10 @@ When a boot check fails:
 4. Error clears, retry continues
 5. Boot will not complete until all checks pass
 
+Timeout handling:
+- If Pad/Inventory doesn't respond within 30 ticks, shows timeout error
+- Retries request after error pause
+
 ---
 
 ## CRITICAL RULES (ALWAYS ENFORCED)
@@ -179,7 +215,7 @@ When a boot check fails:
 
 | Script | Estimated Size | Budget | Status |
 |--------|---------------|--------|--------|
-| Unity Boot | ~15,000 | 100,000 | OK (85% margin) |
+| Unity Boot | ~14,600 | 100,000 | OK (85% margin) |
 
 ---
 

@@ -160,24 +160,78 @@ START → RETRACT → EXTEND → WELD (slow retract) → CHECK → REPEAT/DONE
 
 ---
 
-## COMMANDS
+## ARGUMENTS
 
-| Command | Action |
-|---------|--------|
-| `UP` | Menu up |
-| `DOWN` | Menu down |
-| `APPLY` | Select/confirm |
-| `LAUNCH` | Launch / Remote detonate |
-| `PRINT` | Start/stop printer |
-| `SETUPMOD` | Auto-configure pad module |
-| `NAMEMSL` | Rename missile blocks |
-| `NAMEPAD` | Rename pad blocks |
-| `SETPADCONTROL` | Toggle controller mode |
-| `CARPET` | Start carpet bomb |
-| `KILLALL` | Toggle auto-attack |
-| `ORGANIZE` | Force storage organization |
-| `AUTOORG` | Toggle auto-organization |
-| `GPS:X,Y,Z` | Set target coordinates |
+### Navigation & Menu
+
+| Argument | Action |
+|----------|--------|
+| `UP` | Navigate menu up / Scroll up in VIEW mode |
+| `DOWN` | Navigate menu down / Scroll down in VIEW mode |
+| `APPLY` | Select/confirm menu item / Exit VIEW mode |
+| `MENU` | Cycle through menu modes (MAIN→TGT→SET→ARM→WIZARD→VIEW) |
+
+### Missile Operations
+
+| Argument | Action |
+|----------|--------|
+| `LAUNCH` | Launch armed missile / Remote detonate in-flight missile |
+| `ARM` | Arm missile when state is READY |
+| `DISARM` | Disarm armed missile |
+| `REFUEL` | Start refuel cycle when IDLE |
+
+### Printer Operations
+
+| Argument | Action |
+|----------|--------|
+| `PRINT` | Start printer cycle |
+| `STOP` | Stop printer cycle |
+| `RESET#` | Reset build number to 0 |
+
+### Setup & Configuration
+
+| Argument | Action |
+|----------|--------|
+| `SETUP` | Open setup wizard menu |
+| `SETUPMOD` | Auto-setup module (claim ID, tag all blocks) |
+| `SETUPFORCE` | Force setup even if blocks already tagged |
+| `RESCAN` | Re-detect environment and rescan blocks |
+| `CLAIM` | Manually claim next available pad ID |
+| `NAMEPAD` | Rename all pad blocks with clean names |
+| `NAMEMSL` | Rename all missile blocks with clean names |
+| `CREATIVE` | Toggle creative/survival mode |
+| `RESET` | Reset state machine to IDLE, clear all flags |
+| `BBRESET` | Clear blackbox log |
+
+### Acknowledgement
+
+| Argument | Action |
+|----------|--------|
+| `ACK` | Acknowledge launch outcome message |
+| `OK` | Same as ACK |
+| `CLEAR` | Same as ACK |
+
+### Controller Mode (Multi-Pad)
+
+| Argument | Action |
+|----------|--------|
+| `SETPADCONTROL` | Toggle controller mode on/off |
+| `COPYTGT` | Broadcast current target to all pads |
+| `BUILDALL` | Start build on all empty pads |
+| `ARMALL` | Arm all missiles in READY state |
+| `LAUNCHALL` | Launch all armed missiles |
+| `ABORTALL` | Remote detonate all in-flight missiles |
+| `STARTSALVO` | Start salvo launch mode (sequential) |
+| `STOPSALVO` | Stop salvo mode |
+| `CARPET` | Start carpet bomb pattern attack |
+| `AUTOATTACK` | Toggle auto-attack mode |
+| `KILLALL` | Same as AUTOATTACK - continuous attack until targets destroyed |
+
+### Target Commands
+
+| Argument | Action |
+|----------|--------|
+| `GPS:X,Y,Z` | Set GPS target to coordinates (e.g., `GPS:1000,500,200`) |
 
 ---
 
@@ -253,10 +307,9 @@ UnityBeacon is designed to complement PAM - PAM handles the autopilot and mining
 
 | Metric | Value |
 |--------|-------|
-| Raw Source | ~110,000 chars |
-| Deployed | 89,239 chars |
+| Deployed | 89,976 chars |
 | Budget | 100,000 chars |
-| Status | OK (11% margin) |
+| Status | OK (10% margin) |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 

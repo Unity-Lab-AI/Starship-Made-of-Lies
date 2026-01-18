@@ -33,6 +33,17 @@ UnityInventory runs on a separate Programmable Block from UnityPad. It handles a
 
 ---
 
+## SETUP
+
+1. Add Programmable Block to your launch pad grid
+2. Load the `Unity Inventory` script
+3. Name the PB: `[PAD1] Unity Inventory`
+4. Tag LCDs: `[PAD1:4]` through `[PAD1:10]`
+5. Tag containers for routing (see Container Tags below)
+6. Run `RESCAN` to detect all blocks
+
+---
+
 ## LCD DISPLAYS
 
 | LCD | Name | Content |
@@ -87,6 +98,16 @@ Tag containers for automatic routing:
 | `[PAD1-tools]` | Tool storage |
 | `[PAD1-bottle]` | Bottle storage |
 | `[PAD1-pammo]` | Personal ammo storage |
+
+---
+
+## ARGUMENTS
+
+| Argument | Action |
+|----------|--------|
+| `SORT` | Force immediate inventory sort cycle |
+| `RESCAN` | Re-detect all blocks and containers |
+| `AUTOORG` | Toggle automatic organization on/off |
 
 ---
 
@@ -189,10 +210,9 @@ asmWorking=2
 
 | Metric | Value |
 |--------|-------|
-| Raw Source | ~98,000 chars |
-| Deployed | 78,680 chars |
+| Deployed | 83,137 chars |
 | Budget | 100,000 chars |
-| Status | OK (21% margin) |
+| Status | OK (17% margin) |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 

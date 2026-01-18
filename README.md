@@ -14,7 +14,7 @@
 
 | Script | PB Name | Function |
 |--------|---------|----------|
-| **Unity Boot** | `[PAD1-BOOT] UNITY BOOT` | Boot controller, 40 system checks, LCD init |
+| **Unity Boot** | `[PAD1-BOOT] UNITY BOOT` | Boot controller, 21 unified checks with real PB handshaking |
 | **UnityPad** | `[PAD1] Unity Pad` | Launch control, LCDs, targeting, printing |
 | **UnityMissile** | `PAD1 Missile #1 Unity Missile` | In-flight guidance, targeting, detonation |
 | **UnityInventory** | `[PAD1] Unity Inventory` | Inventory management, production, sorting |
@@ -129,7 +129,7 @@ SETUPMOD
 2. Claims next available pad ID (PAD1, PAD2, etc.)
 3. Tags the merge block: `[PAD1]`
 4. Tags the nearest connector: `[PAD1]` (same as merge = docking connector)
-5. Tags 8 LCDs: `[PAD1:1]` through `[PAD1:8]`
+5. Tags 10 LCDs: `[PAD1:1]` through `[PAD1:10]`
 6. Tags button panel: `[PAD1]`
 7. Tags printer blocks (if present): `[PAD1-PRINT]`
 8. Auto-finds missile connectors if missile is docked:
@@ -137,7 +137,7 @@ SETUPMOD
    - Farthest from pad = `[AMMO]` (ejection connector)
 
 **After SETUPMOD:**
-- All 8 LCDs should start displaying
+- All 10 LCDs should start displaying
 - LCD1 shows main menu
 - State shows INIT until missile docks
 
@@ -278,7 +278,7 @@ All pads share:
 Each pad has its own:
 - Merge block
 - Docking connector
-- 8 LCDs
+- 10 LCDs
 - Button panel
 - Programmable block
 
@@ -764,29 +764,68 @@ In SURVIVAL mode:
 
 ## UNITY BOOT SYSTEM
 
-Centralized boot controller that runs 40 system checks before operational scripts take over.
+Centralized boot controller with real PB-to-PB handshaking. Runs 21 unified checks that verify Pad and Inventory systems are actually running and responding.
+
+### Pre-Boot Ready Sync
+
+Scripts can be compiled in ANY order. Each script writes a ready flag on compile:
+- UnityPad writes `pad_ready=true`
+- UnityInventory writes `inv_ready=true`
+- Unity Boot writes `boot_ready=true`
+
+Unity Boot waits for all required flags before starting checks. Shows "WAITING FOR SCRIPTS" until ready.
 
 ### How It Works
 
-1. **Boot PB starts first** → Takes control of ALL 10 LCDs
-2. **Runs 40 checks** → Displays progress (1/40, 2/40, etc.)
-3. **On error** → Pauses 5 seconds, shows error message, retries
-4. **On success** → Sets `boot_complete=true` in [SYSTEM] CustomData
-5. **Self-disables** → UpdateFrequency.None (stops running)
-6. **Handoff** → UnityPad and UnityInventory detect boot_complete and take their LCDs
+1. **Scripts compile** → Each writes its ready flag to CustomData
+2. **Unity Boot checks flags** → If not all ready, shows waiting screen
+3. **All ready** → Clears stale data, starts 21/21 checks
+4. **Runs 21 unified checks** → Displays progress (1/21, 2/21, etc.)
+5. **Sends IGC requests** → Pad and Inventory PBs respond with system status
+6. **Check 20: Beacon Detection** → Listens for MINER_BEACON, stores miner names
+7. **On error** → Pauses 5 seconds, shows error message, retries
+8. **On success** → Sets `boot_complete=true` in [SYSTEM] CustomData
+9. **Self-disables** → UpdateFrequency.None (stops running)
+10. **Handoff** → UnityPad and UnityInventory detect boot_complete and take their LCDs
+
+### Real Handshaking Protocol
+
+Unlike simple block scanning, Unity Boot uses actual PB-to-PB communication:
+
+**IGC Channels:**
+| Channel | Purpose |
+|---------|---------|
+| `UNITY_BOOT_REQ` | Boot sends check requests to Pad/Inventory |
+| `UNITY_BOOT_RSP` | Pad/Inventory respond with system status |
+
+**Response Format:**
+```
+PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
+INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
+```
 
 ### Setup
 
 1. Add a **third** Programmable Block on the pad grid
 2. Load `Unity Boot` script
 3. Name PB: `[PAD1-BOOT] UNITY BOOT`
-4. The boot PB communicates via button panel [SYSTEM] CustomData
+4. The boot PB communicates via IGC and button panel [SYSTEM] CustomData
 
-### Boot Checks (40 Total)
+### The 21 Unified Checks
 
-**Pad Checks (1-20):** Grid, GTS, merge, connector, projector, RC, gyros, thrusters, warheads, batteries, tanks, cameras, sensors, antennas, waypoints, system panel, LCDs, config, IGC, pad ready
-
-**Inventory Checks (21-40):** Grid, GTS, assemblers, refineries, storage, sorters, connectors, O2 gens, H2 tanks, O2 tanks, ingots, components, ores, tools, ammo, LCDs, quotas, blueprints, IGC, inventory ready
+| # | Check | Method |
+|---|-------|--------|
+| 1-4 | Grid, Panel, LCDs, IGC | Local block scan |
+| 5 | Request Pad Status | IGC + CustomData |
+| 6 | Await Pad Response | Real handshake |
+| 7-10 | Validate Pad Merge/Power/Fuel | Parse response |
+| 11 | Request Inv Status | IGC + CustomData |
+| 12 | Await Inv Response | Real handshake |
+| 13-16 | Validate Inv Cargo/Ref/Asm/Gas | Parse response |
+| 17-18 | Cross-Validate, Module Sync | All systems check |
+| 19 | Write Config | Finalize quotas |
+| 20 | Beacon Detection | MINER_BEACON listener |
+| 21 | System Ready | boot_complete=true |
 
 ### LCD Control
 
@@ -1047,36 +1086,116 @@ During missile flight (S.GONE), all LCDs switch to show:
 
 ---
 
-## COMMANDS
+## COMPLETE ARGUMENT REFERENCE
 
-| Command | Action |
-|---------|--------|
-| `UP` | Menu navigation up |
-| `DOWN` | Menu navigation down |
-| `APPLY` | Select/confirm |
-| `LAUNCH` | Launch missile / Remote detonate |
-| `PRINT` | Start/stop printer |
-| `SETUP` | Open setup wizard |
-| `RESCAN` | Re-detect environment and blocks |
-| `SETUPMOD` | Initialize pad module (claim ID, tag blocks) |
-| `CLAIM` | Manually claim next pad ID |
-| `NAMEPAD` | Rename pad blocks with clean names |
-| `NAMEMSL` | Rename missile blocks with clean names |
+All programmable block arguments for every script in the Unity Missile System.
+
+### UnityPad Arguments
+
+**Navigation & Menu:**
+| Argument | Action |
+|----------|--------|
+| `UP` | Navigate menu up / Scroll up in VIEW mode |
+| `DOWN` | Navigate menu down / Scroll down in VIEW mode |
+| `APPLY` | Select/confirm menu item / Exit VIEW mode |
+| `MENU` | Cycle through menu modes (MAIN→TGT→SET→ARM→WIZARD→VIEW) |
+
+**Missile Operations:**
+| Argument | Action |
+|----------|--------|
+| `LAUNCH` | Launch armed missile / Remote detonate in-flight missile |
+| `ARM` | Arm missile when state is READY |
+| `DISARM` | Disarm armed missile |
+| `REFUEL` | Start refuel cycle when IDLE |
+
+**Printer Operations:**
+| Argument | Action |
+|----------|--------|
+| `PRINT` | Start printer cycle |
+| `STOP` | Stop printer cycle |
+| `RESET#` | Reset build number to 0 |
+
+**Setup & Configuration:**
+| Argument | Action |
+|----------|--------|
+| `SETUP` | Open setup wizard menu |
+| `SETUPMOD` | Auto-setup module (claim ID, tag all blocks) |
+| `SETUPFORCE` | Force setup even if blocks already tagged |
+| `RESCAN` | Re-detect environment and rescan blocks |
+| `CLAIM` | Manually claim next available pad ID |
+| `NAMEPAD` | Rename all pad blocks with clean names |
+| `NAMEMSL` | Rename all missile blocks with clean names |
 | `CREATIVE` | Toggle creative/survival mode |
-| `SETPADCONTROL` | Toggle controller mode |
-| `COPYTGT` | Send target to all pads (controller) |
-| `BUILDALL` | Start build on all pads (controller) |
-| `ARMALL` | Arm all missiles (controller) |
-| `LAUNCHALL` | Launch all missiles (controller) |
-| `ABORTALL` | Abort all in-flight (controller) |
-| `STARTSALVO` | Start salvo mode (controller) |
-| `STOPSALVO` | Stop salvo mode (controller) |
-| `CARPET` | Start carpet bomb (controller) |
-| `KILLALL` | Toggle auto-attack mode (controller) |
-| `AUTOATTACK` | Same as KILLALL |
-| `ORGANIZE` | Force storage organization pass |
-| `AUTOORG` | Toggle auto-organization on/off |
-| `GPS:X,Y,Z` | Set GPS target coordinates |
+| `RESET` | Reset state machine to IDLE, clear all flags |
+| `BBRESET` | Clear blackbox log |
+
+**Acknowledgement:**
+| Argument | Action |
+|----------|--------|
+| `ACK` | Acknowledge launch outcome message |
+| `OK` | Same as ACK |
+| `CLEAR` | Same as ACK |
+
+**Controller Mode (Multi-Pad):**
+| Argument | Action |
+|----------|--------|
+| `SETPADCONTROL` | Toggle controller mode on/off |
+| `COPYTGT` | Broadcast current target to all pads |
+| `BUILDALL` | Start build on all empty pads |
+| `ARMALL` | Arm all missiles in READY state |
+| `LAUNCHALL` | Launch all armed missiles |
+| `ABORTALL` | Remote detonate all in-flight missiles |
+| `STARTSALVO` | Start salvo launch mode (sequential) |
+| `STOPSALVO` | Stop salvo mode |
+| `CARPET` | Start carpet bomb pattern attack |
+| `AUTOATTACK` | Toggle auto-attack mode |
+| `KILLALL` | Same as AUTOATTACK - continuous attack until targets destroyed |
+
+**Target Commands:**
+| Argument | Action |
+|----------|--------|
+| `GPS:X,Y,Z` | Set GPS target to coordinates (e.g., `GPS:1000,500,200`) |
+
+---
+
+### UnityInventory Arguments
+
+| Argument | Action |
+|----------|--------|
+| `SORT` | Force immediate hard sort of all items |
+| `RESCAN` | Re-scan for containers and production blocks |
+| `AUTOORG` | Toggle auto-organization on/off (default: ON) |
+
+---
+
+### UnityMissile Arguments
+
+| Argument | Action |
+|----------|--------|
+| `LAUNCH` | Initialize missile, parse config, find blocks, start flight |
+| `NAME` | Find and auto-name all missile blocks |
+
+**Note:** UnityMissile also receives IGC commands from the pad:
+- `DETONATE` - Detonate all warheads
+- `DETONATE:{padID}` - Detonate specific pad's missile
+- `MERGE` - Re-enable merge block
+
+---
+
+### UnityBeacon Arguments
+
+| Argument | Action |
+|----------|--------|
+| `SETUP` | Auto-tag first available RC, Antenna, Connector, LCD with [BEACON] |
+| `SETHOME` | Save current position as home base for distance calculations |
+| `RESCAN` | Re-scan for [BEACON] tagged blocks |
+| `RESET` | Clear all config, reset CustomData, clear LCD |
+
+---
+
+### Unity Boot Arguments
+
+Unity Boot has no manual arguments - it runs the boot sequence automatically on compile/recompile and self-disables after completion.
 
 ---
 
@@ -1084,6 +1203,8 @@ During missile flight (S.GONE), all LCDs switch to show:
 
 | Tag | Purpose |
 |-----|---------|
+| `UNITY_BOOT_REQ` | Boot requests system status from Pad/Inventory |
+| `UNITY_BOOT_RSP` | Pad/Inventory respond with system counts |
 | `UNITY_MSL` | Missile telemetry (position, phase, distance) |
 | `UNITY_MSL_CMD` | Missile commands (DETONATE, etc.) |
 | `UNITY_MSL_RELAY` | Relayed missile telemetry via satellite |
@@ -1101,9 +1222,9 @@ During missile flight (S.GONE), all LCDs switch to show:
 ### Required Blocks (will be auto-tagged by SETUPMOD)
 1. **MERGE BLOCK** - Missile docking point
 2. **CONNECTOR** - Fuel transfer
-3. **8 LCD PANELS** - Status displays
+3. **10 LCD PANELS** - Status displays (LCDs 1-10)
 4. **BUTTON PANEL** - Control input
-5. **PROGRAMMABLE BLOCK** - Runs the script
+5. **3 PROGRAMMABLE BLOCKS** - Unity Boot, UnityPad, UnityInventory
 
 ### Printer Blocks (optional)
 6. **PISTONS** - Move welders
@@ -1243,11 +1364,11 @@ When in SURVIVAL mode, the pad automatically:
 
 | Script | Deployed | Limit | Status |
 |--------|----------|-------|--------|
-| Unity Boot | 12,697 | 100,000 | OK (87% margin) |
-| UnityPad | 89,239 | 100,000 | OK (11% margin) |
-| UnityMissile | 26,058 | 100,000 | OK (74% margin) |
-| UnityInventory | 78,680 | 100,000 | OK (21% margin) |
-| UnityBeacon | 10,800 | 100,000 | OK (89% margin) |
+| Unity Boot | ~14,600 | 100,000 | OK (85% margin) |
+| UnityPad | ~90,354 | 100,000 | OK (10% margin) |
+| UnityMissile | ~26,000 | 100,000 | OK (74% margin) |
+| UnityInventory | ~83,800 | 100,000 | OK (16% margin) |
+| UnityBeacon | ~10,800 | 100,000 | OK (89% margin) |
 
 *Note: The 100k limit applies to DEPLOYED script.cs in AppData. MDK2 with `minify=full` compresses the raw source by ~20-30%.*
 
@@ -1618,7 +1739,7 @@ Missile #1 [AMMO] Connector
 
 | Script | Location | PB Name | Purpose |
 |--------|----------|---------|---------|
-| **Unity Boot.cs** | `Unity Missile System/` | `[PAD1-BOOT] UNITY BOOT` | Boot controller, 40 system checks, LCD init |
+| **Unity Boot.cs** | `Unity Missile System/` | `[PAD1-BOOT] UNITY BOOT` | Boot controller, 21 unified checks with real PB handshaking |
 | **UnityPad.cs** | `Unity Missile System/` | `[PAD1] Unity Pad` | Launch control, LCDs, targeting, printing |
 | **UnityMissile.cs** | `Unity Missile System/` | `PAD1 Missile #1 Unity Missile` | Guided missile with multiple targeting modes |
 | **UnityInventory.cs** | `Unity Missile System/` | `[PAD1] Unity Inventory` | Inventory management, production, auto-sorting |

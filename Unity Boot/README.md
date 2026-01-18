@@ -2,9 +2,7 @@
 
 # Unity Boot - Boot Controller Script
 
-**Version:** v01.00 | **Last Updated:** 2026-01-18
-
-Centralized boot controller for the Unity Missile System. Runs 40 system checks and controls all 10 LCDs during startup.
+Centralized boot controller for the Unity Missile System. Uses real PB-to-PB IGC handshaking to verify all systems are running before releasing LCD control.
 
 ---
 
@@ -12,10 +10,11 @@ Centralized boot controller for the Unity Missile System. Runs 40 system checks 
 
 Unity Boot is a dedicated boot controller that:
 1. Takes control of ALL 10 LCDs during startup
-2. Runs 40 system checks (20 Pad + 20 Inventory)
-3. Displays unified boot progress across all displays
-4. Signals `boot_complete=true` in CustomData when ready
-5. Self-disables after boot, releasing LCDs to operational scripts
+2. Runs 20 unified system checks with real IGC handshaking
+3. Sends requests to Pad and Inventory PBs, awaits their responses
+4. Validates response data (block counts, system status)
+5. Signals `boot_complete=true` in CustomData when ready
+6. Self-disables after boot, releasing LCDs to operational scripts
 
 ---
 
@@ -28,26 +27,54 @@ Unity Boot is a dedicated boot controller that:
 3. **Name the PB:** `[PAD1-BOOT] UNITY BOOT`
 4. Recompile and run
 
-**IMPORTANT:** Install Unity Boot FIRST, before UnityPad and UnityInventory.
+**IMPORTANT:** All three PBs (Boot, Pad, Inventory) must be running. Boot talks to them via IGC.
 
-### Required Block
+### Required Blocks
 
-- Button Panel tagged `[SYSTEM]` - Used for boot_complete handshake
+- Button Panel with "control" in name - Used for boot handshake and CustomData storage
+
+### Optional Blocks (Module Connections)
+
+- Connector tagged `[PAD#-CON1]` - First module connection point
+- Connector tagged `[PAD#-CON2]` - Second module connection point
+
+These connectors are used for physical module sync detection during boot.
 
 ---
 
 ## HOW IT WORKS
 
+### Real PB-to-PB Handshaking
+
+Unlike simple block scanning, Unity Boot verifies that Pad and Inventory PBs are actually running and responding:
+
+**IGC Channels:**
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| `UNITY_BOOT_REQ` | Boot → Pad/Inv | Request system status |
+| `UNITY_BOOT_RSP` | Pad/Inv → Boot | Respond with block counts |
+
+**Response Format:**
+```
+PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
+INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
+```
+
 ### Boot Sequence
 
 1. Unity Boot starts and clears `boot_complete=false`
 2. Takes control of all 10 LCDs
-3. Displays animated boot screen with progress
-4. Runs 40 checks sequentially (1/40, 2/40, etc.)
-5. On error: pauses 5 seconds, shows error message, retries
-6. On success: sets `boot_complete=true` in [SYSTEM] CustomData
-7. Self-disables (UpdateFrequency.None)
-8. UnityPad and UnityInventory detect boot_complete and take their LCDs
+3. Runs checks 1-4 (local block scan)
+4. Check 5: Sends `PAD_CHECK` request via IGC
+5. Check 6: Awaits Pad response
+6. Checks 7-10: Validates Pad response data
+7. Check 11: Sends `INV_CHECK` request via IGC
+8. Check 12: Awaits Inventory response
+9. Checks 13-16: Validates Inventory response data
+10. Checks 17-20: Cross-validate, module sync, write config, complete
+11. Sets `boot_complete=true` in [SYSTEM] CustomData
+12. Self-disables (UpdateFrequency.None)
+13. UnityPad and UnityInventory detect boot_complete and take their LCDs
 
 ### LCD Allocation
 
@@ -58,57 +85,48 @@ Unity Boot is a dedicated boot controller that:
 
 ---
 
-## THE 40 BOOT CHECKS
+## THE 20 UNIFIED CHECKS
 
-### Pad Checks (1-20)
+| # | Check | Method |
+|---|-------|--------|
+| 1-4 | Grid, Panel, LCDs, IGC | Local block scan |
+| 5 | Request Pad Status | IGC + CustomData |
+| 6 | Await Pad Response | Real handshake |
+| 7-10 | Validate Pad Merge/Power/Fuel | Parse response |
+| 11 | Request Inv Status | IGC + CustomData |
+| 12 | Await Inv Response | Real handshake |
+| 13-16 | Validate Inv Cargo/Ref/Asm/Gas | Parse response |
+| 17-18 | Cross-Validate, Module Sync | All systems check |
+| 19-20 | Write Config, System Ready | Finalize boot |
 
-| # | Check | Error if Failed |
-|---|-------|-----------------|
-| 1 | Grid block count | Grid < 5 blocks |
-| 2 | Main grid topology | Grid < 10 blocks |
-| 3 | Merge blocks | No merge found |
-| 4 | Control panel | No btn panel |
-| 5 | Connectors | No connectors |
-| 6 | LCD panels (1,2,3,7,8) | No LCDs |
-| 7 | Button interface | Interface missing |
-| 8 | Printer pistons/welders | (optional) |
-| 9 | Projector | (optional) |
-| 10 | Batteries | No batteries |
-| 11 | Fuel tanks | (info only) |
-| 12 | Missile detection | (info only) |
-| 13 | Targeting data | (info only) |
-| 14 | IGC channels | (info only) |
-| 15 | Broadcast listeners | (info only) |
-| 16 | Waypoints | (info only) |
-| 17 | Launch calibration | (info only) |
-| 18 | Pad status | (validation) |
-| 19 | Module sync | (sibling check) |
-| 20 | Pad boot complete | DONE |
+---
 
-### Inventory Checks (21-40)
+## MODULE SYNC (Connector-Based)
 
-| # | Check | Error if Failed |
-|---|-------|-----------------|
-| 21 | Grid block count | Grid < 5 blocks |
-| 22 | Main grid topology | Grid < 10 blocks |
-| 23 | LCD panels (4,5,6,9,10) | No LCDs |
-| 24 | Control panel | No btn panel |
-| 25 | Cargo containers | No cargo |
-| 26 | Refineries | No refineries |
-| 27 | Assemblers | CRITICAL: None |
-| 28 | Inventory data | (info only) |
-| 29 | Power systems | (optional) |
-| 30 | Gas systems | (info only) |
-| 31 | IGC channels | (info only) |
-| 32 | Miner tracking | (info only) |
-| 33 | Stock analysis | (info only) |
-| 34 | Ore routing | (info only) |
-| 35 | Component queue | (info only) |
-| 36 | Tool manifests | (info only) |
-| 37 | Auto-sort status | (info only) |
-| 38 | Connection validation | All valid |
-| 39 | Module sync | (validation) |
-| 40 | Inventory boot complete | DONE |
+Boot check #17 detects physically connected modules via connectors:
+
+### How It Works
+
+1. Boot scans for connectors tagged `[PAD#-CON1]` and `[PAD#-CON2]`
+2. Checks if each connector is actually connected (`Status == Connected`)
+3. Counts connected modules and displays status
+
+### Module Sync Status
+
+| Connectors | Display |
+|------------|---------|
+| None connected | "Standalone mode" |
+| CON1 connected | "Syncing 1 module(s)" |
+| Both connected | "Syncing 2 module(s)" |
+
+### Block Naming
+
+```
+[PAD1-CON1] Connector    <- First module port
+[PAD1-CON2] Connector    <- Second module port
+```
+
+This allows you to dock additional module grids (storage, refinery, etc.) and have them detected during boot.
 
 ---
 
@@ -116,11 +134,25 @@ Unity Boot is a dedicated boot controller that:
 
 ### CustomData Structure
 
-Unity Boot communicates via the [SYSTEM] button panel's CustomData:
+Unity Boot communicates via the button panel's CustomData:
 
 ```ini
 [SYSTEM]
-boot_complete=false    ; Set TRUE when 40/40 checks pass
+boot_complete=false
+pad_check=none
+pad_status=waiting
+inv_check=none
+inv_status=waiting
+
+[QUOTAS]
+ammo_target=50000
+h2_target=20
+o2_target=20
+
+[BLACKBOX]
+pad_errors=
+inv_errors=
+last_launch=
 ```
 
 ### How Operational Scripts Check
@@ -134,6 +166,17 @@ bool IsBootComplete(){
 }
 ```
 
+### How They Respond to Boot Requests
+
+```csharp
+void CheckBootRequest(){
+    while(bootReqL.HasPendingMessage){
+        var msg=bootReqL.AcceptMessage();
+        if(msg.Data.ToString()=="PAD_CHECK")SendBootResponse();
+    }
+}
+```
+
 ---
 
 ## ERROR HANDLING
@@ -144,6 +187,10 @@ When a boot check fails:
 3. 5-second pause (50 ticks at Update100)
 4. Error clears, retry continues
 5. Boot will not complete until all checks pass
+
+Timeout handling:
+- If Pad/Inventory doesn't respond within 30 ticks, shows timeout error
+- Retries request after error pause
 
 ---
 
@@ -163,13 +210,13 @@ dotnet build "Unity Boot" -c Debug
 
 ---
 
-## CHARACTER COUNT
+## CHARACTER BUDGET
 
 | Metric | Value |
 |--------|-------|
-| Deployed Size | 12,697 chars |
+| Deployed | 10,666 chars |
 | Budget | 100,000 chars |
-| Margin | 87% |
+| Status | OK (89% margin) |
 
 ---
 

@@ -88,13 +88,14 @@ PAM is a fantastic autonomous mining script that handles pathfinding, mining ope
 
 ---
 
-## Commands
+## ARGUMENTS
 
-| Command | Action |
-|---------|--------|
-| `SETUP` | Auto-name first RC, Antenna, Connector with [BEACON] |
-| `SETHOME` | Save current position as home base |
-| `RESCAN` | Re-scan for tagged blocks |
+| Argument | Action |
+|----------|--------|
+| `SETUP` | Auto-tag first RC, Antenna, Connector, LCD with [BEACON] |
+| `SETHOME` | Save current position as home base for distance calculations |
+| `RESCAN` | Re-scan for [BEACON] tagged blocks |
+| `RESET` | Clear all config, reset CustomData, clear LCD |
 
 ---
 
@@ -306,8 +307,7 @@ dotnet build UnityBeacon -c Debug
 
 | Metric | Value |
 |--------|-------|
-| Raw Source | ~12,000 chars |
-| Deployed | 10,800 chars |
+| Deployed | 10,860 chars |
 | Budget | 100,000 chars |
 | Status | OK (89% margin) |
 

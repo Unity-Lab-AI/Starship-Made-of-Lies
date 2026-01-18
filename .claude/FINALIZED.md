@@ -1304,5 +1304,231 @@ boot_complete=false    ; Set TRUE by Unity Boot when 40/40 checks pass
 
 ---
 
+## 2026-01-18 - Boot Handshake Rearchitecture
+
+Replaced the broken 40-check duplicate system with 20 unified checks using REAL PB-to-PB IGC handshaking.
+
+### Phase 1: Unity Boot.cs Rewrite - COMPLETE
+- [x] Remove duplicate 40-check system
+- [x] Implement 20 unified checks with REAL verification
+- [x] Write pad_check=request to CustomData
+- [x] Write inv_check=request to CustomData
+- [x] Listen for IGC responses from Pad/Inventory via UNITY_BOOT_RSP
+- [x] Parse response data and validate block counts
+- [x] Update LCD display for 20 checks (not 40)
+- [x] Fix unused variables (lcdW, lcdH, lcdS for scaling, padRequested/invRequested for duplicate prevention)
+
+### Phase 2: UnityPad.cs Boot Response - COMPLETE
+- [x] Add boot response listener (IGC UNITY_BOOT_REQ + CustomData fallback)
+- [x] Add CheckBootRequest() function
+- [x] Add SendBootResponse() function
+- [x] Send IGC response on UNITY_BOOT_RSP channel
+- [x] Response format: `PAD|OK|merge=X,con=X,bat=X,h2=X,o2=X,prt=X`
+- [x] Handle missile blocks gracefully (mslFound flag gates operations)
+
+### Phase 3: UnityInventory.cs Boot Response - COMPLETE
+- [x] Add boot response listener (IGC UNITY_BOOT_REQ + CustomData fallback)
+- [x] Add CheckBootRequest() function
+- [x] Add SendBootResponse() function
+- [x] Send IGC response on UNITY_BOOT_RSP channel
+- [x] Response format: `INV|OK|cargo=X,ref=X,asm=X,gen=X,h2=X,o2=X`
+
+### The 20 Unified Boot Checks
+
+| # | Check | Method | Verifies |
+|---|-------|--------|----------|
+| 1 | Grid Init | Local | Grid has blocks |
+| 2 | Button Panel | Local | Control panel found |
+| 3 | LCDs Found | Local | At least 1 LCD tagged |
+| 4 | IGC Init | Local | Channels registered |
+| 5 | Write Pad Request | CustomData | pad_check=request |
+| 6 | Await Pad Response | CustomData/IGC | pad_status != waiting |
+| 7 | Validate Pad Merge | Response | merge block count |
+| 8 | Validate Pad Con | Response | connector count |
+| 9 | Validate Pad Power | Response | battery status |
+| 10 | Validate Pad Fuel | Response | tank status |
+| 11 | Write Inv Request | CustomData | inv_check=request |
+| 12 | Await Inv Response | CustomData/IGC | inv_status != waiting |
+| 13 | Validate Inv Cargo | Response | cargo containers |
+| 14 | Validate Inv Ref | Response | refineries |
+| 15 | Validate Inv Asm | Response | assemblers |
+| 16 | Validate Inv Gas | Response | generators/tanks |
+| 17 | Cross-Validate | Both | All systems accounted |
+| 18 | Module Sync | CustomData | Multi-pad coordination |
+| 19 | Write Quotas | CustomData | Load/verify quotas |
+| 20 | Boot Complete | CustomData | boot_complete=true |
+
+---
+
+## 2026-01-18 - 10-Agent Deep Scan Audit (87 Issues → 0)
+
+### Original Issues Found
+| Severity | Count | Status |
+|----------|-------|--------|
+| **CRITICAL** | 18 | FIXED |
+| **HIGH** | 28 | FIXED |
+| **MEDIUM** | 29 | FIXED |
+| **LOW** | 12 | FIXED/VERIFIED |
+
+### CRITICAL Fixes (18)
+- [x] UnityPad Line 294: Initialize `lastMslPos` check
+- [x] UnityPad Line 377: Blackout/abort queue fixed
+- [x] UnityPad Lines 727-740: Grid scan consolidation (11→1)
+- [x] UnityPad Line 878: Add S.AMMO case handler
+- [x] UnityMissile Line 318: Fix stuck detection logic
+- [x] UnityMissile Line 370: Fix satellite fallrate + disarm warheads
+- [x] UnityMissile Line 291: safetyDist = climbDist*5
+- [x] UnityMissile Line 384: Remove satellite auto-detonate
+- [x] UnityMissile Line 454: Add command authentication
+- [x] UnityInventory Line 580: Add bounds check for ammoReqType
+- [x] UnityBeacon Line 21: Initialize timing variables
+
+### HIGH Fixes (28)
+- [x] UnityPad: Array index bounded, zero-telemetry timeout, DOCK timeout
+- [x] UnityMissile: Relay duplicate fix, LIDAR/Sensor Enemies only, warhead disarm
+- [x] UnityInventory: Transfer null checks, H2 tank protection
+- [x] UnityBeacon: Division protection, cargo/speed hysteresis
+
+### Key Safety Improvements
+1. Warhead arm distance uses climbDist*5 (500m climb = 2.5km safety)
+2. Satellite mode no longer auto-detonates on any enemy
+3. DETONATE command requires pad authentication
+4. LIDAR/Sensor only targets Enemies (no friendly fire)
+5. Stuck detection threshold increased to 5 seconds
+6. Warheads disarmed on satellite deorbit
+7. Controller ABORT commands now queue during blackout
+
+### Final Build Status
+| Script | Deployed Size | Budget | Status |
+|--------|--------------|--------|--------|
+| Unity Boot | 10,666 | 100,000 | OK |
+| UnityPad | 89,976 | 100,000 | OK |
+| UnityMissile | 26,079 | 100,000 | OK |
+| UnityInventory | 83,137 | 100,000 | OK |
+| UnityBeacon | 10,860 | 100,000 | OK |
+
+---
+
+## 2026-01-18 - Documentation & Satellite ENEMY_SIGNAL
+
+### README Updates
+- [x] All script README.md files updated with complete ARGUMENTS sections
+- [x] Character budgets updated to current deployed sizes
+- [x] Main README.md fixed LCD count (8→10)
+- [x] All Instructions.readme files cleared (no in-game wraps)
+
+### Satellite ENEMY_SIGNAL Broadcast
+- [x] UnityMissile.cs line 385: Satellites now broadcast enemy positions
+- [x] When satellite detects enemy in SAT_HOLD, broadcasts position on ENEMY_SIGNAL channel
+- [x] Enables KILLALL/auto-attack mode from relay satellites
+
+---
+
+## 2026-01-18 - LCD4 CARGO Display Complete Rewrite
+
+### Issues Fixed
+1. LCD4 stuck on last page (5/7) for 120+ ticks - not scrolling through all pages
+2. Items displayed with overlapping pages (skip by 8, show 16)
+3. Values not aligned in columns - name+value drawn as one string
+
+### Root Cause
+The `scrollOff` variable was used for BOTH scrolling AND pausing. Original logic:
+```csharp
+// BUG: scrollOff goes to maxScroll+40, but display capped, causing frozen page
+int viewPause=viewIdx==4?40:10;
+if(scrollOff<maxScroll+viewPause)scrollOff++;
+```
+
+### Fix Applied
+
+**Lines 169-174** - New auto-cycling logic (ticks per page, not pause):
+```csharp
+// NEW: Each page shows for 20 ticks, then advances
+int maxPg=viewIdx==4?Math.Max(1,(totItems+15)/16):viewIdx==5?Math.Max(1,(cQd.Count+5)/6):1;
+int tpp=20;
+if(scrollOff<maxPg*tpp)scrollOff++;else{scrollOff=0;viewIdx=(viewIdx+1)%7;}
+```
+
+**Lines 833-840** - CARGO display with proper page calc and column alignment:
+```csharp
+// NEW: Calculate current page from scrollOff/20
+int curPg=Math.Min(scrollOff/20,totPg-1)+1;
+int skip=(curPg-1)*16;  // Full page scroll (16 items)
+// Split name and value for column alignment
+string[]sp=kv.Value.Split(':');string nm=sp[0].Trim();string vl=sp.Length>1?sp[1].Trim():"";
+ST(f,25,y,nm,cTxt,0.45f);ST(f,200,y,vl,cTxt,0.45f);  // Values at X=200
+```
+
+**Lines 844-847** - PRODUCTION display with same approach:
+```csharp
+int curPg5=Math.Min(scrollOff/20,totPg5-1)+1;
+int skip=(curPg5-1)*6;
+```
+
+### Result
+- Pages now scroll properly: 1/5, 2/5, 3/5, etc. (20 ticks each)
+- Full 16 items per page (no overlap)
+- Names and values in separate columns at X=25 and X=200
+
+### Build Verified
+- [x] UnityInventory wrapped and built
+- [x] Deployed size: 82,821 chars (under 100k limit)
+
+---
+
+## 2026-01-18 - Boot LCD Control Race Condition Fix
+
+### Issue
+During boot, LCDs were flickering/flashing between Unity Boot's boot screen and UnityPad/UnityInventory's operational displays. The scripts were fighting for LCD control.
+
+### Root Causes
+1. **Race condition at completion**: Unity Boot wrote `boot_complete=true` THEN disabled itself. During that window, Pad/Inv saw true and started drawing while Boot was still running.
+2. **Ambiguous boot state**: `boot_complete=false` could mean "hasn't booted yet" OR "boot cleared it" - ambiguous.
+3. **Contains() too loose**: `Contains("boot_complete=true")` could match unintended strings.
+
+### Fixes Applied
+
+**Unity Boot.cs** - Set boot_complete=BOOTING during boot:
+```csharp
+// ClearBootStatus() now sets BOOTING state
+cd=cd.Replace("boot_complete=true","boot_complete=BOOTING").Replace("boot_complete=false","boot_complete=BOOTING");
+```
+
+**Unity Boot.cs** - Check completion BEFORE drawing, disable BEFORE signaling:
+```csharp
+// Moved to top of RunBoot(), before LCD drawing
+if(bootStep>=totalSteps&&bootTicks>stepDelay*(totalSteps+2)){
+    Runtime.UpdateFrequency=UpdateFrequency.None;  // Disable FIRST
+    WriteBootComplete();                            // Then signal
+    bootDone=true;
+    return;  // Exit without drawing
+}
+```
+
+**UnityPad.cs & UnityInventory.cs** - Check for BOOTING state explicitly:
+```csharp
+bool IsBootComplete(){
+    if(btn==null)return false;
+    string cd=btn.CustomData;
+    if(cd.Contains("boot_complete=BOOTING"))return false;  // Boot in progress
+    if(cd.Contains("boot_complete=true"))return true;      // Boot complete
+    return false;  // Unknown state, wait
+}
+```
+
+### Boot Flow Now
+1. Unity Boot starts → sets `boot_complete=BOOTING`
+2. Pad/Inv check → see BOOTING → return early, don't draw
+3. Unity Boot completes checks → disables itself → sets `boot_complete=true`
+4. Pad/Inv check → see true → start drawing
+5. No overlap, no flicker
+
+### Build Verified
+- [x] Unity Boot deployed
+- [x] UnityPad deployed
+- [x] UnityInventory deployed
+
+---
+
 *Unity AI Lab - Missile Systems Division*
-*Session complete. All systems nominal. Ready for next session.*
+*Archive updated: 2026-01-18*

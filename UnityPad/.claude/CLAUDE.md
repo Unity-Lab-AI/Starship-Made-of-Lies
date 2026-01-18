@@ -11,7 +11,18 @@ Launch pad controller for the Unity Missile System. Manages missile printing, fu
 
 **UnityPad waits for boot_complete=true before taking LCD control.**
 
-Unity Boot must run first and complete 40 system checks. UnityPad checks for boot completion via:
+Unity Boot runs first with 21 unified checks using real PB-to-PB IGC handshaking.
+
+### Pre-Boot Ready Flag
+
+UnityPad writes `pad_ready=true` to the button panel CustomData on compile:
+```csharp
+WriteReadyFlag("pad_ready");
+```
+
+Unity Boot waits for this flag before starting checks. Scripts can be compiled in any order.
+
+### Boot Completion Check
 
 ```csharp
 bool IsBootComplete(){
@@ -21,6 +32,46 @@ bool IsBootComplete(){
 ```
 
 **LCDs controlled by UnityPad (after boot):** 1, 2, 3, 7, 8
+
+---
+
+## BOOT RESPONSE PROTOCOL
+
+UnityPad responds to Unity Boot's handshake requests during boot sequence.
+
+### IGC Channels
+
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| `UNITY_BOOT_REQ` | Boot → Pad | Request system status |
+| `UNITY_BOOT_RSP` | Pad → Boot | Respond with block counts |
+
+### Response Format
+
+```
+PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
+```
+
+### Boot Response Functions
+
+```csharp
+void CheckBootRequest(){
+    // Listen for IGC requests
+    while(bootReqL!=null&&bootReqL.HasPendingMessage){
+        var msg=bootReqL.AcceptMessage();
+        if(msg.Data.ToString()=="PAD_CHECK")SendBootResponse();
+    }
+    // Also check CustomData fallback
+    if(btn!=null&&btn.CustomData.Contains("pad_check=request"))
+        SendBootResponse();
+}
+
+void SendBootResponse(){
+    // Send block counts via IGC and CustomData
+    string rsp=$"PAD|OK|merge={mc},con={cc},bat={bc},h2={h2c},o2={o2c},prt={pc}";
+    IGC.SendBroadcastMessage("UNITY_BOOT_RSP",rsp);
+}
+```
 
 ---
 
@@ -131,9 +182,9 @@ INIT → IDLE → PRINT → BUILD → DOCK → FUEL → READY → ARM → LAUNCH
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityPad | ~110,000 | 89,239 | 100,000 | OK (11% margin) |
+| UnityPad | ~121,000 | ~90,354 | 100,000 | OK (10% margin) |
 
-*Note: Boot code removed in v01.00 (2026-01-18). Boot functionality moved to Unity Boot.*
+*Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 
 ---
 

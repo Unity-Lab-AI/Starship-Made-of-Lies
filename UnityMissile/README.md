@@ -210,13 +210,23 @@ Missile #1 Connector [AMMO]
 
 ---
 
-## COMMANDS (from pad)
+## ARGUMENTS
+
+### Direct Arguments (run on PB)
+
+| Argument | Action |
+|----------|--------|
+| `LAUNCH` | Initialize missile, parse config, find blocks, start flight |
+| `NAME:X` | Set missile name suffix (e.g., `NAME:Alpha`) |
+
+### IGC Commands (received from pad on UNITY_MSL_CMD)
 
 | Command | Action |
 |---------|--------|
-| LAUNCH | Start flight sequence |
-| DETONATE | Remote detonation |
-| ABORT | Explode immediately |
+| `DETONATE` | Immediately detonate all warheads |
+| `DETONATE:{padID}` | Detonate specific pad's missile only |
+| `ABORT` | Abort flight, disable thrusters |
+| `MERGE` | Re-enable merge block (for recall) |
 
 ---
 
@@ -235,8 +245,7 @@ Missile #1 Connector [AMMO]
 
 | Metric | Value |
 |--------|-------|
-| Raw Source | ~44,000 chars |
-| Deployed | 26,058 chars |
+| Deployed | 25,978 chars |
 | Budget | 100,000 chars |
 | Status | OK (74% margin) |
 

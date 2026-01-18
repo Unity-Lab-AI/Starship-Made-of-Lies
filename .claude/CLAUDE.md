@@ -10,10 +10,10 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
 
 | Component | Script | PB Name | Deployed To |
 |-----------|--------|---------|-------------|
-| **Boot Controller** | `Unity Boot.cs` | `[PAD1-BOOT] UNITY BOOT` | `%APPDATA%\...\Unity Boot\` |
+| **Boot Controller** | `Unity Boot.cs` | `[PAD1-BOOT] UNITY BOOT` | `%APPDATA%\...\Unity Boot\` (21 checks with PB handshaking + miner detection) |
 | **Launch Pad** | `UnityPad.cs` | `[PAD1] Unity Pad` | `%APPDATA%\...\UnityPad\` |
 | **Missile** | `UnityMissile.cs` | `PAD1 Missile #1 Unity Missile` | `%APPDATA%\...\UnityMissile\` |
-| **Inventory** | `UnityInventory.cs` | `[PAD1] Unity Inventory` | `%APPDATA%\...\UnityInventory\` |
+| **Inventory** | `UnityInventory.cs` | `[PAD1] Unity Inventory` | `%APPDATA%\...\UnityInventory\` (unified production system) |
 | **Fleet Beacon** | `UnityBeacon.cs` | `[BEACON] Unity Beacon` | `%APPDATA%\...\UnityBeacon\` |
 
 ---
@@ -177,11 +177,11 @@ namespaces=IngameScript
 
 | Script | Lines | MDK Deployed | Budget | Status |
 |--------|-------|--------------|--------|--------|
-| Unity Boot | ~250 | ~15,000 | 100,000 | OK |
-| UnityPad | ~2,000 | ~92,000 | 100,000 | OK |
-| UnityMissile | ~900 | ~26,000 | 100,000 | OK |
-| UnityInventory | ~1,480 | ~82,000 | 100,000 | OK |
-| UnityBeacon | ~175 | ~10,800 | 100,000 | OK |
+| Unity Boot | ~320 | 14,576 | 100,000 | OK (85% margin) |
+| UnityPad | ~2,100 | 90,354 | 100,000 | OK (10% margin) |
+| UnityMissile | ~900 | ~26,000 | 100,000 | OK (74% margin) |
+| UnityInventory | ~1,500 | 83,638 | 100,000 | OK (16% margin) |
+| UnityBeacon | ~175 | ~10,800 | 100,000 | OK (89% margin) |
 
 ### Character Count Commands
 
@@ -216,10 +216,15 @@ namespaces=IngameScript
 ## MISSILE SYSTEM ARCHITECTURE
 
 ### Unity Boot.cs (Boot Controller)
-- **Purpose:** Centralized boot system for all LCDs
-- **Boot Checks:** 40 total (20 Pad + 20 Inventory)
+- **Purpose:** Centralized boot system for all LCDs with pre-boot ready sync
+- **Pre-Boot:** Waits for `pad_ready=true` and `inv_ready=true` before starting checks
+- **Boot Checks:** 21 unified checks with real PB-to-PB IGC handshaking
+- **Check 20 (NEW):** Miner beacon detection - listens for MINER_BEACON broadcasts
+- **IGC Channels:** UNITY_BOOT_REQ (request), UNITY_BOOT_RSP (response), MINER_BEACON (fleet)
 - **Handshake:** Sets `boot_complete=true` in [SYSTEM] CustomData
+- **Miner Data:** Stores `miner_count` and `miner_names` in CustomData
 - **LCDs:** Controls all 10 during boot, releases after completion
+- **Waiting Screen:** Shows script ready status when waiting for Pad/Inventory
 - **Self-Disables:** Sets UpdateFrequency.None after boot
 
 ### UnityPad.cs (Launch Pad Controller)
@@ -227,11 +232,14 @@ namespaces=IngameScript
 - **LCDs:** 1,2,3,7,8 (after boot_complete)
 - **Block Tags:** `[PAD#]` for merge/connector/buttons, `[PAD#:1-10]` for LCDs
 - **Features:** Multi-pad controller mode, salvo/carpet bombing, printer integration, miner fleet tracking
+- **Ready Flag:** Writes `pad_ready=true` on compile (for boot pre-check)
 - **Boot Check:** Waits for `boot_complete=true` before taking LCD control
 
 ### UnityInventory.cs (Inventory Module)
 - **LCDs:** 4,5,6,9,10 (after boot_complete)
-- **Features:** Auto-production, stock management, tool crafting, miner tracking
+- **Features:** Auto-production, unified quota system, tool/weapon/ammo/bottle crafting, miner tracking
+- **Production System:** Uses dictionary-based quotas (cNd, tNd, paNd, bNd) with generic QueueMissing()
+- **Ready Flag:** Writes `inv_ready=true` on compile (for boot pre-check)
 - **Boot Check:** Waits for `boot_complete=true` before taking LCD control
 
 ### UnityMissile.cs (Missile Guidance)
@@ -301,22 +309,86 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\
 
 ## BOOT HANDSHAKE PROTOCOL
 
+Unity Boot uses REAL PB-to-PB IGC handshaking to verify all systems are running.
+
+### Pre-Boot Ready Sync
+
+Scripts can be compiled in ANY order. Boot waits for all required scripts before starting:
+
+| Script | Ready Flag | Required |
+|--------|------------|----------|
+| Unity Boot | `boot_ready=true` | Yes (auto) |
+| UnityPad | `pad_ready=true` | Yes |
+| UnityInventory | `inv_ready=true` | Yes |
+| UnityBeacon | (detected via broadcasts) | No (optional) |
+
+### IGC Channels
+
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| `UNITY_BOOT_REQ` | Boot → Pad/Inv | Request system status |
+| `UNITY_BOOT_RSP` | Pad/Inv → Boot | Respond with block counts |
+| `MINER_BEACON` | Beacon → Boot/Pad | Fleet status broadcasts |
+
+### Response Formats
+
+```
+PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
+INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
+MB|EntityId|ShipName|Bat%|Cargo%|H2%|X,Y,Z|Speed|...  (miner beacon)
+```
+
 ### CustomData Structure (Button Panel [SYSTEM])
 
 ```ini
 [SYSTEM]
-boot_complete=false    ; Set TRUE by Unity Boot when 40/40 checks pass
+; Pre-boot ready flags
+boot_ready=true
+pad_ready=true
+inv_ready=true
+
+; Boot state
+boot_complete=false    ; Set TRUE by Unity Boot when 21/21 checks pass
+boot_phase=RUNNING
+
+; PB handshake data
+pad_check=none         ; Boot writes "request", Pad writes "done"
+pad_status=waiting     ; Pad writes response data here
+inv_check=none         ; Boot writes "request", Inv writes "done"
+inv_status=waiting     ; Inventory writes response data here
+
+; Miner fleet data (from check 20)
+miner_count=0          ; Number of miners detected
+miner_names=           ; Comma-separated ship names
+beacon_optional=true   ; If false, boot fails without miners
 ```
+
+### The 21 Boot Checks
+
+| # | Check | What It Does |
+|---|-------|--------------|
+| 1-4 | Core Init | Grid, button panel, LCDs, IGC |
+| 5-6 | Pad Request | Send request, await response |
+| 7-10 | Pad Validate | Merge, batteries, H2/O2 tanks |
+| 11-12 | Inv Request | Send request, await response |
+| 13-16 | Inv Validate | Cargo, refineries, assemblers, gas |
+| 17-18 | Sync | Cross-validate, module sync |
+| 19 | Config | Write quotas and blackbox |
+| **20** | **Beacon Detection** | **Listen for MINER_BEACON, store miner names** |
+| 21 | System Ready | Boot complete |
 
 ### Boot Flow
 
-1. **Unity Boot starts** → Takes control of ALL 10 LCDs
-2. **Runs 40 checks** → Updates progress on all LCDs
-3. **If error** → Pauses 5 seconds, shows error, retries
-4. **If success** → Sets `boot_complete=true` in CustomData
-5. **Unity Boot disables itself** → UpdateFrequency.None
-6. **UnityPad sees boot_complete=true** → Takes LCDs 1,2,3,7,8
-7. **UnityInventory sees boot_complete=true** → Takes LCDs 4,5,6,9,10
+1. **Scripts compile** → Each writes its ready flag (pad_ready, inv_ready, boot_ready)
+2. **Unity Boot checks flags** → If not all ready, shows "WAITING FOR SCRIPTS" screen
+3. **All ready** → Clears stale data, starts 21/21 checks
+4. **Checks 1-19** → Same as before (pad/inv validation, config)
+5. **Check 20** → Listens for MINER_BEACON, counts miners, stores names
+6. **Check 21** → Boot complete
+7. **If success** → Sets `boot_complete=true` in CustomData
+8. **Unity Boot disables itself** → `UpdateFrequency.None`
+9. **UnityPad sees boot_complete=true** → Takes LCDs 1,2,3,7,8
+10. **UnityInventory sees boot_complete=true** → Takes LCDs 4,5,6,9,10
 
 ### Checking Boot Status in Operational Scripts
 

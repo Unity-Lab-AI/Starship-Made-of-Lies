@@ -4,7 +4,7 @@ public enum T{GPS,ANTENNA,SENSOR,LIDAR,MANUAL,SATELLITE}
 public enum E{UNKNOWN,SPACE,PLANET,MOON}
 S cS=S.INIT;M cM=M.MAIN;T tM=T.GPS;E env=E.UNKNOWN;int sel=0;
 bool bootDone=false;
-float lcdW=512,lcdH=512,lcdS=1;
+float lcdW=512,lcdH=512,lcdS=1,lcdYS=1;
 int viewLCD=0;int[] lcdScroll=new int[9];
 int graphTimeIdx=0;
 string[] graphLabels={"30m","1h","6h","12h","1d","ALL"};
@@ -196,10 +196,28 @@ pStL=IGC.RegisterBroadcastListener(pStTag);
 sStL=IGC.RegisterBroadcastListener(sStTag);
 enmL=IGC.RegisterBroadcastListener("ENEMY_SIGNAL");
 bcnL=IGC.RegisterBroadcastListener(bcnTag);
+bootReqL=IGC.RegisterBroadcastListener("UNITY_BOOT_REQ");
+WriteReadyFlag("pad_ready");
 }
+IMyBroadcastListener bootReqL;
+void WriteReadyFlag(string flag){if(btn==null)return;string cd=btn.CustomData;if(!cd.Contains("[SYSTEM]"))cd="[SYSTEM]\n"+cd;if(cd.Contains(flag+"=false"))cd=cd.Replace(flag+"=false",flag+"=true");else if(!cd.Contains(flag+"="))cd=cd.Replace("[SYSTEM]","[SYSTEM]\n"+flag+"=true");btn.CustomData=cd;}
 bool IsBootComplete(){
 if(btn==null)return false;
-return btn.CustomData.Contains("boot_complete=true");
+string cd=btn.CustomData;
+if(cd.Contains("boot_complete=BOOTING"))return false;
+if(cd.Contains("boot_complete=true"))return true;
+return false;
+}
+void CheckBootRequest(){
+while(bootReqL!=null&&bootReqL.HasPendingMessage){var msg=bootReqL.AcceptMessage();if(msg.Data.ToString()=="PAD_CHECK")SendBootResponse();}
+if(btn!=null&&btn.CustomData.Contains("pad_check=request"))SendBootResponse();
+}
+void SendBootResponse(){
+int mc=padMerge!=null?1:0,cc=padCon!=null?1:0;
+int bc=padBat.Count,h2c=padH2.Count,o2c=padO2.Count,pc=prtWeld.Count;
+string rsp=$"PAD|OK|merge={mc},con={cc},bat={bc},h2={h2c},o2={o2c},prt={pc}";
+IGC.SendBroadcastMessage("UNITY_BOOT_RSP",rsp);
+if(btn!=null){string cd=btn.CustomData;cd=cd.Replace("pad_check=request","pad_check=done");cd=cd.Replace("pad_status=waiting",$"pad_status=OK:merge={mc},con={cc},bat={bc},h2={h2c},o2={o2c},prt={pc}");btn.CustomData=cd;}
 }
 public void Save(){Storage=$"{padID}|{(isCtl?"1":"0")}|{toolTarget}";}
 void LoadStorage(){
@@ -263,6 +281,7 @@ else{env=E.MOON;inAtmo=gravStr>2;}
 
 public void Main(string a,UpdateType u){
 tick++;
+CheckBootRequest();
 if(!bootDone){
 if(!IsBootComplete()){Echo("UNITY PAD");Echo("Waiting for boot...");return;}
 bootDone=true;Scan();DetectEnvironment();
@@ -1311,9 +1330,9 @@ int tot=prtProj.TotalBlocks,rem=prtProj.RemainingBlocks;float pct=tot>0?(float)(
 ST(f,20,y,isCreative?"CREATIVE":"SURVIVAL",cAcc,0.45f);y+=18;
 SLB(f,20,y,350,12,"Progress",pct,PctCol(pct),cBdr);y+=28;
 ST(f,20,y,$"Blocks: {tot-rem}/{tot}  Buildable: {prtBuildable}",cTxt,0.4f);y+=18;}
-ST(f,20,y,$"Components [{bldScroll+1}-{Math.Min(bldScroll+6,cNd.Count)}/{cNd.Count}]:",cSec,0.4f);y+=14;
-int cc=0,ci=0;foreach(var kv in cNd){if(ci++<bldScroll)continue;if(cc>=6)break;int hv=cStk.ContainsKey(kv.Key)?cStk[kv.Key]:0;Color nc=hv>=kv.Value?cOK:cErr;ST(f,20,y,$"{kv.Key}: {hv}/{kv.Value}",nc,0.35f);y+=12;cc++;}
-if(cMis.Count>0&&cc<6){int mc=0;foreach(var kv in cMis){if(cc>=6)break;ST(f,25,y,$"-{kv.Key}: {kv.Value}",cErr,0.32f);y+=11;cc++;mc++;}}
+int maxC=(int)(6*lcdS);ST(f,20,y,$"Components [{bldScroll+1}-{Math.Min(bldScroll+maxC,cNd.Count)}/{cNd.Count}]:",cSec,0.4f);y+=14;
+int cc=0,ci=0;foreach(var kv in cNd){if(ci++<bldScroll)continue;if(cc>=maxC)break;int hv=cStk.ContainsKey(kv.Key)?cStk[kv.Key]:0;Color nc=hv>=kv.Value?cOK:cErr;ST(f,20,y,$"{kv.Key}: {hv}/{kv.Value}",nc,0.35f);y+=12;cc++;}
+if(cMis.Count>0&&cc<maxC){int mc=0;foreach(var kv in cMis){if(cc>=maxC)break;ST(f,25,y,$"-{kv.Key}: {kv.Value}",cErr,0.32f);y+=11;cc++;mc++;}}
 y+=5;ST(f,20,y,$"Ammo ({ammoNames[ammoTypeIdx]}): {ammoStock}/{ammoTarget}",ammoStock>=ammoTarget?cOK:cWrn,0.4f);
 y+=8;int refW=0,asmW=0;foreach(var r in padRef)if(r.IsProducing)refW++;foreach(var a in padAsm)if(a.IsProducing)asmW++;
 ST(f,20,y,$"Refineries: {refW}/{padRef.Count}   Assemblers: {asmW}/{padAsm.Count}",cTxt,0.45f);
@@ -1487,15 +1506,15 @@ for(int i=0;i<Math.Min(6,wpts.Count);i++){var wp=wpts[i];bool ws=i==wpIdx;ST(f,2
 y=230;ST(f,256,y,"Press OK to Exit",cSec,0.45f,TextAlignment.CENTER);
 f.Dispose();}
 
-MySpriteDrawFrame BL(IMyTextSurface s){s.ContentType=ContentType.SCRIPT;s.Script="";lcdW=s.SurfaceSize.X;lcdH=s.SurfaceSize.Y;lcdS=lcdW/512f;var f=s.DrawFrame();f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,lcdH/2),new Vector2(lcdW,lcdH),cBg));return f;}
-void SH(MySpriteDrawFrame f,float y,string t,Color c){float cy=y*lcdS,cx=lcdW/2;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,cy+12*lcdS),new Vector2(lcdW-12*lcdS,24*lcdS),c*0.3f));f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(cx,cy),null,c,"White",TextAlignment.CENTER,0.8f*lcdS));f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,cy+24*lcdS),new Vector2(lcdW-32*lcdS,2*lcdS),c));}
-void SB(MySpriteDrawFrame f,float x,float y,float w,float h,float pct,Color fg,Color bg){x*=lcdS;y*=lcdS;w*=lcdS;h*=lcdS;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+w/2,y+h/2),new Vector2(w,h),bg));float fw=w*Math.Max(0,Math.Min(1,pct));if(fw>1)f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+fw/2,y+h/2),new Vector2(fw,h),fg));}
-void SLB(MySpriteDrawFrame f,float x,float y,float w,float h,string lbl,float pct,Color fg,Color bg){float sx=x*lcdS,sy=y*lcdS,sw=w*lcdS;f.Add(new MySprite(SpriteType.TEXT,lbl,new Vector2(sx,sy-2*lcdS),null,cTxt,"Monospace",TextAlignment.LEFT,0.5f*lcdS));SB(f,x,y+12,w,h,pct,fg,bg);f.Add(new MySprite(SpriteType.TEXT,$"{pct*100:0}%",new Vector2(sx+sw+5*lcdS,sy+8*lcdS),null,fg,"Monospace",TextAlignment.LEFT,0.45f*lcdS));}
-void ST(MySpriteDrawFrame f,float x,float y,string t,Color c,float sz=0.5f,TextAlignment a=TextAlignment.LEFT){f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(x*lcdS,y*lcdS),null,c,"Monospace",a,sz*lcdS));}
-void SBx(MySpriteDrawFrame f,float x,float y,float w,float h,Color bg,Color bdr){x*=lcdS;y*=lcdS;w*=lcdS;h*=lcdS;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+w/2,y+h/2),new Vector2(w,h),bdr));f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+w/2,y+h/2),new Vector2(w-2*lcdS,h-2*lcdS),bg));}
+MySpriteDrawFrame BL(IMyTextSurface s){s.ContentType=ContentType.SCRIPT;s.Script="";lcdW=s.SurfaceSize.X;lcdH=s.SurfaceSize.Y;lcdS=lcdW/512f;lcdYS=lcdH/512f;var f=s.DrawFrame();f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,lcdH/2),new Vector2(lcdW,lcdH),cBg));return f;}
+void SH(MySpriteDrawFrame f,float y,string t,Color c){float cy=y*lcdYS,cx=lcdW/2;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,cy+12*lcdYS),new Vector2(lcdW-12*lcdS,24*lcdYS),c*0.3f));f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(cx,cy),null,c,"White",TextAlignment.CENTER,0.8f*lcdS));f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,cy+24*lcdYS),new Vector2(lcdW-32*lcdS,2*lcdYS),c));}
+void SB(MySpriteDrawFrame f,float x,float y,float w,float h,float pct,Color fg,Color bg){x*=lcdS;y*=lcdYS;w*=lcdS;h*=lcdYS;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+w/2,y+h/2),new Vector2(w,h),bg));float fw=w*Math.Max(0,Math.Min(1,pct));if(fw>1)f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+fw/2,y+h/2),new Vector2(fw,h),fg));}
+void SLB(MySpriteDrawFrame f,float x,float y,float w,float h,string lbl,float pct,Color fg,Color bg){float sx=x*lcdS,sy=y*lcdYS,sw=w*lcdS;f.Add(new MySprite(SpriteType.TEXT,lbl,new Vector2(sx,sy-2*lcdYS),null,cTxt,"Monospace",TextAlignment.LEFT,0.5f*lcdS));SB(f,x,y+12,w,h,pct,fg,bg);f.Add(new MySprite(SpriteType.TEXT,$"{pct*100:0}%",new Vector2(sx+sw+5*lcdS,sy+8*lcdYS),null,fg,"Monospace",TextAlignment.LEFT,0.45f*lcdS));}
+void ST(MySpriteDrawFrame f,float x,float y,string t,Color c,float sz=0.5f,TextAlignment a=TextAlignment.LEFT){f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(x*lcdS,y*lcdYS),null,c,"Monospace",a,sz*lcdS));}
+void SBx(MySpriteDrawFrame f,float x,float y,float w,float h,Color bg,Color bdr){x*=lcdS;y*=lcdYS;w*=lcdS;h*=lcdYS;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+w/2,y+h/2),new Vector2(w,h),bdr));f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+w/2,y+h/2),new Vector2(w-2*lcdS,h-2*lcdYS),bg));}
 Color PctCol(float p){return p>.7f?cOK:p>.3f?cWrn:cErr;}
-void SMI(MySpriteDrawFrame f,float y,int idx,string t,bool s){float sy=y*lcdS;if(s)f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,sy+10*lcdS),new Vector2(lcdW-32*lcdS,22*lcdS),cAcc*0.4f));f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(20*lcdS,sy),null,s?cAcc:cTxt,"Monospace",TextAlignment.LEFT,0.55f*lcdS));}
-void SD(MySpriteDrawFrame f,float y){f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,y*lcdS),new Vector2(lcdW-32*lcdS,2*lcdS),cSec));}
+void SMI(MySpriteDrawFrame f,float y,int idx,string t,bool s){float sy=y*lcdYS;if(s)f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,sy+10*lcdYS),new Vector2(lcdW-32*lcdS,22*lcdYS),cAcc*0.4f));f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(20*lcdS,sy),null,s?cAcc:cTxt,"Monospace",TextAlignment.LEFT,0.55f*lcdS));}
+void SD(MySpriteDrawFrame f,float y){f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,y*lcdYS),new Vector2(lcdW-32*lcdS,2*lcdYS),cSec));}
 
 void UpdateBlackBox(){
 if(bbLCDs.Count==0)return;

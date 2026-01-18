@@ -11,7 +11,7 @@ The Unity Missile System consists of 5 scripts working together:
 
 | Script | Location | Purpose |
 |--------|----------|---------|
-| **Unity Boot** | Launch pad PB | Boot controller, 40 system checks, LCD initialization |
+| **Unity Boot** | Launch pad PB | Boot controller, 20 unified checks with IGC handshaking |
 | **UnityPad** | Launch pad PB | Menus, LCDs, targeting, printing, launch control |
 | **UnityMissile** | Missile PB | In-flight guidance, targeting, detonation |
 | **UnityInventory** | Separate pad PB | Inventory, production, sorting, miner handling |
@@ -89,8 +89,9 @@ PRINTER COMPONENTS:
 2. Load `Unity Boot` script from workshop/local
 3. **Name the PB:** `[PAD1-BOOT] UNITY BOOT`
 4. Click "Recompile"
-5. Boot runs 40 system checks on all 10 LCDs
-6. Sets `boot_complete=true` in [SYSTEM] CustomData when done
+5. Boot runs 20 system checks with real PB-to-PB IGC handshaking
+6. Sends requests to Pad and Inventory PBs, validates their responses
+7. Sets `boot_complete=true` in [SYSTEM] CustomData when done
 7. Self-disables after boot (UpdateFrequency.None)
 
 ### Step 2.2: Install UnityPad Script
@@ -471,6 +472,8 @@ UnityInventory manages docked miner transfers:
 | `[PAD#]` | Pad blocks (merge, connector, button) |
 | `[PAD#:1-10]` | LCD panels |
 | `[PAD#-PRINT]` | Printer blocks |
+| `[PAD#-CON1]` | Module connector 1 (for module sync) |
+| `[PAD#-CON2]` | Module connector 2 (for module sync) |
 | `[DOCK]` | Missile fuel connector |
 | `[AMMO]` | Missile ammo connector |
 | `[BEACON]` | Miner beacon blocks |
