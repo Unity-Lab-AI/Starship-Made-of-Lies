@@ -1,0 +1,12 @@
+UnityInventory - Inventory Management for Unity Missile System
+
+Companion script to UnityPad that handles all inventory management:
+- Item routing to designated containers
+- Refinery and assembler feeding
+- Tool/ammo/bottle production
+- Miner connector transfers
+
+Tag blocks with [PAD#] to match your pad.
+Tag containers with [PAD#-ore], [PAD#-ingot], [PAD#-comp], [PAD#-tools], [PAD#-ammo], [PAD#-bottle]
+
+Commands: SORT, RESCAN

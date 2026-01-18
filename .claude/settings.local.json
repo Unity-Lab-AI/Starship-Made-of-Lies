@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1:*)",
+      "Bash(dotnet build:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(Select-String -Pattern \"error|success|fail|UnityPad =>\")",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(Select-String -Pattern \"error|warning|Succeeded|Failed|script.cs\")",
+      "Bash(Select-Object -First 30)",
+      "Bash(if [ -f \"C:\\\\Users\\\\gfour\\\\AppData\\\\Roaming\\\\SpaceEngineers\\\\IngameScripts\\\\local\\\\UnityPad\\\\script.cs\" ])",
+      "Bash(then wc -c \"C:\\\\Users\\\\gfour\\\\AppData\\\\Roaming\\\\SpaceEngineers\\\\IngameScripts\\\\local\\\\UnityPad\\\\script.cs\")",
+      "Bash(fi)",
+      "Bash(if [ -f \"C:\\\\Users\\\\gfour\\\\AppData\\\\Roaming\\\\SpaceEngineers\\\\IngameScripts\\\\local\\\\UnityInventory\\\\script.cs\" ])",
+      "Bash(then wc -c \"C:\\\\Users\\\\gfour\\\\AppData\\\\Roaming\\\\SpaceEngineers\\\\IngameScripts\\\\local\\\\UnityInventory\\\\script.cs\")",
+      "Bash(Select-Object -Last 20)",
+      "Bash(dir:*)",
+      "Bash(Find \")",
+      "Bash(powershell -ExecutionPolicy Bypass -File check-chars.ps1)",
+      "Bash(Select-String -Pattern \"Building|deployed:|FAILED|Error|ALL 4\")",
+      "Bash(Select-String -Pattern \"\\(Error|deployed|FAILED|BUILD\\)\")",
+      "Bash(timeout /t 20 /nobreak)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.tebex.io)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(Select-Object -Last 30)",
+      "Skill(workflow)",
+      "Bash(powershell -NoProfile -Command:*)",
+      "Bash(Start-Sleep -Seconds 8)",
+      "Bash(timeout /t 8 /nobreak)",
+      "Bash(ls -la \"C:\\\\Users\\\\gfour\\\\Desktop\\\\Space Engineers\\\\Unity Missile System\"\"*.backup 2>/dev/null || echo \"No backup files found \")",
+      "Bash(timeout:*)",
+      "Bash(powershell \"\\(Get-Content ''C:\\\\Users\\\\gfour\\\\AppData\\\\Roaming\\\\SpaceEngineers\\\\IngameScripts\\\\local\\\\UnityPad\\\\script.cs'' -Raw\\).Length\")",
+      "Bash(powershell:*)",
+      "WebFetch(domain:spaceengineers.wiki.gg)",
+      "WebFetch(domain:steamcommunity.com)",
+      "WebFetch(domain:spaceengineers.fandom.com)"
+    ]
+  }
+}
