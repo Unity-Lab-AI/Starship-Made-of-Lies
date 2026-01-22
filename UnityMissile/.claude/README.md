@@ -34,14 +34,14 @@ UnityMissile handles all in-flight guidance, targeting, and detonation. Supports
 ## PB Naming
 
 ```
-PAD1 Missile #1 Unity Missile
+PAD1 Missile #1 Program
 ```
 
 ## Character Budget
 
 | Deployed | Limit | Status |
 |----------|-------|--------|
-| ~26,000 | 100,000 | OK (74% margin) |
+| 24,321 | 100,000 | OK (76% margin) |
 
 ---
 

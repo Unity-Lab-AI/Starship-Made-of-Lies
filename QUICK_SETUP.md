@@ -34,28 +34,37 @@ In-game: **G Menu → Info → Edit → Browse Workshop → Local Scripts**
 
 ---
 
-### Step 2: Install Boot System (NEW)
+### Step 2: UnityPad Setup (Launch Pad) - COMPILE FIRST
 
-**REQUIRED:** Install Unity Boot FIRST on your launch pad grid.
+**CRITICAL:** UnityPad MUST be compiled FIRST - it wipes all CustomData and creates fresh [SYSTEM].
 
 1. Add Programmable Block near pad controls
-2. Load `Unity Boot` script
-3. **Name the PB:** `[PAD1-BOOT] UNITY BOOT`
-4. Click "Recompile"
-5. Boot runs 20 checks with real PB-to-PB IGC handshaking
-6. Sends requests to Pad and Inventory, validates responses
-7. Sets `boot_complete=true` when done
-7. UnityPad and UnityInventory wait for boot_complete
-
----
-
-### Step 3: UnityPad Setup (Launch Pad)
-
-1. Add SECOND Programmable Block on same grid
 2. Load `UnityPad` script
 3. **Name the PB:** `[PAD1] Unity Pad`
 4. Click "Recompile"
-5. Script waits for boot_complete before taking LCD control
+5. ClearForBoot() wipes ALL CustomData, writes fresh [SYSTEM], sets `pad_ready=true`
+
+---
+
+### Step 3: UnityInventory Setup - COMPILE SECOND
+
+1. Add SECOND Programmable Block on same grid
+2. Load `UnityInventory` script
+3. **Name the PB:** `[PAD1] Unity Inventory`
+4. Click "Recompile"
+5. Adds `inv_ready=true` to existing CustomData
+
+---
+
+### Step 4: Unity Boot Setup - COMPILE LAST
+
+1. Add THIRD Programmable Block on same grid
+2. Load `Unity Boot` script
+3. **Name the PB:** `[PAD1] UNITY BOOT`
+4. Click "Recompile"
+5. Sees both ready flags, runs 23 checks with real PB-to-PB IGC handshaking
+6. Sets `boot_complete=true` when done
+7. UnityPad and UnityInventory detect boot_complete and take their LCDs
 
 #### Run SETUPMOD First
 After installing UnityPad script, run `SETUPMOD` to auto-tag all blocks:
@@ -282,22 +291,27 @@ cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 # CRITICAL: Sync source files first!
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 
-# Build all five
-dotnet build "Unity Boot" -c Debug
+# Build ONE AT A TIME (any order for build - compile order matters in-game)
 dotnet build UnityPad -c Debug
-dotnet build UnityMissile -c Debug
 dotnet build UnityInventory -c Debug
+dotnet build "Unity Boot" -c Debug
+dotnet build UnityMissile -c Debug
 dotnet build UnityBeacon -c Debug
 ```
+
+**IN-GAME COMPILE ORDER:** BEACON → MISSILE → PAD → INVENTORY → BOOT
+
+BEACON and MISSILE are on different PBs (miner/missile), so they can be compiled any time.
+The 3 scripts on the pad PB MUST be: PAD first, INVENTORY second, BOOT last.
 
 ### Verify Deployment
 ```powershell
 # Check deployed sizes
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs" -Raw).Length
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityPad\script.cs" -Raw).Length
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs" -Raw).Length
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs" -Raw).Length
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs" -Raw).Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs").Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\script.cs").Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs").Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs").Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs").Length
 ```
 
 ---

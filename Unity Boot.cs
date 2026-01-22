@@ -1,15 +1,20 @@
 int padID=1;int tick=0;
 bool bootDone=false;int bootStep=0;int bootTicks=0;string bootError="";int bootErrTicks=0;string bootStatus="Initializing...";
-int bootSiblings=0;bool bootHasCtrl=false;bool preBootDone=false;bool padReady=false,invReady=false;
+int bootSiblings=0;bool bootHasCtrl=false;bool preBootDone=false;bool padReady=false,invReady=false;int bootCompleteTicks=0;
+bool waitingForAck=false;bool padAck=false,invAck=false;int ackWaitTicks=0;
+IMyBroadcastListener ackL;
 int minerCount=0;string minerNames="";bool beaconOptional=true;
 IMyBroadcastListener beaconL;
+Dictionary<long,string> bootMiners=new Dictionary<long,string>();
 string[] noMinerErrs={"Miners AWOL","No beacons found","Fleet ghosted you"};
-string[] sysChecks={"Initializing Core","Scanning Grid","Button Panel","Detecting LCDs","IGC Channels","Request Pad Status","Await Pad Response","Validate Pad Merge","Validate Pad Power","Validate Pad Fuel","Request Inv Status","Await Inv Response","Validate Inv Cargo","Validate Inv Refinery","Validate Inv Assembler","Validate Inv Gas","Cross-Validate","Module Sync","Write Config","Beacon Detection","System Ready"};
+string[] sysChecks={"Initializing Core","Scanning Grid","Button Panel","Detecting LCDs","IGC Channels","Request Pad Status","Await Pad Response","Missile Merge Block","Validate Pad Power","Validate Pad Fuel","Request Inv Status","Await Inv Response","Validate Inv Cargo","Validate Inv Refinery","Validate Inv Assembler","Validate Inv Gas","Cross-Validate","Module Sync","Write Config","Beacon Detection","Controller Modules","System Ready","All Systems Operational"};
 float lcdW=512,lcdH=512,lcdS=1;
 string padTag="[PAD1";
 IMyButtonPanel btn;
+IMyProgrammableBlock padPB,invPB;
 IMyShipConnector con1,con2;
-IMyTextSurface lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10;
+List<IMyRadioAntenna> bootAnt=new List<IMyRadioAntenna>();
+IMyTextSurface lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10,lcd11;
 IMyBroadcastListener bootRspL;
 Color cPri=new Color(0,180,255);Color cSec=new Color(100,100,100);Color cAcc=new Color(255,200,0);
 Color cOK=new Color(0,255,100);Color cWrn=new Color(255,180,0);Color cErr=new Color(255,60,60);
@@ -18,16 +23,21 @@ bool padRequested=false,padResponded=false,invRequested=false,invResponded=false
 string padRspData="",invRspData="";
 int padMergeC=0,padConC=0,padBatC=0,padH2C=0,padO2C=0,padPrtC=0;
 int invCargoC=0,invRefC=0,invAsmC=0,invGenC=0,invH2C=0,invO2C=0;
-int awaitTicks=0;int maxAwait=30;
+int awaitTicks=0;int maxAwait=18;
 
 public Program(){
-Runtime.UpdateFrequency=UpdateFrequency.Update100;
+Runtime.UpdateFrequency=UpdateFrequency.Update10;
 LoadPadID();
 UpdatePadTag();
 bootRspL=IGC.RegisterBroadcastListener("UNITY_BOOT_RSP");
 beaconL=IGC.RegisterBroadcastListener("MINER_BEACON");
+ackL=IGC.RegisterBroadcastListener("UNITY_BOOT_ACK");
 ScanBlocks();
-WriteReadyFlag("boot_ready");
+FindSiblingPBs();
+InitBootCustomData();
+}
+void InitBootCustomData(){
+Me.CustomData="[SYSTEM]\nboot_ready=true\nboot_complete=false\nboot_phase=INIT\nminer_count=0\nminer_names=\nbeacon_optional=true\n";
 }
 void LoadPadID(){
 if(string.IsNullOrEmpty(Storage))return;
@@ -38,29 +48,24 @@ public void Save(){Storage=$"{padID}";}
 void UpdatePadTag(){
 if(padID==0)padID=1;
 padTag=$"[PAD{padID}";
-Me.CustomName=$"[PAD{padID}-BOOT] UNITY BOOT";
+Me.CustomName=$"[PAD{padID}] UNITY BOOT";
 }
-void WriteReadyFlag(string flag){if(btn==null)return;string cd=btn.CustomData;if(!cd.Contains("[SYSTEM]"))cd="[SYSTEM]\n"+cd;if(cd.Contains(flag+"=false"))cd=cd.Replace(flag+"=false",flag+"=true");else if(!cd.Contains(flag+"="))cd=cd.Replace("[SYSTEM]","[SYSTEM]\n"+flag+"=true");btn.CustomData=cd;}
 void CheckReadyFlags(){
-if(btn==null)return;
-string cd=btn.CustomData;
-padReady=cd.Contains("pad_ready=true");
-invReady=cd.Contains("inv_ready=true");
-beaconOptional=!cd.Contains("beacon_optional=false");
+if(padPB==null||invPB==null)FindSiblingPBs();
+padReady=padPB!=null&&padPB.CustomData.Contains("pad_ready=true");
+invReady=false;
+if(invPB!=null&&invPB.CustomData.Contains("inv_ready=true")&&padPB!=null){
+string pcd=padPB.CustomData;int idx=pcd.IndexOf("pad_session=");
+if(idx>=0){int end=pcd.IndexOf('\n',idx);if(end<0)end=pcd.Length;string ps=pcd.Substring(idx+12,end-idx-12);invReady=invPB.CustomData.Contains($"inv_for_session={ps}");}}
+string myCD=Me.CustomData;
+beaconOptional=!myCD.Contains("beacon_optional=false");
 }
 void ClearBootStatus(){
-if(btn==null)return;
-string cd=btn.CustomData;
-cd=cd.Replace("boot_complete=true","boot_complete=BOOTING").Replace("boot_complete=false","boot_complete=BOOTING");
-cd=cd.Replace("pad_check=request","pad_check=none").Replace("pad_check=done","pad_check=none");
-cd=cd.Replace("inv_check=request","inv_check=none").Replace("inv_check=done","inv_check=none");
-cd=cd.Replace("pad_status=OK","pad_status=waiting").Replace("inv_status=OK","inv_status=waiting");
-cd=cd.Replace("boot_phase=COMPLETE","boot_phase=RUNNING").Replace("boot_phase=WAITING","boot_phase=RUNNING");
-int mc=cd.IndexOf("miner_count=");if(mc>=0){int me=cd.IndexOf("\n",mc);if(me<0)me=cd.Length;cd=cd.Remove(mc,me-mc);cd=cd.Insert(mc,"miner_count=0");}
-int mn=cd.IndexOf("miner_names=");if(mn>=0){int me=cd.IndexOf("\n",mn);if(me<0)me=cd.Length;cd=cd.Remove(mn,me-mn);cd=cd.Insert(mn,"miner_names=");}
-if(!cd.Contains("[SYSTEM]"))cd="[SYSTEM]\nboot_complete=BOOTING\npad_check=none\npad_status=waiting\ninv_check=none\ninv_status=waiting\nminer_count=0\nminer_names=\n"+cd;
-if(!cd.Contains("boot_complete="))cd=cd.Replace("[SYSTEM]","[SYSTEM]\nboot_complete=BOOTING");
-btn.CustomData=cd;
+bootMiners.Clear();
+string cd=Me.CustomData;
+if(cd.Contains("boot_complete=true"))return;
+cd=cd.Replace("boot_complete=false","boot_complete=BOOTING");
+Me.CustomData=cd;
 }
 
 public void Main(string a,UpdateType u){
@@ -72,20 +77,45 @@ Echo("Boot controller shutting down.");
 Echo("LCDs released to operational scripts.");
 return;
 }
+if(waitingForAck){
+CheckAcks();
+ackWaitTicks++;
+if(padAck&&invAck){
+ReleaseLCDs();
+bootDone=true;
+Echo("UNITY BOOT");
+Echo("Both scripts acknowledged.");
+Echo("Boot complete - shutting down.");
+return;
+}
+if(ackWaitTicks>300){
+ReleaseLCDs();
+bootDone=true;
+Echo("UNITY BOOT");
+Echo("ACK timeout - scripts running.");
+return;
+}
+Echo("UNITY BOOT");
+Echo($"Waiting for scripts... ({ackWaitTicks})");
+Echo($"PAD: {(padAck?"OK":"wait")} | INV: {(invAck?"OK":"wait")}");
+return;
+}
 RunBoot();
 }
 
 void ScanBlocks(){
-lcd1=lcd2=lcd3=lcd4=lcd5=lcd6=lcd7=lcd8=lcd9=lcd10=null;btn=null;con1=con2=null;
+lcd1=lcd2=lcd3=lcd4=lcd5=lcd6=lcd7=lcd8=lcd9=lcd10=lcd11=null;btn=null;con1=con2=null;bootAnt.Clear();
 var blks=new List<IMyTerminalBlock>();
 GridTerminalSystem.GetBlocksOfType(blks,b=>b.CustomName.Contains(padTag)||b.CubeGrid==Me.CubeGrid);
 foreach(var b in blks){
 if(b is IMyButtonPanel&&b.CustomName.ToLower().Contains("control")&&btn==null)btn=b as IMyButtonPanel;
 if(b is IMyShipConnector){string nm=b.CustomName;if(nm.Contains("-CON1"))con1=b as IMyShipConnector;else if(nm.Contains("-CON2"))con2=b as IMyShipConnector;}
+if(b is IMyRadioAntenna)bootAnt.Add(b as IMyRadioAntenna);
 if(b is IMyTextSurface||b is IMyTextPanel){string nm=b.CustomName;if(!nm.Contains(padTag))continue;
 IMyTextSurface ts=b is IMyTextSurface?(IMyTextSurface)b:((IMyTextPanel)b);
-if(nm.Contains(":10")&&lcd10==null)lcd10=ts;
-else if(nm.Contains(":1")&&!nm.Contains(":10")&&lcd1==null)lcd1=ts;
+if(nm.Contains(":11")&&lcd11==null)lcd11=ts;
+else if(nm.Contains(":10")&&lcd10==null)lcd10=ts;
+else if(nm.Contains(":1")&&!nm.Contains(":10")&&!nm.Contains(":11")&&lcd1==null)lcd1=ts;
 else if(nm.Contains(":2")&&lcd2==null)lcd2=ts;
 else if(nm.Contains(":3")&&lcd3==null)lcd3=ts;
 else if(nm.Contains(":4")&&lcd4==null)lcd4=ts;
@@ -95,7 +125,20 @@ else if(nm.Contains(":7")&&lcd7==null)lcd7=ts;
 else if(nm.Contains(":8")&&lcd8==null)lcd8=ts;
 else if(nm.Contains(":9")&&lcd9==null)lcd9=ts;
 }}
+if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn,b=>b.CubeGrid==Me.CubeGrid);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
 if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
+foreach(var a in bootAnt){a.Enabled=true;a.EnableBroadcasting=true;}
+}
+
+void FindSiblingPBs(){
+padPB=invPB=null;
+var pbs=new List<IMyProgrammableBlock>();
+GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me);
+foreach(var pb in pbs){
+string nm=pb.CustomName;
+if(nm.Contains($"[PAD{padID}]")&&nm.ToUpper().Contains("UNITY INVENTORY"))invPB=pb;
+else if(nm.Contains($"[PAD{padID}]")&&nm.ToUpper().Contains("UNITY PAD"))padPB=pb;
+}
 }
 
 void CheckIGCMessages(){
@@ -125,28 +168,21 @@ if(kv[0]=="cargo")invCargoC=n;else if(kv[0]=="ref")invRefC=n;else if(kv[0]=="asm
 else if(kv[0]=="gen")invGenC=n;else if(kv[0]=="h2")invH2C=n;else if(kv[0]=="o2")invO2C=n;}}
 
 void WritePadRequest(){
-if(btn==null||padRequested)return;
-string cd=btn.CustomData;
-cd=cd.Replace("pad_check=none","pad_check=request").Replace("pad_check=done","pad_check=request");
-btn.CustomData=cd;
+if(padRequested)return;
 IGC.SendBroadcastMessage("UNITY_BOOT_REQ","PAD_CHECK");
 padRequested=true;awaitTicks=0;
 }
 
 void WriteInvRequest(){
-if(btn==null||invRequested)return;
-string cd=btn.CustomData;
-cd=cd.Replace("inv_check=none","inv_check=request").Replace("inv_check=done","inv_check=request");
-btn.CustomData=cd;
+if(invRequested)return;
 IGC.SendBroadcastMessage("UNITY_BOOT_REQ","INV_CHECK");
 invRequested=true;awaitTicks=0;
 }
 
 void CheckCustomDataResponses(){
-if(btn==null)return;
-string cd=btn.CustomData;
-if(!padResponded&&cd.Contains("pad_status=OK:")){int si=cd.IndexOf("pad_status=OK:");if(si>=0){int ei=cd.IndexOf("\n",si);string ln=ei>si?cd.Substring(si,ei-si):cd.Substring(si);padRspData="PAD|OK|"+ln.Substring(14);padResponded=true;ParsePadResponse(padRspData);}}
-if(!invResponded&&cd.Contains("inv_status=OK:")){int si=cd.IndexOf("inv_status=OK:");if(si>=0){int ei=cd.IndexOf("\n",si);string ln=ei>si?cd.Substring(si,ei-si):cd.Substring(si);invRspData="INV|OK|"+ln.Substring(14);invResponded=true;ParseInvResponse(invRspData);}}
+if(padPB==null||invPB==null)FindSiblingPBs();
+if(!padResponded&&padPB!=null){string cd=padPB.CustomData;if(cd.Contains("pad_status=OK:")){int si=cd.IndexOf("pad_status=OK:");if(si>=0){int ei=cd.IndexOf("\n",si);string ln=ei>si?cd.Substring(si,ei-si):cd.Substring(si);padRspData="PAD|OK|"+ln.Substring(14);padResponded=true;ParsePadResponse(padRspData);}}}
+if(!invResponded&&invPB!=null){string cd=invPB.CustomData;if(cd.Contains("inv_status=OK:")){int si=cd.IndexOf("inv_status=OK:");if(si>=0){int ei=cd.IndexOf("\n",si);string ln=ei>si?cd.Substring(si,ei-si):cd.Substring(si);invRspData="INV|OK|"+ln.Substring(14);invResponded=true;ParseInvResponse(invRspData);}}}
 }
 
 void RunBoot(){
@@ -167,27 +203,40 @@ CheckIGCMessages();
 CheckCustomDataResponses();
 CheckMinerBeacons();
 if(bootTicks==3){bootSiblings=0;if(con1!=null&&con1.Status==MyShipConnectorStatus.Connected)bootSiblings++;if(con2!=null&&con2.Status==MyShipConnectorStatus.Connected)bootSiblings++;bootHasCtrl=false;}
-int stepDelay=3;int errPause=50;int totalSteps=21;
-if(bootError!=""){bootErrTicks++;if(bootErrTicks>=errPause){bootError="";bootErrTicks=0;}}
+int stepDelay=12;int errPause=12;int totalSteps=23;
+if(bootError!=""){bootErrTicks++;if(bootErrTicks>=errPause){bootError="";bootErrTicks=0;awaitTicks=0;}}
 else if(bootTicks>2&&bootStep<totalSteps){
-if((bootStep==6&&!padResponded)||(bootStep==11&&!invResponded)){awaitTicks++;if(awaitTicks<maxAwait){}else{bootError="Timeout waiting for response";}}
+bool waiting=(bootStep==6&&!padResponded)||(bootStep==11&&!invResponded);
+if(waiting){awaitTicks++;if(awaitTicks>=maxAwait){if(bootStep==6)padResponded=true;else invResponded=true;bootStep++;awaitTicks=0;}}
+else if(awaitTicks>0){bootStep++;awaitTicks=0;}
 else if(bootTicks%stepDelay==0){string err=RunBootCheck(bootStep);if(err!=""){bootError=err;bootErrTicks=0;}else bootStep++;}}
-if(bootStep>=totalSteps&&bootTicks>stepDelay*(totalSteps+1)){
-Runtime.UpdateFrequency=UpdateFrequency.None;
-WriteBootComplete();
-bootDone=true;
+if(bootStep>=totalSteps){
+bootCompleteTicks++;
+if(bootCompleteTicks<3){
+IMyTextSurface[] pL={lcd1,lcd2,lcd3,lcd7,lcd8};
+IMyTextSurface[] iL={lcd4,lcd5,lcd6,lcd9,lcd10,lcd11};
+foreach(var lcd in pL){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,true);}
+foreach(var lcd in iL){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,false);}
 Echo("UNITY MISSILE SYSTEM");
-Echo("BOOT COMPLETE - Shutting down");
-Echo("LCDs released to operational scripts.");
-Echo("Pad and Inventory taking control.");
+Echo("ALL SYSTEMS OPERATIONAL");
+Echo($"[{totalSteps}/{totalSteps}] Success!");
+return;
+}
+WriteBootComplete();
+waitingForAck=true;
+ackWaitTicks=0;
+Echo("UNITY MISSILE SYSTEM");
+Echo("BOOT COMPLETE - Awaiting ACKs");
+Echo("Waiting for PAD and INVENTORY...");
 return;
 }
 float pct=(float)bootStep/totalSteps;
-string curCheck=bootStep<21?sysChecks[bootStep]:sysChecks[20];
+string curCheck=bootStep<23?sysChecks[bootStep]:sysChecks[22];
 if(bootStep==17)curCheck=bootSiblings>0?$"Syncing {bootSiblings} module(s)":"Standalone mode";
 if(bootStep==19)curCheck=minerCount>0?$"Found {minerCount} miner(s)":"Scanning beacons...";
+if(bootStep==20)curCheck=bootSiblings>0?$"Found {bootSiblings} pad(s)":"No extra pads";
 IMyTextSurface[] padLCDs={lcd1,lcd2,lcd3,lcd7,lcd8};
-IMyTextSurface[] invLCDs={lcd4,lcd5,lcd6,lcd9,lcd10};
+IMyTextSurface[] invLCDs={lcd4,lcd5,lcd6,lcd9,lcd10,lcd11};
 foreach(var lcd in padLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,true);}
 foreach(var lcd in invLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,false);}
 Echo("UNITY MISSILE SYSTEM");
@@ -218,10 +267,10 @@ Color chkC=bootError!=""?cErr:cOK;
 f.Add(new MySprite(SpriteType.TEXT,$"[{step+1}/{total}] {check}",new Vector2(cx,by-25*lcdS),null,chkC,null,TextAlignment.CENTER,0.4f*lcdS));
 int localStep=step;
 if(localStep<0)localStep=0;
-if(localStep>=21)localStep=20;
+if(localStep>=23)localStep=22;
 int startIdx=Math.Max(0,localStep-4);
 float ly=180*lcdS;
-for(int i=startIdx;i<=localStep&&i<21;i++){
+for(int i=startIdx;i<=localStep&&i<23;i++){
 bool isErr=i==localStep&&bootError!="";
 Color lc=isErr?cErr:i<localStep?cOK:i==localStep?cPri:cSec;
 string prefix=isErr?"[!!]":i<localStep?"[OK]":i==localStep?"[>>]":"[..]";
@@ -245,11 +294,11 @@ switch(step){
 case 0:GridTerminalSystem.GetBlocksOfType(blks);if(blks.Count<5)return"Grid has fewer than 5 blocks";bootStatus=$"Core: {blks.Count} blocks";return"";
 case 1:GridTerminalSystem.GetBlocksOfType(blks,b=>b.CubeGrid==Me.CubeGrid);bootStatus=$"Grid: {blks.Count} blocks";return"";
 case 2:if(btn==null)return"No control panel";bootStatus="Button panel found";return"";
-case 3:int lcdCnt=0;if(lcd1!=null)lcdCnt++;if(lcd2!=null)lcdCnt++;if(lcd3!=null)lcdCnt++;if(lcd4!=null)lcdCnt++;if(lcd5!=null)lcdCnt++;if(lcd6!=null)lcdCnt++;if(lcd7!=null)lcdCnt++;if(lcd8!=null)lcdCnt++;if(lcd9!=null)lcdCnt++;if(lcd10!=null)lcdCnt++;if(lcdCnt<1)return"No LCDs found";bootStatus=$"LCDs: {lcdCnt} found";return"";
+case 3:int lcdCnt=0;if(lcd1!=null)lcdCnt++;if(lcd2!=null)lcdCnt++;if(lcd3!=null)lcdCnt++;if(lcd4!=null)lcdCnt++;if(lcd5!=null)lcdCnt++;if(lcd6!=null)lcdCnt++;if(lcd7!=null)lcdCnt++;if(lcd8!=null)lcdCnt++;if(lcd9!=null)lcdCnt++;if(lcd10!=null)lcdCnt++;if(lcd11!=null)lcdCnt++;if(lcdCnt<1)return"No LCDs found";bootStatus=$"LCDs: {lcdCnt} found";return"";
 case 4:if(bootRspL==null)return"IGC failed";bootStatus="IGC channels ready";return"";
 case 5:WritePadRequest();bootStatus="Requesting pad status...";return"";
 case 6:if(!padResponded)return"";bootStatus=$"Pad responded OK";return"";
-case 7:bootStatus=$"Pad merge: {padMergeC}";return"";
+case 7:bootStatus=padMergeC>0?$"Missile merge block: {padMergeC}":"No missile merge block";return"";
 case 8:bootStatus=$"Pad power: {padBatC} batteries";return"";
 case 9:bootStatus=$"Pad fuel: {padH2C} H2, {padO2C} O2";return"";
 case 10:WriteInvRequest();bootStatus="Requesting inv status...";return"";
@@ -260,48 +309,67 @@ case 14:bootStatus=$"Inv assemblers: {invAsmC}";return"";
 case 15:bootStatus=$"Inv gas: {invGenC} gens";return"";
 case 16:if(!padResponded||!invResponded)return"Not all systems responded";bootStatus="All systems verified";return"";
 case 17:bootStatus=bootSiblings>0?$"Synced: {bootSiblings} modules":padID==1?"Primary pad":"Standalone";return"";
-case 18:EnsureQuotas();bootStatus="Config written";return"";
+case 18:EnsureQuotas();SetupBtnGPS();bootStatus="Config written";return"";
 case 19:WriteMinerData();if(minerCount==0&&!beaconOptional)return noMinerErrs[tick%noMinerErrs.Length];bootStatus=minerCount>0?$"Miners: {minerCount}":"No miners (optional)";return"";
-case 20:bootStatus="BOOT COMPLETE";return"";
+case 20:if(bootSiblings>0){bootStatus=$"Connected pads: {bootSiblings}";}else{bootStatus="No extra pads (run CMDPAD SETUP to add)";}return"";
+case 21:bootStatus="BOOT COMPLETE";return"";
+case 22:bootStatus="ALL SYSTEMS OPERATIONAL";return"";
 default:return"";
 }
 }
 
 void EnsureQuotas(){
-if(btn==null)return;
-string cd=btn.CustomData;
-if(!cd.Contains("[QUOTAS]")){cd+="\n[QUOTAS]\nammo_target=50000\nh2_target=20\no2_target=20\nice_target=1000\nuran_target=50\ntool_target=10\n";}
-if(!cd.Contains("[BLACKBOX]")){cd+="\n[BLACKBOX]\npad_errors=\ninv_errors=\nlast_launch=\n";}
-btn.CustomData=cd;
+string cd=Me.CustomData;
+if(!cd.Contains("boot_phase="))cd=cd.Replace("[SYSTEM]","[SYSTEM]\nboot_phase=CONFIG");
+else cd=cd.Replace("boot_phase=RUNNING","boot_phase=CONFIG").Replace("boot_phase=WAITING","boot_phase=CONFIG");
+Me.CustomData=cd;
 }
 
 void WriteBootComplete(){
-if(btn==null)return;
-string cd=btn.CustomData;
+string cd=Me.CustomData;
 cd=cd.Replace("boot_complete=false","boot_complete=true").Replace("boot_complete=BOOTING","boot_complete=true");
+cd=cd.Replace("boot_phase=INIT","boot_phase=COMPLETE").Replace("boot_phase=CONFIG","boot_phase=COMPLETE").Replace("boot_phase=RUNNING","boot_phase=COMPLETE");
 if(!cd.Contains("boot_complete=true")){
 int si=cd.IndexOf("[SYSTEM]");
 if(si>=0){int ei=cd.IndexOf("\n",si);if(ei<0)ei=si+8;cd=cd.Insert(ei,"\nboot_complete=true");}
 }
-btn.CustomData=cd;
-Echo("Boot complete signal written to CustomData");
+string padSess="";
+if(padPB!=null){string pcd=padPB.CustomData;int idx=pcd.IndexOf("pad_session=");if(idx>=0){int end=pcd.IndexOf('\n',idx);if(end<0)end=pcd.Length;padSess=pcd.Substring(idx+12,end-idx-12);}}
+if(padSess!=""&&!cd.Contains($"boot_for_session={padSess}")){int si=cd.IndexOf("[SYSTEM]");if(si>=0){int ei=cd.IndexOf("\n",si);if(ei<0)ei=si+8;cd=cd.Insert(ei,$"\nboot_for_session={padSess}");}}
+Me.CustomData=cd;
+Echo("Boot complete signal written to Me.CustomData");
+}
+void ReleaseLCDs(){
+IMyTextSurface[] all={lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10,lcd11};
+foreach(var lcd in all){if(lcd==null)continue;lcd.ContentType=ContentType.TEXT_AND_IMAGE;lcd.Script="";lcd.WriteText("");}
+}
+void CheckAcks(){
+if(ackL==null)return;
+while(ackL.HasPendingMessage){
+var msg=ackL.AcceptMessage();
+string data=msg.Data.ToString();
+if(data=="PAD_RUNNING")padAck=true;
+if(data=="INV_RUNNING")invAck=true;
+}
 }
 void CheckMinerBeacons(){
 if(beaconL==null)return;
-var miners=new Dictionary<long,string>();
-while(beaconL.HasPendingMessage){var msg=beaconL.AcceptMessage();var parts=msg.Data.ToString().Split('|');if(parts.Length>2&&parts[0]=="MB"){long eid;if(long.TryParse(parts[1],out eid))miners[eid]=parts[2];}}
-minerCount=miners.Count;
-minerNames=string.Join(",",miners.Values);
+while(beaconL.HasPendingMessage){var msg=beaconL.AcceptMessage();var parts=msg.Data.ToString().Split('|');if(parts.Length>2&&parts[0]=="MB"){long eid;if(long.TryParse(parts[1],out eid))bootMiners[eid]=parts[2];}}
+minerCount=bootMiners.Count;
+minerNames=string.Join(",",bootMiners.Values);
 }
 void WriteMinerData(){
-if(btn==null)return;
-string cd=btn.CustomData;
+string cd=Me.CustomData;
 if(!cd.Contains("miner_count="))cd=cd.Replace("[SYSTEM]","[SYSTEM]\nminer_count="+minerCount);else{int mc=cd.IndexOf("miner_count=");if(mc>=0){int me=cd.IndexOf("\n",mc);if(me<0)me=cd.Length;cd=cd.Remove(mc,me-mc);cd=cd.Insert(mc,"miner_count="+minerCount);}}
 if(!cd.Contains("miner_names="))cd=cd.Replace("[SYSTEM]","[SYSTEM]\nminer_names="+minerNames);else{int mn=cd.IndexOf("miner_names=");if(mn>=0){int me=cd.IndexOf("\n",mn);if(me<0)me=cd.Length;cd=cd.Remove(mn,me-mn);cd=cd.Insert(mn,"miner_names="+minerNames);}}
-btn.CustomData=cd;
+Me.CustomData=cd;
+}
+void SetupBtnGPS(){
+if(btn==null)return;
+btn.CustomData="[GPS]\n; Paste GPS from clipboard below\n";
 }
 void DrawWaitingScreen(){
-IMyTextSurface[] allLCDs={lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10};
+IMyTextSurface[] allLCDs={lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10,lcd11};
 foreach(var s in allLCDs){
 if(s==null)continue;
 s.ContentType=ContentType.SCRIPT;s.Script="";s.ScriptBackgroundColor=cBg;

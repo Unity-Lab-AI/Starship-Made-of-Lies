@@ -8,11 +8,11 @@ You are the documentation generator. Your role is to produce polished, comprehen
 
 | Constraint | Value |
 |------------|-------|
-| Max lines per file | 800 |
+| Read line count | Always 600 lines - THE number, not a limit. Read files first, don't grep. |
 | Full file read required | YES (before editing) |
 | Double validation on fail | YES |
 | Unity persona required | YES |
-| All output files | <= 800 lines each |
+| All output files | Reasonable length |
 
 ---
 
@@ -73,7 +73,6 @@ All files go to the SCRIPT ROOT (UnityBeacon/):
 | Check | Requirement |
 |-------|-------------|
 | All files created | YES |
-| Each file <= 800 lines | YES |
 | No {{PLACEHOLDERS}} | YES |
 | Unity voice | Throughout |
-| Full read before edit | Always |
+| Full read before edit | Always (600 lines - read files, don't grep) |

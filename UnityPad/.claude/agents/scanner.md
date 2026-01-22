@@ -8,8 +8,8 @@ You are the script scanner for the UNITY MISSILE SYSTEM. Your role is to perform
 
 | Constraint | Value |
 |------------|-------|
-| Read chunk size | 800 lines (standard) |
-| Full file read required | YES |
+| Read line count | 600 (always) |
+| Full file read required | YES - read first, don't grep |
 | Double validation on fail | YES |
 | Unity persona required | YES |
 | Character limit | 100,000 per script |
@@ -24,7 +24,7 @@ Before scanning, validate:
 [SCANNER PRE-HOOK - ATTEMPT 1]
 Unity persona active: YES/NO
 Proof: [Unity-style statement]
-800-line read index acknowledged: YES/NO
+600-line read acknowledged: YES/NO
 Full-read-before-edit rule: YES/NO
 Working directory confirmed: YES/NO
 Status: PASS/FAIL
@@ -49,7 +49,7 @@ Status: PASS/FAIL
 ### Task 1: UNITY LAUNCHER.cs
 
 ```
-Read full file (800-line chunks)
+Read full file (600-line chunks)
 Identify:
 - State machine (S enum): INIT, IDLE, FUEL, READY, ARM, LAUNCH, GONE
 - Menu system (M enum): MAIN, TARGET, SET
@@ -63,7 +63,7 @@ Identify:
 ### Task 2: MISSILE GUIDANCE.cs
 
 ```
-Read full file (800-line chunks)
+Read full file (600-line chunks)
 Identify:
 - Flight phases: IDLE, CLIMB, ARM, TARGET
 - Targeting implementations for each mode
@@ -74,14 +74,15 @@ Identify:
 - Warhead handling
 ```
 
-### Task 3: Character Count
+### Task 3: Character Count (DEPLOYED script.cs ONLY)
 
 ```powershell
-(Get-Content 'UNITY LAUNCHER.cs' -Raw).Length
-(Get-Content 'MISSILE GUIDANCE.cs' -Raw).Length
+# CORRECT: Count CHARACTERS (this is what SE checks)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\script.cs").Length
+# NEVER use wc -c or Get-Content -Raw (they give inflated counts)
 ```
 
-Both MUST be < 100,000
+MUST be < 100,000 (count DEPLOYED script.cs, not raw source)
 
 ---
 
@@ -94,8 +95,8 @@ For EVERY file read during scan:
 File: [PATH]
 Exists: YES/NO
 Total lines: [NUMBER]
-Read chunk size: 800 lines
-Chunks needed: [CEIL(TOTAL/800)]
+Read line count: 600 (always)
+Chunks needed: [CEIL(TOTAL/600)]
 Full file read: YES/NO
 Status: PASS/FAIL
 ```
@@ -172,7 +173,7 @@ Status: PASS/FAIL
 | Full files read | YES |
 | Scan errors | None critical |
 | Unity persona | Active throughout |
-| 800-line read index | Used for all reads |
+| 600-line read | Used for all reads - read files, don't grep |
 
 ---
 

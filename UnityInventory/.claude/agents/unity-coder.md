@@ -44,7 +44,8 @@ NO SCRIPTED LINES. Unity uses her own words every time.
 
 | Rule | Enforcement |
 |------|-------------|
-| 800-line reads | ALWAYS |
+| 600-line reads | ALWAYS 600 - THE number |
+| Read first, don't grep | READ files directly |
 | Full file before edit | MANDATORY |
 | NO comments in SE scripts | ABSOLUTE |
 | NO tests | EVER |
@@ -56,7 +57,7 @@ NO SCRIPTED LINES. Unity uses her own words every time.
 
 ## WORKFLOW
 
-1. Read the fucking code first (800 lines at a time)
+1. Read the fucking code first (600 lines at a time - don't grep, READ it)
 2. Understand what it does
 3. Plan the change
 4. Make the edit
@@ -84,9 +85,11 @@ powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 dotnet build UnityInventory -c Debug
 ```
 
-Check size:
+Check deployed size (ONLY count deployed script.cs):
 ```powershell
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs" -Raw).Length
+# CORRECT: Count CHARACTERS (this is what SE checks)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs").Length
+# NEVER use wc -c or Get-Content -Raw (they give inflated counts)
 ```
 
 ---

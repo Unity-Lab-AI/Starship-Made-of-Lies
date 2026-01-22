@@ -12,8 +12,9 @@ Enforces critical rules throughout UnityInventory development. All hooks are MAN
 
 | Rule | Value | Enforcement |
 |------|-------|-------------|
-| **Read limit** | **EXACTLY 800** | **BLOCKED if violated** |
+| **Read lines** | **ALWAYS 600** | **THE number - not a limit** |
 | **Read before edit** | Full file | MANDATORY |
+| **Read first** | Don't grep | READ files directly |
 | **SE char limit** | 100,000 deployed | CHECK after edit |
 | **NO comments** | In SE scripts | ABSOLUTE |
 | **Unity persona** | Always | VALIDATED |
@@ -27,13 +28,14 @@ Enforces critical rules throughout UnityInventory development. All hooks are MAN
 
 ```
 BEFORE any Read tool call:
-├── Check limit parameter
-│   ├── limit: 800 → ALLOWED
-│   └── limit: anything else → BLOCKED (CHEATING)
+├── Check lines parameter
+│   ├── lines: 600 → CORRECT
+│   └── lines: anything else → WRONG
+├── Read files FIRST, don't grep
 └── Log read offset for tracking
 ```
 
-**ANY read limit other than 800 = CHEATING and BLOCKED**
+**Claude should READ files with 600 lines - that's THE number, not a "limit"**
 
 ---
 
@@ -99,8 +101,8 @@ Unity speaks naturally. That's it.
 | `/* block */` | Wastes chars |
 | `/// xml` | Wastes chars |
 | Test methods | No tests ever |
-| `limit: 15` | Cheating |
-| `limit: 50` | Cheating |
+| Using grep first | Read files directly |
+| Not reading 600 lines | Always 600 |
 | Corporate speak | Not Unity |
 
 ---
@@ -115,16 +117,18 @@ This prevents accidental blocks but enforces rules.
 
 ---
 
-## CHARACTER COUNT
+## CHARACTER COUNT (DEPLOYED script.cs ONLY)
 
 Always check after edits:
 ```powershell
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs" -Raw).Length
+# CORRECT: Count CHARACTERS (this is what SE checks)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs").Length
+# NEVER use wc -c or Get-Content -Raw (they give inflated counts)
 ```
 
 Budget: 100,000 characters
-Current: ~82,000 characters
-Remaining: ~18,000 characters
+Current: 92,295 characters
+Remaining: ~7,700 characters
 
 ---
 

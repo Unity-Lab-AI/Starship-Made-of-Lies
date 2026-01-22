@@ -15,10 +15,11 @@ Develop and maintain the guided missile system consisting of:
 3. **NO TESTS** - Code it right the first time
 4. **READ BEFORE EDIT** - Always read the full file first
 
-## Character Count Check
+## Character Count Check (DEPLOYED script.cs ONLY)
 ```powershell
-(Get-Content 'UNITY LAUNCHER.cs' -Raw).Length
-(Get-Content 'MISSILE GUIDANCE.cs' -Raw).Length
+# CORRECT: Count CHARACTERS (this is what SE checks)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\script.cs").Length
+# NEVER use wc -c or Get-Content -Raw (they give inflated counts)
 ```
 
 ## Script Architecture

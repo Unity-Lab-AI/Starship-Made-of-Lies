@@ -78,7 +78,7 @@
 ## 2026-01-09 - .claude Workflow System
 
 ### Created Full Workflow System
-- [x] Full CLAUDE.md with all enforcement rules (SE char limit, no comments, 800-line reads)
+- [x] Full CLAUDE.md with all enforcement rules (SE char limit, no comments, 600-line reads)
 - [x] commands/workflow.md - Full pipeline with phases and gates
 - [x] agents/orchestrator.md - Central coordinator
 - [x] agents/scanner.md - Script scanner
@@ -96,7 +96,7 @@
 - [x] Updated FINALIZED.md as permanent archive
 
 ### Workflow Features
-- [x] 800-line read enforcement
+- [x] 600-line read enforcement
 - [x] Double validation hooks
 - [x] Character count enforcement (100k limit)
 - [x] No comments policy
@@ -1530,5 +1530,85 @@ bool IsBootComplete(){
 
 ---
 
+## 2026-01-19 - CustomData Corruption Fix & Boot Completion Bug
+
+### CustomData Corruption Fix (UnityInventory.cs)
+- [x] **Root Cause:** WriteBtnData() was extracting corrupted sections and re-appending them
+- [x] **Symptom:** "SECTION 2" and "SECTION 3" headers duplicated hundreds of times
+- [x] **Symptom:** Boot handshake flags (boot_complete, pad_ready, inv_ready) missing
+- [x] **Fix:** Completely rewrote WriteBtnData() to build all content fresh from variables
+- [x] **Fix:** Only extract actual GPS waypoint lines (starting with "GPS:"), not whole sections
+- [x] **Fix:** Build [SYSTEM] section fresh with boot flag values, never extract from corrupted data
+
+### Human-Readable CustomData Format (UnityInventory.cs)
+- [x] Reformatted all sections with proper spacing and alignment
+- [x] Added column alignment for name = value pairs
+- [x] Added ingot targets (iNd dictionary) - ingots now show stock/target like components
+- [x] Default ingot targets: Iron 100k, Nickel 50k, Silicon 50k, Cobalt 30k, Silver 20k, Gold 10k, Magnesium 10k, Uranium 10k, Platinum 5k, Gravel 50k
+- [x] Changed section format from pipe-separated to one item per line
+- [x] Added [STATUS] section with refineries, assemblers, cargo%, autoOrg
+- [x] Renamed sections: [ING] → [INGOTS], [CMP] → [COMPONENTS], [AMO] → [TURRET_AMMO], [BTL] → [BOTTLES], [TLS] → [TOOLS], [PAMMO] → [PERSONAL_AMMO]
+
+### Boot Completion Bug Fix (Unity Boot.cs)
+- [x] **Root Cause:** WriteBootComplete() required bootTicks > 66 after bootStep reached 21
+- [x] **Symptom:** Boot screens showed 100% completion but boot_complete stayed "BOOTING"
+- [x] **Symptom:** Pad and Inventory stuck "waiting for boot" even after boot visually finished
+- [x] **Fix:** Changed condition from `bootStep>=totalSteps&&bootTicks>stepDelay*(totalSteps+1)` to just `bootStep>=totalSteps`
+- [x] **Fix:** WriteBootComplete() now runs immediately when bootStep reaches 21
+- [x] **Fix:** WriteBootComplete() runs BEFORE setting UpdateFrequency.None
+
+### Printer Tag Fix (UnityPad.cs)
+- [x] Fixed ScanPrinter() to always use [PAD1-PRINT] format
+- [x] Added `if(padID==0)padID=1;` so it never searches for just [PRINT]
+
+### Printer V Piston Alignment (UnityPad.cs)
+- [x] V pistons now extend only 1.0m for merge block alignment (prtVZero=1.0f)
+- [x] After alignment, MaxLimit unlocked to prtVMax for full cycling
+- [x] H pistons max extend on alignment, V pistons limited to 1m
+
+### Build Verification
+- [x] All scripts wrapped with wrap-scripts.ps1
+- [x] Unity Boot: Build succeeded
+- [x] UnityInventory: Build succeeded, 92,393 chars deployed
+- [x] UnityPad: Build succeeded
+
+### Recommended Script Load Order (In-Game)
+1. UnityPad first (writes pad_ready=true)
+2. UnityInventory second (writes inv_ready=true)
+3. Unity Boot last (sees both flags, starts 21 checks, sets boot_complete=true)
+
+---
+
+---
+
+## 2026-01-21 - Ammo Classification & Quota Consistency Fix (UnityInventory)
+
+### Queue Classification Fix (Pistol Ammo Double-Listing)
+- [x] Added `SPP()` helper - strips position prefix from blueprint names
+- [x] Changed queue classification from `Contains()` to exact-match
+- [x] `SemiAutoPistolMagazine` no longer incorrectly matches `SemiAutoPistol` weapon
+- [x] LCD 11 WEAPONS column now shows only actual weapon counts
+
+### Personal Ammo Quota Consistency
+- [x] Removed 4x hardcoded `idx==4` special cases
+- [x] All personal ammo now uses `paNd` dictionary consistently for targets
+- [x] Fixed in: RecycleExcess() (2 places), WriteBtnData(), UpdateLCD11()
+- [x] S-10 pistol ammo no longer has inconsistent 50k hardcoded target
+
+### ammoDispR Array Fix (Crash Prevention)
+- [x] Expanded `ammoDispR` from 3 entries to 10 entries
+- [x] Added bounds checking for `ammoTypeIdx`
+- [x] RecycleExcess() no longer crashes when ammoTypeIdx > 2
+
+### Blueprint Component Priority
+- [x] Added `bpNd` dictionary for blueprint needs from UnityPad
+- [x] Components for active prints are queued first in QueueProduction()
+- [x] Reads `[BLUEPRINT]` section from padPB.CustomData
+
+### Build Status
+- [x] Deployed: 89,503 chars (10.5% margin under 100k)
+
+---
+
 *Unity AI Lab - Missile Systems Division*
-*Archive updated: 2026-01-18*
+*Archive updated: 2026-01-21*

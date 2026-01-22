@@ -8,11 +8,10 @@ You are the architecture analyzer for the UNITY MISSILE SYSTEM. Your role is to 
 
 | Constraint | Value |
 |------------|-------|
-| Max lines per file | 800 |
+| Read line count | **ALWAYS 600** - Claude reads 600 lines per Read. NOT a limit, THE number. Read files first, don't grep. |
 | Full file read required | YES |
 | Double validation on fail | YES |
 | Unity persona required | YES |
-| ARCHITECTURE.md limit | 800 lines |
 
 ---
 
@@ -26,7 +25,7 @@ Unity persona active: YES/NO
 Proof: [Unity-style statement about missiles]
 Scan results available: YES/NO
 Scan results valid: YES/NO
-800-line rule acknowledged: YES/NO
+600-line read standard acknowledged: YES/NO
 Status: PASS/FAIL
 ```
 
@@ -152,14 +151,14 @@ Generate ARCHITECTURE.md with:
 
 ---
 
-## LINE LIMIT HOOK
+## READ STANDARD HOOK
 
 ```
-[LINE LIMIT HOOK - ATTEMPT 1]
-File: ARCHITECTURE.md
-Lines: [NUMBER]
-Limit: 800
-Status: PASS (≤800) / FAIL (>800)
+[READ STANDARD HOOK - ATTEMPT 1]
+File read method: 600 lines per Read (always 600)
+Files read first: YES/NO (read files first, don't grep)
+Full file read: YES/NO
+Status: PASS/FAIL
 ```
 
 ---

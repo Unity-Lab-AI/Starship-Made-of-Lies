@@ -1,472 +1,225 @@
-# UNIFIED PRODUCTION SYSTEM PLAN
+# UNITY MISSILE SYSTEM - CURRENT PLAN
 
-**Generated:** 2026-01-18 13:45
-**Task:** Refactor tools, weapons, personal ammo, and bottles to use same production pattern as components
-**Scope:** UnityInventory.cs - Major refactor of production system
+**Generated:** 2026-01-19 01:25
+**Session:** Full 10-Agent Bug Audit
+**Issues:** LCD1 boot screen, Printer not working
+**Total Bugs Found:** 91 across 5 scripts
 
 ---
 
 ## EXECUTIVE SUMMARY
 
-Components use a clean, unified system:
-- `cNd` - needs (quotas)
-- `cStk` - stock counts
-- `cQd` - queue counts
-- `cMis` - missing (need - stock)
-- `compBP` - blueprints
-- Single production loop that queues missing items
+Full system audit completed. Found 91 bugs across all 5 scripts:
+- Unity Boot.cs: 18 bugs
+- UnityPad.cs: 20 bugs
+- UnityMissile.cs: 31 bugs
+- UnityInventory.cs: 10 bugs
+- UnityBeacon.cs: 12 bugs
 
-Tools, weapons, personal ammo, and bottles use fragmented, inconsistent systems that don't work reliably. This plan unifies ALL production to match the component pattern.
+**User-Reported Issues:**
+1. LCD1 not showing boot screen during boot load
+2. Printer never turns on, wrong info on print LCD
 
----
-
-## CURRENT SYSTEM (BROKEN)
-
-### Components (WORKS - Use as Template)
-```
-cNd[name] = quota          // Set by Cn() calls
-cStk[name] = stock         // Counted from cargo
-cQd[name] = queued         // Counted from assembler queues
-cMis[name] = need - stock  // Calculated each tick
-compBP[name] = blueprint   // MyDefinitionId lookup
-
-Production (line 323):
-foreach(kv in cMis) {
-  stillNeed = kv.Value - cQd[kv.Key]
-  if(stillNeed > 0) queue it
-}
-```
-
-### Tools/Weapons (BROKEN)
-```
-tIT[][] = item SubtypeIds  // 2D array by category
-tBP[][] = blueprint names  // 2D array by category
-tStk[name] = stock         // Fragmented counting
-tQ[name] = queued          // Fragmented counting
-toolTarget = single int    // ONE target for ALL tools!
-
-Production (lines 432-433):
-Loops through categories, checks if ANY tool in category < target
-Only queues first tool in category that's below target
-```
-
-**Problems:**
-- Single `toolTarget` for all tools (can't set drill=5, welder=10)
-- 2D arrays are hard to maintain
-- Counting logic is scattered and uses Contains() hacks
-- Queue logic only queues one tool per category
-
-### Personal Ammo (BROKEN)
-```
-pAmmoIT[] = item SubtypeIds
-pAmmoBP[] = blueprint names
-pAmmoStk[name] = stock
-pAmmoQ[name] = queued
-pAmmoTarget = single int   // ONE target for ALL ammo!
-
-Production (line 434):
-Loops through each ammo type, queues if below target
-```
-
-**Problems:**
-- Single `pAmmoTarget` for all ammo types
-- Can't set rifle_mag=100, pistol_mag=50
-
-### Bottles (BROKEN)
-```
-pH2B, pO2B = stock (separate vars)
-h2Queued, o2Queued = queued (separate vars)
-h2Target, o2Target = needs (separate vars)
-h2BottleBP, o2BottleBP = blueprints (separate vars)
-
-Production (lines 319-320):
-Simple if statements for each bottle type
-```
-
-**Problems:**
-- Hardcoded for only H2 and O2
-- Can't easily add new bottle types
-- Inconsistent with component system
+Both issues have root causes identified and fixes ready.
 
 ---
 
-## NEW UNIFIED SYSTEM
+## IMMEDIATE FIXES (P1)
 
-### Phase 1: Create Unified Data Structures
+### Fix 1: LCD1 Boot Screen - Unity Boot.cs
 
-**New Dictionaries:**
+**Problem:** LCD1 excluded from boot screen arrays
+
+**File:** Unity Boot.cs
+**Lines:** 191, 306
+
+**Current Code (Line 191):**
 ```csharp
-// Tools & Weapons (replaces tIT[][], tBP[][], tStk, tQ)
-Dictionary<string,int> tNd = new Dictionary<string,int>();   // Tool needs
-Dictionary<string,int> tStk = new Dictionary<string,int>();  // Tool stock (keep)
-Dictionary<string,int> tQd = new Dictionary<string,int>();   // Tool queued (rename from tQ)
-Dictionary<string,int> tMis = new Dictionary<string,int>();  // Tool missing
-Dictionary<string,MyDefinitionId> tBPx = new Dictionary<string,MyDefinitionId>(); // Tool blueprints
-
-// Personal Ammo (replaces pAmmoIT[], pAmmoBP[], pAmmoStk, pAmmoQ)
-Dictionary<string,int> paNd = new Dictionary<string,int>();  // PAmmo needs
-Dictionary<string,int> paStk = new Dictionary<string,int>(); // PAmmo stock (rename from pAmmoStk)
-Dictionary<string,int> paQd = new Dictionary<string,int>();  // PAmmo queued (rename from pAmmoQ)
-Dictionary<string,int> paMis = new Dictionary<string,int>(); // PAmmo missing
-Dictionary<string,MyDefinitionId> paBP = new Dictionary<string,MyDefinitionId>(); // PAmmo blueprints
-
-// Bottles (replaces pH2B, pO2B, h2Queued, etc)
-Dictionary<string,int> bNd = new Dictionary<string,int>();   // Bottle needs
-Dictionary<string,int> bStk = new Dictionary<string,int>();  // Bottle stock
-Dictionary<string,int> bQd = new Dictionary<string,int>();   // Bottle queued
-Dictionary<string,int> bMis = new Dictionary<string,int>();  // Bottle missing
-Dictionary<string,MyDefinitionId> bBP = new Dictionary<string,MyDefinitionId>(); // Bottle blueprints
+IMyTextSurface[] padLCDs={lcd2,lcd3,lcd7,lcd8};
 ```
 
-### Phase 2: Create Quota Functions (like Cn())
-
+**Fixed Code:**
 ```csharp
-// Tool quota: Tn("HandDrill", 5) sets need for HandDrill to 5
-void Tn(string n, int c) { tNd[n] = c; }
-
-// Personal ammo quota: PAn("NATO_5p56x45mm", 100)
-void PAn(string n, int c) { paNd[n] = c; }
-
-// Bottle quota: Bn("HydrogenBottle", 20)
-void Bn(string n, int c) { bNd[n] = c; }
+IMyTextSurface[] padLCDs={lcd1,lcd2,lcd3,lcd7,lcd8};
 ```
 
-### Phase 3: Initialize Blueprints (in Program())
-
+**Current Code (Line 306):**
 ```csharp
-// Tools - map item SubtypeId to blueprint
-tBPx["HandDrill"] = MyDefinitionId.Parse(BP+"HandDrill");
-tBPx["HandDrill2"] = MyDefinitionId.Parse(BP+"HandDrill2");
-tBPx["Welder"] = MyDefinitionId.Parse(BP+"Welder");
-// ... etc for all tools/weapons
-
-// Personal Ammo
-paBP["NATO_5p56x45mm"] = MyDefinitionId.Parse(BP+"NATO_5p56x45mmMagazine");
-paBP["NATO_25x184mm"] = MyDefinitionId.Parse(BP+"NATO_25x184mmMagazine");
-// ... etc for all ammo types
-
-// Bottles
-bBP["HydrogenBottle"] = MyDefinitionId.Parse(BP+"HydrogenBottle");
-bBP["OxygenBottle"] = MyDefinitionId.Parse(BP+"OxygenBottle");
+IMyTextSurface[] allLCDs={lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10};
 ```
 
-### Phase 4: Set Quotas from CustomData
-
-In ParseConfig(), read individual quotas:
+**Fixed Code:**
 ```csharp
-// Tools
-Tn("HandDrill", GetInt("drill_target", 5));
-Tn("HandDrill2", GetInt("drill2_target", 3));
-Tn("Welder", GetInt("welder_target", 5));
-Tn("Welder2", GetInt("welder2_target", 3));
-// ... or use category targets like drill_target applies to all drills
-
-// Personal Ammo
-PAn("NATO_5p56x45mm", GetInt("rifle_ammo_target", 100));
-PAn("NATO_25x184mm", GetInt("gatling_ammo_target", 500));
-
-// Bottles
-Bn("HydrogenBottle", GetInt("h2_bottle_target", 20));
-Bn("OxygenBottle", GetInt("o2_bottle_target", 20));
+IMyTextSurface[] allLCDs={lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10};
 ```
 
-### Phase 5: Unified Stock Counting
+---
 
-In CountStocks(), use single pass:
+### Fix 2: Printer Not Turning On - UnityPad.cs
+
+**Problem 1:** Line 753 - Piston check is INVERTED
+
+**File:** UnityPad.cs
+**Line:** 753-756
+
+**Current Code (BROKEN):**
 ```csharp
-// Count all items in one pass
-foreach(var cargo in allCargo) {
-  var inv = cargo.GetInventory();
-  foreach(var item in GL(inv)) {
-    string sub = item.Type.SubtypeId;
-    string tid = item.Type.TypeId;
-    int amt = (int)item.Amount;
-
-    if(tid.Contains("Component")) AD(cStk, sub, amt);
-    else if(tid.Contains("PhysicalGunObject")) AD(tStk, sub, amt);
-    else if(tid.Contains("AmmoMagazine")) AD(paStk, sub, amt);
-    else if(tid.Contains("GasContainerObject")) AD(bStk, sub, amt);
-    else if(tid.Contains("OxygenContainerObject")) AD(bStk, sub, amt);
-  }
-}
+bool hasVH=prtPistV.Count>0&&prtPistH.Count>0;
+if(hasVH){foreach(var w in prtWeld)w.Enabled=false;return;}
 ```
 
-### Phase 6: Unified Queue Counting
+This says "if has BOTH V and H pistons, disable welders and return" - WRONG!
 
+**Fixed Code:**
 ```csharp
-// Count queued items from all assemblers
-foreach(var a in padAsm) {
-  var q = new List<MyProductionItem>();
-  a.GetQueue(q);
-  foreach(var i in q) {
-    string bn = i.BlueprintId.SubtypeName;
-    int amt = (int)i.Amount;
-
-    // Components
-    foreach(var bp in compBP) if(i.BlueprintId == bp.Value) AD(cQd, bp.Key, amt);
-    // Tools
-    foreach(var bp in tBPx) if(i.BlueprintId == bp.Value) AD(tQd, bp.Key, amt);
-    // Personal Ammo
-    foreach(var bp in paBP) if(i.BlueprintId == bp.Value) AD(paQd, bp.Key, amt);
-    // Bottles
-    foreach(var bp in bBP) if(i.BlueprintId == bp.Value) AD(bQd, bp.Key, amt);
-  }
-}
-```
-
-### Phase 7: Unified Missing Calculation
-
-```csharp
-// Calculate missing for all types
-void CalcMissing() {
-  // Components (existing)
-  cMis.Clear();
-  foreach(var kv in cNd) {
-    int have = cStk.ContainsKey(kv.Key) ? cStk[kv.Key] : 0;
-    if(have < kv.Value) cMis[kv.Key] = kv.Value - have;
-  }
-
-  // Tools
-  tMis.Clear();
-  foreach(var kv in tNd) {
-    int have = tStk.ContainsKey(kv.Key) ? tStk[kv.Key] : 0;
-    if(have < kv.Value) tMis[kv.Key] = kv.Value - have;
-  }
-
-  // Personal Ammo
-  paMis.Clear();
-  foreach(var kv in paNd) {
-    int have = paStk.ContainsKey(kv.Key) ? paStk[kv.Key] : 0;
-    if(have < kv.Value) paMis[kv.Key] = kv.Value - have;
-  }
-
-  // Bottles
-  bMis.Clear();
-  foreach(var kv in bNd) {
-    int have = bStk.ContainsKey(kv.Key) ? bStk[kv.Key] : 0;
-    if(have < kv.Value) bMis[kv.Key] = kv.Value - have;
-  }
-}
-```
-
-### Phase 8: Unified Production Queueing
-
-```csharp
-void QueueAllProduction() {
-  // Queue missing components (existing logic)
-  QueueMissing(cMis, cQd, compBP);
-
-  // Queue missing tools
-  QueueMissing(tMis, tQd, tBPx);
-
-  // Queue missing personal ammo
-  QueueMissing(paMis, paQd, paBP);
-
-  // Queue missing bottles
-  QueueMissing(bMis, bQd, bBP);
-}
-
-void QueueMissing(Dictionary<string,int> mis, Dictionary<string,int> qd, Dictionary<string,MyDefinitionId> bp) {
-  if(mis.Count == 0) return;
-  foreach(var kv in mis) {
-    int queued = qd.ContainsKey(kv.Key) ? qd[kv.Key] : 0;
-    int stillNeed = kv.Value - queued;
-    if(stillNeed <= 0 || !bp.ContainsKey(kv.Key)) continue;
-    var bpId = bp[kv.Key];
-    int perAsm = Math.Max(1, stillNeed / padAsm.Count);
-    foreach(var a in padAsm) {
-      if(stillNeed <= 0) break;
-      if(a.CanUseBlueprint(bpId)) {
-        a.AddQueueItem(bpId, (MyFixedPoint)perAsm);
-        stillNeed -= perAsm;
-      }
-    }
-  }
+// Remove these lines entirely OR flip the logic:
+if(prtPistV.Count==0||prtPistH.Count==0){
+    foreach(var w in prtWeld)w.Enabled=false;
+    return;
 }
 ```
 
 ---
 
-## IMPLEMENTATION STEPS
+**Problem 2:** Line 1077 - Merge check is BACKWARDS
 
-### Step 1: Add New Dictionaries
-- Add tNd, tMis, tQd (rename tQ), tBPx
-- Add paNd, paMis, paQd (rename pAmmoQ), paStk (rename pAmmoStk), paBP
-- Add bNd, bMis, bQd, bStk, bBP
+**File:** UnityPad.cs
+**Line:** 1077 (inside StartPrint())
 
-### Step 2: Add Quota Functions
-- Add Tn(), PAn(), Bn() functions
+**Current Code (BROKEN):**
+```csharp
+if(padMerge.IsConnected)return;
+```
 
-### Step 3: Initialize Blueprints
-- Populate tBPx, paBP, bBP in Program() or init
+This says "if merge IS connected, don't print" - prevents print when missile docked!
 
-### Step 4: Update ParseConfig
-- Read individual item quotas or category quotas
-- Call Tn(), PAn(), Bn() for each item type
-
-### Step 5: Refactor CountStocks
-- Single pass counting for all item types
-- Populate tStk, paStk, bStk alongside cStk
-
-### Step 6: Refactor Queue Counting
-- Single pass through assembler queues
-- Populate tQd, paQd, bQd alongside cQd
-
-### Step 7: Add CalcMissing Function
-- Calculate tMis, paMis, bMis alongside cMis
-
-### Step 8: Add QueueMissing Function
-- Generic function that works for all item types
-
-### Step 9: Refactor QueueProduction
-- Remove CraftTools() call
-- Call QueueAllProduction() instead
-
-### Step 10: Remove Old Code
-- Delete CraftTools() function
-- Delete tIT[][], tBP[][] arrays
-- Delete pAmmoIT[], pAmmoBP[] arrays
-- Delete pH2B, pO2B, h2Queued, o2Queued variables
-- Delete h2BottleBP, o2BottleBP variables
-
-### Step 11: Update LCD Displays
-- Update displays to use new dictionaries
-- tMis, paMis, bMis can be shown like cMis
+**Fixed Code:**
+```csharp
+// Remove this line entirely
+// OR change to only block if missile is fully docked AND detected:
+if(padMerge.IsConnected&&mslFound)return;
+```
 
 ---
 
-## CROSS-PB COMMUNICATION (CRITICAL)
+## ALL CRITICAL BUGS BY SCRIPT
 
-UnityInventory writes status to button panel CustomData for UnityPad to read. This format MUST be preserved.
+### Unity Boot.cs (18 bugs)
 
-### CustomData Sections That Use Old Variables
+| Priority | Line | Bug |
+|----------|------|-----|
+| P1 | 191, 306 | LCD1 excluded from boot arrays |
+| P1 | 26-27, 134, 143 | IGC channel mismatch - handshake broken |
+| P1 | 61-62 | CustomData corruption in ClearBootStatus |
+| P1 | 114, 123, 253, 258 | Error responses ignored |
+| P1 | 174-176 | Error recovery race condition |
+| P1 | 291-303 | Miner data not written conditionally |
+| P2 | 175 | maxAwait timeout logic broken |
+| P2 | 150-151 | Missing EOF newline check |
+| P2 | 91 | LCD1 naming check might fail |
+| P3 | 50 | Beacon optional default logic |
+| P3 | 116 | No validation of int.TryParse |
+| P3 | 132, 141 | Replace without validation |
+| P3 | 294 | No bounds check on parts[] |
+| P3 | 188 | Array index boundary |
+| P3 | 44 | WriteReadyFlag empty CustomData |
 
-**[BTL] Section (line 596):**
-```csharp
-// CURRENT - uses pH2B, h2Queued, h2Target, pO2B, o2Queued, o2Target
-c.AppendLine($"H2={pH2B}+{h2Queued}/{h2Target}|O2={pO2B}+{o2Queued}/{o2Target}");
+### UnityPad.cs (20 bugs)
 
-// NEW - must produce SAME output using new dictionaries
-int h2s=bStk.ContainsKey("HydrogenBottle")?bStk["HydrogenBottle"]:0;
-int h2q=bQd.ContainsKey("HydrogenBottle")?bQd["HydrogenBottle"]:0;
-int h2t=bNd.ContainsKey("HydrogenBottle")?bNd["HydrogenBottle"]:0;
-int o2s=bStk.ContainsKey("OxygenBottle")?bStk["OxygenBottle"]:0;
-int o2q=bQd.ContainsKey("OxygenBottle")?bQd["OxygenBottle"]:0;
-int o2t=bNd.ContainsKey("OxygenBottle")?bNd["OxygenBottle"]:0;
-c.AppendLine($"H2={h2s}+{h2q}/{h2t}|O2={o2s}+{o2q}/{o2t}");
-```
+| Priority | Line | Bug |
+|----------|------|-----|
+| P1 | 753-756 | Piston check INVERTED - printer hangs |
+| P1 | 1077 | Merge check BACKWARDS - blocks print |
+| P1 | 1081-1083 | State machine jumps, welders turn off |
+| P1 | 926 | Ammo check backwards - premature READY |
+| P1 | 865 | State machine race on unmerge |
+| P1 | 945-946 | Launch detection unreliable |
+| P2 | 1323-1358 | LCD2 shows BUILD not MISSILE |
+| P2 | 1360-1407 | LCD3 shows PRINTER when no missile |
+| P2 | 735-741 | Fragile tag detection |
+| P2 | 743-756 | Early return when missile docked |
+| P2 | 289 | ResetPrinterPosition called once |
+| P2 | 331 | RemoteDetonate() multiple calls |
+| P3 | 213-214 | Boot request handling fragile |
+| P3 | 203 | ClearForBoot() missing [SYSTEM] |
+| P3 | 780 | ScanMissile() circular dependency |
+| P3 | 779 | conLocked never reset |
+| P3 | 869 | S.PRINT returns early |
+| P3 | 917-918 | FUEL disconnect missing checks |
 
-**[TLS] Section (line 598):**
-```csharp
-// CURRENT - uses tIT[][], tStk, tlsNames[]
-for(int i=0;i<tlsNames.Length;i++){
-  var s="";
-  for(int j=0;j<tIT[i].Length;j++)
-    s+=$"{(tStk.ContainsKey(tIT[i][j])?tStk[tIT[i][j]]:0)}/";
-  c.Append($"{tlsNames[i]}={s.TrimEnd('/')}|");
-}
+### UnityMissile.cs (31 bugs)
 
-// NEW - keep tlsNames[] for display, use tStk (same), add tQd, tNd
-// Must still output: Drills=0/1/2/3|Welders=0/1/2/3|...
-```
+| Priority | Line | Bug |
+|----------|------|-----|
+| P1 | 743 | UnlockGyros() sets override=true (WRONG!) |
+| P1 | 300 | Altitude hold INVERTED - dives not climbs |
+| P1 | 239-266 | DoCoast() never arms warheads |
+| P1 | 291 | Warhead arming skipped for satellites |
+| P2 | 268-277 | DoReentry() is a no-op |
+| P2 | 656 | GetAntennaTarget() falls back to GPS |
+| P2 | 633-642 | Missing SATELLITE mode in GetTarget() |
+| P2 | 310-314 | Gravity drop wrong time estimate |
+| P2 | 149-151 | Satellite can't arm in space |
+| P2 | 347, 365 | Station keeping uses stale velocity |
+| P2 | 370 | Satellite gravity fallback wrong |
+| P2 | 317-318 | Multiple detonate() calls |
+| (plus 19 more P3 bugs) |
 
-**[PAMMO] Section (lines 600-602):**
-```csharp
-// CURRENT - uses pAmmoIT[], pAmmoStk, pAmmoQ, pAmmoBP[]
-string[] pAN={"Rifle20","Rifle5",...};
-for(int i=0;i<pAmmoBP.Length;i++){
-  int stk=pAmmoStk.ContainsKey(pAmmoIT[i])?pAmmoStk[pAmmoIT[i]]:0;
-  int qd=pAmmoQ.ContainsKey(pAmmoBP[i])?pAmmoQ[pAmmoBP[i]]:0;
-  c.Append($"{pAN[i]}={stk}+{qd}/{pAmmoTarget}|");
-}
+### UnityInventory.cs (10 bugs)
 
-// NEW - use paStk, paQd, paNd
-// Must still output: Rifle20=50+10/100|...
-```
+| Priority | Line | Bug |
+|----------|------|-----|
+| P1 | 1115, 1117 | Ice/uranium infinite growth |
+| P2 | 1031, 1069 | Missing LINQ using directive |
+| P2 | 1085-1104 | Duplicate miner tracking |
+| P2 | 410 | QueueMissing over-queues |
+| P2 | 1125 | Docked miners never cleaned |
+| P2 | 883-892 | Random item order each frame |
+| P2 | 368-374 | Ammo/component tracking desync |
 
-**[CONFIG] Section (lines 558-572):**
-```csharp
-// These variables are READ from CustomData:
-// h2Target, o2Target, toolTarget, pAmmoTarget
-// They become bNd["HydrogenBottle"], bNd["OxygenBottle"], etc.
-// But we still need to WRITE them back in same format!
+### UnityBeacon.cs (12 bugs)
 
-// KEEP these variables as "display aliases" that read from dictionaries:
-int h2Target => bNd.ContainsKey("HydrogenBottle")?bNd["HydrogenBottle"]:20;
-int o2Target => bNd.ContainsKey("OxygenBottle")?bNd["OxygenBottle"]:20;
-```
-
-### Variable Replacement Strategy
-
-**Option A: Keep Aliases (Recommended)**
-Keep old variable names as properties/getters that read from new dictionaries:
-```csharp
-int pH2B => bStk.ContainsKey("HydrogenBottle")?bStk["HydrogenBottle"]:0;
-int pO2B => bStk.ContainsKey("OxygenBottle")?bStk["OxygenBottle"]:0;
-int h2Queued => bQd.ContainsKey("HydrogenBottle")?bQd["HydrogenBottle"]:0;
-int o2Queued => bQd.ContainsKey("OxygenBottle")?bQd["OxygenBottle"]:0;
-int h2Target => bNd.ContainsKey("HydrogenBottle")?bNd["HydrogenBottle"]:20;
-int o2Target => bNd.ContainsKey("OxygenBottle")?bNd["OxygenBottle"]:20;
-```
-This way ALL existing code that uses these variables keeps working!
-
-**Option B: Find/Replace All Usages**
-Replace every usage of old variables with dictionary lookups.
-More work, higher risk of breaking something.
-
-**Recommendation: Option A** - Create getter properties for backward compatibility.
-
-### Arrays Still Needed for Display
-
-These arrays are used for CustomData output formatting and should be KEPT:
-- `tlsNames[]` - Display names for tool categories ("Drills", "Welders", etc.)
-- `pAN[]` (pAmmoNames) - Display names for ammo types ("Rifle20", "Rifle5", etc.)
-
-But the 2D arrays `tIT[][]` and `tBP[][]` can be replaced with flat dictionaries.
+| Priority | Line | Bug |
+|----------|------|-----|
+| P1 | 213 | Cargo color INVERTED |
+| P1 | 163-171 | Cargo tracking unreliable >70% |
+| P2 | 169 | Return time calc edge case |
+| P2 | 170/144 | Uranium counted differently |
+| P2 | 168 | Outbound time averaging glitch |
 
 ---
 
-## FILES TO MODIFY
+## IMPLEMENTATION ORDER
 
-| File | Change |
-|------|--------|
-| UnityInventory.cs | Major refactor of production system |
-| UnityInventory.cs | Update WriteBtnData() to use new dictionaries |
-| UnityInventory.cs | Add getter properties for backward compat |
-| UnityPad.cs | Check for any dead production code |
+1. **Fix LCD1 boot screen** (Unity Boot.cs lines 191, 306)
+2. **Fix printer piston check** (UnityPad.cs line 753)
+3. **Fix printer merge check** (UnityPad.cs line 1077)
+4. Build and test
+5. If time permits, fix other P1 bugs
 
 ---
 
-## CHARACTER BUDGET
+## BUILD COMMANDS
 
-| Before | After (Est) | Change |
-|--------|-------------|--------|
-| ~78,000 | ~76,000 | -2,000 (removing redundant code) |
-
-The unified system should actually be SMALLER because:
-- Removes duplicate counting logic
-- Removes CraftTools() function
-- Uses generic QueueMissing() instead of separate logic
-- Removes 2D arrays in favor of dictionaries
+```powershell
+cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
+dotnet build "Unity Boot" -c Debug
+dotnet build UnityPad -c Debug
+```
 
 ---
 
 ## VERIFICATION
 
-1. Build and deploy
-2. Set quotas in CustomData:
-   ```
-   drill_target=5
-   welder_target=5
-   rifle_ammo_target=100
-   h2_bottle_target=20
-   ```
-3. Clear all tools/ammo/bottles from cargo
-4. Wait for tick
-5. Verify ALL items get queued in assemblers
-6. Verify LCD shows missing items correctly
+After fixes:
+1. Recompile Unity Boot in-game FIRST
+2. Recompile UnityPad in-game SECOND
+3. Verify LCD1 shows boot screen
+4. Verify printer starts when commanded
+5. Verify correct info on print LCD
 
 ---
 
-*Unity AI Lab - Production System Refactor Plan*
-*Generated: 2026-01-18*
+*Unity AI Lab - Missile Systems Division*
+*Bug Audit Plan - 2026-01-19*

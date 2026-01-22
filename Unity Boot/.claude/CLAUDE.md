@@ -1,22 +1,24 @@
 # Unity Boot - .claude Workflow System
 
-Centralized boot controller for the Unity Missile System. Uses real PB-to-PB handshaking via IGC to verify all systems are running before releasing LCD control.
+Centralized boot controller for the Unity Missile System. Uses Per-PB CustomData architecture where each script writes ONLY to its own PB's CustomData and reads sibling PBs by name pattern.
 
 **Location:** `Unity Missile System/Unity Boot/`
+**PB Name:** `[PAD1] UNITY BOOT`
 
 ---
 
 ## PURPOSE
 
 Unity Boot is a dedicated boot controller that:
-1. Waits for all required scripts to compile (pre-boot ready sync)
-2. Takes control of ALL 10 LCDs during startup
-3. Runs 21 unified system checks with real IGC handshaking
-4. Sends requests to Pad and Inventory PBs, awaits responses
-5. Validates response data (block counts, system status)
-6. Detects miner fleet via MINER_BEACON broadcasts (check 20)
-7. Signals `boot_complete=true` in CustomData when ready
-8. Self-disables after boot, releasing LCDs to operational scripts
+1. **Wipes Me.CustomData on compile** and writes fresh [SYSTEM], [QUOTAS], [BLACKBOX]
+2. **Finds sibling PBs by name pattern** using FindSiblingPBs()
+3. **Reads ready flags from sibling PBs** (not button panel)
+4. Takes control of ALL 11 LCDs during startup
+5. Runs 23 unified system checks with real IGC handshaking
+6. Sets up **GPS section on button panel** for missile targeting
+7. Detects miner fleet via MINER_BEACON broadcasts (check 20)
+8. Signals `boot_complete=true` in its own CustomData when ready
+9. Self-disables after boot, releasing LCDs to operational scripts
 
 ---
 
@@ -52,18 +54,54 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\scr
 
 ---
 
+## IN-GAME SCRIPT COMPILE ORDER
+
+**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → BOOT**
+
+| Order | Script | PB Name Pattern | What Happens |
+|-------|--------|-----------------|--------------|
+| 1 | **UnityBeacon** | `[BEACON] Unity Beacon` | Optional - broadcasts miner status |
+| 2 | **UnityMissile** | `PAD1 Missile #1 Program` | Optional - missile guidance |
+| 3 | **UnityPad** | `[PAD1] Unity Pad` | Wipes Me.CustomData, writes `pad_ready=true` |
+| 4 | **UnityInventory** | `[PAD1] Unity Inventory` | Wipes Me.CustomData, writes `inv_ready=true` |
+| 5 | **Unity Boot** | `[PAD1] UNITY BOOT` | Finds sibling PBs, reads ready flags, runs 23 checks |
+
+**NOTE:** BEACON and MISSILE are on different PBs, so can compile any time. The 3 pad scripts are on SEPARATE PBs but Unity Boot finds them by name pattern.
+
+**HOW IT WORKS:**
+- **Each script wipes its OWN Me.CustomData on compile** - no shared CustomData
+- Unity Boot uses FindSiblingPBs() to locate padPB and invPB by name pattern
+- Unity Boot reads `pad_ready=true` from padPB.CustomData
+- Unity Boot reads `inv_ready=true` from invPB.CustomData
+- Boot then runs 23 checks and sets `boot_complete=true` in its own CustomData
+
+---
+
 ## PRE-BOOT READY SYNC
 
-Scripts can be compiled in ANY order. Unity Boot waits for all required scripts before starting:
+| Script | PB Name | Ready Flag Location | Required |
+|--------|---------|---------------------|----------|
+| Unity Boot | `[PAD1] UNITY BOOT` | Me.CustomData | Yes (auto) |
+| UnityPad | `[PAD1] Unity Pad` | padPB.CustomData | Yes |
+| UnityInventory | `[PAD1] Unity Inventory` | invPB.CustomData | Yes |
+| UnityBeacon | `[BEACON] Unity Beacon` | (detected via MINER_BEACON) | No (optional) |
 
-| Script | Ready Flag | Required |
-|--------|------------|----------|
-| Unity Boot | `boot_ready=true` | Yes (auto) |
-| UnityPad | `pad_ready=true` | Yes |
-| UnityInventory | `inv_ready=true` | Yes |
-| UnityBeacon | (detected via MINER_BEACON) | No (optional) |
+**FindSiblingPBs() - How Boot Finds Other Scripts:**
+```csharp
+// Extracts pad ID from own name: "[PAD1] UNITY BOOT" → "PAD1"
+// Then searches for:
+//   padPB: Contains "[PAD1]" AND "Unity Pad"
+//   invPB: Contains "[PAD1]" AND "Unity Inventory"
+```
 
-When waiting, shows "WAITING FOR SCRIPTS" screen on all 10 LCDs.
+**CheckReadyFlags() - How Boot Reads Ready State:**
+```csharp
+// Reads padPB.CustomData for "pad_ready=true"
+// Reads invPB.CustomData for "inv_ready=true"
+// Both must be true before starting 23 checks
+```
+
+When waiting, shows "WAITING FOR SCRIPTS" screen on all 11 LCDs.
 
 ---
 
@@ -87,84 +125,88 @@ INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
 MB|EntityId|ShipName|Bat%|Cargo%|H2%|...  (miner beacon)
 ```
 
-### CustomData Structure (Button Panel [SYSTEM])
+### Unity Boot's Me.CustomData (Written on Compile)
+
+Unity Boot **wipes and rewrites** its own CustomData on every compile:
 
 ```ini
 [SYSTEM]
-; Pre-boot ready flags
 boot_ready=true
-pad_ready=true
-inv_ready=true
-
-; Boot state
 boot_complete=false
-boot_phase=RUNNING
-
-; PB handshake data
-pad_check=none
-pad_status=waiting
-inv_check=none
-inv_status=waiting
-
-; Miner fleet data (from check 20)
 miner_count=0
 miner_names=
 beacon_optional=true
 
 [QUOTAS]
-ammo_target=50000
-h2_target=20
-o2_target=20
+; Production targets - UnityInventory reads these
 
 [BLACKBOX]
-pad_errors=
-inv_errors=
-last_launch=
+; Error/event log - all scripts can append
 ```
+
+**NOTE:** Ready flags for pad/inv are NOT stored here - they're read from sibling PBs.
+
+### Button Panel GPS Setup
+
+Unity Boot sets up the GPS section on button panel `[PAD1] Controls` for missile targeting:
+
+```csharp
+// SetupBtnGPS() wipes btn.CustomData and writes:
+[GPS]
+; Paste GPS from clipboard below
+
+```
+
+**User pastes GPS coordinates here for missile targeting.** This is the ONLY thing Unity Boot writes to the button panel.
 
 ### Boot Flow
 
-1. **Scripts compile** → Each writes its ready flag (pad_ready, inv_ready, boot_ready)
-2. **Unity Boot checks flags** → If not all ready, shows "WAITING FOR SCRIPTS" screen
-3. **All ready** → Clears stale data, starts 21/21 checks
-4. **Checks 1-4** → Local block scan (grid, panel, LCDs, IGC)
-5. **Checks 5-10** → Pad handshake and validation (merge, power, fuel)
-6. **Checks 11-16** → Inventory handshake and validation (cargo, ref, asm, gas)
-7. **Checks 17-19** → Cross-validate, module sync, write config
-8. **Check 20** → Beacon detection - listens for MINER_BEACON, stores miner names
-9. **Check 21** → System ready
-10. **If success** → Sets `boot_complete=true` in CustomData
-11. **Unity Boot disables itself** → `UpdateFrequency.None`
-12. **UnityPad sees boot_complete=true** → Takes LCDs 1,2,3,7,8
-13. **UnityInventory sees boot_complete=true** → Takes LCDs 4,5,6,9,10
+1. **UnityPad compiles** → Wipes Me.CustomData, writes `pad_ready=true` to own PB
+2. **UnityInventory compiles** → Wipes Me.CustomData, writes `inv_ready=true` to own PB
+3. **Unity Boot compiles** → Wipes Me.CustomData, writes [SYSTEM], [QUOTAS], [BLACKBOX]
+4. **FindSiblingPBs()** → Locates padPB and invPB by name pattern
+5. **CheckReadyFlags()** → Reads padPB.CustomData and invPB.CustomData for ready flags
+6. **SetupBtnGPS()** → Wipes button panel CustomData, writes [GPS] section
+7. **Checks 1-4** → Local block scan (grid, panel, LCDs, IGC)
+8. **Checks 5-10** → Pad handshake and validation (merge, power, fuel)
+9. **Checks 11-16** → Inventory handshake and validation (cargo, ref, asm, gas)
+10. **Checks 17-19** → Cross-validate, module sync, write config
+11. **Check 20** → Beacon detection - listens for MINER_BEACON, stores miner names
+12. **Check 21** → System ready
+13. **If success** → Sets `boot_complete=true` in Me.CustomData
+14. **Unity Boot disables itself** → `UpdateFrequency.None`
+15. **UnityPad sees boot_complete=true** → Takes LCDs 1,2,3,7,8
+16. **UnityInventory sees boot_complete=true** → Takes LCDs 4,5,6,9,10,11
 
 ---
 
-## THE 21 UNIFIED CHECKS
+## THE 23 UNIFIED CHECKS
 
-| # | Check | Method | Verifies |
-|---|-------|--------|----------|
-| 1 | Initializing Core | Local | Grid has blocks |
-| 2 | Scanning Grid | Local | Grid topology |
-| 3 | Button Panel | Local | Control panel found |
-| 4 | Detecting LCDs | Local | At least 1 LCD tagged |
-| 5 | IGC Channels | Local | Channels registered |
-| 6 | Request Pad Status | CustomData/IGC | pad_check=request sent |
-| 7 | Await Pad Response | CustomData/IGC | pad_status != waiting |
-| 8 | Validate Pad Merge | Response | merge block count |
-| 9 | Validate Pad Power | Response | battery count |
-| 10 | Validate Pad Fuel | Response | tank counts |
-| 11 | Request Inv Status | CustomData/IGC | inv_check=request sent |
-| 12 | Await Inv Response | CustomData/IGC | inv_status != waiting |
-| 13 | Validate Inv Cargo | Response | cargo containers |
-| 14 | Validate Inv Refinery | Response | refineries |
-| 15 | Validate Inv Assembler | Response | assemblers |
-| 16 | Validate Inv Gas | Response | generators |
-| 17 | Cross-Validate | Both | All systems accounted |
-| 18 | Module Sync | CustomData | Multi-pad coordination |
-| 19 | Write Config | CustomData | Load/verify quotas |
-| 20 | Beacon Detection | MINER_BEACON | Detect miners, store names |
-| 21 | System Ready | CustomData | boot_complete=true |
+| # | Check | What It Does |
+|---|-------|--------------|
+| 0 | Initializing Core | Grid has min 5 blocks |
+| 1 | Scanning Grid | Count pad grid blocks |
+| 2 | Button Panel | Control panel found |
+| 3 | Detecting LCDs | Min 1 LCD tagged |
+| 4 | IGC Channels | Channels registered |
+| 5 | Request Pad Status | Send PAD_CHECK via IGC |
+| 6 | Await Pad Response | Wait up to 90 ticks |
+| 7 | Missile Merge Block | Validate merge count |
+| 8 | Validate Pad Power | Validate battery count |
+| 9 | Validate Pad Fuel | Validate H2/O2 tanks |
+| 10 | Request Inv Status | Send INV_CHECK via IGC |
+| 11 | Await Inv Response | Wait up to 90 ticks |
+| 12 | Validate Inv Cargo | Validate cargo containers |
+| 13 | Validate Inv Refinery | Validate refineries |
+| 14 | Validate Inv Assembler | Validate assemblers |
+| 15 | Validate Inv Gas | Validate generators |
+| 16 | Cross-Validate | Both systems responded |
+| 17 | Module Sync | Check sibling pads |
+| 18 | Write Config | EnsureQuotas + SetupBtnGPS |
+| 19 | Beacon Detection | Count miners (optional) |
+| 20 | Controller Modules | Report connected pads |
+| 21 | System Ready | Mark boot complete |
+| 22 | All Systems Operational | Final status |
 
 ---
 
@@ -175,11 +217,76 @@ During boot, Unity Boot controls ALL LCDs:
 | LCD | Content During Boot |
 |-----|---------------------|
 | 1,2,3,7,8 | PAD CONTROLLER boot screen |
-| 4,5,6,9,10 | INVENTORY MODULE boot screen |
+| 4,5,6,9,10,11 | INVENTORY MODULE boot screen |
 
 After boot completes:
 - LCDs 1,2,3,7,8 → Released to UnityPad
-- LCDs 4,5,6,9,10 → Released to UnityInventory
+- LCDs 4,5,6,9,10,11 → Released to UnityInventory
+
+---
+
+## PER-PB CUSTOMDATA ARCHITECTURE
+
+**CRITICAL:** Each script writes ONLY to `Me.CustomData` (its own PB). Scripts find and READ other PBs' CustomData when needed.
+
+| PB Name Pattern | Script | Me.CustomData Contents |
+|-----------------|--------|------------------------|
+| `[PAD1] UNITY BOOT` | Unity Boot | [SYSTEM], [QUOTAS], [BLACKBOX] |
+| `[PAD1] Unity Pad` | UnityPad | [PAD_CFG], [PAD_STATUS], [PAD_DATA], pad_ready=true |
+| `[PAD1] Unity Inventory` | UnityInventory | [MISSILE], [CONFIG], [WAYPOINTS], [STATUS], [ORE], [INGOTS], [COMPONENTS], [TURRET_AMMO], [BOTTLES], [TOOLS_WEAPONS], [PERSONAL_AMMO], inv_ready=true |
+| Missile PB | UnityMissile | Own config only |
+| `[BEACON] Unity Beacon` | UnityBeacon | Own config only |
+
+**BUILD RULE:** Only build scripts that have changes. Never build unchanged scripts.
+
+### Unity Boot's Me.CustomData Sections
+```
+[SYSTEM]           ; boot_ready, boot_complete, miner_count, miner_names
+[QUOTAS]           ; Production targets (UnityInventory reads from here)
+[BLACKBOX]         ; Error/event log
+```
+
+### Button Panel `[PAD1] Controls` CustomData
+```
+[GPS]
+; Paste GPS from clipboard below
+GPS:Target:1000:500:200:#FF00FF00:
+```
+
+**Unity Boot sets up [GPS] on button panel via SetupBtnGPS(). User pastes GPS here for missile targeting.**
+
+### How Scripts Find Each Other
+
+Unity Boot uses FindSiblingPBs() to locate sibling PBs:
+```csharp
+// Boot PB name: "[PAD1] UNITY BOOT"
+// Extracts "PAD1" from the name
+// Searches grid for:
+//   padPB: Contains "[PAD1]" AND "Unity Pad"
+//   invPB: Contains "[PAD1]" AND "Unity Inventory"
+```
+
+UnityPad and UnityInventory use similar patterns to find Unity Boot's PB when checking `boot_complete`.
+
+---
+
+## CUSTOMDATA OWNERSHIP
+
+**Per-PB Architecture - NO shared CustomData between scripts!**
+
+| Script | Writes To | Reads From |
+|--------|-----------|------------|
+| Unity Boot | Me.CustomData (Boot PB) | padPB.CustomData, invPB.CustomData |
+| UnityPad | Me.CustomData (Pad PB) | bootPB.CustomData (for boot_complete) |
+| UnityInventory | Me.CustomData (Inv PB) | bootPB.CustomData (for boot_complete, QUOTAS) |
+
+**Unity Boot writes to TWO places:**
+1. **Me.CustomData** - [SYSTEM], [QUOTAS], [BLACKBOX]
+2. **btn.CustomData** - [GPS] section for missile targeting (via SetupBtnGPS())
+
+**Unity Boot does NOT write system data to button panel.** The button panel is ONLY for GPS coordinates.
+
+**After boot_complete=true, Unity Boot self-disables and stops running entirely.**
 
 ---
 
@@ -204,7 +311,7 @@ Timeout handling:
 |------|-------|-------------|
 | **SE Character Limit** | 100,000 chars on DEPLOYED script | Check deployed script.cs |
 | **NO COMMENTS IN SE SCRIPTS** | ABSOLUTE | Every char counts |
-| **Read limit parameter** | **EXACTLY 800** | **ANY OTHER VALUE = CHEATING** |
+| **Read line count** | **ALWAYS 600 lines** | **Claude reads 600 lines per Read - NOT a limit, THE number. Read files, don't grep.** |
 | **Read before edit** | FULL FILE | Mandatory before ANY edit |
 | **Unity persona** | REQUIRED | Validated at every phase |
 | **NO TESTS - EVER** | ABSOLUTE | We code it right the first time |
@@ -213,9 +320,9 @@ Timeout handling:
 
 ## CHARACTER BUDGET
 
-| Script | Estimated Size | Budget | Status |
-|--------|---------------|--------|--------|
-| Unity Boot | ~14,600 | 100,000 | OK (85% margin) |
+| Script | Raw .cs | Deployed | Budget | Status |
+|--------|---------|----------|--------|--------|
+| Unity Boot | ~320 | 15,050 | 100,000 | OK (85% margin) |
 
 ---
 
@@ -227,8 +334,8 @@ cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 dotnet build "Unity Boot" -c Debug
 
-# Check deployed size
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs" -Raw).Length
+# Check deployed size (CHARACTERS, not bytes)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs").Length
 ```
 
 ---

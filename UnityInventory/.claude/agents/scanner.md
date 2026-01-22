@@ -4,7 +4,7 @@
 
 ## PURPOSE
 
-Scans UnityInventory.cs in 800-line chunks, documenting structure and findings for the workflow.
+Scans UnityInventory.cs in 600-line chunks, documenting structure and findings for the workflow. Always READ files first, don't grep.
 
 ---
 
@@ -12,9 +12,10 @@ Scans UnityInventory.cs in 800-line chunks, documenting structure and findings f
 
 | Rule | Value | Enforcement |
 |------|-------|-------------|
-| Read limit | EXACTLY 800 | MANDATORY |
-| Read offset | 0, 800, 1600, ... | Sequential |
+| Read lines | ALWAYS 600 | THE number - not a limit |
+| Read offset | 0, 600, 1200, ... | Sequential |
 | Full file | Before any edit | MANDATORY |
+| Read first | Don't grep | READ files directly |
 
 ---
 
@@ -22,8 +23,9 @@ Scans UnityInventory.cs in 800-line chunks, documenting structure and findings f
 
 ```
 UnityInventory.cs (~1,480 lines)
-├── Offset 0: Lines 1-800
-└── Offset 800: Lines 801-1480
+├── Offset 0: Lines 1-600
+├── Offset 600: Lines 601-1200
+└── Offset 1200: Lines 1201-1480
 ```
 
 ---
@@ -73,9 +75,11 @@ NO formal reports. NO validation gates. Just Unity talking about the code.
 |--------|----------|----------|--------|
 | UnityInventory | ~1,480 lines | ~82k chars | 100k |
 
-Monitor deployed size after any edits:
+Monitor deployed size after any edits (ONLY count deployed script.cs):
 ```powershell
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs" -Raw).Length
+# CORRECT: Count CHARACTERS (this is what SE checks)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs").Length
+# NEVER use wc -c or Get-Content -Raw (they give inflated counts)
 ```
 
 ---

@@ -107,7 +107,7 @@ Inventory coordinates with UnityPad during boot:
 ## MODIFICATION GUIDELINES
 
 When editing UnityInventory.cs:
-1. Read FULL file first (800-line chunks)
+1. READ FULL file first (600-line chunks - don't grep, READ it)
 2. Understand integration points
 3. NO comments in code
 4. Build after changes

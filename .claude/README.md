@@ -10,16 +10,16 @@
 
 | Script | Purpose | Deployed Size |
 |--------|---------|---------------|
-| **Unity Boot** | Boot controller, 40 system checks, LCD init | 12,697 chars |
-| **UnityPad** | Launch pad controller, menus, targeting | 89,239 chars |
+| **Unity Boot** | Boot controller, 23 system checks, LCD init | ~15,000 chars |
+| **UnityPad** | Launch pad controller, menus, targeting | ~98,000 chars |
 | **UnityMissile** | In-flight guidance, targeting, detonation | ~26,000 chars |
-| **UnityInventory** | Inventory management, production, sorting | 78,680 chars |
-| **UnityBeacon** | Fleet status broadcasting | ~10,800 chars |
+| **UnityInventory** | Inventory management, production, sorting | ~97,000 chars |
+| **UnityBeacon** | Fleet status broadcasting | ~15,000 chars |
 
 ## Features
 
-- 10 LCD sprite-based display system
-- Centralized boot with 40 system checks
+- 11 LCD sprite-based display system
+- Centralized boot with 23 system checks
 - Multi-pad controller mode
 - Salvo and carpet bombing
 - ICBM ballistic flight profiles
@@ -31,19 +31,19 @@
 ## Boot Sequence
 
 ```
-Unity Boot → 40 checks → boot_complete=true → Self-disables
+Unity Boot → 23 checks → boot_complete=true → Self-disables
                               ↓
 UnityPad takes LCDs 1,2,3,7,8
-UnityInventory takes LCDs 4,5,6,9,10
+UnityInventory takes LCDs 4,5,6,9,10,11
 ```
 
 ## PB Naming Convention
 
 | Script | PB Name |
 |--------|---------|
-| Unity Boot | `[PAD1-BOOT] UNITY BOOT` |
+| Unity Boot | `[PAD1] UNITY BOOT` |
 | UnityPad | `[PAD1] Unity Pad` |
-| UnityMissile | `PAD1 Missile #1 Unity Missile` |
+| UnityMissile | `PAD1 Missile #1 Program` |
 | UnityInventory | `[PAD1] Unity Inventory` |
 | UnityBeacon | `[BEACON] Unity Beacon` |
 

@@ -108,14 +108,14 @@ File exists: YES/NO
 If YES:
   - Full file read completed: YES/NO
   - Lines read: [NUMBER]
-  - Read method: SINGLE (≤800) / CHUNKED (>800)
+  - Read method: SINGLE (≤600) / CHUNKED (>600)
 Result: PASS/FAIL
 ```
 
 ### Pass Conditions
 - New file (doesn't exist) → Auto-pass
 - Existing file fully read → Pass
-- File >800 lines read in complete chunks → Pass
+- File >600 lines read in complete chunks → Pass
 
 ### Fail Conditions
 - Existing file not read → FAIL
@@ -144,11 +144,12 @@ Under limit: YES/NO
 Result: PASS/FAIL
 ```
 
-### Check Command
+### Check Command (DEPLOYED script.cs ONLY)
 
 ```powershell
-(Get-Content 'UNITY LAUNCHER.cs' -Raw).Length
-(Get-Content 'MISSILE GUIDANCE.cs' -Raw).Length
+# CORRECT: Count CHARACTERS (this is what SE checks)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\script.cs").Length
+# NEVER use wc -c or Get-Content -Raw (they give inflated counts)
 ```
 
 ### On Fail
@@ -160,24 +161,25 @@ Result: PASS/FAIL
 
 ---
 
-## 800-LINE READ INDEX HOOK
+## 600-LINE READ HOOK
 
 ### Purpose
-Enforces the 800-line READ standard for all file operations.
+Enforces the 600-line READ standard for all file operations. Read files first, don't grep.
 
-### The 800-Line Read Rule
-- Read chunk size: EXACTLY 800 lines
+### The 600-Line Read Rule
+- Read line count: ALWAYS 600 lines - this is THE number, not a limit
 - Continue reading until FULL file is consumed
 - MUST read full file before ANY edit
+- Claude should READ files, not grep for content
 
 ### Validation Criteria
 
 ```
-[READ-INDEX HOOK - ATTEMPT 1]
+[READ HOOK - ATTEMPT 1]
 File: [PATH]
 Total lines in file: [NUMBER]
-Read chunk size: 800 lines
-Chunks needed: [CEIL(TOTAL/800)]
+Read line count: 600 (always)
+Chunks needed: [CEIL(TOTAL/600)]
 Full file read: YES/NO
 Result: PASS/FAIL
 ```
@@ -223,7 +225,7 @@ Gate Status: PASS/FAIL
    └── Mark task as "in_progress"
 
 2. WORK EXECUTION
-   ├── Read full file (800-line chunks)
+   ├── Read full file (600-line chunks) - read first, don't grep
    ├── Execute changes
    └── Verify char count < 100,000
 
@@ -310,7 +312,7 @@ Every script edit goes through:
 
 ### INSTEAD
 
-- Read the code fully before editing (800-line chunks)
+- Read the code fully before editing (600-line chunks) - read files, don't grep
 - Understand the system before changing it
 - Verify in Space Engineers manually (Check Code button)
 - Use Echo() for debugging in SE

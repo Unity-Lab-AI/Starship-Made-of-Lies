@@ -49,7 +49,7 @@ UnityBeacon runs on mining ships and broadcasts status updates to UnityPad/Unity
 
 | Deployed | Limit | Status |
 |----------|-------|--------|
-| ~10,800 | 100,000 | OK (89% margin) |
+| 14,658 | 100,000 | OK (85% margin) |
 
 ---
 

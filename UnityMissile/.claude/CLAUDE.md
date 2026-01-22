@@ -3,7 +3,7 @@
 Guided missile flight controller for the Unity Missile System. Handles all flight phases from launch to detonation.
 
 **Location:** `Unity Missile System/UnityMissile/` (part of Unity Missile System)
-**Version:** v01.00 | 2026-01-17
+**Version:** v01.00 | 2026-01-22
 
 ---
 
@@ -47,7 +47,7 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityMissile\s
 |------|-------|-------------|
 | **SE Character Limit** | 100,000 chars on DEPLOYED script | Check deployed script.cs, NOT raw .cs |
 | **NO COMMENTS IN SE SCRIPTS** | ABSOLUTE | Every char counts |
-| **Read limit parameter** | **EXACTLY 800** | **ANY OTHER VALUE = CHEATING** |
+| **Read line count** | **ALWAYS 600 lines** | **Claude reads 600 lines per Read - NOT a limit, THE number. Read files, don't grep.** |
 | **Read before edit** | FULL FILE | Mandatory before ANY edit |
 | **Unity persona** | REQUIRED | Validated at every phase |
 | **NO TESTS - EVER** | ABSOLUTE | We code it right the first time |
@@ -119,6 +119,24 @@ FlightMode=2
 
 ---
 
+## PER-PB CUSTOMDATA ARCHITECTURE
+
+**CRITICAL:** Each script writes ONLY to `Me.CustomData` (its own PB). Scripts find and READ other PBs' CustomData when needed.
+
+| PB Name Pattern | Script | Sections Owned |
+|-----------------|--------|----------------|
+| `[PAD{id}] UNITY BOOT` | Unity Boot | [SYSTEM] |
+| `[PAD{id}] Unity Pad` | UnityPad | [BLACKBOX], [PAD_CFG], [PAD_STATUS], [PAD_DATA] |
+| `[PAD{id}] Unity Inventory` | UnityInventory | [QUOTAS], [MISSILE], [CONFIG], inventory sections |
+| Missile PB | UnityMissile | Own config only (reads launch config from pad) |
+| `[BEACON]` | UnityBeacon | Own config only |
+
+**BUILD RULE:** Only build scripts that have changes. Never build unchanged scripts.
+
+**NOTE:** UnityMissile communicates via IGC only - reads launch config from its own PB CustomData.
+
+---
+
 ## IGC COMMUNICATION
 
 | Channel | Direction | Purpose |
@@ -152,7 +170,7 @@ Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityMissile | ~44,000 | 26,058 | 100,000 | OK (74% margin) |
+| UnityMissile | ~900 | 24,321 | 100,000 | OK (76% margin) |
 
 ---
 
@@ -164,8 +182,8 @@ cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 dotnet build UnityMissile -c Debug
 
-# Check deployed size
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs" -Raw).Length
+# Check deployed size (CHARACTERS, not bytes)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs").Length
 ```
 
 ---

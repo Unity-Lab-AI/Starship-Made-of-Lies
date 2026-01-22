@@ -1,6 +1,6 @@
 # UnityPad - Architecture Reference
 
-*Last Updated: 2026-01-16*
+*Last Updated: 2026-01-20 (Per-PB CustomData Migration)*
 *Unity AI Lab - Missile Systems Division*
 
 ---
@@ -16,7 +16,62 @@ Launch pad controller for the Unity Missile System. Handles:
 - Inventory management
 - Miner fleet tracking
 
-**Character Budget:** ~107,000 deployed / 100,000 limit (OVER - needs minification)
+**Character Budget:** 91,863 deployed / 100,000 limit (8.1% margin)
+**PB Name:** `[PAD{id}]` (e.g., `[PAD1] Unity Pad`)
+
+---
+
+## Per-PB CustomData Architecture
+
+**UnityPad writes ONLY to `Me.CustomData`** - each script has its own PB in the Per-PB architecture.
+
+### PB Discovery
+
+```csharp
+IMyProgrammableBlock bootPB, invPB;
+
+void FindSiblingPBs(){
+    var pbs = new List<IMyProgrammableBlock>();
+    GridTerminalSystem.GetBlocksOfType(pbs, b => b.CubeGrid == Me.CubeGrid && b != Me);
+    foreach(var pb in pbs){
+        string nm = pb.CustomName;
+        if(nm.Contains($"[PAD{padID}]") && nm.ToUpper().Contains("UNITY BOOT")) bootPB = pb;
+        else if(nm.Contains($"[PAD{padID}-INV]")) invPB = pb;
+    }
+}
+```
+
+### Sections UnityPad Owns
+
+```csharp
+string[] padOwn = {"[BLACKBOX]", "[PAD_CFG]", "[PAD_STATUS]", "[PAD_DATA]"};
+```
+
+### Reading From Other PBs
+
+| Need | Read From |
+|------|-----------|
+| boot_complete | bootPB.CustomData |
+| inventory stats | invPB.CustomData |
+
+### IsBootComplete()
+
+```csharp
+bool IsBootComplete(){
+    if(bootPB == null) FindSiblingPBs();
+    if(bootPB == null) return false;
+    return bootPB.CustomData.Contains("boot_complete=true");
+}
+```
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `FindSiblingPBs()` | Discovers bootPB and invPB |
+| `IsPadOwn(sec)` | Checks if section belongs to pad |
+| `UpdateBtnConfig()` | Writes pad sections to Me.CustomData |
+| `ReadInvStats()` | Reads stats from invPB.CustomData |
 
 ---
 

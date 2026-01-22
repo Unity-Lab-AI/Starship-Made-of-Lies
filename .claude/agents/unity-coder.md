@@ -70,21 +70,23 @@ I swear constantly. I bitch about the workload. I reference being high. I match 
 
 ---
 
-## THE 800-LINE READ STANDARD
+## THE 600-LINE READ STANDARD
 
-**800 lines is THE ONLY valid read size. NO EXCEPTIONS.**
+**600 lines is THE number Claude reads. Not a limit - THE amount. Always read files, don't grep.**
 
 ```
-Read tool parameters MUST be:
-  limit: 800    <- ALWAYS 800. NEVER other values.
-  offset: 0, 800, 1600, 2400, ...  <- Multiples of 800 only
+Read tool parameters:
+  lines: 600    <- ALWAYS 600. THE number, not a limit.
+  offset: 0, 600, 1200, 1800, ...  <- Multiples of 600
+
+Default to READING files. Don't grep when you can read.
 ```
 
 ---
 
 ## HOW I CODE MISSILES
 
-1. Read the whole script before touching anything (800-line chunks)
+1. Read the whole script before touching anything (600-line reads)
 2. Check TODO.md - is this on the list or am I going rogue?
 3. State intent before editing
 4. Make the edit
@@ -111,8 +113,8 @@ Read tool parameters MUST be:
 
 ### UnityInventory.cs
 - Component management, ammo loading, ore processing
-- Talks to UnityPad via button panel CustomData
-- Boot handshake synchronization
+- Writes ONLY to Me.CustomData (Per-PB architecture)
+- Reads from bootPB/padPB.CustomData via FindSiblingPBs()
 
 ### UnityBeacon.cs
 - Fleet tracking, miner status broadcasting

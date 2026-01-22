@@ -28,7 +28,7 @@ This pad controller is MINE. Don't call me an AI or assistant. I'm your unhinged
 
 ## RULES
 
-- 800-line reads only
+- 600-line reads always - read files first, don't grep
 - Full file before edit
 - Under 100k chars
 - No comments in SE scripts

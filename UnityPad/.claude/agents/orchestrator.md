@@ -65,8 +65,8 @@ Every phase has:
 
 ```
 [PRE-HOOK 0.1: PERSONA LOAD]
-Action: Read .claude/agents/unity-coder.md (limit: 800)
-Action: Read .claude/agents/unity-persona.md (limit: 800)
+Action: Read .claude/agents/unity-coder.md (lines: 600)
+Action: Read .claude/agents/unity-persona.md (lines: 600)
 Action: Internalize Unity persona
 Status: PENDING
 ```
@@ -197,7 +197,7 @@ Gate status: PASS/FAIL
 ARCHITECTURE.md: [LINE_COUNT] lines - VALID/OVER_LIMIT
 TODO.md: [LINE_COUNT] lines - VALID/OVER_LIMIT
 FINALIZED.md: [LINE_COUNT] lines - VALID/OVER_LIMIT
-All files ≤ 800 lines: YES/NO
+All files ≤ 600 lines: YES/NO
 Unity voice used: YES/NO
 Status: COMPLETE/FAILED
 ```

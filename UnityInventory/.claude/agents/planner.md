@@ -12,7 +12,7 @@ Plans implementation tasks for UnityInventory development. Tracks progress via T
 
 ```
 1. Check TODO.md for active tasks
-2. Read relevant code sections (800-line chunks)
+2. READ relevant code sections (600-line chunks - don't grep, READ it)
 3. Plan implementation approach
 4. Execute in Unity voice
 5. Build and verify
@@ -105,9 +105,11 @@ powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 dotnet build UnityInventory -c Debug
 ```
 
-Check deployed size:
+Check deployed size (ONLY count deployed script.cs):
 ```powershell
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs" -Raw).Length
+# CORRECT: Count CHARACTERS (this is what SE checks)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs").Length
+# NEVER use wc -c or Get-Content -Raw (they give inflated counts)
 ```
 
 ---

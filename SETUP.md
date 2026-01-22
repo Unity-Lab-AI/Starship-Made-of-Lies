@@ -78,37 +78,44 @@ PRINTER COMPONENTS:
 
 ## PART 2: PROGRAMMABLE BLOCK SETUP
 
-**IMPORTANT:** Three PBs are required on your launch pad grid:
-1. Unity Boot (runs first, controls boot sequence)
-2. UnityPad (launch control, waits for boot_complete)
-3. UnityInventory (inventory management, waits for boot_complete)
+**CRITICAL COMPILE ORDER:** BEACON → MISSILE → PAD → INVENTORY → BOOT
 
-### Step 2.1: Install Unity Boot Script (FIRST)
+**Optional scripts (different PBs - can compile any time):**
+- **UnityBeacon** - on miner PBs, broadcasts fleet status
+- **UnityMissile** - on missile PBs, handles flight guidance
+
+**Required scripts (same pad PB grid - MUST follow order):**
+1. **UnityPad FIRST** (wipes ALL CustomData, creates fresh [SYSTEM])
+2. **UnityInventory SECOND** (adds inv_ready=true)
+3. **Unity Boot LAST** (runs 23 checks, sets boot_complete=true)
+
+### Step 2.1: Install UnityPad Script (COMPILE FIRST!)
 
 1. Add Programmable Block near pad controls
-2. Load `Unity Boot` script from workshop/local
-3. **Name the PB:** `[PAD1-BOOT] UNITY BOOT`
-4. Click "Recompile"
-5. Boot runs 20 system checks with real PB-to-PB IGC handshaking
-6. Sends requests to Pad and Inventory PBs, validates their responses
-7. Sets `boot_complete=true` in [SYSTEM] CustomData when done
-7. Self-disables after boot (UpdateFrequency.None)
-
-### Step 2.2: Install UnityPad Script
-
-1. Add SECOND Programmable Block on same grid
 2. Load `UnityPad` script from workshop/local
 3. **Name the PB:** `[PAD1] Unity Pad`
 4. Click "Recompile"
-5. Script waits for boot_complete before taking LCDs 1,2,3,7,8
+5. ClearForBoot() **WIPES ALL CustomData**, writes fresh [SYSTEM], sets `pad_ready=true`
 
-### Step 2.3: Install UnityInventory Script
+### Step 2.2: Install UnityInventory Script (COMPILE SECOND)
 
-1. Add THIRD Programmable Block on same grid
+1. Add SECOND Programmable Block on same grid
 2. Load `UnityInventory` script from workshop/local
 3. **Name the PB:** `[PAD1] Unity Inventory`
 4. Click "Recompile"
-5. Script waits for boot_complete before taking LCDs 4,5,6,9,10
+5. Adds `inv_ready=true` to existing CustomData
+
+### Step 2.3: Install Unity Boot Script (COMPILE LAST)
+
+1. Add THIRD Programmable Block on same grid
+2. Load `Unity Boot` script from workshop/local
+3. **Name the PB:** `[PAD1] UNITY BOOT`
+4. Click "Recompile"
+5. Sees both ready flags, runs 23 checks with real PB-to-PB IGC handshaking
+6. Sends requests to Pad and Inventory PBs, validates their responses
+7. Sets `boot_complete=true` in [SYSTEM] CustomData when done
+8. Self-disables after boot (UpdateFrequency.None)
+9. UnityPad takes LCDs 1,2,3,7,8 - UnityInventory takes LCDs 4,5,6,9,10,11
 
 ### Step 2.4: Run SETUPMOD
 
@@ -200,7 +207,7 @@ MINIMUM MISSILE:
 
 1. Add Programmable Block to missile
 2. Load `UnityMissile` script
-3. **Name the PB:** `PAD1 Missile #1 Unity Missile`
+3. **Name the PB:** `PAD1 Missile #1 Program`
 4. Click "Recompile"
 
 ### Auto-Naming on Dock
@@ -283,7 +290,7 @@ During flight:
 ### Adding More Pads
 
 1. Build another complete pad module
-2. Add new PB: `[PAD2-BOOT] UNITY BOOT`
+2. Add new PB: `[PAD2] UNITY BOOT`
 3. Add new PB: `[PAD2] Unity Pad`
 4. Add new PB: `[PAD2] Unity Inventory`
 5. Run `SETUPMOD` on PAD2

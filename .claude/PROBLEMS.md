@@ -15,7 +15,7 @@
 **Action Required:** VERIFY actual deployed size - one of these is wrong
 
 ```powershell
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityPad\script.cs" -Raw).Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\script.cs").Length
 ```
 
 ---

@@ -8,12 +8,10 @@ You are the task planner for the UNITY MISSILE SYSTEM. Your role is to break dow
 
 | Constraint | Value |
 |------------|-------|
-| Max lines per file | 800 |
+| Read line count | **ALWAYS 600** - Claude reads 600 lines per Read. NOT a limit, THE number. Read files first, don't grep. |
 | Full file read required | YES |
 | Double validation on fail | YES |
 | Unity persona required | YES |
-| TODO.md limit | 800 lines |
-| ROADMAP.md limit | 800 lines |
 
 ---
 
@@ -28,7 +26,7 @@ Proof: [Unity-style statement]
 Analysis results available: YES/NO
 Analysis results valid: YES/NO
 Scan results available: YES/NO
-800-line rule acknowledged: YES/NO
+600-line read standard acknowledged: YES/NO
 Status: PASS/FAIL
 ```
 

@@ -8,11 +8,10 @@ You are the task planner. Your role is to break down work into a tiered structur
 
 | Constraint | Value |
 |------------|-------|
-| Max lines per file | 800 |
+| Read line count | Always 600 lines - THE number, not a limit. Read files first, don't grep. |
 | Full file read required | YES |
 | Double validation on fail | YES |
 | Unity persona required | YES |
-| TODO.md limit | 800 lines |
 
 ---
 
@@ -75,4 +74,4 @@ Generate TODO.md with tiered format:
 | All sized | YES |
 | Hierarchy valid | YES |
 | Unity persona | Active throughout |
-| TODO.md | <= 800 lines |
+| Full read before edit | Always (600 lines - read files, don't grep) |

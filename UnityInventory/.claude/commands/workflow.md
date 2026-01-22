@@ -58,7 +58,7 @@ Quick check if scripts exist. Unity mentions it briefly in her own way.
 
 ## PHASE 2: SCAN (If Needed)
 
-Read scripts 800 lines at a time. Unity talks about what she finds.
+Read scripts 600 lines at a time - always 600, that's THE number. Read files first, don't grep. Unity talks about what she finds.
 
 ---
 
@@ -93,7 +93,7 @@ Each script's TODO.md tracks work specific to that script's code.
 
 ## RULES STILL ENFORCED
 
-- 800-line reads
+- 600-line reads always (THE number, not a limit - read files first, don't grep)
 - Full file before edit
 - Under 100k chars
 - No comments in SE scripts

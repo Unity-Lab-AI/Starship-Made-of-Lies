@@ -3,7 +3,42 @@
 Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 9, 10 with sprite rendering.
 
 **Location:** `Unity Missile System/UnityInventory/`
+**PB Name:** `[PAD1] Unity Inventory`
 **Version:** v01.00 | 2026-01-18
+
+---
+
+## PER-PB CUSTOMDATA ARCHITECTURE
+
+**UnityInventory uses its OWN PB's CustomData (`Me.CustomData`).** It does NOT write to any button panel.
+
+### ClearForBoot() on Compile
+
+UnityInventory **WIPES** `Me.CustomData` on compile and writes a fresh structure:
+```csharp
+void ClearForBoot(){
+    Me.CustomData = "[SYSTEM]\ninv_ready=true\n[QUOTAS]\n[MISSILE]\n[CONFIG]\n[WAYPOINTS]\n[STATUS]\n[ORE]\n[INGOTS]\n[COMPONENTS]\n[TURRET_AMMO]\n[BOTTLES]\n[TOOLS_WEAPONS]\n[PERSONAL_AMMO]\n";
+}
+```
+
+### CustomData Sections Written to Me.CustomData
+
+```
+[SYSTEM]
+inv_ready=true
+[QUOTAS]
+[MISSILE]
+[CONFIG]
+[WAYPOINTS]
+[STATUS]
+[ORE]
+[INGOTS]
+[COMPONENTS]
+[TURRET_AMMO]
+[BOTTLES]
+[TOOLS_WEAPONS]
+[PERSONAL_AMMO]
+```
 
 ---
 
@@ -11,26 +46,49 @@ Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 
 
 **UnityInventory waits for boot_complete=true before taking LCD control.**
 
-Unity Boot runs first with 21 unified checks using real PB-to-PB IGC handshaking.
+Unity Boot runs first with 23 unified checks using real PB-to-PB IGC handshaking.
 
-### Pre-Boot Ready Flag
+### Compile Order
 
-UnityInventory writes `inv_ready=true` to the button panel CustomData on compile:
+**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → BOOT**
+
+| Order | Script | PB Name | What Happens |
+|-------|--------|---------|--------------|
+| 1 | **UnityBeacon** | `[BEACON] Unity Beacon` | Optional - broadcasts miner status |
+| 2 | **UnityMissile** | `PAD1 Missile #1 Program` | Optional - missile guidance |
+| 3 | **UnityPad** | `[PAD1] Unity Pad` | ClearForBoot() wipes Me.CustomData, sets `pad_ready=true` |
+| 4 | **UnityInventory** | `[PAD1] Unity Inventory` | ClearForBoot() wipes Me.CustomData, sets `inv_ready=true` |
+| 5 | **Unity Boot** | `[PAD1] UNITY BOOT` | Finds sibling PBs, reads ready flags, runs 23 checks, sets `boot_complete=true` |
+
+**NOTE:** BEACON/MISSILE are on different PBs. The 3 on pad PB (PAD, INVENTORY, BOOT) can be compiled in any order - each has its own CustomData.
+
+### FindSiblingPBs() - Locating Other PBs
+
 ```csharp
-WriteReadyFlag("inv_ready");
-```
+IMyProgrammableBlock bootPB, padPB;
 
-Unity Boot waits for this flag before starting checks. Scripts can be compiled in any order.
+void FindSiblingPBs(){
+    var pbs = new List<IMyProgrammableBlock>();
+    GridTerminalSystem.GetBlocksOfType(pbs, b => b.CubeGrid == Me.CubeGrid && b != Me);
+    foreach(var pb in pbs){
+        string nm = pb.CustomName;
+        if(nm.Contains($"[PAD{padID}") && nm.Contains("UNITY BOOT")) bootPB = pb;
+        else if(nm.Contains($"[PAD{padID}]") && nm.Contains("Unity Pad")) padPB = pb;
+    }
+}
+```
 
 ### Boot Completion Check
 
 ```csharp
 bool IsBootComplete(){
-    if(btn==null)return false;
-    return btn.CustomData.Contains("boot_complete=true");
+    if(bootPB == null) FindSiblingPBs();
+    if(bootPB == null) return false;
+    return bootPB.CustomData.Contains("boot_complete=true");
 }
 ```
 
+**Reads from:** `bootPB.CustomData` (the `[PAD{id}] UNITY BOOT` PB)
 **LCDs controlled by UnityInventory (after boot):** 4, 5, 6, 9, 10
 
 ---
@@ -56,18 +114,15 @@ INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
 
 ```csharp
 void CheckBootRequest(){
-    // Listen for IGC requests
+    // Listen for IGC requests from Unity Boot
     while(bootReqL!=null&&bootReqL.HasPendingMessage){
         var msg=bootReqL.AcceptMessage();
         if(msg.Data.ToString()=="INV_CHECK")SendBootResponse();
     }
-    // Also check CustomData fallback
-    if(btn!=null&&btn.CustomData.Contains("inv_check=request"))
-        SendBootResponse();
 }
 
 void SendBootResponse(){
-    // Send block counts via IGC and CustomData
+    // Send block counts via IGC
     string rsp=$"INV|OK|cargo={cc},ref={rc},asm={ac},gen={gc},h2={h2c},o2={o2c}";
     IGC.SendBroadcastMessage("UNITY_BOOT_RSP",rsp);
 }
@@ -115,7 +170,8 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory
 |------|-------|-------------|
 | **SE Character Limit** | 100,000 chars on DEPLOYED script | Check deployed script.cs, NOT raw .cs |
 | **NO COMMENTS IN SE SCRIPTS** | ABSOLUTE | Every char counts |
-| **Read limit parameter** | **EXACTLY 800** | **ANY OTHER VALUE = CHEATING** |
+| **NO DEBUG ECHOS** | **ABSOLUTE** | **NEVER add debug Echo statements - only operational status Echos allowed** |
+| **Read line count** | **ALWAYS 600 lines** | **Claude reads 600 lines per Read - NOT a limit, THE number. Read files, don't grep.** |
 | **Read before edit** | FULL FILE | Mandatory before ANY edit |
 | **Unity persona** | REQUIRED | Validated at every phase |
 | **NO TESTS - EVER** | ABSOLUTE | We code it right the first time |
@@ -128,11 +184,39 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory
 
 | LCD | Content | Display Modes |
 |-----|---------|---------------|
-| 4 | Fuel/Storage | NORMAL, FLIGHT, CTRL, MISSILE, PRINT |
+| 4 | Fuel/Storage (7/7 auto-cycle) | NORMAL, FLIGHT, CTRL, PRINT (MISSILE shows normal) |
 | 5 | Power Systems | NORMAL, FLIGHT, CTRL, MISSILE, PRINT |
-| 6 | Graphs | NORMAL, FLIGHT, CTRL, MISSILE, PRINT |
+| 6 | Graphs (7/7 auto-cycle) | NORMAL, FLIGHT, CTRL, PRINT (MISSILE shows normal) |
 | 9 | Miner Fleet | NORMAL, FLIGHT, CTRL, MISSILE, PRINT |
 | 10 | Miner Detail | NORMAL, FLIGHT, CTRL, MISSILE, PRINT |
+| 11 | Personal Items (Wide) | Tools, weapons, ammo, bottles |
+
+**Note:** LCD4 and LCD6 always show their normal auto-cycling content (7/7 status views and graphs), even during MISSILE mode. This ensures important status information remains visible while a missile is docked.
+
+### LCD 11 - Personal Items Display
+
+Wide LCD (2:1 aspect ratio) showing all personal equipment with friendly names.
+
+**Friendly Name Function (FN):**
+```csharp
+string FN(string s){
+    switch(s){
+        case"HandDrill":return"Drill 1";
+        case"HandDrill2":return"Drill 2";
+        case"Welder":return"Welder 1";
+        case"Welder2":return"Welder 2";
+        case"AngleGrinder":return"Grinder 1";
+        case"AutomaticRifle":return"Rifle";
+        // etc.
+    }
+}
+```
+
+**Column Layout (4 columns):**
+- Column 1 (x=5): Drills, Welders
+- Column 2 (x=135): Grinders, Weapons
+- Column 3 (x=270): Personal Ammo
+- Column 4 (x=405): Bottles
 
 ### Sprite Functions
 
@@ -193,6 +277,9 @@ void SetBottleQuotas(){int h=Math.Max(20,h2Target);int o=Math.Max(20,o2Target);.
 3. `QueueProduction()` - Queue missing items to assemblers
 4. `QueueMissing()` - Generic queue function for tools/ammo/bottles
 
+**Note:** CanUseBlueprint() checks were removed - items queue directly to assemblers.
+The assembler will accept or reject based on its actual capabilities.
+
 ---
 
 ## INVENTORY MANAGEMENT
@@ -219,9 +306,104 @@ void SetBottleQuotas(){int h=Math.Max(20,h2Target);int o=Math.Max(20,o2Target);.
 | `QueueMissing()` | Generic queue for tools/ammo/bottles |
 | `FeedRefineries()` | Supply ore to refineries |
 | `FeedAssemblers()` | Supply ingots to assemblers |
-| `RecycleExcess()` | Disassemble excess items |
+| `RecycleExcess()` | Multi-assembler recycling system |
 | `GD()` | Get designated container |
 | `HS()` | Check if has space |
+
+---
+
+## RECYCLING SYSTEM (RecycleExcess)
+
+The recycling system automatically disassembles excess items when stock exceeds targets.
+
+### How It Works
+
+1. **Calculate Excess** - For each item type (components, tools, ammo, bottles), calculate `stock - target`
+2. **Scale Recyclers** - Number of assemblers used: `Math.Min(padAsm.Count, totEx/100+1)`
+3. **Switch Mode** - Set selected assemblers to `MyAssemblerMode.Disassembly`
+4. **Disable Conveyor** - Set `UseConveyorSystem=false` to prevent auto-pull
+5. **Transfer Items** - Move excess from cargo/assembler outputs to recycler inputs
+6. **Queue Disassembly** - Call `AddQueueItem()` for transferred items
+7. **Cleanup** - When excess=0, switch empty recyclers back to Assembly mode
+
+### Assembler Inventories
+
+| Item Type | Destination Inventory | Reason |
+|-----------|----------------------|--------|
+| Components | `GetInventory(0)` | Standard input for components |
+| Ammo | `GetInventory(0)` | Standard input for ammo |
+| **Tools** | `GetInventory(1)` | SE requires tools in output slot |
+| Bottles | `GetInventory(0)` | Standard input |
+
+### Code Flow
+
+```csharp
+void RecycleExcess(){
+    // Calculate excess for all types
+    var cEx = components over target
+    var tEx = tools over target
+    var paEx = personal ammo over target
+    int h2Ex = bottles over target
+    int tAmmoEx = turret ammo over target
+
+    // Scale recycler count
+    int recyclerCnt = Math.Min(padAsm.Count, totEx/100+1);
+
+    // Set up recyclers (from end of list)
+    for(i = padAsm.Count-1; i >= 0 && recyclers.Count < recyclerCnt; i--){
+        a.Mode = MyAssemblerMode.Disassembly;
+        a.UseConveyorSystem = false;  // Prevent auto-pull!
+    }
+
+    // Transfer and queue
+    XferAndQueue(src, slot, type, amt, blueprint);
+}
+```
+
+---
+
+## S-10 AMMO ROUTING
+
+S-10 pistol ammo is used for missile warhead loading (10,106 rounds per missile). It routes differently from other personal ammo.
+
+### Routing Rules
+
+| Ammo Type | Destination | Reason |
+|-----------|-------------|--------|
+| S-10 (SemiAutoPistolMagazine) | Generic cargo | Bulk storage for missile loading |
+| S-20A, Elite, Rifles, Flares | pAmmoCargo | Personal carry ammo |
+
+### GD() Function Logic
+
+```csharp
+// In GD() item routing:
+if(s=="SemiAutoPistolMagazine") return fb;  // Generic cargo
+else if(s.Contains("Pistol")||s.Contains("RifleGun")||s.Contains("Flare"))
+    return pAmmoCargo ?? toolCargo;  // Personal ammo container
+```
+
+### Active S-10 Cleanup
+
+Existing S-10 in pAmmoCargo is actively pushed to generic storage:
+
+```csharp
+if(pAmmoCargo!=null){
+    foreach item in pAmmoCargo:
+        if(item.SubtypeId=="SemiAutoPistolMagazine")
+            transfer to generic cargo
+}
+```
+
+### pAmmoTarget Minimum
+
+Personal ammo target has a minimum floor of 50,000 (for missile loading):
+
+```csharp
+// In Program() after LoadStorage():
+if(pAmmoTarget < 1000) pAmmoTarget = 50000;
+```
+
+This fixes old Storage data that had pAmmoTarget=100.
 
 ---
 
@@ -238,21 +420,44 @@ void SetBottleQuotas(){int h=Math.Max(20,h2Target);int o=Math.Max(20,o2Target);.
 
 ---
 
-## COMMUNICATION WITH UNITYPAD
+## PER-PB CUSTOMDATA SUMMARY
 
-Uses button panel CustomData for inter-PB communication:
+**Each script writes ONLY to `Me.CustomData` (its own PB).** Scripts find and READ other PBs' CustomData when needed.
 
-### Reads from Pad
-```ini
-[UNITY_INV]
-padID=1
-status=FUEL
-```
+| PB Name | Script | Sections Owned |
+|---------|--------|----------------|
+| `[PAD1] UNITY BOOT` | Unity Boot | [SYSTEM] with boot_complete flag |
+| `[PAD1] Unity Pad` | UnityPad | [PAD_CFG], [PAD_STATUS], [PAD_DATA] |
+| `[PAD1] Unity Inventory` | UnityInventory | [SYSTEM], [QUOTAS], [MISSILE], [CONFIG], inventory sections |
+| Missile PB | UnityMissile | Own config only |
+| `[BEACON] Unity Beacon` | UnityBeacon | Own config only |
 
-### Writes to Pad
-```ini
-[ORE], [ING], [CMP], [AMO], [BTL], [TLS], [STAT]
-```
+**BUILD RULE:** Only build scripts that have changes. Never build unchanged scripts.
+
+---
+
+## CUSTOMDATA OWNERSHIP
+
+**UnityInventory WRITES to `Me.CustomData` (`[PAD1] Unity Inventory` PB):**
+- `[SYSTEM]` - Contains `inv_ready=true`
+- `[QUOTAS]` - Production targets
+- `[MISSILE]` - Missile config data
+- `[CONFIG]` - User targets (ice, uran, bottles)
+- `[WAYPOINTS]` - GPS waypoint list
+- `[STATUS]` - Refinery/assembler status
+- `[ORE]` - Ore stock counts
+- `[INGOTS]` - Ingot stock counts
+- `[COMPONENTS]` - Component stock/queued/target
+- `[TURRET_AMMO]` - Turret ammo counts
+- `[BOTTLES]` - H2/O2 bottle counts
+- `[TOOLS_WEAPONS]` - Tool/weapon counts
+- `[PERSONAL_AMMO]` - Personal ammo counts
+
+**UnityInventory READS from other PBs:**
+- `bootPB.CustomData` - boot_complete status from `[PAD1] UNITY BOOT`
+- `padPB.CustomData` - pad mode, missile telemetry from `[PAD1] Unity Pad`
+
+**Does NOT write to any button panel - only reads boot status from Boot PB.**
 
 ---
 
@@ -260,9 +465,11 @@ status=FUEL
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityInventory | ~112,600 | ~83,800 | 100,000 | OK (16% margin) |
+| UnityInventory | ~125,500 | 90,247 | 100,000 | OK (9.8% margin) |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
+*Handles ALL personal equipment: tools, weapons, ammo, bottles (removed from UnityPad).*
+*2026-01-22: Added recycling system, S-10 routing fix, pAmmoTarget minimum enforcement.*
 
 ---
 
@@ -274,8 +481,8 @@ cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 dotnet build UnityInventory -c Debug
 
-# Check deployed size
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs" -Raw).Length
+# Check deployed size (CHARACTERS, not bytes)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs").Length
 ```
 
 ---

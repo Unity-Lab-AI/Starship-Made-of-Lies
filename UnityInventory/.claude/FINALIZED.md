@@ -62,4 +62,33 @@
 
 ---
 
+## 2026-01-21 - Ammo Classification & Quota Consistency Fix
+
+### Queue Classification Fix (Pistol Ammo Double-Listing)
+- [x] Added `SPP()` helper - strips position prefix from blueprint names
+- [x] Changed queue classification from `Contains()` to exact-match
+- [x] `SemiAutoPistolMagazine` no longer incorrectly matches `SemiAutoPistol` weapon
+- [x] LCD 11 WEAPONS column now shows only actual weapon counts
+
+### Personal Ammo Quota Consistency
+- [x] Removed 4x hardcoded `idx==4` special cases
+- [x] All personal ammo now uses `paNd` dictionary consistently for targets
+- [x] Fixed in: RecycleExcess() (2 places), WriteBtnData(), UpdateLCD11()
+- [x] S-10 pistol ammo no longer has inconsistent 50k hardcoded target
+
+### ammoDispR Array Fix (Crash Prevention)
+- [x] Expanded `ammoDispR` from 3 entries to 10 entries
+- [x] Added bounds checking for `ammoTypeIdx`
+- [x] RecycleExcess() no longer crashes when ammoTypeIdx > 2
+
+### Blueprint Component Priority
+- [x] Added `bpNd` dictionary for blueprint needs from UnityPad
+- [x] Components for active prints are queued first in QueueProduction()
+- [x] Reads `[BLUEPRINT]` section from padPB.CustomData
+
+### Build Status
+- [x] Deployed: 89,503 chars (10.5% margin under 100k)
+
+---
+
 *Unity AI Lab - Inventory Systems Division*

@@ -12,7 +12,8 @@ UnityInventory handles all inventory management, auto-production, container sort
 
 ## Key Features
 
-- 5 LCD Displays (4, 5, 6, 9, 10)
+- 6 LCD Displays (4, 5, 6, 9, 10, 11)
+- LCD 11: Wide screen personal items (tools, weapons, ammo, bottles)
 - Auto-cycling views on LCD4 (7 views)
 - Auto-cycling graphs on LCD6 (7 graphs)
 - Container organization with tagged routing
@@ -20,6 +21,7 @@ UnityInventory handles all inventory management, auto-production, container sort
 - Refinery and assembler feeding
 - MinerBeacon fleet tracking
 - Docked miner ore/ingot transfers
+- Friendly item names on LCD 11 (FN function)
 
 ## Boot Dependency
 
@@ -46,7 +48,7 @@ UnityInventory waits for `boot_complete=true` from Unity Boot before taking LCD 
 
 | Deployed | Limit | Status |
 |----------|-------|--------|
-| 78,680 | 100,000 | OK (21% margin) |
+| 97,035 | 100,000 | OK (3% margin) |
 
 ---
 

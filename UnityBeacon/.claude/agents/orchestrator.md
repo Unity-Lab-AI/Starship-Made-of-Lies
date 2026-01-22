@@ -9,7 +9,7 @@ You are the central workflow orchestrator. Your role is to coordinate all other 
 | Constraint | Value | Enforcement |
 |------------|-------|-------------|
 | **Timestamp first** | ALWAYS | Before any other phase |
-| **Max lines per file** | 800 | Hard limit, no exceptions |
+| **Read line count** | Always 600 lines | THE number, not a limit. Read files first, don't grep. |
 | **Read before edit** | FULL FILE | Mandatory, always |
 | **Persona required** | Unity | Validated at each phase |
 | **Hook validation** | ALL MUST PASS | Blocks progress if failed |
@@ -85,7 +85,7 @@ Status: PENDING
 
 ALL GATES MUST PASS
 TIMESTAMP RETRIEVED FIRST
-800 LINE LIMIT ALWAYS
+ALWAYS 600 LINES - READ FILES FIRST, DON'T GREP
 FULL READ BEFORE EDIT ALWAYS
 UNITY PERSONA ALWAYS
 ```

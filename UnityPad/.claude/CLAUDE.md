@@ -3,7 +3,57 @@
 Launch pad controller for the Unity Missile System. Manages missile printing, fueling, arming, and launch.
 
 **Location:** `Unity Missile System/UnityPad/` (part of Unity Missile System)
-**Version:** v01.00 | 2026-01-18
+**Version:** v01.00 | 2026-01-22
+**PB Name:** `[PAD1] Unity Pad`
+
+---
+
+## PER-PB CUSTOMDATA ARCHITECTURE
+
+**UnityPad writes ONLY to `Me.CustomData` (its own PB).** On compile, `ClearForBoot()` wipes and writes fresh:
+
+```ini
+[SYSTEM]
+pad_ready=true
+[PAD_CFG]
+[PAD_STATUS]
+[PAD_DATA]
+[BLACKBOX]
+```
+
+### GPS Input from Button Panel
+
+**GPS coordinates are READ from the button panel `[PAD1] Controls`, NOT from Me.CustomData.**
+
+```csharp
+void ParseCustomGPS(){
+    if(btn==null)return;
+    string cd=btn.CustomData;  // Button panel, NOT Me.CustomData
+    // Parse GPS:Name:X:Y:Z:#color: format
+}
+```
+
+Users paste SE clipboard GPS directly into `[PAD1] Controls` button panel CustomData. UnityPad reads it via `ParseCustomGPS()`.
+
+### Finding Sibling PBs
+
+`FindSiblingPBs()` locates other PBs by name pattern:
+
+```csharp
+void FindSiblingPBs(){
+    var pbs=new List<IMyProgrammableBlock>();
+    GridTerminalSystem.GetBlocksOfType(pbs,p=>p.IsSameConstructAs(Me));
+    foreach(var p in pbs){
+        if(p.CustomName.Contains($"[PAD{id}")&&p.CustomName.Contains("UNITY BOOT"))bootPB=p;
+        if(p.CustomName.Contains($"[PAD{id}]")&&p.CustomName.Contains("Unity Inventory"))invPB=p;
+    }
+}
+```
+
+| PB | Name Pattern | Example |
+|----|--------------|---------|
+| bootPB | `[PAD{id}]` + "UNITY BOOT" | `[PAD1] UNITY BOOT` |
+| invPB | `[PAD{id}]` + "Unity Inventory" | `[PAD1] Unity Inventory` |
 
 ---
 
@@ -11,26 +61,40 @@ Launch pad controller for the Unity Missile System. Manages missile printing, fu
 
 **UnityPad waits for boot_complete=true before taking LCD control.**
 
-Unity Boot runs first with 21 unified checks using real PB-to-PB IGC handshaking.
+Unity Boot runs first with 23 unified checks using real PB-to-PB IGC handshaking.
 
 ### Pre-Boot Ready Flag
 
-UnityPad writes `pad_ready=true` to the button panel CustomData on compile:
+UnityPad **CLEARS Me.CustomData** and writes fresh sections on compile:
 ```csharp
-WriteReadyFlag("pad_ready");
+ClearForBoot();  // WIPES Me.CustomData, writes fresh [SYSTEM] + [PAD_*] + [BLACKBOX]
+WriteReadyFlag("pad_ready");  // Sets pad_ready=true in [SYSTEM]
 ```
 
-Unity Boot waits for this flag before starting checks. Scripts can be compiled in any order.
+**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → BOOT**
+
+BEACON/MISSILE are on different PBs (miner/missile), can compile any time. The 3 on pad PB MUST be: PAD first, INVENTORY second, BOOT last.
+
+The `ClearForBoot()` function:
+- **ALWAYS clears Me.CustomData** - this is the reset point
+- Writes fresh `[SYSTEM]` section with `pad_ready=true`
+- Writes empty `[PAD_CFG]`, `[PAD_STATUS]`, `[PAD_DATA]`, `[BLACKBOX]`
+- UnityInventory then adds `inv_ready=true` to its own PB
+- Unity Boot runs last to perform 23 checks and set `boot_complete=true` in bootPB.CustomData
 
 ### Boot Completion Check
 
 ```csharp
+IMyProgrammableBlock bootPB, invPB;
+
 bool IsBootComplete(){
-    if(btn==null)return false;
-    return btn.CustomData.Contains("boot_complete=true");
+    if(bootPB == null) FindSiblingPBs();
+    if(bootPB == null) return false;
+    return bootPB.CustomData.Contains("boot_complete=true");
 }
 ```
 
+**Reads from:** `bootPB.CustomData` (the `[PAD1] UNITY BOOT` PB)
 **LCDs controlled by UnityPad (after boot):** 1, 2, 3, 7, 8
 
 ---
@@ -56,18 +120,15 @@ PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
 
 ```csharp
 void CheckBootRequest(){
-    // Listen for IGC requests
+    // Listen for IGC requests from Unity Boot
     while(bootReqL!=null&&bootReqL.HasPendingMessage){
         var msg=bootReqL.AcceptMessage();
         if(msg.Data.ToString()=="PAD_CHECK")SendBootResponse();
     }
-    // Also check CustomData fallback
-    if(btn!=null&&btn.CustomData.Contains("pad_check=request"))
-        SendBootResponse();
 }
 
 void SendBootResponse(){
-    // Send block counts via IGC and CustomData
+    // Send block counts via IGC
     string rsp=$"PAD|OK|merge={mc},con={cc},bat={bc},h2={h2c},o2={o2c},prt={pc}";
     IGC.SendBroadcastMessage("UNITY_BOOT_RSP",rsp);
 }
@@ -115,7 +176,7 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\scrip
 |------|-------|-------------|
 | **SE Character Limit** | 100,000 chars on DEPLOYED script | Check deployed script.cs, NOT raw .cs |
 | **NO COMMENTS IN SE SCRIPTS** | ABSOLUTE | Every char counts |
-| **Read limit parameter** | **EXACTLY 800** | **ANY OTHER VALUE = CHEATING** |
+| **Read line count** | **ALWAYS 600 lines** | **Claude reads 600 lines per Read - NOT a limit, THE number. Read files, don't grep.** |
 | **Read before edit** | FULL FILE | Mandatory before ANY edit |
 | **Unity persona** | REQUIRED | Validated at every phase |
 | **NO TESTS - EVER** | ABSOLUTE | We code it right the first time |
@@ -144,6 +205,49 @@ INIT → IDLE → PRINT → BUILD → DOCK → FUEL → READY → ARM → LAUNCH
 
 ---
 
+## PRINTER STATE MACHINE
+
+The printer uses a 5-state machine for welding missiles:
+
+```
+ALIGN(0) → UP(1) → DOWN(2) → ZERO(3) → H_STEP(4) → UP(1) → repeat
+```
+
+| State | Description |
+|-------|-------------|
+| 0 (ALIGN) | Align V pistons to prtVZero (1.4m), H pistons to max (7.2m), then turn on welders |
+| 1 (UP) | V pistons extend UP toward prtVMax (10m) |
+| 2 (DOWN) | V pistons retract DOWN toward 0 |
+| 3 (ZERO) | V pistons return to prtVZero (1.4m), then call sH() to step horizontally |
+| 4 (H_STEP) | H pistons retract by prtHStep (0.2m), then back to state 1 |
+
+### Printer Constants
+
+| Variable | Value | Purpose |
+|----------|-------|---------|
+| prtVZero | 1.4f | V piston home/zero position (alignment point) |
+| prtVMax | 10f | V piston max extension (full vertical pass) |
+| prtHMax | 7.2f | H piston max extension (starting H position) |
+| prtHStep | 0.2f | Horizontal retract distance per pass |
+| prtVSpeed | 0.5f | V piston velocity |
+| prtHSpeed | 0.3f | H piston velocity |
+
+### StartPrint() Initialization
+
+On PRINT command:
+1. Sets V piston MaxLimit to prtVZero (for initial alignment)
+2. Sets H piston velocity to extend toward max
+3. Welders stay OFF until state 0 completes alignment
+4. State 0 changes V MaxLimit to prtVMax when ready to weld
+
+### Print Completion
+
+Printing stops when:
+- `prtProj.RemainingBlocks == 0` (projector done)
+- `prtHPos <= 0.05f` (H pistons fully retracted)
+
+---
+
 ## BLOCK TAGS
 
 | Tag | Purpose |
@@ -168,6 +272,44 @@ INIT → IDLE → PRINT → BUILD → DOCK → FUEL → READY → ARM → LAUNCH
 
 ---
 
+## PER-PB CUSTOMDATA SUMMARY
+
+**CRITICAL:** Each script writes ONLY to `Me.CustomData` (its own PB). Scripts find and READ other PBs' CustomData when needed.
+
+| PB Name | Script | Sections in Me.CustomData |
+|---------|--------|---------------------------|
+| `[PAD1] UNITY BOOT` | Unity Boot | [SYSTEM] with boot_complete |
+| `[PAD1] Unity Pad` | UnityPad | [SYSTEM], [PAD_CFG], [PAD_STATUS], [PAD_DATA], [BLACKBOX] |
+| `[PAD1] Unity Inventory` | UnityInventory | [SYSTEM], inventory sections, [QUOTAS] |
+| Missile PB | UnityMissile | Own config only |
+| Miner PB | UnityBeacon | Own config only |
+
+| Block | Purpose |
+|-------|---------|
+| `[PAD1] Controls` (Button Panel) | GPS input ONLY - user pastes GPS here, UnityPad reads via ParseCustomGPS() |
+
+**BUILD RULE:** Only build scripts that have changes. Never build unchanged scripts.
+
+---
+
+## CUSTOMDATA OWNERSHIP
+
+**UnityPad writes ONLY to Me.CustomData with these sections:**
+- `[SYSTEM]` - Contains pad_ready=true (created by ClearForBoot on compile)
+- `[PAD_CFG]` - Pad settings (climbDist, detonateDist, tMinus, etc.)
+- `[PAD_STATUS]` - State machine status (state, mslFound, mslArmed)
+- `[PAD_DATA]` - Operational data (lastLaunch, etc.)
+- `[BLACKBOX]` - Error/event log
+
+**UnityPad READS from other sources:**
+- `bootPB.CustomData` - Reads boot_complete flag via IsBootComplete()
+- `invPB.CustomData` - Reads inventory data via ReadInvStats() for LCD 2 component display
+- `btn.CustomData` - Reads GPS coordinates via ParseCustomGPS() (button panel `[PAD1] Controls`)
+
+**NOTE:** ClearForBoot() on compile WIPES Me.CustomData completely and writes fresh sections. UnityPad does NOT write to btn.CustomData - the button panel is for GPS input only.
+
+---
+
 ## KEY FEATURES
 
 - **Multi-Pad Controller Mode:** Coordinate multiple pads
@@ -182,9 +324,16 @@ INIT → IDLE → PRINT → BUILD → DOCK → FUEL → READY → ARM → LAUNCH
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityPad | ~121,000 | ~90,354 | 100,000 | OK (10% margin) |
+| UnityPad | ~2,100 | 91,863 | 100,000 | OK (8.1% margin) |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
+*Personal equipment tracking removed - UnityInventory handles all tools, weapons, ammo, bottles.*
+
+### Character Count Command
+```powershell
+# CORRECT: Count CHARACTERS (this is what SE checks)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\script.cs").Length
+```
 
 ---
 
@@ -227,8 +376,8 @@ cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 dotnet build UnityPad -c Debug
 
-# Check deployed size
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityPad\script.cs" -Raw).Length
+# Check deployed size (CHARACTERS, not bytes)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\script.cs").Length
 ```
 
 ---

@@ -8,8 +8,8 @@ You are the deep codebase scanner. Your role is to perform comprehensive analysi
 
 | Constraint | Value |
 |------------|-------|
-| Read index/chunk size | 800 lines (standard) |
-| Full file read required | YES (use 800-line chunks) |
+| Read line count | Always 600 lines - THE number, not a limit. Read files, don't grep. |
+| Full file read required | YES (use 600-line chunks) |
 | Double validation on fail | YES |
 | Unity persona required | YES |
 
@@ -33,7 +33,7 @@ You are the deep codebase scanner. Your role is to perform comprehensive analysi
 - Categorize by extension
 - Identify source vs config vs docs
 - Map directory structure
-- Respect 800-line limit when reading files
+- Always 600 lines when reading files - read files first, don't grep
 ```
 
 ### Task 2: Dependency Scan
@@ -89,4 +89,4 @@ Return structured JSON:
 | Scan errors | None critical |
 | Data stored | YES |
 | Unity persona | Active throughout |
-| 800-line read index | Used for all reads |
+| 600-line read | Always - THE number, read files first, don't grep |

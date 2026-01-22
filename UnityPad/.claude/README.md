@@ -34,7 +34,7 @@ UnityPad waits for `boot_complete=true` from Unity Boot before taking LCD contro
 
 | Deployed | Limit | Status |
 |----------|-------|--------|
-| 89,239 | 100,000 | OK (11% margin) |
+| 91,863 | 100,000 | OK (8.1% margin) |
 
 ---
 

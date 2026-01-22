@@ -2,7 +2,7 @@
 
 # UNITY MISSILE SYSTEM v01.00
 
-**5-Script Modular System | 10 LCD Displays | Sprite-Based Rendering | Full Automation | Satellite Relay | Carpet Bomb | Auto-Attack | Fleet Tracking | Inventory Management**
+**5-Script Modular System | 11 LCD Displays | Sprite-Based Rendering | Full Automation | Satellite Relay | Carpet Bomb | Auto-Attack | Fleet Tracking | Inventory Management**
 
 **Works on LARGE or SMALL grids (auto-detect)**
 **Works in SPACE or ATMOSPHERE (auto-detect)**
@@ -14,9 +14,9 @@
 
 | Script | PB Name | Function |
 |--------|---------|----------|
-| **Unity Boot** | `[PAD1-BOOT] UNITY BOOT` | Boot controller, 21 unified checks with real PB handshaking |
+| **Unity Boot** | `[PAD1] UNITY BOOT` | Boot controller, 23 unified checks with real PB handshaking |
 | **UnityPad** | `[PAD1] Unity Pad` | Launch control, LCDs, targeting, printing |
-| **UnityMissile** | `PAD1 Missile #1 Unity Missile` | In-flight guidance, targeting, detonation |
+| **UnityMissile** | `PAD1 Missile #1 Program` | In-flight guidance, targeting, detonation |
 | **UnityInventory** | `[PAD1] Unity Inventory` | Inventory management, production, sorting |
 | **UnityBeacon** | `[BEACON] Unity Beacon` | Fleet status broadcasting (on miners) |
 
@@ -98,23 +98,39 @@ Button 4 → Run PB with argument: LAUNCH
 
 #### Step 3: Install Scripts
 
-**Three PBs required on pad grid:**
+**Three PBs required on pad grid. COMPILE IN THIS EXACT ORDER:**
 
-1. **Boot PB:**
-   - Copy `Unity Boot.cs` into a Programmable Block
-   - Name it: `[PAD1-BOOT] UNITY BOOT`
-   - Run once to initialize boot sequence
+| Order | Script | PB Name | Notes |
+|-------|--------|---------|-------|
+| 1 | UnityBeacon | `[BEACON] Unity Beacon` | Optional - on miners only |
+| 2 | UnityMissile | `PAD1 Missile #1 Program` | Compile on missile PB |
+| 3 | **UnityPad** | `[PAD1] Unity Pad` | **CLEARS CustomData - must be first of main 3** |
+| 4 | UnityInventory | `[PAD1] Unity Inventory` | Adds inv_ready flag |
+| 5 | Unity Boot | `[PAD1] UNITY BOOT` | Runs 23/23 checks, signals boot_complete |
 
-2. **Pad PB:**
-   - Copy `UnityPad.cs` into another Programmable Block
-   - Click "Check Code" - should show no errors
-   - Click "Run" or "Recompile"
-   - Waits for boot_complete before taking LCD control
+**WHY THIS ORDER:**
+- UnityPad **CLEARS ALL CustomData** on compile (fresh start for boot)
+- UnityPad writes initial [SYSTEM] section with `pad_ready=true`
+- UnityInventory reads existing data and adds `inv_ready=true`
+- Unity Boot waits for both ready flags before starting checks
 
-3. **Inventory PB:**
-   - Copy `UnityInventory.cs` into a third Programmable Block
+1. **Pad PB (compile FIRST of main scripts):**
+   - Copy `UnityPad.cs` into a Programmable Block
+   - Name it: `[PAD1] Unity Pad`
+   - Click "Check Code" then "Recompile"
+   - **This clears CustomData and writes fresh boot structure**
+
+2. **Inventory PB (compile SECOND):**
+   - Copy `UnityInventory.cs` into another Programmable Block
    - Name it: `[PAD1] Unity Inventory`
-   - Waits for boot_complete before taking LCD control
+   - Click "Check Code" then "Recompile"
+   - Adds inv_ready=true to existing CustomData
+
+3. **Boot PB (compile LAST):**
+   - Copy `Unity Boot.cs` into a third Programmable Block
+   - Name it: `[PAD1] UNITY BOOT`
+   - Click "Check Code" then "Recompile"
+   - Runs 23/23 boot checks, sets boot_complete=true
 
 #### Step 4: SETUPMOD - Automatic Configuration
 
@@ -163,11 +179,19 @@ PRINTER COMPONENTS:
 
 **Printer Cycle (automatic):**
 ```
-IDLE → RESET → EXTEND → WELD → EXTEND → WELD → DONE
-         ↓        ↓        ↓        ↓
-       Retract  Pistons  Build   Repeat
-       pistons  extend   parts   if needed
+ALIGN(0) → UP(1) → DOWN(2) → ZERO(3) → H_STEP(4) → repeat
+   ↓          ↓         ↓          ↓          ↓
+ V=1.4m    V→10m      V→0       V=1.4m     H-0.2m
+ H=max     Full UP    Full DOWN  Return     Step in
+ Welders   pass       pass       to zero    Horizontal
+ ON
 ```
+
+**Printer Constants:**
+- `prtVZero=1.4m` - Home/zero position
+- `prtVMax=10m` - Full vertical extension
+- `prtHMax=7.2m` - Starting horizontal position
+- `prtHStep=0.2m` - Horizontal retract per pass
 
 #### Step 6: First Missile Build
 
@@ -764,23 +788,32 @@ In SURVIVAL mode:
 
 ## UNITY BOOT SYSTEM
 
-Centralized boot controller with real PB-to-PB handshaking. Runs 21 unified checks that verify Pad and Inventory systems are actually running and responding.
+Centralized boot controller with real PB-to-PB handshaking. Runs 23 unified checks that verify Pad and Inventory systems are actually running and responding.
 
 ### Pre-Boot Ready Sync
 
-Scripts can be compiled in ANY order. Each script writes a ready flag on compile:
-- UnityPad writes `pad_ready=true`
-- UnityInventory writes `inv_ready=true`
-- Unity Boot writes `boot_ready=true`
+**Scripts MUST be compiled in this order:**
 
-Unity Boot waits for all required flags before starting checks. Shows "WAITING FOR SCRIPTS" until ready.
+| Order | Script | Action |
+|-------|--------|--------|
+| 1 | UnityBeacon | Optional - for fleet tracking |
+| 2 | UnityMissile | Compile on missile PB |
+| 3 | **UnityPad** | **CLEARS ALL CustomData**, writes pad_ready=true |
+| 4 | UnityInventory | Adds inv_ready=true to existing data |
+| 5 | Unity Boot | Runs 23/23 checks, sets boot_complete=true |
+
+**WHY THIS ORDER:**
+- UnityPad clears CustomData completely (fresh start)
+- UnityPad writes initial [SYSTEM] section
+- UnityInventory preserves existing data and adds its flag
+- Unity Boot waits for both ready flags before starting
 
 ### How It Works
 
-1. **Scripts compile** → Each writes its ready flag to CustomData
+1. **Scripts compile in order** → UnityPad clears CustomData, Inventory adds flag
 2. **Unity Boot checks flags** → If not all ready, shows waiting screen
-3. **All ready** → Clears stale data, starts 21/21 checks
-4. **Runs 21 unified checks** → Displays progress (1/21, 2/21, etc.)
+3. **All ready** → Clears stale data, starts 23/23 checks
+4. **Runs 23 unified checks** → Displays progress (1/23, 2/23, etc.)
 5. **Sends IGC requests** → Pad and Inventory PBs respond with system status
 6. **Check 20: Beacon Detection** → Listens for MINER_BEACON, stores miner names
 7. **On error** → Pauses 5 seconds, shows error message, retries
@@ -808,10 +841,10 @@ INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
 
 1. Add a **third** Programmable Block on the pad grid
 2. Load `Unity Boot` script
-3. Name PB: `[PAD1-BOOT] UNITY BOOT`
+3. Name PB: `[PAD1] UNITY BOOT`
 4. The boot PB communicates via IGC and button panel [SYSTEM] CustomData
 
-### The 21 Unified Checks
+### The 23 Unified Checks
 
 | # | Check | Method |
 |---|-------|--------|
@@ -854,6 +887,68 @@ Dedicated inventory management running on a separate PB from UnityPad.
 2. Load `UnityInventory` script
 3. Name PB: `[PAD1] Unity Inventory`
 4. Both PBs share data via button panel CustomData
+
+---
+
+## CUSTOMDATA SECTION OWNERSHIP
+
+**CRITICAL: Each script owns specific CustomData sections. NO OVERLAP.**
+
+### Complete CustomData Layout (Button Panel)
+
+```ini
+[SYSTEM]           ; Unity Boot creates, all scripts read
+boot_complete=true
+pad_ready=true
+inv_ready=true
+miner_count=2
+miner_names=Miner1,Miner2
+
+[MISSILE]          ; UnityInventory writes
+[CONFIG]           ; UnityInventory writes
+[WAYPOINTS]        ; UnityInventory writes
+[STATUS]           ; UnityInventory writes
+[ORE]              ; UnityInventory writes
+[INGOTS]           ; UnityInventory writes
+[COMPONENTS]       ; UnityInventory writes
+[TURRET_AMMO]      ; UnityInventory writes
+[BOTTLES]          ; UnityInventory writes
+[TOOLS_WEAPONS]    ; UnityInventory writes
+[PERSONAL_AMMO]    ; UnityInventory writes
+
+[PAD_CFG]          ; UnityPad writes
+[PAD_STATUS]       ; UnityPad writes
+[PAD_DATA]         ; UnityPad writes
+
+[QUOTAS]           ; Unity Boot creates once (then shuts down)
+[BLACKBOX]         ; Unity Boot creates once (then shuts down)
+```
+
+### Section Ownership Table
+
+| Section | Owner | Purpose |
+|---------|-------|---------|
+| `[SYSTEM]` | **Unity Boot** creates | Boot flags, handshake data, miner info |
+| `[MISSILE]` | **UnityInventory** | Missile type, load, stock settings |
+| `[CONFIG]` | **UnityInventory** | User targets (ice, uran, bottles) |
+| `[ORE]`, `[INGOTS]`, etc. | **UnityInventory** | Stock counts |
+| `[PAD_CFG]` | **UnityPad** | Pad settings (climb, detonate, etc.) |
+| `[PAD_STATUS]` | **UnityPad** | State machine status |
+| `[PAD_DATA]` | **UnityPad** | Operational data |
+| `[QUOTAS]` | **Unity Boot** creates once | Production targets |
+| `[BLACKBOX]` | **Unity Boot** creates once | Error/event log |
+
+### Section Preservation Rules
+
+When writing CustomData, scripts MUST preserve sections they don't own:
+
+| Script | Writes | Preserves |
+|--------|--------|-----------|
+| **Unity Boot** | `[SYSTEM]`, `[QUOTAS]`, `[BLACKBOX]` | Everything else |
+| **UnityPad** | `[PAD_*]` sections | `[SYSTEM]`, inventory sections, `[QUOTAS]`, `[BLACKBOX]` |
+| **UnityInventory** | Inventory sections | `[PAD_*]`, `[QUOTAS]`, `[BLACKBOX]` |
+
+**Note:** Unity Boot creates `[QUOTAS]` and `[BLACKBOX]` once during boot sequence, then self-disables. These sections persist and are preserved by UnityPad and UnityInventory during their regular CustomData updates
 
 ### User-Configurable Targets
 
@@ -1326,12 +1421,19 @@ SETUPMOD automatically:
 - Finds blocks on subgrids (piston heads, rotor heads)
 - Scans within 50m for subgrid print blocks
 
-### Print Cycle
-1. **RESET** - Pistons retract to start
-2. **EXTEND** - Pistons extend to max
-3. **WELD** - Welders ON, pistons retract slowly
-4. **CHECK** - If blocks remain, extend again
-5. **DONE** - Missile complete, systems disabled
+### Print Cycle (5-State Machine)
+```
+ALIGN(0) → UP(1) → DOWN(2) → ZERO(3) → H_STEP(4) → UP(1) → repeat
+```
+
+| State | Action |
+|-------|--------|
+| 0 (ALIGN) | V pistons to 1.4m, H pistons to max (7.2m), welders ON |
+| 1 (UP) | V pistons extend to 10m (full pass up) |
+| 2 (DOWN) | V pistons retract to 0 (full pass down) |
+| 3 (ZERO) | V pistons return to 1.4m, then H step |
+| 4 (H_STEP) | H pistons retract 0.2m, back to state 1 |
+| DONE | Projector empty OR H pistons fully retracted |
 
 ---
 
@@ -1364,11 +1466,11 @@ When in SURVIVAL mode, the pad automatically:
 
 | Script | Deployed | Limit | Status |
 |--------|----------|-------|--------|
-| Unity Boot | ~14,600 | 100,000 | OK (85% margin) |
-| UnityPad | ~90,354 | 100,000 | OK (10% margin) |
-| UnityMissile | ~26,000 | 100,000 | OK (74% margin) |
-| UnityInventory | ~83,800 | 100,000 | OK (16% margin) |
-| UnityBeacon | ~10,800 | 100,000 | OK (89% margin) |
+| Unity Boot | ~15,050 | 100,000 | OK (85% margin) |
+| UnityPad | 91,863 | 100,000 | OK (8.1% margin) |
+| UnityMissile | ~24,321 | 100,000 | OK (76% margin) |
+| UnityInventory | 89,503 | 100,000 | OK (10.5% margin) |
+| UnityBeacon | ~14,658 | 100,000 | OK (85% margin) |
 
 *Note: The 100k limit applies to DEPLOYED script.cs in AppData. MDK2 with `minify=full` compresses the raw source by ~20-30%.*
 
@@ -1739,9 +1841,9 @@ Missile #1 [AMMO] Connector
 
 | Script | Location | PB Name | Purpose |
 |--------|----------|---------|---------|
-| **Unity Boot.cs** | `Unity Missile System/` | `[PAD1-BOOT] UNITY BOOT` | Boot controller, 21 unified checks with real PB handshaking |
+| **Unity Boot.cs** | `Unity Missile System/` | `[PAD1] UNITY BOOT` | Boot controller, 23 unified checks with real PB handshaking |
 | **UnityPad.cs** | `Unity Missile System/` | `[PAD1] Unity Pad` | Launch control, LCDs, targeting, printing |
-| **UnityMissile.cs** | `Unity Missile System/` | `PAD1 Missile #1 Unity Missile` | Guided missile with multiple targeting modes |
+| **UnityMissile.cs** | `Unity Missile System/` | `PAD1 Missile #1 Program` | Guided missile with multiple targeting modes |
 | **UnityInventory.cs** | `Unity Missile System/` | `[PAD1] Unity Inventory` | Inventory management, production, auto-sorting |
 | **UnityBeacon.cs** | `Unity Missile System/` | `[BEACON] Unity Beacon` | Broadcasts miner status to pad |
 
@@ -1773,20 +1875,21 @@ Scripts use specific PB naming conventions:
 
 | Script | PB Name Format | Example |
 |--------|----------------|---------|
-| **Unity Boot** | `[PAD#-BOOT] UNITY BOOT` | `[PAD1-BOOT] UNITY BOOT` |
+| **Unity Boot** | `[PAD#] UNITY BOOT` | `[PAD1] UNITY BOOT` |
 | **UnityPad** | `[PAD#] Unity Pad` | `[PAD1] Unity Pad` |
-| **UnityMissile** | `PAD# Missile #X Unity Missile` | `PAD1 Missile #1 Unity Missile` |
+| **UnityMissile** | `PAD# Missile #X Program` | `PAD1 Missile #1 Program` |
 | **UnityInventory** | `[PAD#] Unity Inventory` | `[PAD1] Unity Inventory` |
 | **UnityBeacon** | `[BEACON] Unity Beacon` | `[BEACON] Unity Beacon` |
 
 **Notes:**
 - The `[PAD#]` tag in the PB name ties it to a specific pad
-- Unity Boot runs FIRST and controls all 10 LCDs during startup
+- **Compile Order:** BEACON → MISSILE → PAD → INVENTORY → BOOT (BEACON/MISSILE on different PBs, PAD/INVENTORY/BOOT on pad PB in that order)
+- Unity Boot controls all 11 LCDs during startup checks
 - UnityPad takes LCDs 1,2,3,7,8 after boot_complete
-- UnityInventory takes LCDs 4,5,6,9,10 after boot_complete
+- UnityInventory takes LCDs 4,5,6,9,10,11 after boot_complete
 - Missile PB names include pad ID and missile build number
 - UnityInventory runs on a SEPARATE PB from UnityPad (same grid)
-- All block tags remain unchanged: `[PAD1]`, `[PAD1:1-10]`, `-ore`, `[DOCK]`, etc.
+- All block tags remain unchanged: `[PAD1]`, `[PAD1:1-11]`, `-ore`, `[DOCK]`, etc.
 
 ---
 

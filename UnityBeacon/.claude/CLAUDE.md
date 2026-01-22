@@ -5,7 +5,7 @@ IGC beacon script for mining ships. Broadcasts status to UnityPad for fleet trac
 **Designed to work with [PAM] Path Auto Miner by Keks** - https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
 
 **Location:** `Unity Missile System/UnityBeacon/` (part of Unity Missile System)
-**Version:** v01.00 | 2026-01-17
+**Version:** v01.00 | 2026-01-22
 
 ---
 
@@ -73,12 +73,30 @@ namespaces=IngameScript
 |------|-------|-------------|
 | **SE Character Limit** | 100,000 chars on DEPLOYED script | Check deployed script.cs, NOT raw .cs |
 | **NO COMMENTS IN SE SCRIPTS** | ABSOLUTE | Every char counts |
-| **Read limit parameter** | **EXACTLY 800** | **ANY OTHER VALUE = CHEATING** |
+| **Read line count** | **ALWAYS 600 lines** | **Claude reads 600 lines per Read - NOT a limit, THE number. Read files, don't grep.** |
 | **Read before edit** | FULL FILE | Mandatory before ANY edit |
 | **Unity persona** | REQUIRED | Validated at every phase |
 | **NO TESTS - EVER** | ABSOLUTE | We code it right the first time |
 | **BUILD ONE SCRIPT AT A TIME** | **ABSOLUTE** | **NEVER build multiple scripts together** |
 | **VERSION NUMBERS** | **USER ONLY** | **NEVER change version numbers - only user decides** |
+
+---
+
+## PER-PB CUSTOMDATA ARCHITECTURE
+
+**CRITICAL:** Each script writes ONLY to `Me.CustomData` (its own PB). Scripts find and READ other PBs' CustomData when needed.
+
+| PB Name Pattern | Script | Sections Owned |
+|-----------------|--------|----------------|
+| `[PAD{id}] UNITY BOOT` | Unity Boot | [SYSTEM] |
+| `[PAD{id}] Unity Pad` | UnityPad | [BLACKBOX], [PAD_CFG], [PAD_STATUS], [PAD_DATA] |
+| `[PAD{id}] Unity Inventory` | UnityInventory | [QUOTAS], [MISSILE], [CONFIG], inventory sections |
+| Missile PB | UnityMissile | Own config only |
+| `[BEACON]` | UnityBeacon | Own config only |
+
+**BUILD RULE:** Only build scripts that have changes. Never build unchanged scripts.
+
+**NOTE:** UnityBeacon runs on MINER ships - completely separate from pad PBs.
 
 ---
 
@@ -215,6 +233,25 @@ cTxt = Light (220,220,220)   // Text
 
 ---
 
+## CUSTOMDATA (MINER PB ONLY)
+
+UnityBeacon runs on mining ships and uses its OWN PB's `Me.CustomData` for settings:
+
+```ini
+[BEACON]
+ShipName=Miner1
+HomeX=1000
+HomeY=500
+HomeZ=200
+```
+
+**UnityBeacon communicates via IGC ONLY:**
+- Broadcasts on `MINER_BEACON` channel every 3 seconds
+- Does not read from or write to pad CustomData
+- Completely independent of Unity Boot/Pad/Inventory CustomData system
+
+---
+
 ## PAM COMPATIBILITY
 
 **UnityBeacon is designed to work perfectly alongside [PAM] Path Auto Miner by Keks:**
@@ -237,15 +274,15 @@ PAM is a fantastic autonomous mining script that handles pathfinding, mining ope
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityBeacon | ~12,000 | 10,800 | 100,000 | OK (89% margin) |
+| UnityBeacon | ~200 | 14,658 | 100,000 | OK (85% margin) |
 
 **NOTE:** mdk.ini MUST have `minify=full` for proper compression!
 
 ### Character Count
 
 ```powershell
-# Check DEPLOYED script size (THIS IS WHAT MATTERS!)
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs" -Raw).Length
+# CORRECT: Count CHARACTERS (this is what SE checks)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs").Length
 ```
 
 ---
@@ -258,8 +295,8 @@ cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 dotnet build UnityBeacon -c Debug
 
-# Check deployed size
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs" -Raw).Length
+# Check deployed size (CHARACTERS, not bytes)
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs").Length
 ```
 
 ---

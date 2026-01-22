@@ -112,6 +112,7 @@ namespace IngameScript
         bool gyrosLocked=true;
         int climbTicks=0;
         int climbLockTicks=30;
+        int flightTicks=0;
         double minAltitude=500;
         double altitudeApproachDist=550;
         double currentAltitude=0;
@@ -140,9 +141,15 @@ namespace IngameScript
         
         public void Main(string a,UpdateType u){
         if(a=="NAME"){FindBlocks();NameParts();return;}
+        if(a=="RESET"){FindBlocks();SafeReset();return;}
         if(a=="LAUNCH"){
         ParseConfig();
         FindBlocks();
+        if(rc==null||thrusters.Count==0){Echo("Missing RC or thrusters - check blocks");return;}
+        lastDist=double.MaxValue;
+        stuckCount=0;
+        flightTicks=0;
+        if(merge!=null)merge.Enabled=false;
         NameParts();
         ConfigSensors();
         ConfigCameras();
@@ -155,9 +162,8 @@ namespace IngameScript
         launchedFromGrav=grav.Length()>0.05;
         if(launchedFromGrav)launchUp=Vector3D.Normalize(-grav);
         inSpace=!launchedFromGrav;
-        gyrosLocked=true;
+        gyrosLocked=false;
         climbTicks=0;
-        LockGyros();
         Runtime.UpdateFrequency=UpdateFrequency.Update10;
         EnableThrustUp(launchUp);
         evadeStartTime=DateTime.Now;
@@ -181,6 +187,7 @@ namespace IngameScript
         return;
         }
         if(phase!=F.IDLE){
+        flightTicks++;
         CheckRemoteCmd();
         switch(phase){
         case F.CLIMB:DoClimb();break;
@@ -200,7 +207,7 @@ namespace IngameScript
         }
         
         void DoClimb(){
-        if(rc==null){phase=F.ARM;return;}
+        if(rc==null){EnableThrust(true);return;}
         climbTicks++;
         double dist=Vector3D.Distance(Me.GetPosition(),launchPos);
         Vector3D grav=rc.GetNaturalGravity();
@@ -212,15 +219,6 @@ namespace IngameScript
         if(rc.TryGetPlanetElevation(MyPlanetElevation.Surface,out alt))currentAltitude=alt;
         else currentAltitude=dist;
         }else{currentAltitude=dist;}
-        if(gyrosLocked){
-        LockGyros();
-        EnableThrustUp(launchUp);
-        if(climbTicks>=climbLockTicks){
-        gyrosLocked=false;
-        UnlockGyros();
-        }
-        return;
-        }
         if(flightMode==1&&launchedFromGrav){
         if(currentGrav>0.05){
         Vector3D up=Vector3D.Normalize(-grav);
@@ -250,7 +248,8 @@ namespace IngameScript
         }
         
         void DoArm(){
-        Vector3D grav=rc!=null?rc.GetNaturalGravity():Vector3D.Zero;
+        if(rc==null){EnableThrust(true);return;}
+        Vector3D grav=rc.GetNaturalGravity();
         if(grav.Length()<0.05){
         coastTicks=0;
         coasting=false;
@@ -261,7 +260,7 @@ namespace IngameScript
         }
         
         void DoCoast(){
-        if(rc==null){phase=F.TARGET;return;}
+        if(rc==null){EnableThrust(true);return;}
         Vector3D grav=rc.GetNaturalGravity();
         currentGrav=grav.Length();
         Vector3D? target=GetTarget();
@@ -290,7 +289,7 @@ namespace IngameScript
         }
         
         void DoReentry(){
-        if(rc==null){phase=F.TARGET;return;}
+        if(rc==null){EnableThrust(true);return;}
         EnableThrust(true);
         Vector3D? target=GetTarget();
         if(target.HasValue){
@@ -312,7 +311,7 @@ namespace IngameScript
         terminalGuidanceActive=dist<terminalGuidanceDist;
         double actualArmDist=armDist>0?armDist:detDist*4;
         double safetyDist=climbDist*5;
-        if(!warheadsArmed&&!isSatellite&&distFromPad>safetyDist&&dist<actualArmDist){
+        if(!warheadsArmed&&!isSatellite&&flightTicks>30&&distFromPad>safetyDist&&dist<actualArmDist){
         foreach(var w in warheads){w.IsArmed=true;}
         warheadsArmed=true;
         SendFinalStatus("WARHEADS_ARMED");
@@ -375,6 +374,7 @@ namespace IngameScript
         satStationKeeping=true;
         satHoldTicks=0;
         phase=F.SAT_HOLD;
+        Runtime.UpdateFrequency=UpdateFrequency.Update100;
         return;
         }
         Vector3D brakeDir=Vector3D.Normalize(-satVelocity);
@@ -391,20 +391,21 @@ namespace IngameScript
         double drift=Vector3D.Distance(Me.GetPosition(),satPosition);
         Vector3D grav=rc.GetNaturalGravity();
         double gravMag=grav.Length();
-        if(gravMag>0.5){double fallRate=Vector3D.Dot(satVelocity,Vector3D.Normalize(grav));if(fallRate>5){warheadsArmed=false;isSatellite=false;phase=F.TARGET;EnableThrust(true);return;}}
+        if(gravMag>0.5){double fallRate=Vector3D.Dot(satVelocity,Vector3D.Normalize(grav));if(fallRate>5){warheadsArmed=false;isSatellite=false;phase=F.TARGET;Runtime.UpdateFrequency=UpdateFrequency.Update10;EnableThrust(true);return;}}
         if(drift>10||speed>1){
         Vector3D correction=Vector3D.Normalize(satPosition-Me.GetPosition()-satVelocity*0.5);
         AimAt(Me.GetPosition()+correction*100);
         EnableThrust(speed>0.5||drift>5);
         }else{
         EnableThrust(false);
-        foreach(var g in gyros){g.Yaw=0;g.Pitch=0;g.Roll=0;}
+        float scanYaw=0.1f;
+        foreach(var g in gyros){g.GyroOverride=true;g.Yaw=scanYaw;g.Pitch=0;g.Roll=0;}
         }
         double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;
         if(batteries.Count>0)bat/=batteries.Count;
         double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;
         if(h2tanks.Count>0)h2/=h2tanks.Count;
-        if(bat<0.1||h2<0.1){isSatellite=false;phase=F.TARGET;EnableThrust(true);}
+        if(bat<0.1||h2<0.1){isSatellite=false;phase=F.TARGET;Runtime.UpdateFrequency=UpdateFrequency.Update10;EnableThrust(true);}
         foreach(var s in sensors){var det=new List<MyDetectedEntityInfo>();s.DetectedEntities(det);foreach(var e in det){if(IsValidTgt(e.Relationship)){IGC.SendBroadcastMessage("ENEMY_SIGNAL",$"{e.Position.X:F0},{e.Position.Y:F0},{e.Position.Z:F0}");BroadcastSatStatus();}}}
         CheckSatCommands();
         RelayMissileTraffic();
@@ -416,11 +417,11 @@ namespace IngameScript
         var msg=cmdListener.AcceptMessage();
         if(msg.Data is string){
         string cmd=(string)msg.Data;
-        if(cmd=="DEORBIT"||cmd=="DETONATE"){isSatellite=false;phase=F.TARGET;EnableThrust(true);}
+        if(cmd=="DEORBIT"||cmd==$"DEORBIT:{padID}"||cmd==$"DETONATE:{padID}"){isSatellite=false;phase=F.TARGET;Runtime.UpdateFrequency=UpdateFrequency.Update10;EnableThrust(true);}
         else if(cmd.StartsWith("ATTACK:")){
         var p=cmd.Substring(7).Split(',');
         if(p.Length==3){double x,y,z;if(double.TryParse(p[0],out x)&&double.TryParse(p[1],out y)&&double.TryParse(p[2],out z)){
-        tgtGPS=new Vector3D(x,y,z);mode=T.GPS;isSatellite=false;phase=F.TARGET;EnableThrust(true);}}
+        tgtGPS=new Vector3D(x,y,z);mode=T.GPS;isSatellite=false;phase=F.TARGET;Runtime.UpdateFrequency=UpdateFrequency.Update10;EnableThrust(true);}}
         }}}
         }
         
@@ -475,7 +476,7 @@ namespace IngameScript
         void CheckRemoteCmd(){
         while(cmdListener!=null&&cmdListener.HasPendingMessage){
         var msg=cmdListener.AcceptMessage();
-        if(msg.Data is string){string cmd=(string)msg.Data;if(cmd==$"DETONATE:{padID}")Detonate();else if(cmd=="DETONATE"&&padID>0)Detonate();else if(cmd=="MERGE"&&merge!=null)merge.Enabled=true;}
+        if(msg.Data is string){string cmd=(string)msg.Data;if(cmd==$"DETONATE:{padID}")Detonate();else if(cmd==$"RESET:{padID}"||cmd=="RESET")SafeReset();else if(cmd=="MERGE"&&merge!=null)merge.Enabled=true;}
         }
         }
         
@@ -534,7 +535,7 @@ namespace IngameScript
         GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid);
         foreach(var b in all){
         string nm=b.CustomName.ToUpper();
-        if(nm.Contains("[PAD")||nm.Contains("[CONTROLLER")||nm.Contains("-PRINT]"))continue;
+        if((nm.Contains("[PAD")&&!nm.Contains("MISSILE"))||nm.Contains("[CONTROLLER")||nm.Contains("-PRINT]"))continue;
         if(b is IMyRemoteControl&&rc==null)rc=b as IMyRemoteControl;
         if(b is IMyGyro)gyros.Add(b as IMyGyro);
         if(b is IMyThrust)thrusters.Add(b as IMyThrust);
@@ -550,7 +551,7 @@ namespace IngameScript
         if(b is IMyShipMergeBlock&&merge==null)merge=b as IMyShipMergeBlock;
         if(b is IMyShipConnector&&b.CustomName.Contains("[AMMO]"))ammoConnector=b as IMyShipConnector;
         }
-        foreach(var g in gyros){g.GyroOverride=true;}
+        foreach(var g in gyros){g.Enabled=true;g.GyroOverride=true;}
         }
         string BT(IMyTerminalBlock b){
         string s=b.BlockDefinition.SubtypeId;
@@ -576,7 +577,7 @@ namespace IngameScript
         }
         void NameParts(){
         if(mslNumber<=0)return;
-        string tag=$"PAD{padID} Missile #{mslNumber}";
+        string tag=$"[PAD{padID}] Missile #{mslNumber}";
         foreach(var b in batteries)b.CustomName=$"{tag} {BT(b)}";
         foreach(var t in h2tanks)t.CustomName=$"{tag} {BT(t)}";
         foreach(var g in generators)g.CustomName=$"{tag} {BT(g)}";
@@ -646,13 +647,16 @@ namespace IngameScript
         }}
         
         void EnableThrustUp(Vector3D upDir){
+        int enabled=0;
         foreach(var t in thrusters){
         Vector3D thrustDir=-t.WorldMatrix.Forward;
         double dot=Vector3D.Dot(thrustDir,upDir);
-        if(dot>0.7){t.Enabled=true;t.ThrustOverridePercentage=1f;}
-        else if(dot>0.3){t.Enabled=true;t.ThrustOverridePercentage=(float)((dot-0.3)/0.4);}
+        if(dot>0.7){t.Enabled=true;t.ThrustOverridePercentage=1f;enabled++;}
+        else if(dot>0.3){t.Enabled=true;t.ThrustOverridePercentage=(float)((dot-0.3)/0.4);enabled++;}
         else{t.Enabled=false;t.ThrustOverridePercentage=0f;}
-        }}
+        }
+        if(enabled==0){foreach(var t in thrusters){t.Enabled=true;t.ThrustOverridePercentage=1f;}}
+        }
         
         Vector3D? GetTarget(){
         switch(mode){
@@ -688,6 +692,8 @@ namespace IngameScript
         var det=new List<MyDetectedEntityInfo>();
         s.DetectedEntities(det);
         foreach(var e in det){
+        if(e.EntityId==Me.CubeGrid.EntityId)continue;
+        if(Vector3D.Distance(e.Position,myPos)<5)continue;
         if(IsValidTgt(e.Relationship)){
         double d=Vector3D.Distance(myPos,e.Position);
         if(d<closestDist){closestDist=d;closest=e.Position;}
@@ -696,23 +702,24 @@ namespace IngameScript
         }
         
         Vector3D? GetLidarTarget(){
+        Vector3D myPos=Me.GetPosition();
         foreach(var c in cameras){
         if(c.CanScan(lidarRange)){
         lidarHit=c.Raycast(lidarRange,0,0);
-        if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)){
+        if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>5){
         lidarLock=true;
         lidarTgt=lidarHit.Position;
         return lidarHit.Position;
         }
         for(double a=lidarAng;a<=45;a+=lidarAng){
         lidarHit=c.Raycast(lidarRange,(float)a,0);
-        if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+        if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>5){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
         lidarHit=c.Raycast(lidarRange,(float)-a,0);
-        if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+        if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>5){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
         lidarHit=c.Raycast(lidarRange,0,(float)a);
-        if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+        if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>5){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
         lidarHit=c.Raycast(lidarRange,0,(float)-a);
-        if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+        if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>5){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
         }}}
         lidarLock=false;
         lidarTgt=null;
@@ -748,12 +755,12 @@ namespace IngameScript
         Vector3D fwd=rc.WorldMatrix.Forward;
         Vector3D up=rc.WorldMatrix.Up;
         Vector3D right=rc.WorldMatrix.Right;
-        double pitchErr=Math.Asin(MathHelper.Clamp(Vector3D.Dot(upDir,fwd),-1,1));
-        double rollErr=Math.Asin(MathHelper.Clamp(Vector3D.Dot(upDir,right),-1,1));
-        double gain=1.5;
+        double pitchErr=Math.Asin(MathHelper.Clamp(Vector3D.Dot(upDir,up),-1,1));
+        double yawErr=Math.Atan2(Vector3D.Dot(upDir,right),Vector3D.Dot(upDir,fwd));
+        double gain=2.0;
         foreach(var g in gyros){
         MatrixD gm=g.WorldMatrix;
-        Vector3D desiredAngVel=-right*pitchErr*gain-fwd*rollErr*gain;
+        Vector3D desiredAngVel=up*yawErr*gain-right*pitchErr*gain;
         g.Pitch=(float)Vector3D.Dot(desiredAngVel,gm.Right);
         g.Yaw=(float)Vector3D.Dot(desiredAngVel,gm.Up);
         g.Roll=(float)Vector3D.Dot(desiredAngVel,gm.Backward);
@@ -839,8 +846,20 @@ namespace IngameScript
         g.Roll=(float)Vector3D.Dot(desiredAngVel,gm.Backward);
         }}
         
+        void SafeReset(){
+        phase=F.IDLE;
+        warheadsArmed=false;
+        Runtime.UpdateFrequency=UpdateFrequency.Update100;
+        if(merge!=null)merge.Enabled=true;
+        foreach(var w in warheads)w.IsArmed=false;
+        foreach(var t in thrusters){t.Enabled=false;t.ThrustOverridePercentage=0f;}
+        foreach(var g in gyros){g.GyroOverride=false;g.Pitch=0;g.Yaw=0;g.Roll=0;}
+        foreach(var b in batteries)b.ChargeMode=ChargeMode.Recharge;
+        SendFinalStatus("SAFE_RESET");
+        }
         void Detonate(){
         if(isSatellite)return;
+        if(distFromPad<100){SendFinalStatus("DETONATE_BLOCKED_ON_PAD");SafeReset();return;}
         SendFinalStatus("IMPACT");
         phase=F.IDLE;
         Runtime.UpdateFrequency=UpdateFrequency.None;
@@ -860,18 +879,23 @@ namespace IngameScript
         string md=mode==T.GPS?"GPS":mode==T.ANTENNA?"ANT":mode==T.SENSOR?"SNS":mode==T.LIDAR?"LDR":mode==T.SATELLITE?"SAT":"MAN";
         string ev=inSpace?"SPACE":"GRAV";
         string hdr=isSatellite?"SATELLITE RELAY":"MISSILE GUIDANCE";
+        string mslId=mslNumber>0?$"PAD{padID} MSL#{mslNumber}":"UNASSIGNED";
         string s=$"Unity Missile System\nUnityMissile [{hdr}]\n+-------------------+\n";
+        s+=$"| PB: {mslId,-13} |\n";
         s+=$"| Phase: {ph,-10} |\n| Mode:  {md,-6} {ev,-4}|\n";
         s+=$"+-------------------+\n";
         s+=$"| RC:{(rc!=null?"Y":"N")} Gyr:{gyros.Count} Thr:{thrusters.Count,-2} |\n";
         s+=$"| Cam:{cameras.Count} Sen:{sensors.Count} Ant:{antennas.Count,-2} |\n";
+        s+=$"| Bat:{batteries.Count} H2:{h2tanks.Count} Gen:{generators.Count,-2} |\n";
         s+=$"| Warheads: {warheads.Count,-2} {(warheads.Count>0&&warheads[0].IsArmed?"#ARM#":"-SFE-")}|\n";
         s+=$"| TX:{(antBroadcast?"ON":"OFF")} Ch:{broadcastTag,-8} |\n";
         s+=$"+-------------------+\n";
         if(phase==F.IDLE){
         s+=$"| Awaiting LAUNCH   |\n";
-        s+=$"| ICBM: {(launchedFromGrav?"PLANET":"SPACE ")}    |\n";
-        s+=$"| Burn:{burnTime}s Reentry:{reentryDist/1000:F1}k|\n";
+        string fmStr=flightMode==1?"ICBM":"DIRECT";
+        bool hasGrav=rc!=null&&rc.GetNaturalGravity().Length()>0.05;
+        s+=$"| Mode: {fmStr,-6} {(hasGrav?"GRAV":"SPACE")} |\n";
+        s+=$"| Climb:{climbDist:F0}m Det:{detDist:F0}m  |\n";
         }else if(phase==F.CLIMB){
         double dist=Vector3D.Distance(Me.GetPosition(),launchPos);
         double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
@@ -927,7 +951,10 @@ namespace IngameScript
         s+=$"| Det Range: {detDist,4:F0}m  |\n";
         if(mode==T.LIDAR)s+=$"| LIDAR: {(lidarLock?"*LOCK":"-SCAN")}       |\n";
         }
-        s+=$"+-------------------+";
+        s+=$"+-------------------+\n";
+        s+="--- COMMANDS ---\n";
+        s+="LAUNCH - Begin flight sequence\n";
+        s+="NAME - Auto-name missile parts";
         Echo(s);
         }
         

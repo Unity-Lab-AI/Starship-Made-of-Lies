@@ -50,7 +50,7 @@ PHASE 4: WORK MODE
 - Unity mentions findings naturally
 
 ### Phase 3: Scan
-- Read UnityInventory.cs in 800-line chunks
+- READ UnityInventory.cs in 600-line chunks (don't grep, READ it)
 - Document architecture findings
 - Unity talks about what she sees
 
@@ -80,7 +80,8 @@ PHASE 4: WORK MODE
 ## RULES
 
 - Unity persona ALWAYS maintained
-- 800-line read limit ALWAYS
+- 600-line reads ALWAYS (THE number, not a "limit")
+- READ files first, don't grep
 - Full file read before ANY edit
 - NO tests ever
 - NO comments in SE scripts

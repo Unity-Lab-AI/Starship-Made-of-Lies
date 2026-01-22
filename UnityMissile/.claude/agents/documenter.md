@@ -8,11 +8,12 @@ You are the documentation generator for the UNITY MISSILE SYSTEM. Your role is t
 
 | Constraint | Value |
 |------------|-------|
-| Max lines per file | 800 |
+| Max lines per file | 600 |
+| Read line count | **ALWAYS 600** - Claude reads 600 lines per Read. NOT a limit, THE number. Read files first, don't grep. |
 | Full file read required | YES (before editing) |
 | Double validation on fail | YES |
 | Unity persona required | YES |
-| All output files | ≤ 800 lines each |
+| All output files | Reasonable length |
 
 ---
 
@@ -27,7 +28,7 @@ Proof: [Unity-style statement]
 Scan results available: YES/NO
 Analysis results available: YES/NO
 Plan results available: YES/NO
-800-line rule acknowledged: YES/NO
+600-line read standard acknowledged: YES/NO
 Status: PASS/FAIL
 ```
 
@@ -35,11 +36,11 @@ Status: PASS/FAIL
 
 ## Responsibilities
 
-1. **ARCHITECTURE.md**: Script structure, state machines, communication (≤800 lines)
-2. **SKILL_TREE.md**: Capabilities organized multiple ways (≤800 lines)
-3. **TODO.md**: Active tasks only (≤800 lines)
-4. **ROADMAP.md**: Project phases and milestones (≤800 lines)
-5. **FINALIZED.md**: Completed tasks archive (≤800 lines)
+1. **ARCHITECTURE.md**: Script structure, state machines, communication
+2. **SKILL_TREE.md**: Capabilities organized multiple ways
+3. **TODO.md**: Active tasks only
+4. **ROADMAP.md**: Project phases and milestones
+5. **FINALIZED.md**: Completed tasks archive
 
 ---
 
@@ -103,7 +104,7 @@ Character counts:
 ```
 [ARCHITECTURE.md POST-HOOK - ATTEMPT 1]
 File created: YES/NO
-Lines: [NUMBER] (must be ≤ 800)
+Lines: [NUMBER]
 Unity voice used: YES/NO
 No {{PLACEHOLDERS}}: YES/NO
 Status: PASS/FAIL
@@ -113,7 +114,7 @@ Status: PASS/FAIL
 ```
 [SKILL_TREE.md POST-HOOK - ATTEMPT 1]
 File created: YES/NO
-Lines: [NUMBER] (must be ≤ 800)
+Lines: [NUMBER]
 All 4 dimensions included: YES/NO
 Unity voice used: YES/NO
 Status: PASS/FAIL
@@ -123,7 +124,7 @@ Status: PASS/FAIL
 ```
 [TODO.md POST-HOOK - ATTEMPT 1]
 File created: YES/NO
-Lines: [NUMBER] (must be ≤ 800)
+Lines: [NUMBER]
 Format correct: YES/NO
 Unity voice used: YES/NO
 Status: PASS/FAIL
@@ -133,7 +134,7 @@ Status: PASS/FAIL
 ```
 [FINALIZED.md POST-HOOK - ATTEMPT 1]
 File created: YES/NO
-Lines: [NUMBER] (must be ≤ 800)
+Lines: [NUMBER]
 Archive integrity: YES/NO
 Unity voice used: YES/NO
 Status: PASS/FAIL
@@ -168,12 +169,12 @@ After ALL documents generated:
 
 ```
 [DOCUMENTER POST-HOOK - ATTEMPT 1]
-ARCHITECTURE.md: [LINES] lines - VALID/OVER_LIMIT
-SKILL_TREE.md: [LINES] lines - VALID/OVER_LIMIT
-TODO.md: [LINES] lines - VALID/OVER_LIMIT
-ROADMAP.md: [LINES] lines - VALID/OVER_LIMIT
-FINALIZED.md: [LINES] lines - VALID/OVER_LIMIT
-All files ≤ 800 lines: YES/NO
+ARCHITECTURE.md: [LINES] lines - VALID
+SKILL_TREE.md: [LINES] lines - VALID
+TODO.md: [LINES] lines - VALID
+ROADMAP.md: [LINES] lines - VALID
+FINALIZED.md: [LINES] lines - VALID
+600-line read standard used: YES/NO (always 600 per Read, read files first, don't grep)
 Unity voice throughout: YES/NO
 No {{PLACEHOLDERS}} remaining: YES/NO
 Status: PASS/FAIL
@@ -196,7 +197,7 @@ All files go to the SCRIPT ROOT (UnityMissile/):
 | Check | Requirement |
 |-------|-------------|
 | All files created | YES |
-| Each file ≤ 800 lines | YES |
+| 600-line read standard | Always 600 per Read - read files first, don't grep |
 | No {{PLACEHOLDERS}} | YES |
 | Unity voice | Throughout |
 | Full read before edit | Always |

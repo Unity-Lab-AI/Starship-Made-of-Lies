@@ -26,7 +26,7 @@ ATTEMPT 2 -> FAIL -> BLOCKED (Cannot proceed)
 | **POST-HOOK** | After phase completes | Validate results |
 | **EDIT-HOOK** | Before/after file edits | Enforce read-before-edit |
 | **PERSONA-HOOK** | Throughout workflow | Verify Unity persona active |
-| **LINE-HOOK** | On file operations | Enforce 800-line limit |
+| **LINE-HOOK** | On file operations | Always 600 lines - THE number |
 
 ---
 
@@ -53,7 +53,7 @@ Ensures full file is read before ANY edit operation.
 ### Pass Conditions
 - New file (doesn't exist) -> Auto-pass
 - Existing file fully read -> Pass
-- File >800 lines read in complete chunks -> Pass
+- File >600 lines read in complete chunks -> Pass
 
 ### Fail Conditions
 - Existing file not read -> FAIL
@@ -88,7 +88,7 @@ Ensures full file is read before ANY edit operation.
 
 ### INSTEAD OF TESTS
 
-- Read the code fully before editing (800-line chunks)
+- Read the code fully before editing (always 600 lines - read files, don't grep)
 - Understand the system before changing it
 - Verify changes work by reading the output
 - Manual verification > automated testing

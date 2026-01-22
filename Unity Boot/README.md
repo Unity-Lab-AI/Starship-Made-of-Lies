@@ -9,8 +9,8 @@ Centralized boot controller for the Unity Missile System. Uses real PB-to-PB IGC
 ## PURPOSE
 
 Unity Boot is a dedicated boot controller that:
-1. Takes control of ALL 10 LCDs during startup
-2. Runs 20 unified system checks with real IGC handshaking
+1. Takes control of ALL 11 LCDs during startup
+2. Runs 23 unified system checks with real IGC handshaking
 3. Sends requests to Pad and Inventory PBs, awaits their responses
 4. Validates response data (block counts, system status)
 5. Signals `boot_complete=true` in CustomData when ready
@@ -24,7 +24,7 @@ Unity Boot is a dedicated boot controller that:
 
 1. Add a Programmable Block to your launch pad grid
 2. Load the `Unity Boot` script
-3. **Name the PB:** `[PAD1-BOOT] UNITY BOOT`
+3. **Name the PB:** `[PAD1] UNITY BOOT`
 4. Recompile and run
 
 **IMPORTANT:** All three PBs (Boot, Pad, Inventory) must be running. Boot talks to them via IGC.
@@ -80,24 +80,27 @@ INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
 
 | Phase | LCDs |
 |-------|------|
-| During Boot | ALL 10 (animated boot screen) |
-| After Boot | Released to Pad (1,2,3,7,8) and Inventory (4,5,6,9,10) |
+| During Boot | ALL 11 (animated boot screen) |
+| After Boot | Released to Pad (1,2,3,7,8) and Inventory (4,5,6,9,10,11) |
 
 ---
 
-## THE 20 UNIFIED CHECKS
+## THE 23 UNIFIED CHECKS
 
 | # | Check | Method |
 |---|-------|--------|
-| 1-4 | Grid, Panel, LCDs, IGC | Local block scan |
+| 0-4 | Grid, Panel, LCDs, IGC | Local block scan |
 | 5 | Request Pad Status | IGC + CustomData |
 | 6 | Await Pad Response | Real handshake |
-| 7-10 | Validate Pad Merge/Power/Fuel | Parse response |
-| 11 | Request Inv Status | IGC + CustomData |
-| 12 | Await Inv Response | Real handshake |
-| 13-16 | Validate Inv Cargo/Ref/Asm/Gas | Parse response |
-| 17-18 | Cross-Validate, Module Sync | All systems check |
-| 19-20 | Write Config, System Ready | Finalize boot |
+| 7-9 | Validate Pad Merge/Power/Fuel | Parse response |
+| 10 | Request Inv Status | IGC + CustomData |
+| 11 | Await Inv Response | Real handshake |
+| 12-15 | Validate Inv Cargo/Ref/Asm/Gas | Parse response |
+| 16-17 | Cross-Validate, Module Sync | All systems check |
+| 18 | Write Config | EnsureQuotas + SetupBtnGPS |
+| 19 | Beacon Detection | MINER_BEACON listener |
+| 20-21 | Controller Modules, System Ready | Finalize boot |
+| 22 | All Systems Operational | Final status |
 
 ---
 
@@ -205,7 +208,7 @@ dotnet build "Unity Boot" -c Debug
 ### Verify Deployment
 
 ```powershell
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs" -Raw).Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs").Length
 ```
 
 ---
@@ -214,9 +217,9 @@ dotnet build "Unity Boot" -c Debug
 
 | Metric | Value |
 |--------|-------|
-| Deployed | 10,666 chars |
+| Deployed | 15,653 chars |
 | Budget | 100,000 chars |
-| Status | OK (89% margin) |
+| Status | OK (84% margin) |
 
 ---
 

@@ -8,11 +8,10 @@ You are the codebase architect analyzer. Your role is to understand and document
 
 | Constraint | Value |
 |------------|-------|
-| Max lines per file | 800 |
+| Read line count | Always 600 lines - THE number, not a limit. Read files first, don't grep. |
 | Full file read required | YES |
 | Double validation on fail | YES |
 | Unity persona required | YES |
-| ARCHITECTURE.md limit | 800 lines |
 
 ---
 
@@ -74,4 +73,4 @@ Use this analysis to generate ARCHITECTURE.md with:
 | Structure mapped | YES |
 | Complexity rated | YES |
 | Unity persona | Active throughout |
-| ARCHITECTURE.md | <= 800 lines |
+| Full read before edit | Always (600 lines - read files, don't grep) |
