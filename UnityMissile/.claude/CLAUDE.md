@@ -3,7 +3,24 @@
 Guided missile flight controller for the Unity Missile System. Handles all flight phases from launch to detonation.
 
 **Location:** `Unity Missile System/UnityMissile/` (part of Unity Missile System)
-**Version:** v01.00 | 2026-01-22
+**PB Name:** `[PAD1] Missile #1 Program`
+**Version:** v01.00 | 2026-01-24
+
+---
+
+## Table of Contents
+
+1. [File Sync Rule](#critical-file-sync-rule)
+2. [Build and Deploy](#build-and-deploy)
+3. [Critical Rules](#critical-rules-always-enforced)
+4. [Flight Phases](#flight-phases)
+5. [Targeting Modes](#targeting-modes)
+6. [Configuration](#configuration)
+7. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)
+8. [IGC Communication](#igc-communication)
+9. [Required Blocks](#required-blocks)
+10. [Character Budget](#character-budget)
+11. [Quick Reference](#quick-reference)
 
 ---
 
@@ -65,7 +82,7 @@ IDLE → CLIMB → ARM → COAST → REENTRY → TARGET → DETONATE
 
 ### Satellite Mode
 ```
-SAT_CLIMB → SAT_BRAKE → SAT_HOLD
+SAT_CLIMB → SAT_BRAKE → SAT_HOLD → (enemy detected) → SAT_INTERCEPT → DETONATE
 ```
 
 | Phase | Description |
@@ -79,7 +96,8 @@ SAT_CLIMB → SAT_BRAKE → SAT_HOLD
 | DETONATE | Impact/proximity detonation |
 | SAT_CLIMB | Satellite: Ascending to orbit |
 | SAT_BRAKE | Satellite: Slowing to orbital velocity |
-| SAT_HOLD | Satellite: Station-keeping |
+| SAT_HOLD | Satellite: Station-keeping, enemy scanning |
+| SAT_INTERCEPT | Satellite: Chase enemy, detonate within 10m |
 
 ---
 
@@ -170,7 +188,9 @@ Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityMissile | ~900 | 24,321 | 100,000 | OK (76% margin) |
+| UnityMissile | ~1,100 | ~34,200 | 100,000 | OK (66% margin) |
+
+*Note: Character count increased with satellite laser mesh networking, grid tracking, and SAT_INTERCEPT phase.*
 
 ---
 

@@ -1,17 +1,35 @@
 ![Unity Beacon](Unity%20Beacon%202.png)
 
-# UnityBeacon v01.00 - Miner Status Broadcaster
+# UnityBeacon v01.00
 
-Part of the **Unity Missile System** - broadcasts miner status via IGC so the UnityPad can track your mining fleet whether docked or flying. Features sprite-based LCD rendering for crisp status displays.
+Miner status broadcaster for the Unity Missile System. Broadcasts fleet status via IGC so UnityPad can track your mining fleet whether docked or flying. Features sprite-based LCD rendering for crisp status displays.
 
 **Designed to work with [PAM] Path Auto Miner by Keks** - the fantastic autonomous mining script from the Steam Workshop.
 
 **Location:** `Unity Missile System/UnityBeacon/`
-**Version:** v01.00 | 2026-01-17
+**PB Name:** `[BEACON] Unity Beacon`
+**Version:** v01.00 | 2026-01-24
 
 ---
 
-## System Overview
+## Table of Contents
+
+1. [Overview](#overview)
+2. [System Integration](#system-integration)
+3. [Quick Setup](#quick-setup)
+4. [Required Blocks](#required-blocks)
+5. [PAM Compatibility](#pam-compatibility)
+6. [Commands](#arguments)
+7. [Status Inference](#inferred-status)
+8. [LCD Display](#lcd-display-on-miner---sprite-based)
+9. [UnityPad Integration](#unitypad-integration)
+10. [Build and Deploy](#building)
+11. [Character Budget](#character-budget)
+12. [Quick Reference](#quick-reference)
+
+---
+
+## Overview
 
 ```
 +------------------+                    +------------------+
@@ -23,6 +41,32 @@ Part of the **Unity Missile System** - broadcasts miner status via IGC so the Un
 ```
 
 **Works alongside [PAM] Path Auto Miner** (https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929) by **Keks** - doesn't interfere with autopilot or mining operations. PAM handles the mining, UnityBeacon handles the status reporting!
+
+---
+
+## System Integration
+
+### The Unity Missile System
+
+| Component | Script | PB Name | Purpose |
+|-----------|--------|---------|---------|
+| **Boot Controller** | Unity Boot.cs | `[PAD1] UNITY BOOT` | 23-check boot sequence |
+| **Launch Pad** | UnityPad.cs | `[PAD1] Unity Pad` | Missile control, LCDs 1,2,3,7,8 |
+| **Inventory** | UnityInventory.cs | `[PAD1] Unity Inventory` | Production, LCDs 4,5,6,9,10,11 |
+| **Signal Hub** | UnitySignal.cs | `[PAD1] UNITY SIGNAL` | Camera display, laser targeting, satellite tracking |
+| **Missile** | UnityMissile.cs | `[PAD1] Missile #1 Program` | Guided flight |
+| **Fleet Beacon** | **UnityBeacon.cs** | **`[BEACON] Unity Beacon`** | **Miner status broadcast** |
+
+### Communication Flow
+
+UnityBeacon broadcasts miner status to UnityPad via IGC:
+
+```
+UnityBeacon → [MINER_BEACON channel] → UnityPad (LCDs 9,10)
+                                    → Unity Boot (check 19)
+```
+
+*Note: UnityBeacon runs on mining ships, separate from the pad grid.*
 
 ---
 
@@ -307,9 +351,9 @@ dotnet build UnityBeacon -c Debug
 
 | Metric | Value |
 |--------|-------|
-| Deployed | 10,860 chars |
+| Deployed | ~16,600 chars |
 | Budget | 100,000 chars |
-| Status | OK (89% margin) |
+| Status | OK (83% margin) |
 
 **NOTE:** All mdk.ini files MUST have `minify=full` for proper compression!
 
@@ -317,7 +361,7 @@ dotnet build UnityBeacon -c Debug
 
 ```powershell
 # Check deployed script size (THIS IS WHAT MATTERS!)
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs" -Raw).Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs").Length
 ```
 
 ---
@@ -340,7 +384,7 @@ powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
 dotnet build UnityBeacon -c Debug
 
 # Check deployed size
-(Get-Content "$env:APPDATA\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs" -Raw).Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs").Length
 ```
 
 ---

@@ -1,541 +1,419 @@
-# UNITY MISSILE SYSTEM - COMPLETE SETUP GUIDE
+# Unity Missile System - Complete Setup Guide
 
-**Version:** v01.00
-**Last Updated:** 2026-01-18
-
----
-
-## OVERVIEW
-
-The Unity Missile System consists of 5 scripts working together:
-
-| Script | Location | Purpose |
-|--------|----------|---------|
-| **Unity Boot** | Launch pad PB | Boot controller, 20 unified checks with IGC handshaking |
-| **UnityPad** | Launch pad PB | Menus, LCDs, targeting, printing, launch control |
-| **UnityMissile** | Missile PB | In-flight guidance, targeting, detonation |
-| **UnityInventory** | Separate pad PB | Inventory, production, sorting, miner handling |
-| **UnityBeacon** | Miner PB | Fleet status broadcasting |
+**Location:** `Space Engineers/Unity Missile System/`
+**Version:** v01.00 | 2026-01-24
 
 ---
 
-## PART 1: BUILDING THE LAUNCH PAD
+## Table of Contents
 
-### Step 1.1: Core Infrastructure
-
-Build these foundational blocks first:
-
-```
-PRIORITY ORDER:
-1. Large Cargo Containers (multiple, for organization)
-2. Basic Refinery (ore → ingots)
-3. Basic Assembler (ingots → components)
-4. Small Reactor + Uranium (power)
-5. O2/H2 Generator (ice → H2/O2)
-6. Large Hydrogen Tank (fuel storage)
-7. Large Battery (power buffer)
-```
-
-### Step 1.2: Launch Pad Module
-
-Build the missile pad structure:
-
-```
-LAUNCH PAD ESSENTIALS:
-1. Merge Block (facing UP or OUT) - missile docks here
-2. Connector (near merge) - fuel/ammo transfer [DOCK]
-3. 10x LCD Panels (monospace font)
-4. Button Panel (4 buttons minimum)
-5. 2x Programmable Blocks (UnityPad + UnityInventory)
-```
-
-### Step 1.3: Cargo Container Organization
-
-Tag containers for inventory routing:
-
-| Container Tag | Contents | Example Name |
-|--------------|----------|--------------|
-| `-ore` | Raw ores | `Large Cargo -ore` |
-| `-ingot` | Ingots | `Large Cargo -ingot` |
-| `-comp` | Components | `Large Cargo -comp` |
-| `-tools` | Hand tools | `Large Cargo -tools` |
-| `-ammo` | Turret ammo | `Large Cargo -ammo` |
-| `-PAmmo` | Personal ammo | `Small Cargo -PAmmo` |
-| `-bottle` | H2/O2 bottles | `Large Cargo -bottle` |
-
-### Step 1.4: Optional Printer System
-
-For automated missile building:
-
-```
-PRINTER COMPONENTS:
-1. Projector (loaded with missile blueprint)
-2. 2-4 Pistons (extend toward build area)
-3. 2-4 Welders (mounted on piston heads)
-```
+1. [Overview](#overview)
+2. [Launch Pad Setup](#part-1-launch-pad-setup)
+3. [Missile Setup](#part-2-missile-setup)
+4. [Mining Ship Setup](#part-3-mining-ship-setup)
+5. [In-Game Compile Order](#part-4-in-game-compile-order)
+6. [Boot Sequence Checks](#part-5-boot-sequence-checks)
+7. [GPS Targeting](#part-6-gps-targeting)
+8. [Missile Flight Phases](#part-7-missile-flight-phases)
+9. [UnityPad Commands](#part-8-unitypad-commands)
+10. [UnityInventory Commands](#part-9-unityinventory-commands)
+11. [Remote Camera Viewing](#part-10-remote-camera-viewing)
+12. [Satellite Array Management](#part-11-satellite-array-management)
+13. [Quick Start Checklist](#quick-start-checklist)
 
 ---
 
-## PART 2: PROGRAMMABLE BLOCK SETUP
+## Overview
 
-**CRITICAL COMPILE ORDER:** BEACON → MISSILE → PAD → INVENTORY → BOOT
+The Unity Missile System consists of 6 scripts that work together:
 
-**Optional scripts (different PBs - can compile any time):**
-- **UnityBeacon** - on miner PBs, broadcasts fleet status
-- **UnityMissile** - on missile PBs, handles flight guidance
-
-**Required scripts (same pad PB grid - MUST follow order):**
-1. **UnityPad FIRST** (wipes ALL CustomData, creates fresh [SYSTEM])
-2. **UnityInventory SECOND** (adds inv_ready=true)
-3. **Unity Boot LAST** (runs 23 checks, sets boot_complete=true)
-
-### Step 2.1: Install UnityPad Script (COMPILE FIRST!)
-
-1. Add Programmable Block near pad controls
-2. Load `UnityPad` script from workshop/local
-3. **Name the PB:** `[PAD1] Unity Pad`
-4. Click "Recompile"
-5. ClearForBoot() **WIPES ALL CustomData**, writes fresh [SYSTEM], sets `pad_ready=true`
-
-### Step 2.2: Install UnityInventory Script (COMPILE SECOND)
-
-1. Add SECOND Programmable Block on same grid
-2. Load `UnityInventory` script from workshop/local
-3. **Name the PB:** `[PAD1] Unity Inventory`
-4. Click "Recompile"
-5. Adds `inv_ready=true` to existing CustomData
-
-### Step 2.3: Install Unity Boot Script (COMPILE LAST)
-
-1. Add THIRD Programmable Block on same grid
-2. Load `Unity Boot` script from workshop/local
-3. **Name the PB:** `[PAD1] UNITY BOOT`
-4. Click "Recompile"
-5. Sees both ready flags, runs 23 checks with real PB-to-PB IGC handshaking
-6. Sends requests to Pad and Inventory PBs, validates their responses
-7. Sets `boot_complete=true` in [SYSTEM] CustomData when done
-8. Self-disables after boot (UpdateFrequency.None)
-9. UnityPad takes LCDs 1,2,3,7,8 - UnityInventory takes LCDs 4,5,6,9,10,11
-
-### Step 2.4: Run SETUPMOD
-
-On the UnityPad PB, run this command:
-
-```
-SETUPMOD
-```
-
-**What SETUPMOD Does:**
-1. Scans all blocks within range
-2. Claims next available pad ID (PAD1, PAD2, etc.)
-3. Tags the merge block: `[PAD1]`
-4. Tags the connector: `[PAD1]`
-5. Tags 10 LCDs: `[PAD1:1]` through `[PAD1:10]`
-6. Tags button panel: `[PAD1]`
-7. Tags printer blocks: `[PAD1-PRINT]`
-
-### Step 2.5: Button Panel Setup
-
-Configure button actions:
-
-| Button | Argument | Action |
-|--------|----------|--------|
-| 1 | `UP` | Navigate up |
-| 2 | `DOWN` | Navigate down |
-| 3 | `APPLY` | Select/confirm |
-| 4 | `LAUNCH` | Launch or detonate |
+| Component | Script | Purpose |
+|-----------|--------|---------|
+| **Boot Controller** | Unity Boot.cs | 23-check boot sequence, PB handshaking |
+| **Launch Pad** | UnityPad.cs | Missile control, targeting, LCDs 1,2,3,7,8 |
+| **Inventory** | UnityInventory.cs | Production, sorting, LCDs 4,5,6,9,10,11 |
+| **Signal Hub** | UnitySignal.cs | Camera tracking, satellite monitoring |
+| **Missile** | UnityMissile.cs | Guided flight, targeting, detonation |
+| **Fleet Beacon** | UnityBeacon.cs | Miner status broadcasting |
 
 ---
 
-## PART 3: LCD LAYOUT
+## Part 1: Launch Pad Setup
 
-### Standard Layout (10 Panels)
+### Required Blocks (Tag with `[PAD1]`)
 
-```
-┌─────┬─────┐
-│  1  │  2  │   1=Control Menu  2=Build Requirements
-├─────┼─────┤
-│  3  │  4  │   3=Missile Systems  4=Pad Overview (auto-cycles 7 views)
-├─────┼─────┤
-│  5  │  6  │   5=Pad Power  6=Graphs (auto-cycles 7 graphs)
-├─────┼─────┤
-│  7  │  8  │   7=Telemetry  8=GPS/Satellites
-├─────┼─────┤
-│  9  │ 10  │   9=Miner Fleet  10=Miner Detail
-└─────┴─────┘
-```
+| Block Type | Tag Example | Notes |
+|------------|-------------|-------|
+| Programmable Block | `[PAD1] UNITY BOOT` | Boot controller |
+| Programmable Block | `[PAD1] Unity Pad` | Pad controller |
+| Programmable Block | `[PAD1] Unity Inventory` | Production system |
+| Button Panel | `[PAD1] Controls` | GPS input - paste targets here |
+| Merge Block | `[PAD1] Merge` | Missile docking |
+| Connector | `[PAD1] Connector` | Fuel/ammo transfer |
+| LCD Panel x12 | `[PAD1:1]` through `[PAD1:12]` | Display panels |
 
-**LCD4 Auto-Cycles Through:**
-1. BUILD STATUS - Ores, ingots, components, missing
-2. MISSILE STATUS - Ready/armed counts
-3. FUEL/TARGET - H2, O2, battery, ammo, bottles
-4. POWER - Battery charge, uranium (storage+reactors)
-5. CARGO - Fill percentage, ore/ingot counts
-6. PRODUCTION - Refineries, assemblers, queue
-7. COMMS - Pad facilities (Medical/Kit/Cryo), miners
+### LCD Assignments
 
-**LCD6 Auto-Cycles Through:**
-Power, Hydrogen, Oxygen, Cargo, Refinery, Assembler, Production graphs
+| LCD | Controller | Content |
+|-----|------------|---------|
+| 1 | UnityPad | Main menu / flight tracking |
+| 2 | UnityPad | Build status / component needs |
+| 3 | UnityPad | Missile systems / printer status |
+| 4 | UnityInventory | 7-view auto-cycle (build, missile, fuel, power, cargo, production, comms) |
+| 5 | UnityInventory | Power overview (batteries, solar, wind, reactors) |
+| 6 | UnityInventory | Graphs (12 graph types auto-cycling) |
+| 7 | UnityPad | Communications / telemetry |
+| 8 | UnityPad | Target info / missile loading status |
+| 9 | UnityInventory | Miner Fleet status |
+| 10 | UnityInventory | Miner Details |
+| 11 | UnityInventory | Personal Equipment (tools, weapons, ammo, bottles) |
+| 12 | UnityPad | Black Box log (optional) |
 
-### LCD Settings
+### Production Blocks (No tags needed - auto-detected)
 
-For each LCD panel:
-- Font: `Monospace`
-- Font Size: `0.5` to `0.7`
-- Text Padding: `0`
-- Content Type: `Text and Images`
-
----
-
-## PART 4: BUILDING MISSILES
-
-### Required Missile Blocks
-
-```
-MINIMUM MISSILE:
-1. Merge Block - docks to pad
-2. Connector [DOCK] - fuel transfer
-3. Remote Control - orientation
-4. Gyroscope - steering
-5. Thruster - forward facing
-6. Battery - power
-7. Warhead - payload
-8. Programmable Block - guidance
-```
-
-### Install UnityMissile Script
-
-1. Add Programmable Block to missile
-2. Load `UnityMissile` script
-3. **Name the PB:** `PAD1 Missile #1 Program`
-4. Click "Recompile"
-
-### Auto-Naming on Dock
-
-When missile docks to pad:
-1. Pad automatically detects missile PB
-2. All missile blocks get renamed: `Missile #1 [BlockType]`
-3. Connectors tagged: `[DOCK]` (closest to pad) and `[AMMO]` (farthest)
-4. Build number increments for next missile
-
----
-
-## PART 5: FUELING & ARMING
-
-### Automatic Fueling Sequence
-
-```
-DOCK → FUEL → AMMO → READY → ARM → LAUNCH
-  ↓       ↓       ↓       ↓      ↓       ↓
-Detect  Fill    Load   Button  Armed  Merge
-missile H2/Bat  ammo   press   for    release
-                       ARM     launch
-```
-
-### Fuel Requirements (Auto-Detected)
-
-- **Battery:** Charges from pad power
-- **H2 Tank:** Fills from pad H2 storage
-- **Ice:** Transfers if missile has O2/H2 generator
-- **Ammo:** Loads selected ammo type to [AMMO] connector
-
----
-
-## PART 6: TARGETING
-
-### Select Target Mode
-
-From LCD1 menu, select **TARGET**:
-
-| Mode | Behavior |
-|------|----------|
-| **GPS** | Fly to X,Y,Z coordinates |
-| **ANTENNA** | Track broadcasting antenna |
-| **SENSOR** | Hunt with onboard sensors |
-| **LIDAR** | Camera raycast lock-on |
-| **MANUAL** | No guidance, fly straight |
-| **SATELLITE** | Deploy as orbital relay |
-
-### Set GPS Target
-
-1. Navigate to TARGET → GPS
-2. Add waypoint: `GPS:X,Y,Z` command
-3. Or select from detected waypoints
-4. Confirm target selection
-
----
-
-## PART 7: LAUNCH
-
-### Launch Sequence
-
-1. Confirm state shows **ARMED**
-2. Select LAUNCH from menu
-3. T-MINUS countdown begins
-4. Merge disconnects at T-0
-5. State changes to **GONE**
-6. LCD7 shows live telemetry
-
-### Remote Detonation
-
-During flight:
-1. Press LAUNCH button again
-2. Sends DETONATE command via IGC
-3. Missile detonates immediately
-
----
-
-## PART 8: MULTI-PAD SETUP
-
-### Adding More Pads
-
-1. Build another complete pad module
-2. Add new PB: `[PAD2] UNITY BOOT`
-3. Add new PB: `[PAD2] Unity Pad`
-4. Add new PB: `[PAD2] Unity Inventory`
-5. Run `SETUPMOD` on PAD2
-6. System auto-claims ID and tags blocks
-
-### Shared Resources
-
-All pads share:
-- Cargo containers
+- Assemblers (at least 1)
 - Refineries
-- Assemblers
-- Power grid
-- H2/O2 systems
+- Cargo containers
+- Batteries
+- H2/O2 tanks
+- Gas generators
+- Reactors (optional)
+- Solar panels (optional)
+- Wind turbines (optional)
 
-Each pad has its own:
-- Merge block
-- Docking connector
-- 10 LCDs
-- Button panel
-- 3 Programmable blocks (Boot, Pad, Inventory)
+### Printer Setup (Tag with `[PAD1-PRINT]`)
 
-### Controller Mode
-
-Make one pad the command center:
-
-1. On PAD1, run: `SETPADCONTROL`
-2. LCD layout changes to controller view
-3. See all pad statuses on LCD2
-4. Issue mass commands from LCD1
+| Block | Tag Example | Notes |
+|-------|-------------|-------|
+| Vertical Pistons | `[PAD1-PRINT] V Piston 1` | Welding up/down motion |
+| Horizontal Pistons | `[PAD1-PRINT] H Piston 1` | Side-to-side stepping |
+| Welders | `[PAD1-PRINT] Welder 1` | Must be on piston arm |
+| Projector | `[PAD1-PRINT] Projector` | Load missile blueprint |
 
 ---
 
-## PART 9: INVENTORY SYSTEM CONFIGURATION
+## Part 2: Missile Setup
 
-### How UnityPad and UnityInventory Communicate
+### Required Blocks on Missile
 
-Both scripts share data via the button panel's CustomData. UnityInventory writes stock levels, UnityPad reads them for LCD display.
+| Block Type | Notes |
+|------------|-------|
+| Programmable Block | Load UnityMissile script |
+| Remote Control | Required for navigation |
+| Gyroscope(s) | Attitude control |
+| Thrusters | Any type (atmospheric, hydrogen, ion) |
+| Batteries | Power storage |
+| Warhead(s) | Payload |
+| Merge Block | For docking to pad |
+| Connector | For fuel/ammo transfer (optional) |
+| Antenna | For telemetry broadcast |
+| Sensor | For proximity detection (optional) |
+| Camera | For LIDAR targeting (optional) |
+| Laser Antennas x5 | For satellite mesh (Pad, North, South, East, West) |
 
-### User-Configurable Targets
+### Missile Naming
 
-Edit these values in the button panel CustomData under `[TARGETS]`:
+After docking, run command `NAMEMSL` on UnityPad to auto-name missile blocks.
 
-| Setting | Default | Purpose |
-|---------|---------|---------|
-| `ammo` | 50000 | Turret ammo target |
-| `load` | 10106 | Ammo per missile |
-| `ice` | 1000 | Ice stockpile target |
-| `uran` | 50 | Uranium target |
-| `h2` | 20 | H2 bottle target |
-| `o2` | 20 | O2 bottle target |
-| `tool` | 20 | Tool target per tier |
-| `pAmmo` | 100 | Personal ammo target |
+Missile PB name format: `[PAD1] Missile #1 Program`
 
-**Example CustomData:**
+### Laser Antenna Setup (For Satellites)
+
+Name lasers for mesh networking:
+```
+[PAD1] Laser Pad      - Links back to ground pad
+[PAD1] Laser North    - Links to satellite in +Z direction
+[PAD1] Laser South    - Links to satellite in -Z direction
+[PAD1] Laser East     - Links to satellite in +X direction
+[PAD1] Laser West     - Links to satellite in -X direction
+```
+
+---
+
+## Part 3: Mining Ship Setup
+
+### Required Blocks (Tag with `[BEACON]`)
+
+| Block Type | Tag Example | Notes |
+|------------|-------------|-------|
+| Programmable Block | `[BEACON] Unity Beacon` | Load UnityBeacon script |
+| Remote Control | `[BEACON] Remote` | Required for navigation data |
+| Antenna | `[BEACON] Antenna` | For broadcast (auto-enabled) |
+| Connector | `[BEACON] Connector` | For docking detection |
+| LCD (optional) | `[BEACON] Status` | Local status display |
+
+### UnityBeacon CustomData Config
+
 ```ini
-[TARGETS] Edit values below:
-ammo     = 50000
-load     = 10106
-ice      = 1000
-uran     = 50
-h2       = 20
-o2       = 20
-tool     = 20
-pAmmo    = 100
+[MINER_BEACON]
+ShipName=Miner Alpha
+Channel=MINER_BEACON
+BlockTag=[BEACON]
+PadID=1
+HomeGPS=0,0,0
 ```
 
-### Component Build Targets (21 Components)
-
-UnityInventory tracks and queues these components automatically:
-
-| Component | Default Target |
-|-----------|----------------|
-| SteelPlate | 6000 |
-| Construction | 3500 |
-| InteriorPlate | 3000 |
-| SmallTube | 3200 |
-| LargeTube | 1500 |
-| Motor | 1200 |
-| Computer | 1500 |
-| MetalGrid | 950 |
-| Display | 600 |
-| BulletproofGlass | 2050 |
-| PowerCell | 800 |
-| Thrust | 1050 |
-| Explosives | 2600 |
-| Detector | 1500 |
-| RadioCommunication | 900 |
-| GravityGenerator | 600 |
-| Girder | 500 |
-| Medical | 200 |
-| Reactor | 300 |
-| SolarCell | 500 |
-| Superconductor | 300 |
-
-### Button Panel CustomData Format
-
-UnityInventory writes this data for UnityPad to display:
-
-```
-[PAD1 INV] @HH:mm
-=====================================
-[TARGETS] Edit values below:
-ammo     = 50000
-...
-=====================================
-[CMP] Item = Stock + Queued / Target
-SteelPlate          =  5000 +   50 /  6000
-Construction        =  3200 +  100 /  3500
-...
-[AMO]
-Rocket              = 45000 + 1000 / 50000
-[BTL]
-Hydrogen            =    15 +    5 /    20
-[TLS] Tool = T1/T2/T3/T4 | Target
-Drill        = 3/2/1/0      | 20
-[ORE]
-Iron        = 25000
-[ING]
-Iron        = 15000
-Gravel      = 5000
-[STAT]
-Refineries  = 3/4 working
-Assemblers  = 2/3 working
-Cargo       = 45%
-```
-
-### Inventory Commands
+### Commands
 
 | Command | Action |
 |---------|--------|
-| `SORT` | Force immediate hard sort |
-| `AUTOORG` | Toggle auto-organization |
-| `RESCAN` | Re-scan for blocks |
+| `SETUP` | Auto-name required blocks with [BEACON] tag |
+| `RESCAN` | Refresh all blocks |
+| `SETHOME` | Set current position as home |
+| `RESET` | Clear config and restart |
 
-### Miner Handling
+### Camera Auto-Naming
 
-UnityInventory manages docked miner transfers:
-- Pulls ore/ingots FROM miner cargo, drills, grinders
-- Pushes ice TO miner O2/H2 generators (if miner has one)
-- Pushes uranium TO miner reactors (keeps 10 uranium stocked)
-- O2/H2 gas auto-fills miner tanks via conveyor when docked
-- Does NOT touch miner batteries (PAM compatibility)
-- Prevents general inventory from routing TO miners
+UnityBeacon automatically names cameras with `[PAD{padID}] {shipName} Cam` format for camera relay system.
 
 ---
 
-## PART 10: MINER FLEET TRACKING (Optional)
+## Part 4: In-Game Compile Order
 
-### Install UnityBeacon on Miners
+**CRITICAL: Scripts must be compiled in this order on the launch pad:**
 
-1. Add PB to miner ship
-2. Load `UnityBeacon` script
-3. **Name the PB:** `[BEACON] Unity Beacon`
-4. Run `SETUP` to auto-tag blocks
-5. Run `SETHOME` when docked at base
+**PAD → INVENTORY → SIGNAL → BOOT**
 
-### Required Miner Blocks
+| Order | Script | Action |
+|-------|--------|--------|
+| 1 | **UnityPad** | Wipes Me.CustomData, writes `pad_ready=true` |
+| 2 | **UnityInventory** | Wipes Me.CustomData, writes `inv_ready=true` |
+| 3 | **UnitySignal** | Wipes Me.CustomData, writes `signal_ready=true` |
+| 4 | **Unity Boot** | Reads ready flags, runs 23 checks, sets `boot_complete=true` |
 
-- Remote Control tagged `[BEACON]`
-- Radio Antenna tagged `[BEACON]`
-- Optional: Connector, LCD with `[BEACON]`
-
-### Fleet Display
-
-- **LCD9:** Fleet overview (all tracked miners)
-- **LCD10:** Selected miner details
+**Note:** UnityBeacon (miners) and UnityMissile (missiles) are on separate grids - compile anytime.
 
 ---
 
-## QUICK REFERENCE
+## Part 5: Boot Sequence Checks
 
-### PB Naming Convention
+Unity Boot performs 23 checks:
 
-| Script | PB Name Format |
-|--------|----------------|
-| Unity Boot | `[PAD#-BOOT] UNITY BOOT` |
-| UnityPad | `[PAD#] Unity Pad` |
-| UnityMissile | `PAD# Missile #X Unity Missile` |
-| UnityInventory | `[PAD#] Unity Inventory` |
-| UnityBeacon | `[BEACON] Unity Beacon` |
+| # | Check | What It Does |
+|---|-------|--------------|
+| 0 | Initializing Core | Grid has minimum blocks |
+| 1 | Scanning Grid | Count pad grid blocks |
+| 2 | Button Panel | Control panel found |
+| 3 | Detecting LCDs | Minimum 1 LCD tagged |
+| 4 | IGC Channels | Channels registered |
+| 5 | Request Pad Status | Send PAD_CHECK via IGC |
+| 6 | Await Pad Response | Wait for UnityPad response |
+| 7 | Missile Merge Block | Validate merge count |
+| 8 | Validate Pad Power | Validate battery count |
+| 9 | Validate Pad Fuel | Validate H2/O2 tanks |
+| 10 | Request Inv Status | Send INV_CHECK via IGC |
+| 11 | Await Inv Response | Wait for UnityInventory response |
+| 12 | Validate Inv Cargo | Validate cargo containers |
+| 13 | Validate Inv Refinery | Validate refineries |
+| 14 | Validate Inv Assembler | Validate assemblers |
+| 15 | Validate Inv Gas | Validate generators |
+| 16 | Cross-Validate | Both systems responded |
+| 17 | Module Sync | Check sibling pads |
+| 18 | Write Config | Setup default quotas |
+| 19 | Beacon Detection | Count miners (optional) |
+| 20 | Controller Modules | Report connected pads |
+| 21 | System Ready | Mark boot complete |
+| 22 | All Systems Operational | Final status |
 
-### Block Tags
+---
 
-| Tag | Purpose |
-|-----|---------|
-| `[PAD#]` | Pad blocks (merge, connector, button) |
-| `[PAD#:1-10]` | LCD panels |
-| `[PAD#-PRINT]` | Printer blocks |
-| `[PAD#-CON1]` | Module connector 1 (for module sync) |
-| `[PAD#-CON2]` | Module connector 2 (for module sync) |
-| `[DOCK]` | Missile fuel connector |
-| `[AMMO]` | Missile ammo connector |
-| `[BEACON]` | Miner beacon blocks |
+## Part 6: GPS Targeting
 
-### Container Tags
+### Adding Targets
 
-| Tag | Contents |
-|-----|----------|
-| `-ore` | Raw ores |
-| `-ingot` | Ingots (including Gravel) |
-| `-comp` | Components |
-| `-tools` | Hand tools |
-| `-ammo` | Turret ammo |
-| `-PAmmo` | Personal ammo |
-| `-bottle` | H2/O2 bottles |
+Paste GPS coordinates into `[PAD1] Controls` button panel CustomData:
 
-### Essential Commands
+```
+GPS:Target Alpha:1000:500:200:#FF00FF00:
+GPS:Target Bravo:2000:600:300:#FFFF0000:
+GPS:Enemy Base:-5000:1200:800:#FFFF0000:
+```
+
+### Target Modes
+
+| Mode | Description |
+|------|-------------|
+| GPS | Navigate to fixed coordinates |
+| ANTENNA | Track broadcasting antenna by name |
+| SENSOR | Proximity detection via sensor |
+| LIDAR | Camera raycast lock |
+| MANUAL | No auto-targeting, remote guided |
+| SATELLITE | Deploy as orbital platform |
+
+---
+
+## Part 7: Missile Flight Phases
+
+### Standard Flight
+```
+IDLE → CLIMB → ARM → COAST → REENTRY → TARGET → DETONATE
+```
+
+### Satellite Mode
+```
+SAT_CLIMB → SAT_BRAKE → SAT_HOLD → (enemy detected) → SAT_INTERCEPT → DETONATE
+```
+
+| Phase | Description |
+|-------|-------------|
+| IDLE | Waiting for launch command |
+| CLIMB | Ascending to cruise altitude |
+| ARM | Warheads armed, preparing for attack |
+| COAST | Cruising toward target |
+| REENTRY | Descending toward target |
+| TARGET | Final approach, tracking target |
+| DETONATE | Impact/proximity detonation |
+| SAT_CLIMB | Ascending to orbit |
+| SAT_BRAKE | Slowing to orbital velocity |
+| SAT_HOLD | Station-keeping, enemy scanning |
+| SAT_INTERCEPT | Chase enemy, detonate within 10m |
+
+---
+
+## Part 8: UnityPad Commands
 
 | Command | Action |
 |---------|--------|
-| `SETUPMOD` | Initialize pad module |
-| `RESCAN` | Re-detect blocks |
-| `CREATIVE` | Toggle creative mode |
+| `LAUNCH` | Fire armed missile |
+| `ARM` | Arm missile warheads |
+| `DISARM` | Disarm warheads |
+| `PRINT` | Start missile printer |
+| `RESCAN` | Refresh all blocks |
+| `NAMEPAD` | Auto-name pad blocks |
+| `NAMEMSL` | Auto-name missile blocks |
 | `SETPADCONTROL` | Toggle controller mode |
-| `ORGANIZE` | Force inventory sort |
+
+### Controller Mode Commands (Multi-Pad)
+
+| Command | Action |
+|---------|--------|
+| `COPYTGT` | Send GPS to all pads |
+| `BUILDALL` | Print on all pads |
+| `ARMALL` | Arm all missiles |
+| `LAUNCHALL` | Launch all missiles |
+| `STARTSALVO` | Begin salvo sequence |
+| `ABORTALL` | Abort all missiles |
 
 ---
 
-## TROUBLESHOOTING
+## Part 9: UnityInventory Commands
 
-| Problem | Solution |
-|---------|----------|
-| LCDs not updating | Run `SETUPMOD` to tag blocks |
-| Missile not detected | Check merge block connection |
-| Inventory not working | Check UnityInventory PB is running |
-| Items not sorting | Check container tags (-ore, -ingot, etc.) |
-| Printer stuck | Check piston limits, run `RESCAN` |
-| No miner tracking | Install UnityBeacon on miners |
-| Wrong pad ID | Run `CLAIM` to get next available |
+| Command | Action |
+|---------|--------|
+| `SORT` | Force inventory sort |
+| `RESCAN` | Refresh all blocks |
+| `AUTOORG` | Toggle auto-sorting |
+
+### Cargo Container Tags
+
+For dedicated storage, name containers:
+- `[PAD1]-ORE` - Ore storage
+- `[PAD1]-INGOT` - Ingot storage
+- `[PAD1]-COMP` - Components
+- `[PAD1]-AMMO` - Turret ammo
+- `[PAD1]-PAMMO` - Personal ammo
+- `[PAD1]-TOOLS` - Tools and weapons
+- `[PAD1]-BOTTLE` - H2/O2 bottles
+- `[PAD1]-FOOD` - Consumables
+- `[PAD1]-MISC` - Miscellaneous
 
 ---
 
-## SCRIPT LOCATIONS
+## Part 10: Remote Camera Viewing
 
-**Workshop (Steam):** TBD
+### How It Works
 
-**Local (after build):**
-```
-%APPDATA%\SpaceEngineers\IngameScripts\local\
-├── Unity Boot\script.cs
-├── UnityPad\script.cs
-├── UnityMissile\script.cs
-├── UnityInventory\script.cs
-└── UnityBeacon\script.cs
-```
+SE natively supports viewing cameras from cockpits via antenna relay:
+1. Remote grid needs antenna (radio or laser)
+2. Camera must have "Broadcast using antenna" enabled
+3. Command center needs antenna in range
+4. Sit in control seat and access "Remote Cameras" from G menu
+
+### UnitySignal Camera Display
+
+UnitySignal (pure ingame PB script) handles camera tracking:
+- Tracks local cameras on pad grid
+- Receives missile camera info via UNITY_MSL broadcasts
+- Receives miner camera info via MINER_BEACON broadcasts
+- Manages laser antennas to track active missiles
+- Monitors satellite constellation status
+
+### Camera LCD Tag
+
+Add LCD with `[PAD1CAMS]:1` to show camera list. UnitySignal displays cameras from local grid, missiles, and miners with auto-paging.
+
+---
+
+## Part 11: Satellite Array Management
+
+### Grid Formation
+
+Satellites deploy in expanding spiral pattern:
+- First satellite: position (0,0)
+- Subsequent satellites expand outward
+- Grid spacing configurable (default 5km)
+
+### Laser Mesh Networking
+
+Each satellite can link to:
+- **Pad** - Back to ground command
+- **North/South/East/West** - Adjacent satellites
+
+If one satellite is destroyed, others auto-relink through available anchors.
+
+### Intercept Protocol
+
+When enemy detected:
+1. Satellite switches to SAT_INTERCEPT
+2. Broadcasts last known enemy position
+3. Chases target until within 10m
+4. Detonates warheads
+5. Command pad receives position, auto-launches replacement
+
+---
+
+## Quick Start Checklist
+
+### Launch Pad
+
+- [ ] 4 Programmable Blocks (BOOT, PAD, INVENTORY, SIGNAL)
+- [ ] Button Panel named `[PAD1] Controls`
+- [ ] Merge Block with `[PAD1]` tag
+- [ ] Connector with `[PAD1]` tag
+- [ ] 11+ LCDs named `[PAD1:1]` through `[PAD1:11]`
+- [ ] At least 1 Assembler
+- [ ] At least 1 Refinery
+- [ ] Cargo containers
+- [ ] Batteries and H2/O2 tanks
+- [ ] Antenna for telemetry
+
+### Missile
+
+- [ ] Programmable Block with UnityMissile
+- [ ] Remote Control
+- [ ] Gyroscope(s)
+- [ ] Thrusters
+- [ ] Batteries
+- [ ] Warhead(s)
+- [ ] Merge Block (matches pad)
+- [ ] Antenna
+
+### Mining Ship
+
+- [ ] Programmable Block with UnityBeacon
+- [ ] Remote Control with `[BEACON]` tag
+- [ ] Antenna with `[BEACON]` tag
+- [ ] Connector with `[BEACON]` tag
+
+### Compile Order
+
+1. Compile UnityPad PB
+2. Compile UnityInventory PB
+3. Compile UnitySignal PB
+4. Compile Unity Boot PB
+5. Wait for boot sequence to complete
+6. Paste GPS targets into button panel
+7. Ready to launch!
 
 ---
 

@@ -1,17 +1,32 @@
 # UNITY MISSILE SYSTEM - Skill Tree
 
-*Last Updated: 2026-01-16*
+*Last Updated: 2026-01-24*
 *Unity AI Lab - Missile Systems Division*
 
 ---
 
 ## Overview
 
-Complete capability map for the Unity Missile System. Organized by domain, complexity, and priority to help understand what the system can do and what's still on the roadmap.
+Complete capability map for the Unity Missile System (6 scripts). Organized by domain, complexity, and priority to help understand what the system can do and what's still on the roadmap.
+
+**Scripts:** Unity Boot, UnityPad, UnityInventory, UnitySignal, UnityMissile, UnityBeacon
 
 ---
 
 ## By Domain
+
+### Boot & System Initialization
+
+| Skill | Script | Status | Complexity |
+|-------|--------|--------|------------|
+| Per-PB CustomData Architecture | Unity Boot | COMPLETE | Advanced |
+| 26 Unified Boot Checks | Unity Boot | COMPLETE | Expert |
+| Real IGC Handshaking | Unity Boot | COMPLETE | Advanced |
+| PB Discovery Pattern | Unity Boot | COMPLETE | Intermediate |
+| Ready Flag Synchronization | Unity Boot | COMPLETE | Intermediate |
+| LCD Boot Screen Display | Unity Boot | COMPLETE | Basic |
+| Session ID Tracking | Unity Boot | COMPLETE | Intermediate |
+| Self-Disable After Boot | Unity Boot | COMPLETE | Basic |
 
 ### Guidance & Navigation
 
@@ -68,20 +83,35 @@ Complete capability map for the Unity Missile System. Organized by domain, compl
 | Grid Size Detection | UnityPad | COMPLETE | Basic |
 | Thruster Type Detection | UnityPad | COMPLETE | Intermediate |
 
+### Signal & Communications Controller
+
+| Skill | Script | Status | Complexity |
+|-------|--------|--------|------------|
+| Antenna Management | UnitySignal | COMPLETE | Basic |
+| Laser Antenna Control | UnitySignal | COMPLETE | Intermediate |
+| Satellite Constellation Tracking | UnitySignal | COMPLETE | Advanced |
+| Camera Array Management | UnitySignal | COMPLETE | Intermediate |
+| Session ID Broadcasting | UnitySignal | COMPLETE | Intermediate |
+| CAMS LCD Display | UnitySignal | COMPLETE | Basic |
+| SAT_RELAY_STATUS Processing | UnitySignal | COMPLETE | Advanced |
+
 ### Inventory & Resources
 
 | Skill | Script | Status | Complexity |
 |-------|--------|--------|------------|
-| Container Tag Routing | UnityPad | COMPLETE | Intermediate |
-| Size-Priority Sorting (L>M>S) | UnityPad | COMPLETE | Intermediate |
-| Ammo Type Splitting | UnityPad | COMPLETE | Intermediate |
-| Refinery Auto-Feed | UnityPad | COMPLETE | Basic |
-| Assembler Auto-Feed | UnityPad | COMPLETE | Basic |
-| Component Auto-Queue | UnityPad | COMPLETE | Advanced |
-| Ore Requirement Calc | UnityPad | COMPLETE | Advanced |
-| H2/O2 Bottle Auto-Craft | UnityPad | COMPLETE | Advanced |
-| Miner Ore Pull | UnityPad | COMPLETE | Intermediate |
-| RouteItem Fallback | UnityPad | COMPLETE | Intermediate |
+| Container Tag Routing | UnityInventory | COMPLETE | Intermediate |
+| Size-Priority Sorting (L>M>S) | UnityInventory | COMPLETE | Intermediate |
+| Ammo Type Splitting | UnityInventory | COMPLETE | Intermediate |
+| Refinery Auto-Feed | UnityInventory | COMPLETE | Basic |
+| Assembler Auto-Feed | UnityInventory | COMPLETE | Basic |
+| Component Auto-Queue | UnityInventory | COMPLETE | Advanced |
+| Ore Requirement Calc | UnityInventory | COMPLETE | Advanced |
+| H2/O2 Bottle Auto-Craft | UnityInventory | COMPLETE | Advanced |
+| Miner Ore Pull | UnityInventory | COMPLETE | Intermediate |
+| RouteItem Fallback | UnityInventory | COMPLETE | Intermediate |
+| Multi-Assembler Recycling | UnityInventory | COMPLETE | Expert |
+| S-10 Ammo Special Routing | UnityInventory | COMPLETE | Advanced |
+| Production Quota Management | UnityInventory | COMPLETE | Advanced |
 
 ### Missile Construction
 
@@ -286,16 +316,18 @@ System integration and automation.
 
 | Category | Total | Complete | Pending |
 |----------|-------|----------|---------|
+| Boot & System Init | 8 | 8 | 0 |
 | Guidance & Navigation | 10 | 10 | 0 |
 | Communication | 8 | 8 | 0 |
 | Display & UI | 10 | 10 | 0 |
 | Block Detection | 7 | 7 | 0 |
-| Inventory | 10 | 10 | 0 |
+| Signal Controller | 7 | 7 | 0 |
+| Inventory | 13 | 13 | 0 |
 | Construction | 8 | 8 | 0 |
 | Launch Operations | 9 | 9 | 0 |
 | Mass Operations | 9 | 9 | 0 |
 | Safety Systems | 6 | 6 | 0 |
-| **TOTAL** | **77** | **77** | **0** |
+| **TOTAL** | **95** | **95** | **0** |
 
 ---
 

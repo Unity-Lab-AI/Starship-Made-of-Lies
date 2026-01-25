@@ -1,6 +1,7 @@
 string bcTag="MINER_BEACON";
 string shipName="Miner";
 string blockTag="[BEACON]";
+int padID=1;
 float lcdW=512,lcdH=512,lcdS=1,lcdYS=1,fntS=1;
 Color cPri=new Color(0,180,255);Color cSec=new Color(100,100,100);Color cAcc=new Color(255,200,0);
 Color cOK=new Color(0,255,100);Color cWrn=new Color(255,180,0);Color cErr=new Color(255,60,60);
@@ -18,6 +19,7 @@ List<IMyCargoContainer> crgs=new List<IMyCargoContainer>();
 List<IMyShipDrill> drls=new List<IMyShipDrill>();
 List<IMyShipGrinder> grnds=new List<IMyShipGrinder>();
 List<IMyGasGenerator> gens=new List<IMyGasGenerator>();
+List<IMyCameraBlock> cams=new List<IMyCameraBlock>();
 int tick=0;
 bool setupDone=false;
 string prevStatus="";
@@ -32,13 +34,18 @@ public Program(){
 Runtime.UpdateFrequency=UpdateFrequency.Update100;
 ParseConfig();
 Scan();
+NameCameras();
 if(homePos==Vector3D.Zero&&rc!=null)homePos=rc.GetPosition();
+}
+void NameCameras(){
+string camTag=$"[PAD{padID}]";
+foreach(var c in cams){if(!c.CustomName.Contains(camTag))c.CustomName=$"{camTag} {shipName} Cam";}
 }
 
 void ParseConfig(){
 string data=Me.CustomData;
 if(string.IsNullOrEmpty(data)||!data.Contains("[MINER_BEACON]")){
-Me.CustomData=$"[MINER_BEACON]\nShipName=Miner\nChannel=MINER_BEACON\nBlockTag=[BEACON]\nHomeGPS=0,0,0\n\n=== SETUP ===\nTag these blocks with {blockTag}:\n- 1x Remote Control (required)\n- 1x Connector (for docking)\n- 1x Antenna (for broadcast)\n- 1x LCD (optional status display)\n\nCommands: SETUP, RESCAN, SETHOME, RESET";
+Me.CustomData=$"[MINER_BEACON]\nShipName=Miner\nChannel=MINER_BEACON\nBlockTag=[BEACON]\nPadID=1\nHomeGPS=0,0,0\n\n=== SETUP ===\nTag these blocks with {blockTag}:\n- 1x Remote Control (required)\n- 1x Connector (for docking)\n- 1x Antenna (for broadcast)\n- 1x LCD (optional status display)\n\nCameras will be auto-named [PAD{padID}] {shipName} Cam\n\nCommands: SETUP, RESCAN, SETHOME, RESET";
 return;}
 var lines=data.Split('\n');
 foreach(var line in lines){
@@ -50,13 +57,14 @@ string val=parts[1].Trim();
 if(key=="ShipName")shipName=val;
 else if(key=="Channel")bcTag=val;
 else if(key=="BlockTag")blockTag=val;
+else if(key=="PadID"){int p;if(int.TryParse(val,out p))padID=p;}
 else if(key=="HomeGPS"){
 if(val.Contains(":")){var p=val.Split(':');if(p.Length>=5){double x,y,z;if(double.TryParse(p[2],out x)&&double.TryParse(p[3],out y)&&double.TryParse(p[4],out z))homePos=new Vector3D(x,y,z);}}
 else{var c=val.Split(',');if(c.Length>=3){double x,y,z;if(double.TryParse(c[0],out x)&&double.TryParse(c[1],out y)&&double.TryParse(c[2],out z))homePos=new Vector3D(x,y,z);}}}}}
 
 
 void Scan(){
-bats.Clear();h2s.Clear();o2s.Clear();reacts.Clear();crgs.Clear();drls.Clear();grnds.Clear();gens.Clear();
+bats.Clear();h2s.Clear();o2s.Clear();reacts.Clear();crgs.Clear();drls.Clear();grnds.Clear();gens.Clear();cams.Clear();
 rc=null;con=null;ant=null;lcd=null;
 var tagged=new List<IMyTerminalBlock>();
 GridTerminalSystem.GetBlocksOfType(tagged,b=>b.CubeGrid==Me.CubeGrid&&b.CustomName.Contains(blockTag));
@@ -75,6 +83,7 @@ if(b is IMyCargoContainer)crgs.Add(b as IMyCargoContainer);
 if(b is IMyShipDrill)drls.Add(b as IMyShipDrill);
 if(b is IMyShipGrinder)grnds.Add(b as IMyShipGrinder);
 if(b is IMyGasGenerator)gens.Add(b as IMyGasGenerator);
+if(b is IMyCameraBlock)cams.Add(b as IMyCameraBlock);
 if(b is IMyRemoteControl&&rc==null)rc=b as IMyRemoteControl;
 if(b is IMyRadioAntenna&&ant==null)ant=b as IMyRadioAntenna;
 if(b is IMyShipConnector&&con==null)con=b as IMyShipConnector;
@@ -101,6 +110,7 @@ Echo($"Antenna: {(ant!=null?"Online":"Missing")}");
 Echo($"Drills: {drls.Count} Grinders: {grnds.Count}");
 Echo($"Batteries: {bats.Count} H2 Tanks: {h2s.Count}");
 Echo($"Cargo: {crgs.Count} Generators: {gens.Count}");
+Echo($"Cameras: {cams.Count} (PAD{padID})");
 if(homePos!=Vector3D.Zero)Echo($"Home: {homePos.X:F0},{homePos.Y:F0},{homePos.Z:F0}");
 else Echo("Home: NOT SET");
 Echo("--- COMMANDS ---");
@@ -108,7 +118,7 @@ Echo("SETHOME - Set current position as home");
 Echo("SETUP - Auto-name required blocks");
 Echo("RESCAN - Refresh all blocks");
 Echo("RESET - Clear config and restart");
-if(tick%3==0)Broadcast();
+if(tick%2==0)Broadcast();
 if(tick%10==0)Scan();
 UpdateLCD();}
 
@@ -126,18 +136,21 @@ Echo("RESET COMPLETE\nConfig cleared\nLCD cleared\nRun SETUP to reconfigure");}
 void AutoName(){
 var blks=new List<IMyTerminalBlock>();
 GridTerminalSystem.GetBlocksOfType(blks,b=>b.CubeGrid==Me.CubeGrid);
-int named=0;
+int named=0;int camNamed=0;
+string camTag=$"[PAD{padID}]";
 foreach(var b in blks){
+if(b is IMyCameraBlock){if(!b.CustomName.Contains(camTag)){b.CustomName=$"{camTag} {shipName} Cam";camNamed++;}continue;}
 if(b.CustomName.Contains(blockTag))continue;
 if(b is IMyRemoteControl&&rc==null){b.CustomName=$"{blockTag} {b.CustomName}";rc=b as IMyRemoteControl;named++;}
 else if(b is IMyShipConnector&&con==null&&!b.CustomName.ToUpper().Contains("EJECTOR")){b.CustomName=$"{blockTag} {b.CustomName}";con=b as IMyShipConnector;named++;}
 else if(b is IMyRadioAntenna&&ant==null){b.CustomName=$"{blockTag} {b.CustomName}";ant=b as IMyRadioAntenna;named++;}
 else if(b is IMyTextPanel&&lcd==null){b.CustomName=$"{blockTag} {b.CustomName}";lcd=b as IMyTextPanel;named++;}}
 Scan();
-Echo($"Auto-named {named} blocks with {blockTag}");}
+Echo($"Auto-named {named} blocks with {blockTag}");
+if(camNamed>0)Echo($"Tagged {camNamed} cameras with {camTag}");}
 
 void SaveConfig(){
-Me.CustomData=$"[MINER_BEACON]\nShipName={shipName}\nChannel={bcTag}\nBlockTag={blockTag}\nHomeGPS={homePos.X:F0},{homePos.Y:F0},{homePos.Z:F0}\n\n=== SETUP ===\nTag these blocks with {blockTag}:\n- 1x Remote Control (required)\n- 1x Connector (for docking)\n- 1x Antenna (for broadcast)\n- 1x LCD (optional status display)\n\nCommands: SETUP, RESCAN, SETHOME, RESET";}
+Me.CustomData=$"[MINER_BEACON]\nShipName={shipName}\nChannel={bcTag}\nBlockTag={blockTag}\nPadID={padID}\nHomeGPS={homePos.X:F0},{homePos.Y:F0},{homePos.Z:F0}\n\n=== SETUP ===\nTag these blocks with {blockTag}:\n- 1x Remote Control (required)\n- 1x Connector (for docking)\n- 1x Antenna (for broadcast)\n- 1x LCD (optional status display)\n\nCameras will be auto-named [PAD{padID}] {shipName} Cam\n\nCommands: SETUP, RESCAN, SETHOME, RESET";}
 
 void Broadcast(){
 if(ant==null||!ant.Enabled)return;
@@ -167,7 +180,8 @@ string status=InferStatus(docked,drlOn,grndOn,spd,distHome);
 TrackShuttleCycle(status,crgPct);
 double etaSecs=CalcETA(status);
 string cargo=ScanCargo();
-string msg=$"MB|{eid}|{shipName}|{batPct:F0}|{crgPct:F0}|{h2Pct:F0}|{pos.X:F0},{pos.Y:F0},{pos.Z:F0}|{spd:F0}|{alt:F0}|{distHome:F0}|{status}|{drls.Count}|{drlOn}|{grnds.Count}|{grndOn}|{(docked?"1":"0")}|{outboundSecs:F0}|{returnSecs:F0}|{cycles}|{etaSecs:F0}|{(outbound?"1":"0")}|FUEL:{o2Pct:F0},{ice},{urn},{o2s.Count},{gens.Count},{reacts.Count}|CARGO:{cargo}";
+string camIds="";if(cams.Count>0){foreach(var c in cams)camIds+=(camIds.Length>0?",":"")+c.EntityId.ToString();}
+string msg=$"MB|{eid}|{shipName}|{batPct:F0}|{crgPct:F0}|{h2Pct:F0}|{pos.X:F0},{pos.Y:F0},{pos.Z:F0}|{spd:F0}|{alt:F0}|{distHome:F0}|{status}|{drls.Count}|{drlOn}|{grnds.Count}|{grndOn}|{(docked?"1":"0")}|{outboundSecs:F0}|{returnSecs:F0}|{cycles}|{etaSecs:F0}|{(outbound?"1":"0")}|FUEL:{o2Pct:F0},{ice},{urn},{o2s.Count},{gens.Count},{reacts.Count}|CARGO:{cargo}|CAMS:{camIds}";
 IGC.SendBroadcastMessage(bcTag,msg);}
 
 void TrackShuttleCycle(string newSt,float cargo){
@@ -187,11 +201,11 @@ if(!outbound&&trav&&returnSecs>0){double el=elapsedSecs-returnStartAt;return Mat
 return 0;}
 
 string InferStatus(bool docked,int drlOn,int grndOn,double spd,double dist){
-if(docked)return"DOCKED";
 if(drlOn>0&&spd<2)return"DRILLING";
 if(drlOn>0)return"DRILL_MOVE";
 if(grndOn>0&&spd<2)return"GRINDING";
 if(grndOn>0)return"GRIND_MOVE";
+if(docked)return"DOCKED";
 if(spd>5&&dist<500)return"DEPARTING";
 if(spd>5||(spd>3&&(prevStatus=="TRAVELING"||prevStatus=="DEPARTING")))return"TRAVELING";
 if(spd<2&&dist<100)return"HOME";
@@ -208,9 +222,9 @@ int ice=0;foreach(var g in gens){var inv=g.GetInventory();if(inv!=null){var L=ne
 foreach(var c in crgs){var inv=c.GetInventory();if(inv!=null){var L=new List<MyInventoryItem>();inv.GetItems(L);foreach(var it in L)if(it.Type.SubtypeId=="Ice")ice+=(int)it.Amount;}}
 int urn=0,crgUrn=0;foreach(var r in reacts){var inv=r.GetInventory();if(inv!=null){var L=new List<MyInventoryItem>();inv.GetItems(L);foreach(var it in L)if(it.Type.SubtypeId.Contains("Uranium"))urn+=(int)it.Amount;}}
 foreach(var c in crgs){var inv=c.GetInventory();if(inv!=null){var L=new List<MyInventoryItem>();inv.GetItems(L);foreach(var it in L)if(it.Type.SubtypeId.Contains("Uranium"))crgUrn+=(int)it.Amount;}}
-double spd=0,alt=0,dist=0;
+double spd=0,alt=0,dist=0;bool hasAlt=false;
 bool docked=con!=null&&con.Status==MyShipConnectorStatus.Connected;
-if(rc!=null){spd=rc.GetShipVelocities().LinearVelocity.Length();rc.TryGetPlanetElevation(MyPlanetElevation.Surface,out alt);dist=homePos!=Vector3D.Zero?Vector3D.Distance(rc.GetPosition(),homePos):0;}
+if(rc!=null){spd=rc.GetShipVelocities().LinearVelocity.Length();hasAlt=rc.TryGetPlanetElevation(MyPlanetElevation.Surface,out alt);dist=homePos!=Vector3D.Zero?Vector3D.Distance(rc.GetPosition(),homePos):0;}
 int drlOn=0;foreach(var d in drls)if(d.Enabled)drlOn++;
 int grndOn=0;foreach(var g in grnds)if(g.Enabled)grndOn++;
 string st=InferStatus(docked,drlOn,grndOn,spd,dist);
@@ -226,7 +240,7 @@ if(o2s.Count>0){SLB(f,20,y,260,16,"Oxygen",op,PctCol(op),cBdr);y+=50;}
 SD(f,y);y+=10;
 ST(f,20,y,$"Generators:{gens.Count}",cTxt,0.45f);ST(f,280,y,$"Ice:{ice}",cTxt,0.45f);y+=26;
 ST(f,20,y,$"Reactors:{reacts.Count}",cTxt,0.45f);ST(f,280,y,$"Uranium:{urn+crgUrn}",cTxt,0.45f);y+=26;
-ST(f,20,y,$"Speed:{spd:F0}m/s",cTxt,0.45f);ST(f,280,y,$"Alt:{alt:F0}m",cTxt,0.45f);y+=26;
+ST(f,20,y,$"Speed:{spd:F0}m/s",cTxt,0.45f);ST(f,280,y,hasAlt?$"Alt:{alt:F0}m":"Alt:N/A",cTxt,0.45f);y+=26;
 ST(f,20,y,$"Distance:{dist:F0}m",cTxt,0.45f);ST(f,280,y,$"Drills:{drlOn}/{drls.Count}",cTxt,0.45f);y+=26;
 ST(f,20,y,$"Grinders:{grndOn}/{grnds.Count}",cTxt,0.45f);y+=26;
 if(cycles>0||outboundSecs>0||returnSecs>0){
@@ -275,7 +289,7 @@ return"X";}
 
 MySpriteDrawFrame BL(IMyTextSurface s){s.ContentType=ContentType.SCRIPT;s.Script="";lcdW=s.SurfaceSize.X;lcdH=s.SurfaceSize.Y;lcdS=lcdW/512f;lcdYS=lcdH/512f;fntS=Math.Max(1.4f,(lcdS+lcdYS)/2f*1.8f);var f=s.DrawFrame();f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,lcdH/2),new Vector2(lcdW,lcdH),cBg));return f;}
 void SH(MySpriteDrawFrame f,float y,string t,Color c){float cy=y*lcdYS,cx=lcdW/2;f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(cx,cy),null,c,"White",TextAlignment.CENTER,1.0f*fntS));}
-void SB(MySpriteDrawFrame f,float x,float y,float w,float h,float pct,Color fg,Color bg){x*=lcdS;y*=lcdYS;w*=lcdS;h*=lcdYS;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+w/2,y+h/2),new Vector2(w,h),bg));float fw=w*Math.Max(0,Math.Min(1,pct));if(fw>1)f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+fw/2,y+h/2),new Vector2(fw,h),fg));}
+void SB(MySpriteDrawFrame f,float x,float y,float w,float h,float pct,Color fg,Color bg){x*=lcdS;y*=lcdYS;w*=lcdS;h*=lcdYS;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+w/2,y+h/2),new Vector2(w,h),bg));float fw=w*Math.Max(0,Math.Min(1,pct));if(fw>0)f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(x+fw/2,y+h/2),new Vector2(fw,h),fg));}
 void SLB(MySpriteDrawFrame f,float x,float y,float w,float h,string lbl,float pct,Color fg,Color bg){float sx=x*lcdS,sy=y*lcdYS;f.Add(new MySprite(SpriteType.TEXT,lbl,new Vector2(sx,sy),null,cTxt,"Monospace",TextAlignment.LEFT,0.5f*fntS));SB(f,x,y+28,w,h,pct,fg,bg);f.Add(new MySprite(SpriteType.TEXT,$"{pct*100:0}%",new Vector2((x+w+10)*lcdS,(y+26)*lcdYS),null,fg,"Monospace",TextAlignment.LEFT,0.45f*fntS));}
 void ST(MySpriteDrawFrame f,float x,float y,string t,Color c,float sz=0.5f,TextAlignment a=TextAlignment.LEFT){f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(x*lcdS,y*lcdYS),null,c,"Monospace",a,sz*fntS));}
 Color PctCol(float p){return p>.7f?cOK:p>.3f?cWrn:cErr;}

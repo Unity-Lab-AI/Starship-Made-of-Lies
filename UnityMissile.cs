@@ -1,5 +1,5 @@
 public enum T{GPS,ANTENNA,SENSOR,LIDAR,MANUAL,SATELLITE}
-public enum F{IDLE,CLIMB,ARM,COAST,REENTRY,TARGET,SAT_CLIMB,SAT_BRAKE,SAT_HOLD}
+public enum F{IDLE,CLIMB,ARM,COAST,REENTRY,TARGET,SAT_CLIMB,SAT_BRAKE,SAT_HOLD,SAT_INTERCEPT}
 T mode=T.GPS;
 F phase=F.IDLE;
 Vector3D tgtGPS;
@@ -65,10 +65,32 @@ Vector3D satPosition;
 Vector3D satVelocity;
 bool satStationKeeping=false;
 int satHoldTicks=0;
+int interceptLostTicks=0;
 string satRelayTag="UNITY_SAT_RELAY";
 IMyBroadcastListener satRelayListener;
+IMyBroadcastListener satInterceptListener;
 double satTargetAlt=100000;
 int satID=0;
+int satGridX=0;
+int satGridZ=0;
+double satGridSpacing=5000;
+Vector3D satGridOrigin=Vector3D.Zero;
+IMyLaserAntenna laserPad;
+IMyLaserAntenna laserNorth;
+IMyLaserAntenna laserSouth;
+IMyLaserAntenna laserEast;
+IMyLaserAntenna laserWest;
+bool meshPadLinked=false;
+int meshBlackoutTicks=0;
+int meshPingTicks=0;
+int meshLastPadResponse=0;
+const int MESH_TIMEOUT=300;
+const int MESH_PING_INTERVAL=60;
+IMyBroadcastListener meshListener;
+Dictionary<int,Vector3D> meshAnchors=new Dictionary<int,Vector3D>();
+Dictionary<int,int> meshAnchorAge=new Dictionary<int,int>();
+Vector3D interceptTarget=Vector3D.Zero;
+double interceptDetonateDist=10;
 double evadeAmplitude=0;
 double evadeFrequency=2;
 int evadePattern=1;
@@ -97,9 +119,11 @@ Vector3D launchUp=Vector3D.Zero;
 
 public Program(){
 Runtime.UpdateFrequency=UpdateFrequency.Update100;
+ParseConfig();
 FindBlocks();
 ConfigSensors();
 ConfigCameras();
+NameParts();
 LoadState();
 }
 public void Save(){Storage=$"{(int)phase}|{(int)mode}|{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}|{(warheadsArmed?"1":"0")}|{launchPos.X},{launchPos.Y},{launchPos.Z}";}
@@ -133,6 +157,7 @@ ConfigCameras();
 ConfigAntennas();
 launchPos=Me.GetPosition();
 warheadsArmed=false;
+foreach(var w in warheads){w.IsArmed=false;}
 if(rc!=null){launchDir=rc.WorldMatrix.Forward;launchUp=rc.WorldMatrix.Up;}
 else{launchDir=Me.WorldMatrix.Forward;launchUp=Me.WorldMatrix.Up;}
 Vector3D grav=rc!=null?rc.GetNaturalGravity():Vector3D.Zero;
@@ -155,6 +180,11 @@ cmdListener=IGC.RegisterBroadcastListener(broadcastTag+"_CMD");
 if(mode==T.SATELLITE){
 isSatellite=true;
 satRelayListener=IGC.RegisterBroadcastListener(satRelayTag);
+satInterceptListener=IGC.RegisterBroadcastListener("UNITY_SAT_INTERCEPT");
+meshListener=IGC.RegisterBroadcastListener("UNITY_SAT_MESH");
+meshPadLinked=true;
+meshBlackoutTicks=0;
+meshLastPadResponse=0;
 phase=F.SAT_CLIMB;
 }else if(flightMode==2){
 phase=launchedFromGrav?F.CLIMB:F.TARGET;
@@ -165,6 +195,7 @@ return;
 }
 if(phase!=F.IDLE){
 flightTicks++;
+UpdateDistances();
 CheckRemoteCmd();
 switch(phase){
 case F.CLIMB:DoClimb();break;
@@ -175,6 +206,7 @@ case F.TARGET:DoTarget();break;
 case F.SAT_CLIMB:DoSatClimb();break;
 case F.SAT_BRAKE:DoSatBrake();break;
 case F.SAT_HOLD:DoSatHold();break;
+case F.SAT_INTERCEPT:DoSatIntercept();break;
 }
 UpdateDistances();
 if(antBroadcast)BroadcastPos();
@@ -272,13 +304,13 @@ Vector3D? target=GetTarget();
 if(target.HasValue){
 AimAt(target.Value);
 distToTgt=Vector3D.Distance(Me.GetPosition(),target.Value);
+if(distToTgt<reentryDist/2)phase=F.TARGET;
 }
-phase=F.TARGET;
 }
 
 void DoTarget(){
 if(rc!=null){Vector3D g=rc.GetNaturalGravity();currentGrav=g.Length();}
-if(mode==T.MANUAL){EnableThrust(true);return;}
+if(mode==T.MANUAL){EnableThrust(true);double mh=0;foreach(var t in h2tanks)mh+=t.FilledRatio;if(h2tanks.Count>0)mh/=h2tanks.Count;double mb=0;foreach(var b in batteries)mb+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)mb/=batteries.Count;if((mh<0.05&&h2tanks.Count>0)||(mb<0.05&&batteries.Count>0)){warheadsArmed=true;foreach(var w in warheads)w.IsArmed=true;Detonate();}return;}
 Vector3D? target=GetTarget();
 if(target.HasValue){
 double dist=Vector3D.Distance(Me.GetPosition(),target.Value);
@@ -287,8 +319,8 @@ double missileSpeed=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
 if(currentGrav>0.1){UpdateAltitude();}
 terminalGuidanceActive=dist<terminalGuidanceDist;
 double actualArmDist=armDist>0?armDist:detDist*4;
-double safetyDist=climbDist*5;
-if(!warheadsArmed&&!isSatellite&&flightTicks>30&&distFromPad>safetyDist&&dist<actualArmDist){
+double safetyDist=Math.Max(climbDist*5,500);
+if(!warheadsArmed&&!isSatellite&&phase==F.TARGET&&flightTicks>100&&distFromPad>safetyDist&&dist<actualArmDist&&dist>detDist*2){
 foreach(var w in warheads){w.IsArmed=true;}
 warheadsArmed=true;
 SendFinalStatus("WARHEADS_ARMED");
@@ -382,12 +414,164 @@ double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPow
 if(batteries.Count>0)bat/=batteries.Count;
 double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;
 if(h2tanks.Count>0)h2/=h2tanks.Count;
-if(bat<0.1||h2<0.1){isSatellite=false;phase=F.TARGET;Runtime.UpdateFrequency=UpdateFrequency.Update10;EnableThrust(true);}
-foreach(var s in sensors){var det=new List<MyDetectedEntityInfo>();s.DetectedEntities(det);foreach(var e in det){if(IsValidTgt(e.Relationship)){IGC.SendBroadcastMessage("ENEMY_SIGNAL",$"{e.Position.X:F0},{e.Position.Y:F0},{e.Position.Z:F0}");BroadcastSatStatus();}}}
+if(bat<0.1||h2<0.1){IGC.SendBroadcastMessage("UNITY_SAT_INTERCEPT",$"LOW_POWER|{satID}|{padID}|0,0,0|{satGridX},{satGridZ}");foreach(var w in warheads){w.IsArmed=true;w.Detonate();}return;}
+foreach(var s in sensors){var det=new List<MyDetectedEntityInfo>();s.DetectedEntities(det);foreach(var e in det){if(IsValidTgt(e.Relationship)){
+interceptTarget=e.Position;
+Runtime.UpdateFrequency=UpdateFrequency.Update10;
+phase=F.SAT_INTERCEPT;
+foreach(var w in warheads)w.IsArmed=true;
+warheadsArmed=true;
+return;
+}}}
 CheckSatCommands();
 RelayMissileTraffic();
+UpdateLaserMesh();
+ManageMeshConnectivity();
 BroadcastSatStatus();
 }
+
+void DoSatIntercept(){
+if(rc==null)return;
+bool found=false;
+foreach(var s in sensors){var det=new List<MyDetectedEntityInfo>();s.DetectedEntities(det);foreach(var e in det){if(IsValidTgt(e.Relationship)){interceptTarget=e.Position;found=true;}}}
+if(found)interceptLostTicks=0;else interceptLostTicks++;
+if(interceptLostTicks>300){IGC.SendBroadcastMessage("UNITY_SAT_INTERCEPT",$"LOST|{satID}|{padID}|0,0,0|{satGridX},{satGridZ}");foreach(var w in warheads){w.IsArmed=true;w.Detonate();}return;}
+Vector3D toTarget=interceptTarget-Me.GetPosition();
+double dist=toTarget.Length();
+distToTgt=dist;
+EnableThrust(true);
+AimAt(interceptTarget);
+if(flightTicks%30==0){
+IGC.SendBroadcastMessage("UNITY_SAT_INTERCEPT",$"CHASE|{satID}|{padID}|{interceptTarget.X:F0},{interceptTarget.Y:F0},{interceptTarget.Z:F0}|{dist:F0}");
+}
+if(dist<interceptDetonateDist){
+IGC.SendBroadcastMessage("UNITY_SAT_INTERCEPT",$"DETONATE|{satID}|{padID}|{interceptTarget.X:F0},{interceptTarget.Y:F0},{interceptTarget.Z:F0}|{satGridX},{satGridZ}");
+foreach(var w in warheads)w.Detonate();
+phase=F.IDLE;
+Runtime.UpdateFrequency=UpdateFrequency.None;
+}
+}
+
+void UpdateLaserMesh(){
+if(!isSatellite||lasers.Count==0)return;
+foreach(var l in lasers){
+if(l==null||!l.IsFunctional)continue;
+if(l.Status!=MyLaserAntennaStatus.Connected)l.Connect();
+}
+}
+
+void ManageMeshConnectivity(){
+if(!isSatellite)return;
+meshPingTicks++;
+bool padLaserOK=laserPad!=null&&laserPad.Status==MyLaserAntennaStatus.Connected;
+if(padLaserOK){
+meshPadLinked=true;
+meshBlackoutTicks=0;
+meshLastPadResponse=meshPingTicks;
+}else{
+meshBlackoutTicks++;
+if(meshBlackoutTicks>MESH_TIMEOUT&&meshPadLinked){
+meshPadLinked=false;
+}
+}
+ReceiveMeshBroadcasts();
+if(!meshPadLinked){
+AttemptMeshRelink();
+}
+if(meshPingTicks%MESH_PING_INTERVAL==0){
+BroadcastMeshStatus();
+}
+AgeOutAnchors();
+}
+
+void ReceiveMeshBroadcasts(){
+if(meshListener==null)return;
+while(meshListener.HasPendingMessage){
+var msg=meshListener.AcceptMessage();
+if(msg.Data is string){
+string data=(string)msg.Data;
+var p=data.Split('|');
+if(p.Length>=4&&p[0]=="ANCHOR"){
+int srcId;
+if(int.TryParse(p[1],out srcId)&&srcId!=satID){
+var coords=p[2].Split(',');
+if(coords.Length==3){
+double x,y,z;
+if(double.TryParse(coords[0],out x)&&double.TryParse(coords[1],out y)&&double.TryParse(coords[2],out z)){
+meshAnchors[srcId]=new Vector3D(x,y,z);
+meshAnchorAge[srcId]=0;
+if(p[3]=="1"&&!meshPadLinked){
+if(IsLaserConnectedTo(srcId)){
+meshPadLinked=true;
+meshBlackoutTicks=0;
+}}}}}}
+if(p.Length>=3&&p[0]=="PING"&&p[1]==$"{satID}"){
+IGC.SendBroadcastMessage("UNITY_SAT_MESH",$"PONG|{satID}|{p[2]}");
+}
+if(p.Length>=3&&p[0]=="PONG"){
+int srcId;
+if(int.TryParse(p[1],out srcId)){
+meshLastPadResponse=meshPingTicks;
+if(!meshPadLinked){
+meshPadLinked=true;
+meshBlackoutTicks=0;
+}}}}}}
+
+bool IsLaserConnectedTo(int targetSatId){
+if(!meshAnchors.ContainsKey(targetSatId))return false;
+Vector3D anchorPos=meshAnchors[targetSatId];
+foreach(var l in lasers){
+if(l==null||l.Status!=MyLaserAntennaStatus.Connected)continue;
+Vector3D tgt=l.TargetCoords;
+if(Vector3D.Distance(tgt,anchorPos)<100)return true;
+}
+return false;
+}
+
+void AttemptMeshRelink(){
+if(meshAnchors.Count==0)return;
+Vector3D myPos=Me.GetPosition();
+double closestDist=double.MaxValue;
+int closestId=-1;
+Vector3D closestPos=Vector3D.Zero;
+foreach(var kvp in meshAnchors){
+double d=Vector3D.Distance(myPos,kvp.Value);
+if(d<closestDist){
+closestDist=d;
+closestId=kvp.Key;
+closestPos=kvp.Value;
+}}
+if(closestId<0)return;
+IMyLaserAntenna freeLaser=null;
+if(laserNorth!=null&&laserNorth.Status!=MyLaserAntennaStatus.Connected)freeLaser=laserNorth;
+else if(laserSouth!=null&&laserSouth.Status!=MyLaserAntennaStatus.Connected)freeLaser=laserSouth;
+else if(laserEast!=null&&laserEast.Status!=MyLaserAntennaStatus.Connected)freeLaser=laserEast;
+else if(laserWest!=null&&laserWest.Status!=MyLaserAntennaStatus.Connected)freeLaser=laserWest;
+if(freeLaser!=null){
+string gps=$"GPS:SAT{closestId}:{closestPos.X:F0}:{closestPos.Y:F0}:{closestPos.Z:F0}:#FF75C9F1:";
+freeLaser.SetTargetCoords(gps);
+freeLaser.Connect();
+}}
+
+void BroadcastMeshStatus(){
+if(antennas.Count==0&&lasers.Count==0)return;
+string linked=meshPadLinked?"1":"0";
+Vector3D pos=Me.GetPosition();
+string msg=$"ANCHOR|{satID}|{pos.X:F0},{pos.Y:F0},{pos.Z:F0}|{linked}";
+IGC.SendBroadcastMessage("UNITY_SAT_MESH",msg);
+}
+
+void AgeOutAnchors(){
+var toRemove=new List<int>();
+foreach(var kvp in meshAnchorAge){
+meshAnchorAge[kvp.Key]=kvp.Value+1;
+if(kvp.Value>MESH_TIMEOUT*2)toRemove.Add(kvp.Key);
+}
+foreach(var id in toRemove){
+meshAnchors.Remove(id);
+meshAnchorAge.Remove(id);
+}}
+
 void CheckSatCommands(){
 if(cmdListener==null)return;
 while(cmdListener.HasPendingMessage){
@@ -424,7 +608,14 @@ foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;
 if(batteries.Count>0)bat/=batteries.Count;
 foreach(var t in h2tanks)h2+=t.FilledRatio;
 if(h2tanks.Count>0)h2/=h2tanks.Count;
-string status=$"SAT|{satID}|{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0}|{bat*100:F0}|{h2*100:F0}|{(satStationKeeping?"HOLD":"MOVING")}";
+string lnkPad=laserPad!=null&&laserPad.Status==MyLaserAntennaStatus.Connected?"1":"0";
+string lnkN=laserNorth!=null&&laserNorth.Status==MyLaserAntennaStatus.Connected?"1":"0";
+string lnkS=laserSouth!=null&&laserSouth.Status==MyLaserAntennaStatus.Connected?"1":"0";
+string lnkE=laserEast!=null&&laserEast.Status==MyLaserAntennaStatus.Connected?"1":"0";
+string lnkW=laserWest!=null&&laserWest.Status==MyLaserAntennaStatus.Connected?"1":"0";
+string meshSt=meshPadLinked?"MESH_OK":"MESH_BLACKOUT";
+string ph=phase==F.SAT_HOLD?"HOLD":phase==F.SAT_INTERCEPT?"INTERCEPT":"MOVING";
+string status=$"SAT|{satID}|{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0}|{bat*100:F0}|{h2*100:F0}|{ph}|{satGridX},{satGridZ}|{lnkPad},{lnkN},{lnkS},{lnkE},{lnkW}|{meshSt}";
 IGC.SendBroadcastMessage(satRelayTag+"_STATUS",status);
 }
 
@@ -441,11 +632,14 @@ bool willBlackout=distFromPad>antennaRange*0.95;
 inBlackout=distFromPad>antennaRange;
 string status=phase.ToString();
 if(!wasInBlackout&&willBlackout&&!inBlackout)status="ENTERING_BLACKOUT";
-else if(wasInBlackout&&!inBlackout)status="CONTACT_RESTORED";
+else if(wasInBlackout&&!inBlackout){status="CONTACT_RESTORED";targetVelSamples=0;lastTargetVel=Vector3D.Zero;}
 else if(inBlackout)return;
 double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
 double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
-string msg=$"{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0},{distToTgt:F0},{status},{currentGrav:F2},{distFromPad:F0},{currentAltitude:F0},{spd:F0},{h2*100:F0},{(gyrosLocked?"LOCK":"CTRL")}";
+double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
+if(phase==F.TARGET&&(h2<0.15||bat<0.15))status="LOW_FUEL";
+string camInfo=$"{cameras.Count}";if(cameras.Count>0){string cn="";foreach(var c in cameras)cn+=(cn.Length>0?",":"")+c.CustomName.Replace("|","");camInfo+=$"|{cn}";}
+string msg=$"{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0},{distToTgt:F0},{status},{currentGrav:F2},{distFromPad:F0},{currentAltitude:F0},{spd:F0},{h2*100:F0},{(gyrosLocked?"LOCK":"CTRL")}|CAMS:{camInfo}";
 IGC.SendBroadcastMessage(broadcastTag,msg);
 if(useLaser&&lasers.Count>0){foreach(var l in lasers){if(l.Status!=MyLaserAntennaStatus.Connected)l.Connect();}}
 }
@@ -496,6 +690,10 @@ if(line.StartsWith("PadID=")){int p;if(int.TryParse(line.Substring(6),out p))pad
 if(line.StartsWith("TargetRel=")){int t;if(int.TryParse(line.Substring(10),out t))tgtRel=t;}
 if(line.StartsWith("SatAlt=")){double a;if(double.TryParse(line.Substring(7),out a))satTargetAlt=a;}
 if(line.StartsWith("SatID=")){int s;if(int.TryParse(line.Substring(6),out s))satID=s;}
+if(line.StartsWith("SatGridX=")){int x;if(int.TryParse(line.Substring(9),out x))satGridX=x;}
+if(line.StartsWith("SatGridZ=")){int z;if(int.TryParse(line.Substring(9),out z))satGridZ=z;}
+if(line.StartsWith("GridSpacing=")){double g;if(double.TryParse(line.Substring(12),out g))satGridSpacing=g;}
+if(line.StartsWith("InterceptDist=")){double d;if(double.TryParse(line.Substring(14),out d))interceptDetonateDist=d;}
 if(line.StartsWith("EvadeAmp=")){double a;if(double.TryParse(line.Substring(9),out a)){evadeAmplitude=a;evadeEnabled=a>0;}}
 if(line.StartsWith("EvadeFreq=")){double f;if(double.TryParse(line.Substring(10),out f))evadeFrequency=f;}
 if(line.StartsWith("EvadePattern=")){int p;if(int.TryParse(line.Substring(13),out p))evadePattern=p;}
@@ -507,7 +705,8 @@ if(line.StartsWith("TerminalGyro=")){double g;if(double.TryParse(line.Substring(
 }}
 
 void FindBlocks(){
-rc=null;merge=null;ammoConnector=null;gyros.Clear();thrusters.Clear();warheads.Clear();sensors.Clear();cameras.Clear();antennas.Clear();lasers.Clear();batteries.Clear();h2tanks.Clear();generators.Clear();lights.Clear();
+rc=null;merge=null;ammoConnector=null;laserPad=null;laserNorth=null;laserSouth=null;laserEast=null;laserWest=null;
+gyros.Clear();thrusters.Clear();warheads.Clear();sensors.Clear();cameras.Clear();antennas.Clear();lasers.Clear();batteries.Clear();h2tanks.Clear();generators.Clear();lights.Clear();
 var all=new List<IMyTerminalBlock>();
 GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid);
 foreach(var b in all){
@@ -520,7 +719,13 @@ if(b is IMyWarhead)warheads.Add(b as IMyWarhead);
 if(b is IMySensorBlock)sensors.Add(b as IMySensorBlock);
 if(b is IMyCameraBlock)cameras.Add(b as IMyCameraBlock);
 if(b is IMyRadioAntenna)antennas.Add(b as IMyRadioAntenna);
-if(b is IMyLaserAntenna)lasers.Add(b as IMyLaserAntenna);
+if(b is IMyLaserAntenna){lasers.Add(b as IMyLaserAntenna);
+string lnm=b.CustomName.ToUpper();
+if(lnm.Contains("NORTH"))laserNorth=b as IMyLaserAntenna;
+else if(lnm.Contains("SOUTH"))laserSouth=b as IMyLaserAntenna;
+else if(lnm.Contains("EAST"))laserEast=b as IMyLaserAntenna;
+else if(lnm.Contains("WEST"))laserWest=b as IMyLaserAntenna;
+else if(lnm.Contains("PAD")||laserPad==null)laserPad=b as IMyLaserAntenna;}
 if(b is IMyBatteryBlock)batteries.Add(b as IMyBatteryBlock);
 if(b is IMyGasTank){var t=b as IMyGasTank;if(t.BlockDefinition.SubtypeId.Contains("Hydrogen"))h2tanks.Add(t);}
 if(b is IMyGasGenerator)generators.Add(b as IMyGasGenerator);
@@ -564,7 +769,12 @@ foreach(var w in warheads)w.CustomName=$"{tag} {BT(w)}";
 foreach(var s in sensors)s.CustomName=$"{tag} {BT(s)}";
 foreach(var c in cameras)c.CustomName=$"{tag} Cam";
 foreach(var a in antennas)a.CustomName=$"{tag} Antenna";
-foreach(var l in lasers)l.CustomName=$"{tag} Laser";
+if(laserPad!=null)laserPad.CustomName=$"{tag} Laser Pad";
+if(laserNorth!=null)laserNorth.CustomName=$"{tag} Laser North";
+if(laserSouth!=null)laserSouth.CustomName=$"{tag} Laser South";
+if(laserEast!=null)laserEast.CustomName=$"{tag} Laser East";
+if(laserWest!=null)laserWest.CustomName=$"{tag} Laser West";
+foreach(var l in lasers){if(l!=laserPad&&l!=laserNorth&&l!=laserSouth&&l!=laserEast&&l!=laserWest)l.CustomName=$"{tag} Laser";}
 for(int i=0;i<lights.Count;i++)lights[i].CustomName=$"{tag} Light {i+1}";
 if(rc!=null)rc.CustomName=$"{tag} {BT(rc)}";
 if(merge!=null)merge.CustomName=$"{tag} {BT(merge)}";
@@ -585,9 +795,9 @@ s.DetectFriendly=false;
 s.DetectEnemy=true;
 s.DetectNeutral=true;
 float r=(float)sensorRange;
-s.FrontExtend=r;s.BackExtend=r/4;
-s.LeftExtend=r/2;s.RightExtend=r/2;
-s.TopExtend=r/2;s.BottomExtend=r/2;
+s.FrontExtend=r;s.BackExtend=0.1f;
+s.LeftExtend=0.1f;s.RightExtend=0.1f;
+s.TopExtend=0.1f;s.BottomExtend=0.1f;
 }}
 
 void ConfigCameras(){
@@ -670,7 +880,7 @@ var det=new List<MyDetectedEntityInfo>();
 s.DetectedEntities(det);
 foreach(var e in det){
 if(e.EntityId==Me.CubeGrid.EntityId)continue;
-if(Vector3D.Distance(e.Position,myPos)<5)continue;
+if(Vector3D.Distance(e.Position,myPos)<15)continue;
 if(IsValidTgt(e.Relationship)){
 double d=Vector3D.Distance(myPos,e.Position);
 if(d<closestDist){closestDist=d;closest=e.Position;}
@@ -683,20 +893,20 @@ Vector3D myPos=Me.GetPosition();
 foreach(var c in cameras){
 if(c.CanScan(lidarRange)){
 lidarHit=c.Raycast(lidarRange,0,0);
-if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>5){
+if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>15){
 lidarLock=true;
 lidarTgt=lidarHit.Position;
 return lidarHit.Position;
 }
 for(double a=lidarAng;a<=45;a+=lidarAng){
 lidarHit=c.Raycast(lidarRange,(float)a,0);
-if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>5){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>15){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
 lidarHit=c.Raycast(lidarRange,(float)-a,0);
-if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>5){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>15){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
 lidarHit=c.Raycast(lidarRange,0,(float)a);
-if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>5){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>15){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
 lidarHit=c.Raycast(lidarRange,0,(float)-a);
-if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>5){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
+if(!lidarHit.IsEmpty()&&IsValidTgt(lidarHit.Relationship)&&Vector3D.Distance(lidarHit.Position,myPos)>15){lidarLock=true;lidarTgt=lidarHit.Position;return lidarHit.Position;}
 }}}
 lidarLock=false;
 lidarTgt=null;
@@ -723,7 +933,7 @@ MatrixD gm=g.WorldMatrix;
 Vector3D desiredAngVel=up*yawErr*gain-right*pitchErr*gain;
 g.Pitch=(float)Vector3D.Dot(desiredAngVel,gm.Right);
 g.Yaw=(float)Vector3D.Dot(desiredAngVel,gm.Up);
-g.Roll=(float)Vector3D.Dot(desiredAngVel,gm.Backward);
+g.Roll=(float)Vector3D.Dot(desiredAngVel,gm.Forward);
 }}
 
 void AimAtUp(Vector3D upDir){
@@ -740,7 +950,7 @@ MatrixD gm=g.WorldMatrix;
 Vector3D desiredAngVel=up*yawErr*gain-right*pitchErr*gain;
 g.Pitch=(float)Vector3D.Dot(desiredAngVel,gm.Right);
 g.Yaw=(float)Vector3D.Dot(desiredAngVel,gm.Up);
-g.Roll=(float)Vector3D.Dot(desiredAngVel,gm.Backward);
+g.Roll=(float)Vector3D.Dot(desiredAngVel,gm.Forward);
 }
 EnableThrustUp(upDir);
 }
@@ -761,17 +971,21 @@ if(rc==null||!evadeEnabled)return;
 double elapsed=(DateTime.Now-evadeStartTime).TotalSeconds;
 Vector3D evadeOffset=Vector3D.Zero;
 if(evadePattern==1){
-double sine=Math.Sin(elapsed*evadeFrequency*Math.PI*2);
-double cosine=Math.Cos(elapsed*evadeFrequency*Math.PI*2);
+evadeToggleTicks++;
+if(evadeToggleTicks>15){evadePhaseOffset=rnd.NextDouble()*0.5;evadeToggleTicks=rnd.Next(5,20);}
+double freq=evadeFrequency*(1+evadePhaseOffset*0.3);
+double sine=Math.Sin(elapsed*freq*Math.PI*2+evadePhaseOffset*Math.PI);
+double cosine=Math.Cos(elapsed*freq*Math.PI*2+evadePhaseOffset*Math.PI*0.7);
 Vector3D toTgt=Vector3D.Normalize(target-myPos);
 Vector3D lateral=Vector3D.Cross(toTgt,Vector3D.Up);
 if(lateral.LengthSquared()<0.01)lateral=Vector3D.Cross(toTgt,Vector3D.Right);
 lateral=Vector3D.Normalize(lateral);
 Vector3D vertical=Vector3D.Cross(toTgt,lateral);
-evadeOffset=lateral*sine*evadeAmplitude+vertical*cosine*evadeAmplitude;
+double ampMod=0.8+rnd.NextDouble()*0.4;
+evadeOffset=lateral*sine*evadeAmplitude*ampMod+vertical*cosine*evadeAmplitude*ampMod;
 }else if(evadePattern==2){
 evadeToggleTicks++;
-if(evadeToggleTicks>5){evadePhaseOffset=(rnd.NextDouble()*2-1);evadeToggleTicks=0;}
+if(evadeToggleTicks>5){evadePhaseOffset=(rnd.NextDouble()*2-1);evadeToggleTicks=rnd.Next(3,8);}
 Vector3D toTgt2=Vector3D.Normalize(target-myPos);
 Vector3D lat2=Vector3D.Cross(toTgt2,Vector3D.Up);if(lat2.LengthSquared()<0.01)lat2=Vector3D.Cross(toTgt2,Vector3D.Right);lat2=Vector3D.Normalize(lat2);
 Vector3D vert2=Vector3D.Cross(toTgt2,lat2);
@@ -801,10 +1015,15 @@ targetVelSamples++;
 }
 Vector3D PredictTargetPosition(Vector3D targetPos,double dist){
 if(lastTargetVel.Length()<1)return targetPos;
-double missileSpeed=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():100;
-if(missileSpeed<10)missileSpeed=100;
-double interceptTime=dist/missileSpeed;
-return targetPos+lastTargetVel*interceptTime*0.5;
+Vector3D mslVel=rc!=null?rc.GetShipVelocities().LinearVelocity:Vector3D.Zero;
+double mslSpd=mslVel.Length();if(mslSpd<10)mslSpd=100;
+Vector3D relVel=mslVel-lastTargetVel;
+Vector3D toTgt=targetPos-Me.GetPosition();
+double closingSpd=Vector3D.Dot(relVel,Vector3D.Normalize(toTgt));
+if(closingSpd<10)closingSpd=mslSpd;
+double interceptTime=dist/closingSpd;
+interceptTime=Math.Min(interceptTime,10);
+return targetPos+lastTargetVel*interceptTime;
 }
 void AimAtTerminal(Vector3D target){
 if(rc==null)return;
@@ -820,7 +1039,7 @@ MatrixD gm=g.WorldMatrix;
 Vector3D desiredAngVel=up*yawErr*gain-right*pitchErr*gain;
 g.Pitch=(float)Vector3D.Dot(desiredAngVel,gm.Right);
 g.Yaw=(float)Vector3D.Dot(desiredAngVel,gm.Up);
-g.Roll=(float)Vector3D.Dot(desiredAngVel,gm.Backward);
+g.Roll=(float)Vector3D.Dot(desiredAngVel,gm.Forward);
 }}
 
 void SafeReset(){
@@ -836,6 +1055,8 @@ SendFinalStatus("SAFE_RESET");
 }
 void Detonate(){
 if(isSatellite)return;
+if(phase==F.CLIMB||phase==F.ARM){SendFinalStatus("DETONATE_BLOCKED_CLIMB");SafeReset();return;}
+if(flightTicks<60){SendFinalStatus("DETONATE_BLOCKED_EARLY");SafeReset();return;}
 if(distFromPad<100){SendFinalStatus("DETONATE_BLOCKED_ON_PAD");SafeReset();return;}
 SendFinalStatus("IMPACT");
 phase=F.IDLE;
@@ -852,7 +1073,7 @@ IGC.SendBroadcastMessage(broadcastTag,msg);
 }
 
 void UpdateEcho(){
-string ph=phase==F.IDLE?"IDLE":phase==F.CLIMB?"CLIMB":phase==F.ARM?"ARM":phase==F.COAST?(coasting?"COAST":"BURN"):phase==F.REENTRY?"REENTRY":phase==F.SAT_CLIMB?"SAT_CLIMB":phase==F.SAT_BRAKE?"SAT_BRAKE":phase==F.SAT_HOLD?"SAT_HOLD":"TARGET";
+string ph=phase==F.IDLE?"IDLE":phase==F.CLIMB?"CLIMB":phase==F.ARM?"ARM":phase==F.COAST?(coasting?"COAST":"BURN"):phase==F.REENTRY?"REENTRY":phase==F.SAT_CLIMB?"SAT_CLIMB":phase==F.SAT_BRAKE?"SAT_BRAKE":phase==F.SAT_HOLD?"SAT_HOLD":phase==F.SAT_INTERCEPT?"INTERCEPT":"TARGET";
 string md=mode==T.GPS?"GPS":mode==T.ANTENNA?"ANT":mode==T.SENSOR?"SNS":mode==T.LIDAR?"LDR":mode==T.SATELLITE?"SAT":"MAN";
 string ev=inSpace?"SPACE":"GRAV";
 string hdr=isSatellite?"SATELLITE RELAY":"MISSILE GUIDANCE";
@@ -873,6 +1094,7 @@ string fmStr=flightMode==1?"ICBM":"DIRECT";
 bool hasGrav=rc!=null&&rc.GetNaturalGravity().Length()>0.05;
 s+=$"| Mode: {fmStr,-6} {(hasGrav?"GRAV":"SPACE")} |\n";
 s+=$"| Climb:{climbDist:F0}m Det:{detDist:F0}m  |\n";
+if(padGravity>0)s+=$"| PadG:{padGravity:F1}m/s²      |\n";
 }else if(phase==F.CLIMB){
 double dist=Vector3D.Distance(Me.GetPosition(),launchPos);
 double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
@@ -898,7 +1120,7 @@ s+=$"| To Target: {distToTgt,5:F0}m |\n";
 s+=$"| ## RE-ENTRY ##    |\n";
 s+=$"| Gravity detected! |\n";
 s+=$"| To Target: {distToTgt,5:F0}m |\n";
-}else if(phase==F.SAT_CLIMB||phase==F.SAT_BRAKE||phase==F.SAT_HOLD){
+}else if(phase==F.SAT_CLIMB||phase==F.SAT_BRAKE||phase==F.SAT_HOLD||phase==F.SAT_INTERCEPT){
 double alt=Vector3D.Distance(Me.GetPosition(),launchPos);
 double bat=0,h2=0;
 foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;
@@ -914,12 +1136,20 @@ double spd=satVelocity.Length();
 s+=$"| ORBITAL BRAKE     |\n";
 s+=$"| Speed: {spd:F1}m/s       |\n";
 s+=$"| Altitude: {alt/1000:F1}km    |\n";
+}else if(phase==F.SAT_INTERCEPT){
+double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
+s+=$"| ## INTERCEPT ##   |\n";
+s+=$"| To Enemy: {distToTgt,5:F0}m |\n";
+s+=$"| Spd:{spd,3:F0} Det:{interceptDetonateDist:F0}m |\n";
+s+=$"| Grid: {satGridX},{satGridZ}       |\n";
 }else{
 double drift=Vector3D.Distance(Me.GetPosition(),satPosition);
+string skSt=satStationKeeping&&drift<5?"STABLE":"CORRECTING";
 s+=$"| STATION KEEPING   |\n";
+s+=$"| Status: {skSt,-10}|\n";
 s+=$"| Drift: {drift:F1}m        |\n";
 s+=$"| Bat:{bat*100:F0}% H2:{h2*100:F0}%   |\n";
-s+=$"| Sat ID: {satID}         |\n";
+s+=$"| Grid: {satGridX},{satGridZ} ID:{satID}  |\n";
 }
 }else{
 double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
@@ -943,6 +1173,7 @@ float blinkRate=1f;
 if(phase==F.CLIMB){blinkRate=0.5f;}
 else if(phase==F.TARGET||phase==F.REENTRY){blinkRate=1f;}
 else if(phase==F.SAT_CLIMB||phase==F.SAT_BRAKE||phase==F.SAT_HOLD){blinkRate=0.25f;}
+else if(phase==F.SAT_INTERCEPT){blinkRate=4f;}
 else if(phase==F.COAST){blinkRate=flightMode==1?4f:0.5f;}
 on=((int)(sec*blinkRate)%2)==0;
 foreach(var l in lights){l.Enabled=on;l.Color=c;l.Intensity=2f;l.Falloff=1.3f;l.Radius=3f;}

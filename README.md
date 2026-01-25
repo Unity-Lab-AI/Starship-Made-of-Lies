@@ -2,7 +2,10 @@
 
 # UNITY MISSILE SYSTEM v01.00
 
-**5-Script Modular System | 11 LCD Displays | Sprite-Based Rendering | Full Automation | Satellite Relay | Carpet Bomb | Auto-Attack | Fleet Tracking | Inventory Management**
+**6-Script Modular System | 11 LCD Displays | Sprite-Based Rendering | Full Automation | Satellite Array Mesh | Laser Networking | Auto-Intercept | Carpet Bomb | Auto-Attack | Fleet Tracking | Inventory Management**
+
+**Location:** `Space Engineers/Unity Missile System/`
+**Version:** v01.00 | 2026-01-24
 
 **Works on LARGE or SMALL grids (auto-detect)**
 **Works in SPACE or ATMOSPHERE (auto-detect)**
@@ -10,25 +13,63 @@
 
 ---
 
-## SCRIPT COMPONENTS
+## Table of Contents
 
-| Script | PB Name | Function |
-|--------|---------|----------|
-| **Unity Boot** | `[PAD1] UNITY BOOT` | Boot controller, 23 unified checks with real PB handshaking |
-| **UnityPad** | `[PAD1] Unity Pad` | Launch control, LCDs, targeting, printing |
-| **UnityMissile** | `PAD1 Missile #1 Program` | In-flight guidance, targeting, detonation |
-| **UnityInventory** | `[PAD1] Unity Inventory` | Inventory management, production, sorting |
-| **UnityBeacon** | `[BEACON] Unity Beacon` | Fleet status broadcasting (on miners) |
+1. [Script Components](#script-components)
+2. [Complete Setup Guide](#complete-setup-guide)
+3. [Missile Design Options](#missile-design-options)
+4. [Modular Base Expansion](#modular-base-expansion)
+5. [What's New in v01.00](#whats-new-in-v0100)
+6. [Satellite Array Mesh Network](#satellite-array-mesh-network)
+7. [Controller Mode](#controller-mode)
+8. [Carpet Bomb Mode](#carpet-bomb-mode-controller)
+9. [Kill All Auto-Attack Mode](#kill-all-auto-attack-mode)
+10. [Pad Resource Management](#pad-resource-management)
+11. [Unity Boot System](#unity-boot-system)
+12. [UnityInventory System](#unityinventory-system)
+13. [CustomData Section Ownership](#customdata-section-ownership)
+14. [Ammo Build Status](#ammo-build-status)
+15. [Quick Start](#quick-start)
+16. [10 LCD Display System](#10-lcd-display-system)
+17. [Targeting Modes](#targeting-modes)
+18. [All Settings](#all-settings)
+19. [Complete Argument Reference](#complete-argument-reference)
+20. [IGC Broadcast Tags](#igc-broadcast-tags)
+21. [Build the Launch Pad](#build-the-launch-pad)
+22. [Build the Missile](#build-the-missile)
+23. [ICBM Flight Profile](#icbm-flight-profile)
+24. [Printer System](#printer-system)
+25. [MinerBeacon Fleet Tracking](#minerbeacon-fleet-tracking)
+26. [UnitySignal - Central Signal Controller](#unitysignal---central-signal-controller)
+27. [Character Counts](#character-counts)
+28. [Troubleshooting](#troubleshooting)
+29. [Credits & Acknowledgements](#credits--acknowledgements)
 
 ---
 
-## TABLE OF CONTENTS
+## Script Components
 
-1. [Complete Setup Guide](#complete-setup-guide)
-2. [Missile Design Options](#missile-design-options)
-3. [Modular Base Expansion](#modular-base-expansion)
-4. [Feature Reference](#what-new-in-v32)
-5. [Future Roadmap](#future-expansions-code-additions)
+| Component | Script | PB Name | Purpose |
+|-----------|--------|---------|---------|
+| **Boot Controller** | Unity Boot.cs | `[PAD1] UNITY BOOT` | 26-check boot sequence with real PB handshaking |
+| **Launch Pad** | UnityPad.cs | `[PAD1] Unity Pad` | Missile control, LCDs 1,2,3,7,8, targeting, printing |
+| **Inventory** | UnityInventory.cs | `[PAD1] Unity Inventory` | Production, sorting, LCDs 4,5,6,9,10,11 |
+| **Signal Hub** | UnitySignal.cs | `[PAD1] UNITY SIGNAL` | Camera display, laser targeting, satellite tracking |
+| **Missile** | UnityMissile.cs | `[PAD1] Missile #1 Program` | In-flight guidance, targeting, detonation |
+| **Fleet Beacon** | UnityBeacon.cs | `[BEACON] Unity Beacon` | Miner status broadcasting (runs on miners) |
+
+### Compile Order (Pad Grid)
+
+**PAD → INVENTORY → SIGNAL → BOOT**
+
+| Order | Script | Action |
+|-------|--------|--------|
+| 1 | UnityPad | Clears CustomData, writes `pad_ready=true` |
+| 2 | UnityInventory | Clears CustomData, writes `inv_ready=true` |
+| 3 | UnitySignal | Clears CustomData, writes `signal_ready=true` |
+| 4 | Unity Boot | Reads ready flags, runs 23 checks, sets `boot_complete=true` |
+
+*Note: UnityBeacon (miners) and UnityMissile (missiles) are on separate grids - compile anytime.*
 
 ---
 
@@ -98,15 +139,16 @@ Button 4 → Run PB with argument: LAUNCH
 
 #### Step 3: Install Scripts
 
-**Three PBs required on pad grid. COMPILE IN THIS EXACT ORDER:**
+**Four PBs required on pad grid. COMPILE IN THIS EXACT ORDER:**
 
 | Order | Script | PB Name | Notes |
 |-------|--------|---------|-------|
 | 1 | UnityBeacon | `[BEACON] Unity Beacon` | Optional - on miners only |
-| 2 | UnityMissile | `PAD1 Missile #1 Program` | Compile on missile PB |
-| 3 | **UnityPad** | `[PAD1] Unity Pad` | **CLEARS CustomData - must be first of main 3** |
+| 2 | UnityMissile | `[PAD1] Missile #1 Program` | Compile on missile PB |
+| 3 | **UnityPad** | `[PAD1] Unity Pad` | **CLEARS CustomData - must be first of main 4** |
 | 4 | UnityInventory | `[PAD1] Unity Inventory` | Adds inv_ready flag |
 | 5 | Unity Boot | `[PAD1] UNITY BOOT` | Runs 23/23 checks, signals boot_complete |
+| 6 | UnitySignal | `[PAD1] UNITY SIGNAL` | Camera display, waits for boot_complete |
 
 **WHY THIS ORDER:**
 - UnityPad **CLEARS ALL CustomData** on compile (fresh start for boot)
@@ -126,11 +168,17 @@ Button 4 → Run PB with argument: LAUNCH
    - Click "Check Code" then "Recompile"
    - Adds inv_ready=true to existing CustomData
 
-3. **Boot PB (compile LAST):**
-   - Copy `Unity Boot.cs` into a third Programmable Block
+3. **Signal PB (compile THIRD):**
+   - Copy `UnitySignal.cs` into a third Programmable Block
+   - Name it: `[PAD1] UNITY SIGNAL`
+   - Click "Check Code" then "Recompile"
+   - Adds signal_ready=true for boot handshake
+
+4. **Boot PB (compile LAST):**
+   - Copy `Unity Boot.cs` into a fourth Programmable Block
    - Name it: `[PAD1] UNITY BOOT`
    - Click "Check Code" then "Recompile"
-   - Runs 23/23 boot checks, sets boot_complete=true
+   - Runs 26/26 boot checks, sets boot_complete=true
 
 #### Step 4: SETUPMOD - Automatic Configuration
 
@@ -608,28 +656,96 @@ BASE BETA (Orbital Station):
 
 ---
 
-## SATELLITE RELAY NETWORK
+## SATELLITE ARRAY MESH NETWORK
 
-Deploy missiles as stationary communication satellites in zero-G orbit.
+Deploy missiles as orbital satellites with laser mesh networking and auto-intercept capability.
 
 ### How It Works
 1. Set targeting mode to **SATELLITE**
-2. Launch the missile
+2. Launch the missile - optionally specify grid position or replacement target
 3. Missile climbs until gravity < 0.05 m/s²
 4. Flips and brakes to zero velocity
-5. Holds position as relay satellite
-6. Broadcasts status and relays communications
+5. Establishes laser mesh connections with neighboring satellites
+6. Holds position, scans for enemies, broadcasts status
 
 ### Satellite Features
-- Extends controller range via relay chain
-- Relays missile telemetry through network
-- Warheads stay SAFE (won't arm or detonate)
-- Broadcasts battery/H2 status
-- Shows on LCD8 SATELLITE NET display
+- **5-Laser Mesh Networking** - laserPad (ground link) + laserNorth/South/East/West (mesh links)
+- **Grid Formation** - Satellites position in expanding spiral grid pattern
+- **Auto-Intercept** - Detects enemies via sensors, chases, detonates within 10m
+- **Auto-Replacement** - When satellite intercepts, new one auto-launches to grid position
+- **Relay Communications** - Extends controller range, relays missile telemetry
+- **Status Broadcast** - Battery, H2, grid position, laser link status
 
 ### Flight Phases
 ```
-LAUNCH → SAT_CLIMB → SAT_BRAKE → SAT_HOLD
+LAUNCH → SAT_CLIMB → SAT_BRAKE → SAT_HOLD → (enemy detected) → SAT_INTERCEPT → DETONATE
+```
+
+### Satellite Grid Formation
+
+Satellites deploy in an expanding spiral pattern centered on the first satellite:
+```
+Grid Slot Order:
+        [-1,1] [0,1] [1,1]
+        [-1,0] [0,0] [1,0]   ← First satellite at (0,0)
+        [-1,-1][0,-1][1,-1]
+
+Expansion: (0,0) → (1,0) → (1,1) → (0,1) → (-1,1) → (-1,0) → (-1,-1) → (0,-1) → (1,-1) → (2,-1)...
+```
+
+### Laser Mesh Networking
+
+Each satellite has 5 laser antennas for mesh networking:
+
+| Antenna | Purpose | Connects To |
+|---------|---------|-------------|
+| `[PAD1] Laser Pad` | Ground link | Launch pad laser antenna |
+| `[PAD1] Laser North` | Grid +Z | Satellite at (gx, gz+1) |
+| `[PAD1] Laser South` | Grid -Z | Satellite at (gx, gz-1) |
+| `[PAD1] Laser East` | Grid +X | Satellite at (gx+1, gz) |
+| `[PAD1] Laser West` | Grid -X | Satellite at (gx-1, gz) |
+
+### Auto-Intercept Protocol
+
+When a satellite detects an enemy:
+1. **Detection** - Sensor picks up enemy/neutral entity
+2. **SAT_INTERCEPT** - Satellite switches phase, enables thrusters
+3. **Chase** - Aims at enemy, broadcasts chase updates via IGC
+4. **Detonate** - When within 10m, broadcasts last known position + grid slot, detonates warheads
+5. **Replacement** - Command pad receives intercept message, queues replacement to that grid position
+6. **Auto-Launch** - New satellite launches to fill the gap in the mesh
+
+### Satellite Launch Commands
+
+| Command | Format | Description |
+|---------|--------|-------------|
+| Basic | `SATLAUNCH` | Launch to next available grid slot |
+| Targeted | `SATLAUNCH:X,Y,Z` | Launch to specific position |
+| Grid Slot | `SATLAUNCH:GRID:gx,gz` | Launch to specific grid coordinates |
+
+### Satellite Configuration
+
+In command pad CustomData `[SATELLITE]` section:
+```ini
+[SATELLITE]
+GridSpacing=5000          ; Meters between satellites (default 5km)
+AutoExpand=true           ; Continuously expand array
+MaxSatellites=25          ; Maximum satellites in array (5x5 grid)
+ScanRange=10000           ; Sensor scan range per satellite
+DetonateRange=10          ; Detonate when enemy within 10m
+ChaseEnabled=true         ; Chase enemy before detonation
+LaserLinkRange=50000      ; Max laser antenna range
+AutoReplace=true          ; Auto-launch replacement on detonation
+```
+
+### Status Broadcast Format
+```
+SAT|{satID}|{X,Y,Z}|{bat%}|{h2%}|{status}|{gridX},{gridZ}|{laserLinks}
+```
+
+Example:
+```
+SAT|3|50000,100000,25000|85|60|HOLD|1,0|PAD,NORTH,SOUTH
 ```
 
 ---
@@ -788,7 +904,7 @@ In SURVIVAL mode:
 
 ## UNITY BOOT SYSTEM
 
-Centralized boot controller with real PB-to-PB handshaking. Runs 23 unified checks that verify Pad and Inventory systems are actually running and responding.
+Centralized boot controller with real PB-to-PB handshaking. Runs 26 unified checks that verify Pad, Inventory, and Signal systems are actually running and responding.
 
 ### Pre-Boot Ready Sync
 
@@ -800,26 +916,28 @@ Centralized boot controller with real PB-to-PB handshaking. Runs 23 unified chec
 | 2 | UnityMissile | Compile on missile PB |
 | 3 | **UnityPad** | **CLEARS ALL CustomData**, writes pad_ready=true |
 | 4 | UnityInventory | Adds inv_ready=true to existing data |
-| 5 | Unity Boot | Runs 23/23 checks, sets boot_complete=true |
+| 5 | UnitySignal | Adds signal_ready=true, camera display |
+| 6 | Unity Boot | Runs 26/26 checks, sets boot_complete=true |
 
 **WHY THIS ORDER:**
 - UnityPad clears CustomData completely (fresh start)
 - UnityPad writes initial [SYSTEM] section
 - UnityInventory preserves existing data and adds its flag
-- Unity Boot waits for both ready flags before starting
+- UnitySignal adds its ready flag for camera/antenna management
+- Unity Boot waits for all ready flags before starting
 
 ### How It Works
 
-1. **Scripts compile in order** → UnityPad clears CustomData, Inventory adds flag
+1. **Scripts compile in order** → UnityPad clears CustomData, Inventory/Signal add flags
 2. **Unity Boot checks flags** → If not all ready, shows waiting screen
-3. **All ready** → Clears stale data, starts 23/23 checks
-4. **Runs 23 unified checks** → Displays progress (1/23, 2/23, etc.)
-5. **Sends IGC requests** → Pad and Inventory PBs respond with system status
-6. **Check 20: Beacon Detection** → Listens for MINER_BEACON, stores miner names
+3. **All ready** → Clears stale data, starts 26/26 checks
+4. **Runs 26 unified checks** → Displays progress (1/26, 2/26, etc.)
+5. **Sends IGC requests** → Pad, Inventory, and Signal PBs respond with system status
+6. **Check 22: Beacon Detection** → Listens for MINER_BEACON, stores miner names
 7. **On error** → Pauses 5 seconds, shows error message, retries
 8. **On success** → Sets `boot_complete=true` in [SYSTEM] CustomData
 9. **Self-disables** → UpdateFrequency.None (stops running)
-10. **Handoff** → UnityPad and UnityInventory detect boot_complete and take their LCDs
+10. **Handoff** → UnityPad, UnityInventory, UnitySignal detect boot_complete and take their LCDs
 
 ### Real Handshaking Protocol
 
@@ -844,21 +962,19 @@ INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
 3. Name PB: `[PAD1] UNITY BOOT`
 4. The boot PB communicates via IGC and button panel [SYSTEM] CustomData
 
-### The 23 Unified Checks
+### The 26 Unified Checks
 
 | # | Check | Method |
 |---|-------|--------|
-| 1-4 | Grid, Panel, LCDs, IGC | Local block scan |
-| 5 | Request Pad Status | IGC + CustomData |
-| 6 | Await Pad Response | Real handshake |
+| 0-4 | Core Init, Grid, Panel, LCDs, IGC | Local block scan |
+| 5-6 | Request Pad Status, Await Response | IGC handshake |
 | 7-10 | Validate Pad Merge/Power/Fuel | Parse response |
-| 11 | Request Inv Status | IGC + CustomData |
-| 12 | Await Inv Response | Real handshake |
+| 11-12 | Request Inv Status, Await Response | IGC handshake |
 | 13-16 | Validate Inv Cargo/Ref/Asm/Gas | Parse response |
-| 17-18 | Cross-Validate, Module Sync | All systems check |
-| 19 | Write Config | Finalize quotas |
-| 20 | Beacon Detection | MINER_BEACON listener |
-| 21 | System Ready | boot_complete=true |
+| 16-18 | Request Signal Status, Await, Validate | IGC handshake |
+| 19-21 | Cross-Validate, Module Sync, Write Config | All systems check |
+| 22 | Beacon Detection | MINER_BEACON listener |
+| 23-25 | Controller Modules, System Ready, Final | boot_complete=true |
 
 ### LCD Control
 
@@ -1306,7 +1422,8 @@ Unity Boot has no manual arguments - it runs the boot sequence automatically on 
 | `UNITY_PAD_CMD` | Pad-to-pad commands |
 | `UNITY_PAD_STATUS` | Pad status broadcast |
 | `UNITY_SAT_RELAY` | Satellite relay network |
-| `UNITY_SAT_RELAY_STATUS` | Satellite status broadcast |
+| `UNITY_SAT_RELAY_STATUS` | Satellite status broadcast (incl grid position, laser links) |
+| `UNITY_SAT_INTERCEPT` | Satellite intercept/detonation messages |
 | `ENEMY_SIGNAL` | Enemy broadcast detection (for auto-attack) |
 | `MINER_BEACON` | MinerBeacon ship status (bat, cargo, drills, status) |
 
@@ -1466,13 +1583,16 @@ When in SURVIVAL mode, the pad automatically:
 
 | Script | Deployed | Limit | Status |
 |--------|----------|-------|--------|
-| Unity Boot | ~15,050 | 100,000 | OK (85% margin) |
-| UnityPad | 91,863 | 100,000 | OK (8.1% margin) |
-| UnityMissile | ~24,321 | 100,000 | OK (76% margin) |
-| UnityInventory | 89,503 | 100,000 | OK (10.5% margin) |
-| UnityBeacon | ~14,658 | 100,000 | OK (85% margin) |
+| Unity Boot | ~20,000 | 100,000 | OK (80% margin) |
+| UnityPad | ~97,400 | 100,000 | OK (2.6% margin) |
+| UnityMissile | ~34,200 | 100,000 | OK (66% margin) |
+| UnityInventory | ~90,200 | 100,000 | OK (9.8% margin) |
+| UnityBeacon | ~16,600 | 100,000 | OK (83% margin) |
+| UnitySignal | ~41,800 | 100,000 | OK (58% margin) |
 
 *Note: The 100k limit applies to DEPLOYED script.cs in AppData. MDK2 with `minify=full` compresses the raw source by ~20-30%.*
+
+**WARNING:** UnityPad is at 97.4% capacity. Major additions require code optimization first.
 
 ---
 
@@ -1843,9 +1963,71 @@ Missile #1 [AMMO] Connector
 |--------|----------|---------|---------|
 | **Unity Boot.cs** | `Unity Missile System/` | `[PAD1] UNITY BOOT` | Boot controller, 23 unified checks with real PB handshaking |
 | **UnityPad.cs** | `Unity Missile System/` | `[PAD1] Unity Pad` | Launch control, LCDs, targeting, printing |
-| **UnityMissile.cs** | `Unity Missile System/` | `PAD1 Missile #1 Program` | Guided missile with multiple targeting modes |
+| **UnityMissile.cs** | `Unity Missile System/` | `[PAD1] Missile #1 Program` | Guided missile with multiple targeting modes |
 | **UnityInventory.cs** | `Unity Missile System/` | `[PAD1] Unity Inventory` | Inventory management, production, auto-sorting |
 | **UnityBeacon.cs** | `Unity Missile System/` | `[BEACON] Unity Beacon` | Broadcasts miner status to pad |
+| **UnitySignal.cs** | `Unity Missile System/` | `[PAD1] UNITY SIGNAL` | Camera display on [PAD#CAMS]:# LCDs |
+
+---
+
+## UNITYSIGNAL - CENTRAL SIGNAL CONTROLLER
+
+Central signal hub for the pad grid. Manages antennas, laser targeting, satellite tracking, and camera display.
+
+### How It Works
+
+UnitySignal listens for camera info from:
+- **Local cameras** tagged `[PAD#]` on the pad grid
+- **Missile cameras** via UNITY_MSL IGC broadcast
+- **Miner cameras** via MINER_BEACON IGC broadcast
+
+### Setup
+
+1. Add a Programmable Block on your pad grid
+2. Load `UnitySignal.cs` script
+3. Name PB: `[PAD1] UNITY SIGNAL`
+4. Tag LCDs: `[PAD1CAMS]:1`, `[PAD1CAMS]:2`, etc.
+5. Compile order: PAD > INV > SIGNAL > BOOT
+
+### Controller Mode
+
+For multi-pad controller setups, use `[CTRLCAMS]:1` LCD tags instead. Controller mode is auto-detected when any `[CTRLCAMS]` tagged LCD exists.
+
+### LCD Tag Formats
+
+| Tag | Mode | Purpose |
+|-----|------|---------|
+| `[PAD1CAMS]:1` | Single pad | Camera LCD slot 1 for PAD1 |
+| `[PAD1CAMS]:2` | Single pad | Camera LCD slot 2 for PAD1 |
+| `[CTRLCAMS]:1` | Controller | Camera LCD slot 1 (all pads) |
+
+### LCD Display
+
+```
+=== PAD 1 CAMERAS ===
+TOTAL: 6  |  PAGE 1/1
+--------------------------------
+01 [PAD1] Forward Camera     LOCAL
+02 [PAD1] Docking Camera     LOCAL
+03 Missile #1 Cam            MISSILE
+04 Miner-1 Cam               MINER
+--------------------------------
+Auto-cycle every 5s
+```
+
+### Commands
+
+| Command | Action |
+|---------|--------|
+| `RESCAN` | Refresh block scan |
+| `RESET` | Clear all data, re-initialize |
+
+### Requirements
+
+- Unity Boot must complete (`boot_complete=true`)
+- Cameras must be tagged `[PAD#]` for local discovery
+- Missiles must run UnityMissile v01.00+ (broadcasts camera info)
+- Miners must run UnityBeacon v01.00+ (broadcasts camera info)
 
 ---
 
@@ -1877,13 +2059,14 @@ Scripts use specific PB naming conventions:
 |--------|----------------|---------|
 | **Unity Boot** | `[PAD#] UNITY BOOT` | `[PAD1] UNITY BOOT` |
 | **UnityPad** | `[PAD#] Unity Pad` | `[PAD1] Unity Pad` |
-| **UnityMissile** | `PAD# Missile #X Program` | `PAD1 Missile #1 Program` |
+| **UnityMissile** | `[PAD#] Missile #X Program` | `[PAD1] Missile #1 Program` |
 | **UnityInventory** | `[PAD#] Unity Inventory` | `[PAD1] Unity Inventory` |
 | **UnityBeacon** | `[BEACON] Unity Beacon` | `[BEACON] Unity Beacon` |
+| **UnitySignal** | `[PAD#] Unity Signal` | `[PAD1] UNITY SIGNAL` |
 
 **Notes:**
 - The `[PAD#]` tag in the PB name ties it to a specific pad
-- **Compile Order:** BEACON → MISSILE → PAD → INVENTORY → BOOT (BEACON/MISSILE on different PBs, PAD/INVENTORY/BOOT on pad PB in that order)
+- **Compile Order:** BEACON → MISSILE → PAD → INVENTORY → SIGNAL → BOOT (BEACON/MISSILE on different grids, PAD/INVENTORY/SIGNAL/BOOT on pad grid in that order)
 - Unity Boot controls all 11 LCDs during startup checks
 - UnityPad takes LCDs 1,2,3,7,8 after boot_complete
 - UnityInventory takes LCDs 4,5,6,9,10,11 after boot_complete

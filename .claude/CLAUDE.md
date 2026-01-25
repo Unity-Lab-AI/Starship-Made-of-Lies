@@ -6,15 +6,48 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
 
 ---
 
+## Table of Contents
+
+1. [Project Components](#project-components)
+2. [Build and Deploy](#build-and-deploy)
+3. [Critical Rules](#critical-rules-always-enforced)
+4. [No Partial Implementations](#no-partial-implementations)
+5. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)
+6. [No Tests Policy](#no-tests-policy)
+7. [MDK Project Structure](#mdk-project-structure)
+8. [Character Budgets](#character-budgets)
+9. [IGC Communication Channels](#igc-communication-channels)
+10. [Missile System Architecture](#missile-system-architecture)
+11. [The 600-Line Read Standard](#the-600-line-read-standard)
+12. [Agent Files](#agent-files)
+13. [Quick Reference](#quick-reference)
+14. [Boot Handshake Protocol](#boot-handshake-protocol)
+    - [PB Discovery Pattern](#pb-discovery-pattern)
+    - [How Scripts Read From Other PBs](#how-scripts-read-from-other-pbs)
+    - [In-Game Script Compile Order](#in-game-script-compile-order)
+    - [Pre-Boot Ready Sync](#pre-boot-ready-sync)
+    - [Response Formats](#response-formats)
+    - [Per-PB CustomData Contents](#per-pb-customdata-contents)
+    - [CustomData Section Ownership](#customdata-section-ownership-per-pb-architecture)
+    - [Cross-PB Data Access](#cross-pb-data-access)
+    - [Key Functions Per Script](#key-functions-per-script)
+    - [The 26 Boot Checks](#the-26-boot-checks)
+    - [Boot Flow](#boot-flow-per-pb-architecture)
+    - [Checking Boot Status](#checking-boot-status-in-operational-scripts)
+15. [Credits & Acknowledgements](#credits--acknowledgements)
+
+---
+
 ## PROJECT COMPONENTS
 
 | Component | Script | PB Name | Deployed To |
 |-----------|--------|---------|-------------|
-| **Boot Controller** | `Unity Boot.cs` | `[PAD1] UNITY BOOT` | `%APPDATA%\...\Unity Boot\` (23 checks with PB handshaking + miner detection) |
+| **Boot Controller** | `Unity Boot.cs` | `[PAD1] UNITY BOOT` | `%APPDATA%\...\Unity Boot\` (26 checks with PB handshaking + miner detection) |
 | **Launch Pad** | `UnityPad.cs` | `[PAD1] Unity Pad` | `%APPDATA%\...\UnityPad\` |
-| **Missile** | `UnityMissile.cs` | `PAD1 Missile #1 Program` | `%APPDATA%\...\UnityMissile\` |
+| **Missile** | `UnityMissile.cs` | `[PAD1] Missile #1 Program` | `%APPDATA%\...\UnityMissile\` |
 | **Inventory** | `UnityInventory.cs` | `[PAD1] Unity Inventory` | `%APPDATA%\...\UnityInventory\` (unified production system) |
 | **Fleet Beacon** | `UnityBeacon.cs` | `[BEACON] Unity Beacon` | `%APPDATA%\...\UnityBeacon\` |
+| **Signal Controller** | `UnitySignal.cs` | `[PAD1] UNITY SIGNAL` | `%APPDATA%\...\UnitySignal\` (central signal: antennas, lasers, satellites, cameras) |
 | **Button Panel** | (none) | `[PAD1] Controls` | User GPS input only - NOT a script |
 
 ---
@@ -35,6 +68,7 @@ dotnet build UnityPad -c Debug
 dotnet build UnityMissile -c Debug
 dotnet build UnityInventory -c Debug
 dotnet build UnityBeacon -c Debug
+dotnet build UnitySignal -c Debug
 ```
 
 ### Deploy Location
@@ -46,13 +80,14 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\
 ├── UnityPad\script.cs
 ├── UnityMissile\script.cs
 ├── UnityInventory\script.cs
-└── UnityBeacon\script.cs
+├── UnityBeacon\script.cs
+└── UnitySignal\script.cs
 ```
 
 ### Wrapper Script
 
 The `wrap-scripts.ps1` script:
-- Reads raw `.cs` files (Unity Boot.cs, UnityPad.cs, UnityMissile.cs, UnityInventory.cs, UnityBeacon.cs)
+- Reads raw `.cs` files (Unity Boot.cs, UnityPad.cs, UnityMissile.cs, UnityInventory.cs, UnityBeacon.cs, UnitySignal.cs)
 - Wraps them with MDK2 namespace structure
 - Writes to `[Project]/Program.cs`
 
@@ -141,7 +176,8 @@ int futureFeature = 0;  // "I'll use this later"
 | `[PAD1] UNITY BOOT` | Unity Boot | `Me.CustomData` | [SYSTEM] |
 | `[PAD1] Unity Pad` | UnityPad | `Me.CustomData` | [PAD_CFG], [PAD_STATUS], [PAD_DATA] |
 | `[PAD1] Unity Inventory` | UnityInventory | `Me.CustomData` | [QUOTAS], [MISSILE], [CONFIG], [STATUS], [ORE], [INGOTS], [COMPONENTS], [TURRET_AMMO], [BOTTLES], [TOOLS_WEAPONS], [PERSONAL_AMMO] |
-| `PAD1 Missile #1 Program` | UnityMissile | `Me.CustomData` | Own config only |
+| `[PAD1] UNITY SIGNAL` | UnitySignal | `Me.CustomData` | [SIGNAL] |
+| `[PAD1] Missile #1 Program` | UnityMissile | `Me.CustomData` | Own config only |
 | `[BEACON] Unity Beacon` | UnityBeacon | `Me.CustomData` | Own config only |
 
 ### Button Panel `[PAD1] Controls` (User Input ONLY)
@@ -264,11 +300,14 @@ namespaces=IngameScript
 
 | Script | Lines | MDK Deployed | Budget | Status |
 |--------|-------|--------------|--------|--------|
-| Unity Boot | ~320 | 15,050 | 100,000 | OK (85% margin) |
-| UnityPad | ~2,100 | 91,863 | 100,000 | OK (8.1% margin) |
-| UnityMissile | ~900 | 24,321 | 100,000 | OK (76% margin) |
-| UnityInventory | ~1,650 | 90,247 | 100,000 | OK (9.8% margin) |
-| UnityBeacon | ~200 | 14,658 | 100,000 | OK (85% margin) |
+| Unity Boot | ~320 | ~20,000 | 100,000 | OK (80% margin) |
+| UnityPad | ~2,300 | ~97,400 | 100,000 | **WARNING (2.6% margin)** |
+| UnityMissile | ~1,165 | ~34,200 | 100,000 | OK (66% margin) |
+| UnityInventory | ~1,650 | ~90,200 | 100,000 | OK (9.8% margin) |
+| UnityBeacon | ~300 | ~16,600 | 100,000 | OK (83% margin) |
+| UnitySignal | ~390 | ~41,800 | 100,000 | OK (58% margin) |
+
+**WARNING:** UnityPad is at 97.4% capacity - major additions require code optimization first.
 
 ### Character Count Commands
 
@@ -279,6 +318,7 @@ namespaces=IngameScript
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs").Length
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs").Length
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs").Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnitySignal\script.cs").Length
 
 # WRONG - Do NOT use these (they give inflated counts):
 # - wc -c (counts bytes, not characters)
@@ -294,14 +334,20 @@ namespaces=IngameScript
 
 | Channel | Sender | Receiver | Purpose |
 |---------|--------|----------|---------|
-| `UNITY_MSL` | Missile | Pad | Telemetry broadcast |
+| `UNITY_MSL` | Missile | Signal, Pad | Telemetry broadcast + camera info |
 | `UNITY_MSL_CMD` | Pad | Missile | Commands (DETONATE, ABORT) |
 | `UNITY_PAD_CMD` | Controller | Slaves | Mass commands |
 | `UNITY_PAD_STATUS` | All Pads | Controller | Status updates |
 | `UNITY_SAT_RELAY` | Satellite | Satellite | Inter-satellite mesh |
+| `UNITY_SAT_RELAY_STATUS` | Satellite | Signal | Status with grid position, laser links |
+| `UNITY_SAT_INTERCEPT` | Satellite | Signal | Intercept/detonation messages |
 | `ENEMY_SIGNAL` | External | Controller | Enemy positions |
-| `MINER_BEACON` | UnityBeacon | Pad | Fleet status |
+| `MINER_BEACON` | UnityBeacon | Signal, Pad | Fleet status + camera info |
 | `UNITY_PRINTER` | Printer | Pad | Build completion |
+| `UNITY_BOOT_REQ` | Boot | Pad, Inv, Signal | Request system status |
+| `UNITY_BOOT_RSP` | Pad, Inv, Signal | Boot | Respond with block counts |
+| `UNITY_SIGNAL_CMD` | Pad | Signal | Signal commands (TRACK, LASER, RESCAN) |
+| `UNITY_SIGNAL_RSP` | Signal | Pad | Signal command responses |
 
 ---
 
@@ -312,7 +358,7 @@ namespaces=IngameScript
 - **Purpose:** Centralized boot system for all LCDs with pre-boot ready sync
 - **CustomData:** Writes ONLY to `Me.CustomData` - [SYSTEM] section
 - **Pre-Boot:** Reads `pad_ready` from padPB.CustomData, `inv_ready` from invPB.CustomData
-- **Boot Checks:** 23 unified checks with real PB-to-PB IGC handshaking
+- **Boot Checks:** 26 unified checks with real PB-to-PB IGC handshaking
 - **Check 20:** Miner beacon detection - listens for MINER_BEACON broadcasts
 - **IGC Channels:** UNITY_BOOT_REQ (request), UNITY_BOOT_RSP (response), MINER_BEACON (fleet)
 - **Handshake:** Sets `boot_complete=true` in Me.CustomData [SYSTEM] section
@@ -327,6 +373,7 @@ namespaces=IngameScript
 - **LCDs:** 1,2,3,7,8 (after boot_complete)
 - **Block Tags:** `[PAD#]` for merge/connector/buttons, `[PAD#:1-11]` for LCDs
 - **Features:** Multi-pad controller mode, salvo/carpet bombing, printer integration, miner fleet tracking
+- **Satellite Array Management:** Grid position tracking, spiral expansion, intercept handling, auto-replacement
 - **Ready Flag:** Writes `pad_ready=true` to Me.CustomData on compile
 - **Boot Check:** Reads `boot_complete=true` from bootPB.CustomData
 
@@ -341,14 +388,33 @@ namespaces=IngameScript
 
 ### UnityMissile.cs (Missile Guidance)
 - **Flight Phases:** IDLE → CLIMB → ARM → COAST → REENTRY → TARGET → DETONATE
-- **Satellite Branch:** SAT_CLIMB → SAT_BRAKE → SAT_HOLD
+- **Satellite Branch:** SAT_CLIMB → SAT_BRAKE → SAT_HOLD → (enemy detected) → SAT_INTERCEPT → DETONATE
 - **Targeting Modes:** GPS, ANTENNA, SENSOR, LIDAR, MANUAL, SATELLITE
+- **Satellite Features:** 5-laser mesh networking, grid formation tracking, auto-intercept enemy detection
 
 ### UnityBeacon.cs (Fleet Tracker)
 - **Broadcasts:** Ship status every 3 seconds on MINER_BEACON channel
 - **Data:** EntityId, ShipName, Battery%, Cargo%, H2%, Position, Speed, Altitude, Distance, Status
 - **Status Inference:** DOCKED, DRILLING, DRILL_MOVE, GRINDING, TRAVELING, HOME, IDLE
 - **PAM Compatible:** Works alongside [PAM] Path Auto Miner by Keks (https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929)
+
+### UnitySignal.cs (Central Signal Hub)
+- **PB Name:** `[PAD1] UNITY SIGNAL`
+- **Purpose:** Central signal hub for antennas, lasers, satellites, and cameras
+- **CustomData:** Writes to `Me.CustomData` - [SIGNAL], [ANTENNAS], [LASERS], [SATELLITES], [INTERCEPTS], [CONTROLLER], [STATUS]
+- **IGC Listeners:** UNITY_MSL, MINER_BEACON, UNITY_SAT_RELAY_STATUS, UNITY_SAT_INTERCEPT, UNITY_BOOT_REQ, UNITY_SIGNAL_CMD
+- **IGC Senders:** UNITY_BOOT_RSP, UNITY_SIGNAL_RSP
+- **LCD Tags:** `[PAD#CAMS]:slot` for camera display, `[PAD#SIGNAL]` for status display, `[CTRLCAMS]:slot` for controller mode
+- **Features:**
+  - Antenna Management: Tracks radio/laser status
+  - Laser Targeting: Auto-assigns lasers to track missiles via UNITY_MSL position data
+  - Satellite Tracking: Monitors constellation from UNITY_SAT_RELAY_STATUS broadcasts
+  - Intercept Logging: Records satellite intercepts from UNITY_SAT_INTERCEPT
+  - Camera Display: Shows local, missile, and miner cameras on LCDs
+  - Controller Mode: Aggregates data when [CTRLCAMS] LCDs present
+- **Commands (via arg or IGC):** RESCAN, RESET, ANTENNA:ON/OFF, LASER:idx:ON/OFF, LASER:CLEAR, SAT:RESCAN
+- **Ready Flag:** Writes `signal_ready=true` to Me.CustomData on compile
+- **Boot Check:** Reads `boot_complete=true` from bootPB.CustomData
 
 ---
 
@@ -465,15 +531,18 @@ void FindSiblingPBs(){
 
 ### IN-GAME SCRIPT COMPILE ORDER
 
-**COMPILE ORDER: PAD → INVENTORY → BOOT**
+**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → SIGNAL → BOOT**
 
-| Order | Script | PB Name | What It Does On Compile |
-|-------|--------|---------|-------------------------|
-| 1 | **UnityPad** | `[PAD1] Unity Pad` | Wipes Me.CustomData, writes pad sections, sets `pad_ready=true` |
-| 2 | **UnityInventory** | `[PAD1] Unity Inventory` | Wipes Me.CustomData, writes inventory sections, sets `inv_ready=true` |
-| 3 | **Unity Boot** | `[PAD1] UNITY BOOT` | Finds padPB/invPB, reads ready flags, runs 23 checks, sets `boot_complete=true` |
+| Order | Script | PB Name | Notes |
+|-------|--------|---------|-------|
+| 1 | UnityBeacon | `[BEACON] Unity Beacon` | Optional - on miners only |
+| 2 | UnityMissile | `[PAD1] Missile #1 Program` | Optional - compile on missile PB |
+| 3 | **UnityPad** | `[PAD1] Unity Pad` | **CLEARS CustomData - must be first of pad grid scripts** |
+| 4 | UnityInventory | `[PAD1] Unity Inventory` | Adds `inv_ready` flag, syncs session ID |
+| 5 | UnitySignal | `[PAD1] UNITY SIGNAL` | Adds `signal_ready` flag, camera display |
+| 6 | **Unity Boot** | `[PAD1] UNITY BOOT` | **LAST - runs 26 checks, handshakes all scripts, sets `boot_complete`** |
 
-**NOTE:** UnityBeacon and UnityMissile are on DIFFERENT ships/grids, so they can be compiled at any time. The 3 pad PBs must be compiled in order: PAD → INVENTORY → BOOT.
+**NOTE:** Beacon and Missile are on DIFFERENT grids (miners/missiles) - may not be docked at boot time. Signal can acquire non-docked missiles and miners via IGC. All pad grid scripts (Pad, Inventory, Signal, Boot) must compile in order: PAD → INVENTORY → SIGNAL → BOOT.
 
 ### Pre-Boot Ready Sync
 
@@ -482,6 +551,7 @@ void FindSiblingPBs(){
 | Unity Boot | `boot_ready=true` | Yes (auto) |
 | UnityPad | `pad_ready=true` | Yes |
 | UnityInventory | `inv_ready=true` | Yes |
+| UnitySignal | `signal_ready=true` | Yes |
 | UnityBeacon | (detected via broadcasts) | No (optional) |
 
 ### IGC Channels
@@ -610,7 +680,7 @@ GPS:Target Bravo:2000:600:300:#FFFF0000:
 | **UnityInventory** | `IsBootComplete()` | Reads boot_complete from bootPB.CustomData |
 | **UnityInventory** | `ReadPadSettings()` | Reads mode/missile data from padPB.CustomData |
 
-### The 23 Boot Checks
+### The 26 Boot Checks
 
 | # | Check | What It Does |
 |---|-------|--------------|
@@ -630,28 +700,34 @@ GPS:Target Bravo:2000:600:300:#FFFF0000:
 | 13 | Validate Inv Refinery | Validate refineries |
 | 14 | Validate Inv Assembler | Validate assemblers |
 | 15 | Validate Inv Gas | Validate generators |
-| 16 | Cross-Validate | Both systems responded |
-| 17 | Module Sync | Check sibling pads |
-| 18 | Write Config | EnsureQuotas + SetupBtnGPS |
-| 19 | Beacon Detection | Count miners (optional) |
-| 20 | Controller Modules | Report connected pads |
-| 21 | System Ready | Mark boot complete |
-| 22 | All Systems Operational | Final status |
+| 16 | Request Signal Status | Send SIGNAL_CHECK via IGC |
+| 17 | Await Signal Response | Wait up to 90 ticks |
+| 18 | Validate Signal | Validate cameras and LCDs |
+| 19 | Cross-Validate | All systems responded |
+| 20 | Module Sync | Check sibling pads |
+| 21 | Write Config | EnsureQuotas + SetupBtnGPS |
+| 22 | Beacon Detection | Count miners (optional) |
+| 23 | Controller Modules | Report connected pads |
+| 24 | System Ready | Mark boot complete |
+| 25 | All Systems Operational | Final status |
 
 ### Boot Flow (Per-PB Architecture)
 
 1. **UnityPad compiles FIRST** → Wipes `Me.CustomData`, writes [PAD_CFG]/[PAD_STATUS]/[PAD_DATA], sets `pad_ready=true`
 2. **UnityInventory compiles SECOND** → Wipes `Me.CustomData`, writes inventory sections, sets `inv_ready=true`
-3. **Unity Boot compiles THIRD** → Finds padPB/invPB, reads ready flags from their CustomData
-4. **Checks 1-4** → Core Init (Grid, button panel, LCDs, IGC)
-5. **Checks 5-10** → Pad handshake and validation (reads padPB.CustomData)
-6. **Checks 11-16** → Inventory handshake and validation (reads invPB.CustomData)
-7. **Checks 17-19** → Cross-validate, module sync, config
-8. **Check 20** → Listens for MINER_BEACON, counts miners, stores names
-9. **Check 21** → System ready, sets `boot_complete=true` in Me.CustomData
-10. **Unity Boot disables itself** → `UpdateFrequency.None`
-11. **UnityPad sees boot_complete=true** → Takes LCDs 1,2,3,7,8 (reads bootPB.CustomData)
-12. **UnityInventory sees boot_complete=true** → Takes LCDs 4,5,6,9,10,11 (reads bootPB.CustomData)
+3. **UnitySignal compiles THIRD** → Wipes `Me.CustomData`, writes [SIGNAL], sets `signal_ready=true`
+4. **Unity Boot compiles FOURTH** → Finds padPB/invPB/signalPB, reads ready flags from their CustomData
+5. **Checks 1-4** → Core Init (Grid, button panel, LCDs, IGC)
+6. **Checks 5-10** → Pad handshake and validation (reads padPB.CustomData)
+7. **Checks 11-16** → Inventory handshake and validation (reads invPB.CustomData)
+8. **Checks 16-19** → Signal handshake and validation (reads signalPB.CustomData)
+9. **Checks 19-21** → Cross-validate, module sync, config
+10. **Check 22** → Listens for MINER_BEACON, counts miners, stores names
+11. **Checks 23-25** → Controller modules, system ready, sets `boot_complete=true` in Me.CustomData
+12. **Unity Boot disables itself** → `UpdateFrequency.None`
+13. **UnityPad sees boot_complete=true** → Takes LCDs 1,2,3,7,8 (reads bootPB.CustomData)
+14. **UnityInventory sees boot_complete=true** → Takes LCDs 4,5,6,9,10,11 (reads bootPB.CustomData)
+15. **UnitySignal sees boot_complete=true** → Takes CAMS LCDs (reads bootPB.CustomData)
 
 ### Checking Boot Status in Operational Scripts
 

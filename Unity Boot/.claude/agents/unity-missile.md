@@ -7,7 +7,7 @@ Reference documentation for UnityMissile when working on other Unity Missile Sys
 ## OVERVIEW
 
 **Script:** `UnityMissile.cs`
-**PB Name:** `PAD1 Missile #1 Program`
+**PB Name:** `[PAD1] Missile #1 Program`
 **Deployed:** `%APPDATA%\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs`
 **Characters:** 24,321 (76% margin)
 

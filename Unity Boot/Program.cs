@@ -23,27 +23,30 @@ namespace IngameScript
     public partial class Program : MyGridProgram
     {        int padID=1;int tick=0;
         bool bootDone=false;int bootStep=0;int bootTicks=0;string bootError="";int bootErrTicks=0;string bootStatus="Initializing...";
-        int bootSiblings=0;bool bootHasCtrl=false;bool preBootDone=false;bool padReady=false,invReady=false;int bootCompleteTicks=0;
+        int bootSiblings=0;bool preBootDone=false;bool padReady=false,invReady=false,signalReady=false;int bootCompleteTicks=0;
         bool waitingForAck=false;bool padAck=false,invAck=false;int ackWaitTicks=0;
         IMyBroadcastListener ackL;
         int minerCount=0;string minerNames="";bool beaconOptional=true;
         IMyBroadcastListener beaconL;
         Dictionary<long,string> bootMiners=new Dictionary<long,string>();
         string[] noMinerErrs={"Miners AWOL","No beacons found","Fleet ghosted you"};
-        string[] sysChecks={"Initializing Core","Scanning Grid","Button Panel","Detecting LCDs","IGC Channels","Request Pad Status","Await Pad Response","Missile Merge Block","Validate Pad Power","Validate Pad Fuel","Request Inv Status","Await Inv Response","Validate Inv Cargo","Validate Inv Refinery","Validate Inv Assembler","Validate Inv Gas","Cross-Validate","Module Sync","Write Config","Beacon Detection","Controller Modules","System Ready","All Systems Operational"};
+        string[] sysChecks={"Initializing Core","Scanning Grid","Button Panel","Detecting LCDs","IGC Channels","Request Pad Status","Await Pad Response","Missile Merge Block","Validate Pad Power","Validate Pad Fuel","Request Inv Status","Await Inv Response","Validate Inv Cargo","Validate Inv Refinery","Validate Inv Assembler","Validate Inv Gas","Request Signal Status","Await Signal Response","Validate Signal","Scan Door Systems","Verify Pressurization","Cross-Validate","Module Sync","Write Config","Beacon Detection","Controller Modules","System Ready","All Systems Operational"};
         float lcdW=512,lcdH=512,lcdS=1;
         string padTag="[PAD1";
         IMyButtonPanel btn;
-        IMyProgrammableBlock padPB,invPB;
+        IMyProgrammableBlock padPB,invPB,signalPB;
         IMyShipConnector con1,con2;
         List<IMyRadioAntenna> bootAnt=new List<IMyRadioAntenna>();
         IMyTextSurface lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10,lcd11;
+        List<IMyTextSurface> camLCDs=new List<IMyTextSurface>();
         IMyBroadcastListener bootRspL;
         Color cPri=new Color(0,180,255);Color cSec=new Color(100,100,100);Color cAcc=new Color(255,200,0);
         Color cOK=new Color(0,255,100);Color cWrn=new Color(255,180,0);Color cErr=new Color(255,60,60);
         Color cBg=new Color(10,10,15);Color cBdr=new Color(40,40,50);Color cTxt=new Color(220,220,220);
-        bool padRequested=false,padResponded=false,invRequested=false,invResponded=false;
-        string padRspData="",invRspData="";
+        bool padRequested=false,padResponded=false,invRequested=false,invResponded=false,signalRequested=false,signalResponded=false;
+        string padRspData="",invRspData="",signalRspData="";
+        int signalCamC=0,signalLcdC=0;
+        int doorSetCount=0;bool doorsLocked=false;float overallPressure=0;int extDoorsOpen=0;
         int padMergeC=0,padConC=0,padBatC=0,padH2C=0,padO2C=0,padPrtC=0;
         int invCargoC=0,invRefC=0,invAsmC=0,invGenC=0,invH2C=0,invO2C=0;
         int awaitTicks=0;int maxAwait=18;
@@ -74,12 +77,16 @@ namespace IngameScript
         Me.CustomName=$"[PAD{padID}] UNITY BOOT";
         }
         void CheckReadyFlags(){
-        if(padPB==null||invPB==null)FindSiblingPBs();
+        if(padPB==null||invPB==null||signalPB==null)FindSiblingPBs();
         padReady=padPB!=null&&padPB.CustomData.Contains("pad_ready=true");
         invReady=false;
         if(invPB!=null&&invPB.CustomData.Contains("inv_ready=true")&&padPB!=null){
         string pcd=padPB.CustomData;int idx=pcd.IndexOf("pad_session=");
-        if(idx>=0){int end=pcd.IndexOf('\n',idx);if(end<0)end=pcd.Length;string ps=pcd.Substring(idx+12,end-idx-12);invReady=invPB.CustomData.Contains($"inv_for_session={ps}");}}
+        if(idx>=0){int end=pcd.IndexOf('\n',idx);if(end<0)end=pcd.Length;string ps=pcd.Substring(idx+12,end-idx-12).Trim();invReady=invPB.CustomData.Contains($"inv_for_session={ps}");}}
+        signalReady=signalPB==null;
+        if(signalPB!=null&&signalPB.CustomData.Contains("signal_ready=true")&&padPB!=null){
+        string pcd=padPB.CustomData;int idx=pcd.IndexOf("pad_session=");
+        if(idx>=0){int end=pcd.IndexOf('\n',idx);if(end<0)end=pcd.Length;string ps=pcd.Substring(idx+12,end-idx-12).Trim();signalReady=signalPB.CustomData.Contains($"signal_for_session={ps}");}}
         string myCD=Me.CustomData;
         beaconOptional=!myCD.Contains("beacon_optional=false");
         }
@@ -127,7 +134,7 @@ namespace IngameScript
         }
         
         void ScanBlocks(){
-        lcd1=lcd2=lcd3=lcd4=lcd5=lcd6=lcd7=lcd8=lcd9=lcd10=lcd11=null;btn=null;con1=con2=null;bootAnt.Clear();
+        lcd1=lcd2=lcd3=lcd4=lcd5=lcd6=lcd7=lcd8=lcd9=lcd10=lcd11=null;btn=null;con1=con2=null;bootAnt.Clear();camLCDs.Clear();
         var blks=new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType(blks,b=>b.CustomName.Contains(padTag)||b.CubeGrid==Me.CubeGrid);
         foreach(var b in blks){
@@ -136,6 +143,7 @@ namespace IngameScript
         if(b is IMyRadioAntenna)bootAnt.Add(b as IMyRadioAntenna);
         if(b is IMyTextSurface||b is IMyTextPanel){string nm=b.CustomName;if(!nm.Contains(padTag))continue;
         IMyTextSurface ts=b is IMyTextSurface?(IMyTextSurface)b:((IMyTextPanel)b);
+        if(nm.ToUpper().Contains("CAMS")){if(!camLCDs.Contains(ts))camLCDs.Add(ts);continue;}
         if(nm.Contains(":11")&&lcd11==null)lcd11=ts;
         else if(nm.Contains(":10")&&lcd10==null)lcd10=ts;
         else if(nm.Contains(":1")&&!nm.Contains(":10")&&!nm.Contains(":11")&&lcd1==null)lcd1=ts;
@@ -154,13 +162,14 @@ namespace IngameScript
         }
         
         void FindSiblingPBs(){
-        padPB=invPB=null;
+        padPB=invPB=signalPB=null;
         var pbs=new List<IMyProgrammableBlock>();
         GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me);
         foreach(var pb in pbs){
         string nm=pb.CustomName;
         if(nm.Contains($"[PAD{padID}]")&&nm.ToUpper().Contains("UNITY INVENTORY"))invPB=pb;
         else if(nm.Contains($"[PAD{padID}]")&&nm.ToUpper().Contains("UNITY PAD"))padPB=pb;
+        else if(nm.Contains($"[PAD{padID}]")&&nm.ToUpper().Contains("UNITY SIGNAL"))signalPB=pb;
         }
         }
         
@@ -170,6 +179,7 @@ namespace IngameScript
         string data=msg.Data.ToString();
         if(data.StartsWith("PAD|")){padRspData=data;padResponded=true;ParsePadResponse(data);}
         else if(data.StartsWith("INV|")){invRspData=data;invResponded=true;ParseInvResponse(data);}
+        else if(data.StartsWith("SIGNAL|")){signalRspData=data;signalResponded=true;ParseSignalResponse(data);}
         }}
         
         void ParsePadResponse(string data){
@@ -190,6 +200,27 @@ namespace IngameScript
         if(kv[0]=="cargo")invCargoC=n;else if(kv[0]=="ref")invRefC=n;else if(kv[0]=="asm")invAsmC=n;
         else if(kv[0]=="gen")invGenC=n;else if(kv[0]=="h2")invH2C=n;else if(kv[0]=="o2")invO2C=n;}}
         
+        void ParseSignalResponse(string data){
+        var parts=data.Split('|');
+        if(parts.Length<3)return;
+        if(parts[1]!="OK"){bootError=$"Signal: {parts[2]}";return;}
+        var vals=parts[2].Split(',');
+        foreach(var v in vals){var kv=v.Split('=');if(kv.Length!=2)continue;int n;int.TryParse(kv[1],out n);
+        if(kv[0]=="cams")signalCamC=n;else if(kv[0]=="lcds")signalLcdC=n;}}
+        void ParseDoorData(){
+        doorSetCount=0;doorsLocked=false;overallPressure=0;extDoorsOpen=0;
+        if(signalPB==null)return;
+        string cd=signalPB.CustomData;
+        int di=cd.IndexOf("[DOORS]");if(di<0)return;
+        int de=cd.IndexOf("[",di+7);if(de<0)de=cd.Length;
+        string ds=cd.Substring(di,de-di);
+        var lines=ds.Split('\n');
+        foreach(var ln in lines){
+        if(ln.StartsWith("count=")){int.TryParse(ln.Substring(6),out doorSetCount);}
+        else if(ln.StartsWith("locked=")){doorsLocked=ln.Contains("True");}
+        else if(ln.StartsWith("overall_pressure=")){float.TryParse(ln.Substring(17),out overallPressure);}
+        else if(ln.StartsWith("door_")){var pts=ln.Split('=');if(pts.Length>=2){var vals=pts[1].Split('|');if(vals.Length>=1&&vals[0]=="OPEN")extDoorsOpen++;}}}}
+        
         void WritePadRequest(){
         if(padRequested)return;
         IGC.SendBroadcastMessage("UNITY_BOOT_REQ","PAD_CHECK");
@@ -200,6 +231,12 @@ namespace IngameScript
         if(invRequested)return;
         IGC.SendBroadcastMessage("UNITY_BOOT_REQ","INV_CHECK");
         invRequested=true;awaitTicks=0;
+        }
+        
+        void WriteSignalRequest(){
+        if(signalRequested)return;
+        IGC.SendBroadcastMessage("UNITY_BOOT_REQ","SIGNAL_CHECK");
+        signalRequested=true;awaitTicks=0;
         }
         
         void CheckCustomDataResponses(){
@@ -213,11 +250,11 @@ namespace IngameScript
         if(btn==null||lcd1==null)ScanBlocks();
         CheckReadyFlags();
         if(!preBootDone){
-        if(!padReady||!invReady){
+        if(!padReady||!invReady||!signalReady){
         DrawWaitingScreen();
         Echo("UNITY MISSILE SYSTEM");
         Echo("Waiting for scripts...");
-        Echo($"Boot: OK | Pad: {(padReady?"OK":"waiting")} | Inv: {(invReady?"OK":"waiting")}");
+        Echo($"Boot: OK | Pad: {(padReady?"OK":"wait")} | Inv: {(invReady?"OK":"wait")} | Sig: {(signalReady?"OK":"wait")}");
         return;
         }
         ClearBootStatus();preBootDone=true;
@@ -225,12 +262,12 @@ namespace IngameScript
         CheckIGCMessages();
         CheckCustomDataResponses();
         CheckMinerBeacons();
-        if(bootTicks==3){bootSiblings=0;if(con1!=null&&con1.Status==MyShipConnectorStatus.Connected)bootSiblings++;if(con2!=null&&con2.Status==MyShipConnectorStatus.Connected)bootSiblings++;bootHasCtrl=false;}
-        int stepDelay=12;int errPause=12;int totalSteps=23;
+        if(bootTicks==3){bootSiblings=0;if(con1!=null&&con1.Status==MyShipConnectorStatus.Connected)bootSiblings++;if(con2!=null&&con2.Status==MyShipConnectorStatus.Connected)bootSiblings++;}
+        int stepDelay=12;int errPause=12;int totalSteps=28;
         if(bootError!=""){bootErrTicks++;if(bootErrTicks>=errPause){bootError="";bootErrTicks=0;awaitTicks=0;}}
         else if(bootTicks>2&&bootStep<totalSteps){
-        bool waiting=(bootStep==6&&!padResponded)||(bootStep==11&&!invResponded);
-        if(waiting){awaitTicks++;if(awaitTicks>=maxAwait){if(bootStep==6)padResponded=true;else invResponded=true;bootStep++;awaitTicks=0;}}
+        bool waiting=(bootStep==6&&!padResponded)||(bootStep==11&&!invResponded)||(bootStep==17&&!signalResponded);
+        if(waiting){awaitTicks++;if(awaitTicks>=maxAwait){if(bootStep==6){padResponded=true;bootStatus="[WARN] Pad timeout";}else if(bootStep==11){invResponded=true;bootStatus="[WARN] Inv timeout";}else{signalResponded=true;bootStatus="[WARN] Signal timeout";}bootStep++;awaitTicks=0;}}
         else if(awaitTicks>0){bootStep++;awaitTicks=0;}
         else if(bootTicks%stepDelay==0){string err=RunBootCheck(bootStep);if(err!=""){bootError=err;bootErrTicks=0;}else bootStep++;}}
         if(bootStep>=totalSteps){
@@ -240,6 +277,7 @@ namespace IngameScript
         IMyTextSurface[] iL={lcd4,lcd5,lcd6,lcd9,lcd10,lcd11};
         foreach(var lcd in pL){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,true);}
         foreach(var lcd in iL){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,false);}
+        foreach(var lcd in camLCDs){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,true);}
         Echo("UNITY MISSILE SYSTEM");
         Echo("ALL SYSTEMS OPERATIONAL");
         Echo($"[{totalSteps}/{totalSteps}] Success!");
@@ -254,14 +292,17 @@ namespace IngameScript
         return;
         }
         float pct=(float)bootStep/totalSteps;
-        string curCheck=bootStep<23?sysChecks[bootStep]:sysChecks[22];
-        if(bootStep==17)curCheck=bootSiblings>0?$"Syncing {bootSiblings} module(s)":"Standalone mode";
-        if(bootStep==19)curCheck=minerCount>0?$"Found {minerCount} miner(s)":"Scanning beacons...";
-        if(bootStep==20)curCheck=bootSiblings>0?$"Found {bootSiblings} pad(s)":"No extra pads";
+        string curCheck=bootStep<28?sysChecks[bootStep]:sysChecks[27];
+        if(bootStep==19)curCheck=doorSetCount>0?$"Door sets: {doorSetCount}":"No airlocks found";
+        if(bootStep==20)curCheck=extDoorsOpen==0?$"Pressurized: {overallPressure:F0}%":$"Breach: {extDoorsOpen} ext doors open";
+        if(bootStep==22)curCheck=bootSiblings>0?$"Syncing {bootSiblings} module(s)":"Standalone mode";
+        if(bootStep==24)curCheck=minerCount>0?$"Found {minerCount} miner(s)":"Scanning beacons...";
+        if(bootStep==25)curCheck=bootSiblings>0?$"Found {bootSiblings} pad(s)":"No extra pads";
         IMyTextSurface[] padLCDs={lcd1,lcd2,lcd3,lcd7,lcd8};
         IMyTextSurface[] invLCDs={lcd4,lcd5,lcd6,lcd9,lcd10,lcd11};
         foreach(var lcd in padLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,true);}
         foreach(var lcd in invLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,false);}
+        foreach(var lcd in camLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,true);}
         Echo("UNITY MISSILE SYSTEM");
         Echo("Boot Controller Active");
         Echo($"[{Math.Min(bootStep+1,totalSteps)}/{totalSteps}] {curCheck}");
@@ -290,10 +331,10 @@ namespace IngameScript
         f.Add(new MySprite(SpriteType.TEXT,$"[{step+1}/{total}] {check}",new Vector2(cx,by-25*lcdS),null,chkC,null,TextAlignment.CENTER,0.4f*lcdS));
         int localStep=step;
         if(localStep<0)localStep=0;
-        if(localStep>=23)localStep=22;
+        if(localStep>=28)localStep=27;
         int startIdx=Math.Max(0,localStep-4);
         float ly=180*lcdS;
-        for(int i=startIdx;i<=localStep&&i<23;i++){
+        for(int i=startIdx;i<=localStep&&i<28;i++){
         bool isErr=i==localStep&&bootError!="";
         Color lc=isErr?cErr:i<localStep?cOK:i==localStep?cPri:cSec;
         string prefix=isErr?"[!!]":i<localStep?"[OK]":i==localStep?"[>>]":"[..]";
@@ -304,7 +345,7 @@ namespace IngameScript
         else if(isPad){
         if(padID==1&&bootSiblings==0){syncSt=bootStatus!=""?bootStatus:$"PAD {padID} - Primary Launch Controller";syncC=cOK;}
         else if(padID==1&&bootSiblings>0){syncSt=bootStatus!=""?bootStatus:$"PAD {padID} - Controller ({bootSiblings} modules)";syncC=cOK;}
-        else if(bootSiblings>0||bootHasCtrl){syncSt=bootStatus!=""?bootStatus:$"PAD {padID} - Module (Synced)";syncC=cOK;}
+        else if(bootSiblings>0){syncSt=bootStatus!=""?bootStatus:$"PAD {padID} - Module (Synced)";syncC=cOK;}
         else{syncSt=bootStatus!=""?bootStatus:$"PAD {padID} - Module (Standalone)";syncC=cWrn;}
         }else{syncSt=bootStatus!=""?bootStatus:"INVENTORY MODULE";syncC=cOK;}
         f.Add(new MySprite(SpriteType.TEXT,syncSt,new Vector2(cx,lcdH-30*lcdS),null,syncC,null,TextAlignment.CENTER,0.4f*lcdS));
@@ -330,13 +371,18 @@ namespace IngameScript
         case 13:bootStatus=$"Inv refineries: {invRefC}";return"";
         case 14:bootStatus=$"Inv assemblers: {invAsmC}";return"";
         case 15:bootStatus=$"Inv gas: {invGenC} gens";return"";
-        case 16:if(!padResponded||!invResponded)return"Not all systems responded";bootStatus="All systems verified";return"";
-        case 17:bootStatus=bootSiblings>0?$"Synced: {bootSiblings} modules":padID==1?"Primary pad":"Standalone";return"";
-        case 18:EnsureQuotas();SetupBtnGPS();bootStatus="Config written";return"";
-        case 19:WriteMinerData();if(minerCount==0&&!beaconOptional)return noMinerErrs[tick%noMinerErrs.Length];bootStatus=minerCount>0?$"Miners: {minerCount}":"No miners (optional)";return"";
-        case 20:if(bootSiblings>0){bootStatus=$"Connected pads: {bootSiblings}";}else{bootStatus="No extra pads (run CMDPAD SETUP to add)";}return"";
-        case 21:bootStatus="BOOT COMPLETE";return"";
-        case 22:bootStatus="ALL SYSTEMS OPERATIONAL";return"";
+        case 16:if(signalPB==null){signalResponded=true;bootStatus="Signal: optional";return"";}WriteSignalRequest();bootStatus="Requesting signal status...";return"";
+        case 17:if(!signalResponded)return"";bootStatus=signalPB==null?"Signal: optional":"Signal responded OK";return"";
+        case 18:bootStatus=signalPB==null?"Signal: not installed":$"Signal: {signalCamC} cams, {signalLcdC} LCDs";return"";
+        case 19:ParseDoorData();bootStatus=doorSetCount>0?$"Doors: {doorSetCount} sets{(doorsLocked?" LOCKED":"")}":"No airlocks (optional)";return"";
+        case 20:bootStatus=extDoorsOpen==0?$"Pressurized: {overallPressure:F0}%":(extDoorsOpen>0?$"[WARN] {extDoorsOpen} ext doors open":"Sealed");return"";
+        case 21:if(!padResponded||!invResponded||(signalPB!=null&&!signalResponded))return"Not all systems responded";bootStatus="All systems verified";return"";
+        case 22:bootStatus=bootSiblings>0?$"Synced: {bootSiblings} modules":padID==1?"Primary pad":"Standalone";return"";
+        case 23:EnsureQuotas();SetupBtnGPS();bootStatus="Config written";return"";
+        case 24:WriteMinerData();if(minerCount==0&&!beaconOptional)return noMinerErrs[tick%noMinerErrs.Length];bootStatus=minerCount>0?$"Miners: {minerCount}":"No miners (optional)";return"";
+        case 25:if(bootSiblings>0){bootStatus=$"Connected pads: {bootSiblings}";}else{bootStatus="No extra pads (run CMDPAD SETUP to add)";}return"";
+        case 26:bootStatus="BOOT COMPLETE";return"";
+        case 27:bootStatus="ALL SYSTEMS OPERATIONAL";return"";
         default:return"";
         }
         }
@@ -357,7 +403,7 @@ namespace IngameScript
         if(si>=0){int ei=cd.IndexOf("\n",si);if(ei<0)ei=si+8;cd=cd.Insert(ei,"\nboot_complete=true");}
         }
         string padSess="";
-        if(padPB!=null){string pcd=padPB.CustomData;int idx=pcd.IndexOf("pad_session=");if(idx>=0){int end=pcd.IndexOf('\n',idx);if(end<0)end=pcd.Length;padSess=pcd.Substring(idx+12,end-idx-12);}}
+        if(padPB!=null){string pcd=padPB.CustomData;int idx=pcd.IndexOf("pad_session=");if(idx>=0){int end=pcd.IndexOf('\n',idx);if(end<0)end=pcd.Length;padSess=pcd.Substring(idx+12,end-idx-12).Trim();}}
         if(padSess!=""&&!cd.Contains($"boot_for_session={padSess}")){int si=cd.IndexOf("[SYSTEM]");if(si>=0){int ei=cd.IndexOf("\n",si);if(ei<0)ei=si+8;cd=cd.Insert(ei,$"\nboot_for_session={padSess}");}}
         Me.CustomData=cd;
         Echo("Boot complete signal written to Me.CustomData");
@@ -365,6 +411,7 @@ namespace IngameScript
         void ReleaseLCDs(){
         IMyTextSurface[] all={lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10,lcd11};
         foreach(var lcd in all){if(lcd==null)continue;lcd.ContentType=ContentType.TEXT_AND_IMAGE;lcd.Script="";lcd.WriteText("");}
+        foreach(var lcd in camLCDs){if(lcd==null)continue;lcd.ContentType=ContentType.TEXT_AND_IMAGE;lcd.Script="";lcd.WriteText("");}
         }
         void CheckAcks(){
         if(ackL==null)return;
@@ -389,12 +436,37 @@ namespace IngameScript
         }
         void SetupBtnGPS(){
         if(btn==null)return;
-        btn.CustomData="[GPS]\n; Paste GPS from clipboard below\n";
+        string cd=btn.CustomData;
+        if(string.IsNullOrEmpty(cd)||!cd.Contains("GPS:")){
+        btn.CustomData=@"=== UNITY MISSILE TARGETING ===
+        ; Paste GPS coordinates here for missile targeting
+        ; Copy from GPS menu (K) or antenna broadcasts
+        ;
+        ; FORMAT: GPS:Name:X:Y:Z:#AARRGGBB:
+        ; Example: GPS:Enemy Base:50000:12000:8500:#FFFF0000:
+        ;
+        ; HOW TO ADD TARGETS:
+        ; 1. Open GPS menu (K key)
+        ; 2. Right-click a waypoint -> Copy to Clipboard
+        ; 3. Paste here (Ctrl+V in CustomData)
+        ; 4. Multiple targets OK - one per line
+        ;
+        ; QUICK ENTRY (via PB argument):
+        ; Run: GPS:1000,500,200
+        ;
+        ; Lines starting with ; are ignored
+        ; =============================
+        
+        ";
+        }
         }
         void DrawWaitingScreen(){
         IMyTextSurface[] allLCDs={lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10,lcd11};
-        foreach(var s in allLCDs){
-        if(s==null)continue;
+        foreach(var s in allLCDs){DrawWaitScreen(s);}
+        foreach(var s in camLCDs){DrawWaitScreen(s);}
+        }
+        void DrawWaitScreen(IMyTextSurface s){
+        if(s==null)return;
         s.ContentType=ContentType.SCRIPT;s.Script="";s.ScriptBackgroundColor=cBg;
         var f=s.DrawFrame();
         Vector2 sz=s.SurfaceSize;lcdW=sz.X;lcdH=sz.Y;lcdS=Math.Min(lcdW/512f,lcdH/512f);
@@ -406,9 +478,9 @@ namespace IngameScript
         f.Add(new MySprite(SpriteType.TEXT,$"[OK] Boot Controller",new Vector2(30*lcdS,ly),null,cOK,null,TextAlignment.LEFT,0.4f*lcdS));ly+=22*lcdS;
         f.Add(new MySprite(SpriteType.TEXT,$"[{(padReady?"OK":"..")}] Pad Controller",new Vector2(30*lcdS,ly),null,padReady?cOK:cSec,null,TextAlignment.LEFT,0.4f*lcdS));ly+=22*lcdS;
         f.Add(new MySprite(SpriteType.TEXT,$"[{(invReady?"OK":"..")}] Inventory Module",new Vector2(30*lcdS,ly),null,invReady?cOK:cSec,null,TextAlignment.LEFT,0.4f*lcdS));ly+=22*lcdS;
+        f.Add(new MySprite(SpriteType.TEXT,$"[{(signalReady?"OK":"..")}] Signal Display",new Vector2(30*lcdS,ly),null,signalReady?cOK:cSec,null,TextAlignment.LEFT,0.4f*lcdS));ly+=22*lcdS;
         f.Add(new MySprite(SpriteType.TEXT,"Compile missing scripts to proceed",new Vector2(cx,lcdH-40*lcdS),null,cTxt,null,TextAlignment.CENTER,0.35f*lcdS));
         f.Dispose();
-        }
         }
         
     }

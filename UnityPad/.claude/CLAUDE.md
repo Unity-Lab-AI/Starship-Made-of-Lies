@@ -3,8 +3,29 @@
 Launch pad controller for the Unity Missile System. Manages missile printing, fueling, arming, and launch.
 
 **Location:** `Unity Missile System/UnityPad/` (part of Unity Missile System)
-**Version:** v01.00 | 2026-01-22
 **PB Name:** `[PAD1] Unity Pad`
+**Version:** v01.00 | 2026-01-24
+
+---
+
+## Table of Contents
+
+1. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)
+2. [Boot System Dependency](#boot-system-dependency)
+3. [Boot Response Protocol](#boot-response-protocol)
+4. [File Sync Rule](#critical-file-sync-rule)
+5. [Build and Deploy](#build-and-deploy)
+6. [Critical Rules](#critical-rules-always-enforced)
+7. [State Machine](#state-machine)
+8. [Printer State Machine](#printer-state-machine)
+9. [Block Tags](#block-tags)
+10. [LCD Layout](#lcd-layout-after-boot-complete)
+11. [Per-PB CustomData Summary](#per-pb-customdata-summary)
+12. [CustomData Ownership](#customdata-ownership)
+13. [Key Features](#key-features)
+14. [Character Budget](#character-budget)
+15. [Sprite-Based LCD System](#sprite-based-lcd-system)
+16. [Quick Reference](#quick-reference)
 
 ---
 
@@ -46,6 +67,7 @@ void FindSiblingPBs(){
     foreach(var p in pbs){
         if(p.CustomName.Contains($"[PAD{id}")&&p.CustomName.Contains("UNITY BOOT"))bootPB=p;
         if(p.CustomName.Contains($"[PAD{id}]")&&p.CustomName.Contains("Unity Inventory"))invPB=p;
+        if(p.CustomName.Contains($"[PAD{id}]")&&p.CustomName.Contains("Unity Signal"))signalPB=p;
     }
 }
 ```
@@ -54,6 +76,7 @@ void FindSiblingPBs(){
 |----|--------------|---------|
 | bootPB | `[PAD{id}]` + "UNITY BOOT" | `[PAD1] UNITY BOOT` |
 | invPB | `[PAD{id}]` + "Unity Inventory" | `[PAD1] Unity Inventory` |
+| signalPB | `[PAD{id}]` + "UNITY SIGNAL" | `[PAD1] UNITY SIGNAL` |
 
 ---
 
@@ -71,9 +94,9 @@ ClearForBoot();  // WIPES Me.CustomData, writes fresh [SYSTEM] + [PAD_*] + [BLAC
 WriteReadyFlag("pad_ready");  // Sets pad_ready=true in [SYSTEM]
 ```
 
-**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → BOOT**
+**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → SIGNAL → BOOT**
 
-BEACON/MISSILE are on different PBs (miner/missile), can compile any time. The 3 on pad PB MUST be: PAD first, INVENTORY second, BOOT last.
+BEACON/MISSILE are on different grids (miner/missile), can compile any time. The pad grid scripts MUST compile in order: PAD → INVENTORY → SIGNAL → BOOT.
 
 The `ClearForBoot()` function:
 - **ALWAYS clears Me.CustomData** - this is the reset point
@@ -317,6 +340,24 @@ Printing stops when:
 - **Printer Integration:** Automated missile construction
 - **Fleet Tracking:** Monitor mining ships via UnityBeacon
 - **Telemetry:** Real-time missile tracking with graphs
+- **Satellite Array Management:** Grid position tracking, spiral expansion, intercept handling
+
+### Satellite Array Management
+
+UnityPad manages the satellite mesh network with UnitySignal as the data source:
+
+| Feature | Description |
+|---------|-------------|
+| Status Reading | `ReadSignalSatData()` reads satellite status from signalPB.CustomData |
+| Grid Position Tracking | `satGridX`/`satGridZ` dictionaries populated from Signal |
+| Spiral Expansion | `AdvanceGridSlot()` calculates next position in spiral pattern |
+| Intercept Handling | `CheckSatIntercept()` processes detonation messages, queues replacements |
+| Auto-Replacement | `satReplaceQueue` holds positions needing new satellites |
+
+**Data Flow:**
+- UnitySignal listens to `UNITY_SAT_RELAY_STATUS` and tracks satellite status
+- UnityPad reads `signalPB.CustomData` [SATELLITES] section via `ReadSignalSatData()`
+- UnityPad listens directly to `UNITY_SAT_INTERCEPT` for real-time replacement queuing
 
 ---
 
@@ -324,10 +365,11 @@ Printing stops when:
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityPad | ~2,100 | 91,863 | 100,000 | OK (8.1% margin) |
+| UnityPad | ~2,300 | ~97,400 | 100,000 | **WARNING (2.6% margin)** |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 *Personal equipment tracking removed - UnityInventory handles all tools, weapons, ammo, bottles.*
+*v01.00+: Added satellite array management, grid tracking, intercept handling, and auto-replacement.*
 
 ### Character Count Command
 ```powershell

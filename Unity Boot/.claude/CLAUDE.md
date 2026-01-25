@@ -4,6 +4,26 @@ Centralized boot controller for the Unity Missile System. Uses Per-PB CustomData
 
 **Location:** `Unity Missile System/Unity Boot/`
 **PB Name:** `[PAD1] UNITY BOOT`
+**Version:** v01.00 | 2026-01-24
+
+---
+
+## Table of Contents
+
+1. [Purpose](#purpose)
+2. [File Sync Rule](#critical-file-sync-rule)
+3. [Build and Deploy](#build-and-deploy)
+4. [In-Game Compile Order](#in-game-script-compile-order)
+5. [Pre-Boot Ready Sync](#pre-boot-ready-sync)
+6. [Real Handshake Protocol](#real-handshake-protocol)
+7. [The 26 Unified Checks](#the-26-unified-checks)
+8. [LCD Allocation](#lcd-allocation)
+9. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)
+10. [CustomData Ownership](#customdata-ownership)
+11. [Error Handling](#error-handling)
+12. [Critical Rules](#critical-rules-always-enforced)
+13. [Character Budget](#character-budget)
+14. [Quick Reference](#quick-reference)
 
 ---
 
@@ -14,7 +34,7 @@ Unity Boot is a dedicated boot controller that:
 2. **Finds sibling PBs by name pattern** using FindSiblingPBs()
 3. **Reads ready flags from sibling PBs** (not button panel)
 4. Takes control of ALL 11 LCDs during startup
-5. Runs 23 unified system checks with real IGC handshaking
+5. Runs 26 unified system checks with real IGC handshaking
 6. Sets up **GPS section on button panel** for missile targeting
 7. Detects miner fleet via MINER_BEACON broadcasts (check 20)
 8. Signals `boot_complete=true` in its own CustomData when ready
@@ -56,15 +76,15 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\scr
 
 ## IN-GAME SCRIPT COMPILE ORDER
 
-**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → BOOT**
+**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → SIGNAL → BOOT**
 
 | Order | Script | PB Name Pattern | What Happens |
 |-------|--------|-----------------|--------------|
 | 1 | **UnityBeacon** | `[BEACON] Unity Beacon` | Optional - broadcasts miner status |
-| 2 | **UnityMissile** | `PAD1 Missile #1 Program` | Optional - missile guidance |
+| 2 | **UnityMissile** | `[PAD1] Missile #1 Program` | Optional - missile guidance |
 | 3 | **UnityPad** | `[PAD1] Unity Pad` | Wipes Me.CustomData, writes `pad_ready=true` |
 | 4 | **UnityInventory** | `[PAD1] Unity Inventory` | Wipes Me.CustomData, writes `inv_ready=true` |
-| 5 | **Unity Boot** | `[PAD1] UNITY BOOT` | Finds sibling PBs, reads ready flags, runs 23 checks |
+| 5 | **Unity Boot** | `[PAD1] UNITY BOOT` | Finds sibling PBs, reads ready flags, runs 26 checks |
 
 **NOTE:** BEACON and MISSILE are on different PBs, so can compile any time. The 3 pad scripts are on SEPARATE PBs but Unity Boot finds them by name pattern.
 
@@ -73,7 +93,7 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\scr
 - Unity Boot uses FindSiblingPBs() to locate padPB and invPB by name pattern
 - Unity Boot reads `pad_ready=true` from padPB.CustomData
 - Unity Boot reads `inv_ready=true` from invPB.CustomData
-- Boot then runs 23 checks and sets `boot_complete=true` in its own CustomData
+- Boot then runs 26 checks and sets `boot_complete=true` in its own CustomData
 
 ---
 
@@ -180,7 +200,7 @@ Unity Boot sets up the GPS section on button panel `[PAD1] Controls` for missile
 
 ---
 
-## THE 23 UNIFIED CHECKS
+## THE 26 UNIFIED CHECKS
 
 | # | Check | What It Does |
 |---|-------|--------------|
@@ -322,7 +342,7 @@ Timeout handling:
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| Unity Boot | ~320 | 15,050 | 100,000 | OK (85% margin) |
+| Unity Boot | ~320 | ~20,000 | 100,000 | OK (80% margin) |
 
 ---
 

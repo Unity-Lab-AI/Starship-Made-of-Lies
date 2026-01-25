@@ -1,6 +1,26 @@
 # UNITY MISSILE SYSTEM - Quick Setup Guide
 
-**Version:** v01.00 | **Last Updated:** 2026-01-18
+**Location:** `Space Engineers/Unity Missile System/`
+**Version:** v01.00 | 2026-01-24
+
+---
+
+## Table of Contents
+
+1. [What's In The Box](#whats-in-the-box)
+2. [In-Game Setup](#in-game-setup)
+3. [Flight Modes](#flight-modes)
+4. [Targeting Modes](#targeting-modes)
+5. [Basic Commands](#basic-commands-unitypad)
+6. [Default Values](#default-values-v0100)
+7. [Multi-Pad Controller Mode](#multi-pad-controller-mode)
+8. [Printer Integration](#printer-integration)
+9. [IGC Channels](#igc-channels)
+10. [Build From Source](#build-from-source)
+11. [Troubleshooting](#troubleshooting)
+12. [Character Limits](#character-limits)
+13. [File Structure](#file-structure)
+14. [Sprite-Based LCD System](#sprite-based-lcd-system)
 
 ---
 
@@ -8,10 +28,11 @@
 
 | Script | Purpose | Runs On |
 |--------|---------|---------|
-| **Unity Boot** | Boot controller, 20 unified checks with IGC handshaking | Same grid as UnityPad |
-| **UnityPad** | Launch pad controller, targeting, fleet management | Your base/ship with launch pads |
+| **Unity Boot** | Boot controller, 23 unified checks with IGC handshaking | Pad grid |
+| **UnityPad** | Launch pad controller, targeting, fleet management | Pad grid |
+| **UnityInventory** | Inventory sorting, production, miner transfers | Pad grid (separate PB) |
+| **UnitySignal** | Camera tracking, satellite monitoring, laser targeting | Pad grid (separate PB) |
 | **UnityMissile** | Guidance system, flies to target and detonates | The missile itself |
-| **UnityInventory** | Inventory sorting, production, miner transfers | Same grid as UnityPad (separate PB) |
 | **UnityBeacon** | Fleet tracker, broadcasts ship status | Mining ships |
 
 ---
@@ -299,10 +320,10 @@ dotnet build UnityMissile -c Debug
 dotnet build UnityBeacon -c Debug
 ```
 
-**IN-GAME COMPILE ORDER:** BEACON → MISSILE → PAD → INVENTORY → BOOT
+**IN-GAME COMPILE ORDER:** PAD → INVENTORY → SIGNAL → BOOT
 
-BEACON and MISSILE are on different PBs (miner/missile), so they can be compiled any time.
-The 3 scripts on the pad PB MUST be: PAD first, INVENTORY second, BOOT last.
+UnityBeacon and UnityMissile are on different grids (miner/missile), compile anytime.
+The 4 scripts on the pad grid MUST compile in order: PAD → INVENTORY → SIGNAL → BOOT.
 
 ### Verify Deployment
 ```powershell
@@ -365,11 +386,13 @@ Unity Missile System/
 ├── UnityMissile.cs          # Edit this (missile guidance)
 ├── UnityInventory.cs        # Edit this (inventory manager)
 ├── UnityBeacon.cs           # Edit this (fleet beacon)
+├── UnitySignal.cs           # Edit this (signal hub)
 ├── Unity Boot/              # MDK project
 ├── UnityPad/                # MDK project
 ├── UnityMissile/            # MDK project
 ├── UnityInventory/          # MDK project
 ├── UnityBeacon/             # MDK project
+├── UnitySignal/             # MDK project
 ├── QUICK_SETUP.md           # This file
 ├── README.md                # Full documentation
 ├── SETUP.md                 # Complete setup guide

@@ -1,56 +1,81 @@
-# Unity Missile System TODO
+# UNITY MISSILE SYSTEM - Active Tasks
 
-**Last Updated:** 2026-01-22
-**Priority:** ALL CLEAR - System operational
-**Version:** v01.00
-
----
-
-## NO PENDING TASKS
-
-All systems are fully operational. Recent fixes deployed and verified.
+**Last Updated:** 2026-01-24
+**Status:** Clean slate - ready for new issues
 
 ---
 
-## COMPLETED - 2026-01-22
+## Table of Contents
 
-### Recycling System Overhaul
-- Multi-assembler recycling with scaled recycler count
-- Proper disassembly mode switching with conveyor disable
-- Tools routed to GetInventory(1), components/ammo to GetInventory(0)
-- Re-enables conveyor when switching back to assembly mode
-
-### S-10 Ammo Routing Fix
-- S-10 (SemiAutoPistolMagazine) now routes to generic cargo
-- Other personal ammo (S-20A, Elite, rifles, flares) stays in pAmmoCargo
-- Active cleanup pushes existing S-10 from pAmmoCargo to generic
-
-### pAmmoTarget Minimum Enforcement
-- Minimum floor of 50,000 for pAmmoTarget (was 100 in old storage)
-- Ensures proper production for missile warhead loading (10,106 rounds/missile)
+1. [Active Issues](#active-issues)
+2. [Feature Requests](#feature-requests)
+3. [Bug Reports](#bug-reports)
+4. [Enhancement Ideas](#enhancement-ideas)
 
 ---
 
-## COMPLETED - 2026-01-21
+## Active Issues
 
-Moved to `FINALIZED.md`:
-- Ammo Classification Fix (exact-match queue classification)
-- Personal Ammo Quota Consistency (removed idx==4 hardcodes)
-- ammoDispR Array Fix (crash prevention)
-- Blueprint Component Priority (bpNd dictionary)
+*No active issues. System is stable.*
 
 ---
 
-## SYSTEM STATUS
+## Feature Requests
 
-| Script | Deployed | Status |
-|--------|----------|--------|
-| Unity Boot | 15,050 | OK (85% margin) |
-| UnityPad | 91,863 | OK (8.1% margin) |
-| UnityMissile | 24,321 | OK (76% margin) |
-| UnityInventory | 90,247 | OK (9.8% margin) |
-| UnityBeacon | 14,658 | OK (85% margin) |
+*Add new feature requests here.*
 
 ---
 
-*Unity AI Lab - Missile Systems Division*
+## Bug Reports
+
+*Add bug reports here with reproduction steps.*
+
+---
+
+## Enhancement Ideas
+
+*Add enhancement ideas for future consideration.*
+
+---
+
+## Issue Template
+
+When adding new issues, use this format:
+
+```markdown
+### [PRIORITY] Issue Title
+**Script:** ScriptName.cs:LineNumber
+**Status:** NEW | IN PROGRESS | VERIFIED | FIXED
+**Description:** What's wrong or what's needed
+**Steps to Reproduce:** (for bugs)
+**Expected Behavior:** What should happen
+**Actual Behavior:** What actually happens
+```
+
+### Priority Levels
+
+| Priority | Description |
+|----------|-------------|
+| CRITICAL | System-breaking, prevents operation |
+| HIGH | Functional bug causing incorrect behavior |
+| MEDIUM | Data flow or display issue |
+| LOW | Code quality, cosmetic, or edge case |
+
+---
+
+## Deployed Script Sizes
+
+| Script | Characters | Limit | Margin |
+|--------|------------|-------|--------|
+| Unity Boot | 18,958 | 100,000 | 81% |
+| UnityPad | 97,356 | 100,000 | 2.6% |
+| UnityMissile | 31,055 | 100,000 | 69% |
+| UnityInventory | 90,247 | 100,000 | 9.8% |
+| UnityBeacon | 14,658 | 100,000 | 85% |
+| UnitySignal | 33,609 | 100,000 | 66% |
+
+**WARNING:** UnityPad at 97.4% capacity - limited room for additions!
+
+---
+
+*Unity AI Lab - Task Management Division*

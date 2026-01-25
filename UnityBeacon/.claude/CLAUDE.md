@@ -5,7 +5,28 @@ IGC beacon script for mining ships. Broadcasts status to UnityPad for fleet trac
 **Designed to work with [PAM] Path Auto Miner by Keks** - https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
 
 **Location:** `Unity Missile System/UnityBeacon/` (part of Unity Missile System)
-**Version:** v01.00 | 2026-01-22
+**PB Name:** `[BEACON] Unity Beacon`
+**Version:** v01.00 | 2026-01-24
+
+---
+
+## Table of Contents
+
+1. [File Sync Rule](#critical-file-sync-rule)
+2. [Build and Deploy](#build-and-deploy)
+3. [Critical Rules](#critical-rules-always-enforced)
+4. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)
+5. [MDK Project Structure](#mdk-project-structure)
+6. [Block Tags](#block-tags)
+7. [Integration with Unity Missile System](#integration-with-unity-missile-system)
+8. [Key Functions](#key-functions)
+9. [Sprite-Based LCD System](#sprite-based-lcd-system)
+10. [Commands](#commands)
+11. [Status Inference](#status-inference)
+12. [CustomData (Miner PB Only)](#customdata-miner-pb-only)
+13. [PAM Compatibility](#pam-compatibility)
+14. [Character Budget](#character-budget)
+15. [Quick Reference](#quick-reference)
 
 ---
 
@@ -274,7 +295,7 @@ PAM is a fantastic autonomous mining script that handles pathfinding, mining ope
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityBeacon | ~200 | 14,658 | 100,000 | OK (85% margin) |
+| UnityBeacon | ~300 | ~16,600 | 100,000 | OK (83% margin) |
 
 **NOTE:** mdk.ini MUST have `minify=full` for proper compression!
 

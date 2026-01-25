@@ -1,6 +1,6 @@
 # UNITY MISSILE SYSTEM - Roadmap
 
-*Last Updated: 2026-01-16*
+*Last Updated: 2026-01-24*
 *Unity AI Lab - Missile Systems Division*
 
 ---
@@ -13,6 +13,8 @@ A complete guided missile system for Space Engineers with:
 - Multi-pad coordination for mass strikes
 - Satellite relay network for extended range
 - Fleet tracking and base management integration
+- Centralized boot system with real PB handshaking
+- Unified inventory and production management
 
 ---
 
@@ -20,10 +22,10 @@ A complete guided missile system for Space Engineers with:
 
 | Metric | Value |
 |--------|-------|
-| **Phase** | MAINTENANCE |
+| **Phase** | OPERATIONAL |
 | **Core Features** | 100% Complete |
-| **Scripts** | 3 (UnityPad, UnityMissile, UnityBeacon) |
-| **Character Usage** | UnityPad: 107k/100k (OVER), Others: OK |
+| **Scripts** | 6 (Unity Boot, UnityPad, UnityInventory, UnitySignal, UnityMissile, UnityBeacon) |
+| **Character Usage** | All scripts under 100k limit |
 
 ---
 
@@ -136,36 +138,49 @@ A complete guided missile system for Space Engineers with:
 
 ---
 
-## Phase 4: Maintenance (CURRENT)
+## Phase 4: System Expansion (COMPLETE)
 
-> Bug fixes and optimization
+> Boot system and script separation
 
-### Milestone 4.1: Character Budget Crisis
-**Status:** IN PROGRESS
+### Milestone 4.1: Boot System
+**Status:** COMPLETE
 
 | Task | Status |
 |------|--------|
-| Inventory bug fixes | DONE |
-| UnityPad over 100k limit | NEEDS FIX |
-| Minification analysis | DONE (see .claude/ARCHITECTURE.md) |
-| Apply minification | PENDING |
+| Unity Boot controller | DONE |
+| 26 unified boot checks | DONE |
+| Real IGC handshaking | DONE |
+| Per-PB CustomData architecture | DONE |
 
-**Character Counts (2026-01-16):**
+### Milestone 4.2: Script Separation
+**Status:** COMPLETE
+
+| Task | Status |
+|------|--------|
+| UnityInventory extraction | DONE |
+| UnitySignal extraction | DONE |
+| All scripts under 100k | DONE |
+| Session ID synchronization | DONE |
+
+**Character Counts (2026-01-24):**
 | Script | Deployed | Budget | Status |
 |--------|----------|--------|--------|
-| UnityPad | ~107,456 | 100,000 | OVER |
-| UnityMissile | ~25,000 | 100,000 | OK |
-| UnityBeacon | ~7,600 | 100,000 | OK |
+| Unity Boot | 15,050 | 100,000 | OK (85% margin) |
+| UnityPad | 95,427 | 100,000 | OK (4.6% margin) |
+| UnityInventory | 90,247 | 100,000 | OK (9.8% margin) |
+| UnitySignal | 11,998 | 100,000 | OK (88% margin) |
+| UnityMissile | 31,055 | 100,000 | OK (69% margin) |
+| UnityBeacon | 14,658 | 100,000 | OK (85% margin) |
 
-### Milestone 4.2: Documentation
-**Status:** IN PROGRESS
+### Milestone 4.3: Documentation Unification
+**Status:** COMPLETE
 
 | Task | Status |
 |------|--------|
-| SKILL_TREE.md | DONE |
-| ROADMAP.md | DONE (this file) |
-| Update ARCHITECTURE.md | PENDING |
-| Subproject docs | PENDING |
+| Unified TOC format | DONE |
+| All 6 scripts documented | DONE |
+| ARCHITECTURE.md consolidated | DONE |
+| All READMEs updated | DONE |
 
 ---
 
@@ -242,20 +257,16 @@ A complete guided missile system for Space Engineers with:
 
 ## Next Actions
 
-### Immediate (This Session)
-1. Minify UnityPad.cs to get under 100k
-2. Complete workflow documentation
-3. Update ARCHITECTURE.md files
-
 ### Short Term
-1. Test inventory fixes in-game
-2. Verify all features still work after minification
-3. Clean up any remaining code debt
+1. Test satellite constellation in-game
+2. Verify boot sequence on fresh compile
+3. Test all targeting modes post-separation
 
 ### Long Term
 1. Consider advanced guidance features
 2. Monitor for SE updates affecting API
 3. Gather user feedback for improvements
+4. Expand satellite network capabilities
 
 ---
 
@@ -265,12 +276,18 @@ A complete guided missile system for Space Engineers with:
 # Build all scripts
 cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
+dotnet build "Unity Boot" -c Debug
 dotnet build UnityPad -c Debug
+dotnet build UnityInventory -c Debug
+dotnet build UnitySignal -c Debug
 dotnet build UnityMissile -c Debug
 dotnet build UnityBeacon -c Debug
 
 # Check deployed sizes
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs").Length
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\script.cs").Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs").Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnitySignal\script.cs").Length
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs").Length
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs").Length
 ```

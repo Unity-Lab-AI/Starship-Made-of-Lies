@@ -43,7 +43,7 @@ UnityInventory takes LCDs 4,5,6,9,10,11
 |--------|---------|
 | Unity Boot | `[PAD1] UNITY BOOT` |
 | UnityPad | `[PAD1] Unity Pad` |
-| UnityMissile | `PAD1 Missile #1 Program` |
+| UnityMissile | `[PAD1] Missile #1 Program` |
 | UnityInventory | `[PAD1] Unity Inventory` |
 | UnityBeacon | `[BEACON] Unity Beacon` |
 

@@ -14,8 +14,9 @@ Color cBg=new Color(10,10,15);Color cBdr=new Color(40,40,50);Color cTxt=new Colo
 bool hasGrav=false;float gravStr=0;bool inAtmo=false;bool setupDone=false;bool mergePaused=false;
 IMyShipMergeBlock padMerge,mslMerge;
 IMyShipConnector padCon,mslConFuel,mslConAmmo,padCon1,padCon2;
-IMyTextPanel lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10;
+IMyTextPanel lcd1,lcd2,lcd3,lcd7,lcd8;
 List<IMyTextPanel> bbLCDs=new List<IMyTextPanel>();
+List<IMyTextPanel> mmLCDs=new List<IMyTextPanel>();
 string bbLog="",gpsData="",lastBBPhase="";S lastBBState=S.INIT;
 double mslAlt=0,mslSpeed=0,mslFuelPct=0;
 string mslGSt="";
@@ -49,7 +50,7 @@ List<string> detAnts=new List<string>();
 int wpIdx=0,antIdx=0,clbDst=500,detDist=50,cntDn=10,sensorRng=50,lidarRng=500,lidarAng=5,brnT=5,reDst=500,fltMd=2,tgtRel=0;
 DateTime armTime;
 IMyBroadcastListener mslL,relL;
-IMyProgrammableBlock bootPB,invPB;
+IMyProgrammableBlock bootPB,invPB,signalPB;
 string mslPhase="",lKPh="",mslOutcome="",finalPhase="";
 double mslDTT=0,lKDst=0,mslGrav=0,mslDFP=0,mslVel=0,fnlDTT=0;
 Vector3D mslPos,lastMslPos;
@@ -93,6 +94,7 @@ int ctrlSel=0;
 int ctrlPadSel=0;
 List<int> kPads=new List<int>();
 Dictionary<int,string> pStat=new Dictionary<int,string>();
+Dictionary<int,string> pErr=new Dictionary<int,string>();
 Dictionary<int,bool> pArm=new Dictionary<int,bool>();
 Dictionary<int,bool> pRdy=new Dictionary<int,bool>();
 Dictionary<int,bool> pMslF=new Dictionary<int,bool>();
@@ -111,20 +113,25 @@ bool aAtk=false;
 List<Vector3D> dTgt=new List<Vector3D>();
 IMyBroadcastListener enmL;
 DateTime lastSalvo;
-IMyBroadcastListener sStL;
-string sStTag="UNITY_SAT_RELAY_STATUS";
 Dictionary<int,Vector3D> sPos=new Dictionary<int,Vector3D>();
 Dictionary<int,int> sBat=new Dictionary<int,int>();
 Dictionary<int,int> satH2=new Dictionary<int,int>();
 Dictionary<int,string> satStatus=new Dictionary<int,string>();
-Dictionary<int,DateTime> sLSn=new Dictionary<int,DateTime>();
 List<int> kSats=new List<int>();
-List<int> lostSats=new List<int>();
 int tSC=0;
 bool aRS=false;
-int sTout=60;
 int sRQ=0;
 DateTime lSatC;
+int lastIntTick=0;
+Dictionary<int,int> satGridX=new Dictionary<int,int>();
+Dictionary<int,int> satGridZ=new Dictionary<int,int>();
+double satGridSpacing=5000;
+Queue<Vector3D> satReplaceQueue=new Queue<Vector3D>();
+int nextGridX=0;
+int nextGridZ=0;
+int satLaunchGridX=0;
+int satLaunchGridZ=0;
+Vector3D satLaunchTgt=Vector3D.Zero;
 List<IMyShipConnector> oreC=new List<IMyShipConnector>();
 IMyBroadcastListener bcnL;
 string bcnTag="MINER_BEACON";
@@ -166,7 +173,6 @@ mslL=IGC.RegisterBroadcastListener(bcTag);
 relL=IGC.RegisterBroadcastListener(bcTag+"_RELAY");
 pCmdL=IGC.RegisterBroadcastListener(pCTag);
 pStL=IGC.RegisterBroadcastListener(pStTag);
-sStL=IGC.RegisterBroadcastListener(sStTag);
 enmL=IGC.RegisterBroadcastListener("ENEMY_SIGNAL");
 bcnL=IGC.RegisterBroadcastListener(bcnTag);
 bootReqL=IGC.RegisterBroadcastListener("UNITY_BOOT_REQ");
@@ -175,13 +181,17 @@ ShowCompileNotice();
 }
 IMyBroadcastListener bootReqL;
 void FindSiblingPBs(){
-bootPB=invPB=null;
+bootPB=invPB=signalPB=null;
 var pbs=new List<IMyProgrammableBlock>();
 GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me);
 foreach(var pb in pbs){
-string nm=pb.CustomName;
-if(nm.Contains($"[PAD{padID}")&&nm.ToUpper().Contains("UNITY BOOT"))bootPB=pb;
-else if(nm.Contains($"[PAD{padID}]")&&nm.ToUpper().Contains("UNITY INVENTORY"))invPB=pb;
+string nm=pb.CustomName;string nmU=nm.ToUpper();
+if(nm.Contains($"[PAD{padID}")&&nmU.Contains("UNITY BOOT"))bootPB=pb;
+else if(nm.Contains($"[PAD{padID}]")&&nmU.Contains("UNITY INVENTORY"))invPB=pb;
+else if(nm.Contains($"[PAD{padID}]")&&nmU.Contains("UNITY SIGNAL"))signalPB=pb;
+else if(nmU.Contains("UNITY INVENTORY")&&invPB==null)invPB=pb;
+else if(nmU.Contains("UNITY SIGNAL")&&signalPB==null)signalPB=pb;
+else if(nmU.Contains("UNITY BOOT")&&bootPB==null)bootPB=pb;
 }
 }
 string padSession="";
@@ -237,13 +247,15 @@ if(p.Length>=2)isCtl=p[1]=="1";
 if(p.Length>=3)int.TryParse(p[2],out toolTarget);
 }
 void UpdatePadTag(){
+string nm=Me.CustomName;int idx=nm.IndexOf("[PAD");
+if(idx>=0){int end=nm.IndexOf("]",idx);if(end>idx+4){string num=nm.Substring(idx+4,end-idx-4);int id;if(int.TryParse(num,out id)&&id>0)padID=id;}}
 if(padID==0)padID=GetNextPadID();
 padTag=$"[PAD{padID}";Me.CustomName=$"[PAD{padID}] UNITY PAD";
 }
 List<int> DiscoverSiblingPads(){
 var ids=new List<int>();
 var pbs=new List<IMyProgrammableBlock>();
-GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me&&b.CustomName.Contains("[PAD"));
+GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me&&b.CustomName.ToUpper().Contains("UNITY PAD"));
 foreach(var pb in pbs){
 string n=pb.CustomName;
 int idx=n.IndexOf("[PAD");
@@ -305,7 +317,8 @@ UpdatePrinter();
 if(tick%3==0){CheckTelemetry();WriteMslStatus();}
 if(tick%3==0)CheckPadCommands();
 if(tick%3==0)CheckPadStatus();
-if(tick%3==0)CheckSatStatus();
+if(tick%3==0)ReadSignalSatData();
+if(tick%3==0)CheckSatIntercept();
 if(tick%5==0)ManageSatNetwork();
 if(tick%3==0)CheckBeacons();
 if(tick%5==0)BroadcastStatus();
@@ -394,7 +407,9 @@ IGC.SendBroadcastMessage(pCTag,msg);
 }
 void BroadcastStatus(){
 if(padID==0)return;
-string st=$"{padID}|STATUS|{cS}|{(mslFound?"1":"0")}|{(cS==S.ARM?"1":"0")}|{(cS==S.READY?"1":"0")}|{(printing?"1":"0")}|{tgtGPS.X:F0}|{tgtGPS.Y:F0}|{tgtGPS.Z:F0}";
+string err="";
+if(padMerge==null)err="NO_MERGE";else if(padCon==null)err="NO_CON";else if(cS==S.READY&&!tgtSet&&tM==T.GPS)err="NO_TGT";else if(mslBO)err="BLACKOUT";
+string st=$"{padID}|STATUS|{cS}|{(mslFound?"1":"0")}|{(cS==S.ARM?"1":"0")}|{(cS==S.READY?"1":"0")}|{(printing?"1":"0")}|{tgtGPS.X:F0}|{tgtGPS.Y:F0}|{tgtGPS.Z:F0}|{err}";
 IGC.SendBroadcastMessage(pStTag,st);
 }
 void CheckPadCommands(){
@@ -416,6 +431,10 @@ else if(cmd=="ABORT"&&cS==S.GONE){if(mslBO){abtQ=true;}else{RemoteDetonate(true)
 else if(cmd=="SATLAUNCH"){
 int targetPad;if(parts.Length>=3&&int.TryParse(parts[2],out targetPad)&&targetPad==padID){
 tM=T.SATELLITE;tgtSet=true;tgtName="SATELLITE";
+satLaunchGridX=0;satLaunchGridZ=0;satLaunchTgt=Vector3D.Zero;
+if(parts.Length>=4){
+if(parts[3]=="GRID"&&parts.Length>=5){var gp=parts[4].Split(',');int gx,gz;if(gp.Length==2&&int.TryParse(gp[0],out gx)&&int.TryParse(gp[1],out gz)){satLaunchGridX=gx;satLaunchGridZ=gz;}}
+else{var coords=parts[3].Split(',');if(coords.Length==3){double x,y,z;if(double.TryParse(coords[0],out x)&&double.TryParse(coords[1],out y)&&double.TryParse(coords[2],out z))satLaunchTgt=new Vector3D(x,y,z);}}}
 if(cS==S.READY&&mslFound)ArmMissile();
 else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}
 else if(!mslFound&&!printing)StartPrint();
@@ -503,43 +522,78 @@ var parts=((string)msg.Data).Split('|');
 if(parts.Length>=7&&parts[1]=="STATUS"){
 int pid;if(!int.TryParse(parts[0],out pid))continue;
 if(pid==padID)continue;
-if(!kPads.Contains(pid)){if(kPads.Count>=20){int old=kPads[0];kPads.RemoveAt(0);pStat.Remove(old);pMslF.Remove(old);pArm.Remove(old);pRdy.Remove(old);pPrt.Remove(old);pTgts.Remove(old);}kPads.Add(pid);}
+if(!kPads.Contains(pid)){if(kPads.Count>=20){int old=kPads[0];kPads.RemoveAt(0);pStat.Remove(old);pErr.Remove(old);pMslF.Remove(old);pArm.Remove(old);pRdy.Remove(old);pPrt.Remove(old);pTgts.Remove(old);}kPads.Add(pid);}
 pStat[pid]=parts[2];
 pMslF[pid]=parts[3]=="1";
 pArm[pid]=parts[4]=="1";
 pRdy[pid]=parts[5]=="1";
 pPrt[pid]=parts[6]=="1";
 if(parts.Length>=9){double x,y,z;if(double.TryParse(parts[7],out x)&&double.TryParse(parts[8],out y)&&parts.Length>=10&&double.TryParse(parts[9],out z))pTgts[pid]=new Vector3D(x,y,z);}
+if(parts.Length>=11&&!string.IsNullOrEmpty(parts[10]))pErr[pid]=parts[10];else pErr.Remove(pid);
 }}}}
-void CheckSatStatus(){
-if(sStL==null)return;
-while(sStL.HasPendingMessage){
-var msg=sStL.AcceptMessage();
-if(msg.Data is string){
-var parts=((string)msg.Data).Split('|');
-if(parts.Length>=6&&parts[0]=="SAT"){
-int sid;if(!int.TryParse(parts[1],out sid))continue;
+void ReadSignalSatData(){
+if(signalPB==null){FindSiblingPBs();if(signalPB==null)return;}
+string cd=signalPB.CustomData;
+int satIdx=cd.IndexOf("[SATELLITES]");
+if(satIdx<0)return;
+int endIdx=cd.IndexOf("[",satIdx+12);
+string satSec=endIdx>0?cd.Substring(satIdx,endIdx-satIdx):cd.Substring(satIdx);
+kSats.Clear();sPos.Clear();sBat.Clear();satH2.Clear();satStatus.Clear();satGridX.Clear();satGridZ.Clear();
+var lines=satSec.Split('\n');
+foreach(var line in lines){
+if(!line.StartsWith("sat_"))continue;
+int eq=line.IndexOf('=');if(eq<0)continue;
+int sid;if(!int.TryParse(line.Substring(4,eq-4),out sid))continue;
+var parts=line.Substring(eq+1).Split('|');
+if(parts.Length<5)continue;
 if(!kSats.Contains(sid))kSats.Add(sid);
-if(lostSats.Contains(sid))lostSats.Remove(sid);
-var coords=parts[2].Split(',');
-if(coords.Length==3){double x,y,z;if(double.TryParse(coords[0],out x)&&double.TryParse(coords[1],out y)&&double.TryParse(coords[2],out z))sPos[sid]=new Vector3D(x,y,z);}
-int bat,h2;if(int.TryParse(parts[3],out bat))sBat[sid]=bat;
-if(int.TryParse(parts[4],out h2))satH2[sid]=h2;
-satStatus[sid]=parts[5];
-sLSn[sid]=DT;
-}}}}
+var gp=parts[0].Split(',');int gx,gz;
+if(gp.Length>=2&&int.TryParse(gp[0],out gx)&&int.TryParse(gp[1],out gz)){satGridX[sid]=gx;satGridZ[sid]=gz;}
+int bat,h2;if(int.TryParse(parts[1],out bat))sBat[sid]=bat;
+if(int.TryParse(parts[2],out h2))satH2[sid]=h2;
+int links;if(int.TryParse(parts[3],out links)){}
+satStatus[sid]=parts[4];}}
+void CheckSatIntercept(){
+if(signalPB==null){FindSiblingPBs();if(signalPB==null)return;}
+string cd=signalPB.CustomData;
+int intIdx=cd.IndexOf("[INTERCEPTS]");
+if(intIdx<0)return;
+int nextSec=cd.IndexOf("\n[",intIdx+1);
+string intSec=nextSec>0?cd.Substring(intIdx+12,nextSec-intIdx-12):cd.Substring(intIdx+12);
+var lines=intSec.Split('\n');
+foreach(var line in lines){
+if(string.IsNullOrEmpty(line.Trim()))continue;
+var tickParts=line.Split(new[]{'|'},2);
+if(tickParts.Length<2)continue;
+int itk;if(!int.TryParse(tickParts[0],out itk))continue;
+if(itk<=lastIntTick)continue;
+lastIntTick=itk;
+var parts=tickParts[1].Split('|');
+if(parts.Length>=4&&parts[0]=="DETONATE"){
+int sid;if(!int.TryParse(parts[1],out sid))continue;
+int srcPad;if(!int.TryParse(parts[2],out srcPad))continue;
+var coords=parts[3].Split(',');
+if(coords.Length==3){double x,y,z;if(double.TryParse(coords[0],out x)&&double.TryParse(coords[1],out y)&&double.TryParse(coords[2],out z)){
+satReplaceQueue.Enqueue(new Vector3D(x,y,z));
+if(kSats.Contains(sid))kSats.Remove(sid);
+if(sPos.ContainsKey(sid))sPos.Remove(sid);
+if(satGridX.ContainsKey(sid))satGridX.Remove(sid);
+if(satGridZ.ContainsKey(sid))satGridZ.Remove(sid);
+}}}}}
 void ManageSatNetwork(){
 if(!isCtl)return;
 int elapsed=(int)(DT-lSatC).TotalSeconds;
 if(elapsed<10)return;
 lSatC=DT;
-foreach(int sid in kSats.ToArray()){
-if(!sLSn.ContainsKey(sid))continue;
-int since=(int)(DT-sLSn[sid]).TotalSeconds;
-if(since>sTout&&!lostSats.Contains(sid)){
-lostSats.Add(sid);kSats.Remove(sid);
-sPos.Remove(sid);sBat.Remove(sid);satH2.Remove(sid);satStatus.Remove(sid);
-}}
+if(aRS&&satReplaceQueue.Count>0){
+foreach(int pid in kPads){
+if(satReplaceQueue.Count==0)break;
+if(!pStat.ContainsKey(pid))continue;
+if(pStat[pid]=="IDLE"||pStat[pid]=="READY"){
+var tgt=satReplaceQueue.Dequeue();
+BroadcastCommand("SATLAUNCH",$"{pid}|{tgt.X:F0},{tgt.Y:F0},{tgt.Z:F0}");
+sRQ++;
+}}}
 int activeSats=kSats.Count;
 int needed=tSC-activeSats-sRQ;
 if(aRS&&needed>0){
@@ -547,9 +601,19 @@ foreach(int pid in kPads){
 if(needed<=0)break;
 if(!pStat.ContainsKey(pid))continue;
 if(pStat[pid]=="IDLE"||pStat[pid]=="READY"){
-BroadcastCommand("SATLAUNCH",$"{pid}");
+int gx=nextGridX,gz=nextGridZ;
+AdvanceGridSlot();
+BroadcastCommand("SATLAUNCH",$"{pid}|GRID|{gx},{gz}");
 sRQ++;needed--;
 }}}}
+void AdvanceGridSlot(){
+if(nextGridX==0&&nextGridZ==0){nextGridX=1;return;}
+if(nextGridX>0&&nextGridZ>=0&&nextGridZ<nextGridX){nextGridZ++;return;}
+if(nextGridZ>0&&nextGridX>-nextGridZ){nextGridX--;return;}
+if(nextGridX<0&&nextGridZ>nextGridX){nextGridZ--;return;}
+if(nextGridZ<0&&nextGridX<-nextGridZ){nextGridX++;return;}
+if(nextGridX>0&&nextGridZ<0){nextGridX++;nextGridZ=0;}
+}
 void CheckBeacons(){
 if(bcnL==null)return;
 while(bcnL.HasPendingMessage){
@@ -634,13 +698,8 @@ padMerge=null;padCon=null;padCon1=null;padCon2=null;
 if(lcd1!=null&&((IMyTerminalBlock)lcd1).Closed)lcd1=null;
 if(lcd2!=null&&((IMyTerminalBlock)lcd2).Closed)lcd2=null;
 if(lcd3!=null&&((IMyTerminalBlock)lcd3).Closed)lcd3=null;
-if(lcd4!=null&&((IMyTerminalBlock)lcd4).Closed)lcd4=null;
-if(lcd5!=null&&((IMyTerminalBlock)lcd5).Closed)lcd5=null;
-if(lcd6!=null&&((IMyTerminalBlock)lcd6).Closed)lcd6=null;
 if(lcd7!=null&&((IMyTerminalBlock)lcd7).Closed)lcd7=null;
 if(lcd8!=null&&((IMyTerminalBlock)lcd8).Closed)lcd8=null;
-if(lcd9!=null&&((IMyTerminalBlock)lcd9).Closed)lcd9=null;
-if(lcd10!=null&&((IMyTerminalBlock)lcd10).Closed)lcd10=null;
 if(btn!=null&&btn.Closed)btn=null;
 foreach(var b in blks){
 if(b is IMyShipMergeBlock&&padMerge==null)padMerge=b as IMyShipMergeBlock;
@@ -655,25 +714,23 @@ foreach(var b in blks){
 if(b is IMyShipConnector){var cn=b as IMyShipConnector;string u=b.CustomName.ToUpper();if(u.Contains("-CON1")&&padCon1==null)padCon1=cn;else if(u.Contains("-CON2")&&padCon2==null)padCon2=cn;else if(padCon==null&&!u.Contains("ORE")&&!u.Contains("-CON"))padCon=cn;}
 if(b is IMyTextPanel){
 var p=b as IMyTextPanel;string pn=p.CustomName;
-if(LCDMatch(pn,10)&&lcd10==null)lcd10=p;
-else if(LCDMatch(pn,1)&&lcd1==null)lcd1=p;
+if(LCDMatch(pn,1)&&lcd1==null)lcd1=p;
 else if(LCDMatch(pn,2)&&lcd2==null)lcd2=p;
 else if(LCDMatch(pn,3)&&lcd3==null)lcd3=p;
-else if(LCDMatch(pn,4)&&lcd4==null)lcd4=p;
-else if(LCDMatch(pn,5)&&lcd5==null)lcd5=p;
-else if(LCDMatch(pn,6)&&lcd6==null)lcd6=p;
 else if(LCDMatch(pn,7)&&lcd7==null)lcd7=p;
 else if(LCDMatch(pn,8)&&lcd8==null)lcd8=p;
-else if(LCDMatch(pn,9)&&lcd9==null)lcd9=p;
 }
 if(b is IMyButtonPanel&&b.CustomName.ToLower().Contains("control")&&btn==null)btn=b as IMyButtonPanel;
 }
 if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn,b=>b.CustomName.Contains(padTag)||b.CubeGrid==Me.CubeGrid);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
 if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
-bbLCDs.Clear();
+bbLCDs.Clear();mmLCDs.Clear();
 var allPanels=new List<IMyTextPanel>();
 GridTerminalSystem.GetBlocksOfType(allPanels,p=>p.CustomName.ToUpper().Contains("[BLACKBOX]"));
 foreach(var p in allPanels)bbLCDs.Add(p);
+string mmTag=$"[PAD{padID} MINIMAP]";
+GridTerminalSystem.GetBlocksOfType(allPanels,p=>p.CustomName.Contains(mmTag));
+foreach(var p in allPanels)mmLCDs.Add(p);
 ScanPrinter();
 ScanPad();
 ScanMissile();
@@ -837,7 +894,8 @@ if(mslGen.Count>0){foreach(var g in mslGen){var inv=g.GetInventory();if(inv!=nul
 ammoPct=0;
 if(mslConAmmo!=null){var ammoInv=mslConAmmo.GetInventory();if(ammoInv!=null){float cur=(float)ammoInv.CurrentVolume;float max=(float)ammoInv.MaxVolume;ammoPct=max>0?(cur/max)*100:0;}}
 if(mslWar.Count>0){warArmed=true;foreach(var w in mslWar)if(!w.IsArmed){warArmed=false;break;}}
-if(warArmed&&cS!=S.GONE&&cS!=S.LAUNCH&&cS!=S.ARM){foreach(var w in mslWar)w.IsArmed=false;warArmed=false;}
+if(cS==S.LAUNCH)warArmed=false;
+if(warArmed&&cS!=S.GONE&&cS!=S.ARM){foreach(var w in mslWar)w.IsArmed=false;warArmed=false;}
 thrAtmo=0;thrH2=0;thrIon=0;
 foreach(var t in mslThr){string sub=t.BlockDefinition.SubtypeId;if(sub.Contains("Atmospheric"))thrAtmo++;else if(sub.Contains("Hydrogen"))thrH2++;else thrIon++;}
 ScanAntennas();
@@ -858,7 +916,7 @@ customWP.Clear();gpsData="";
 string d=btn!=null?btn.CustomData:"";if(string.IsNullOrEmpty(d))return;
 var NS=System.Globalization.NumberStyles.Any;var IC=System.Globalization.CultureInfo.InvariantCulture;
 foreach(var ln in d.Split('\n')){string l=ln.Trim();if(l.StartsWith(";"))continue;if(!l.StartsWith("GPS:"))continue;gpsData+=l+"\n";var p=l.Split(':');if(p.Length>=5){double x,y,z;if(double.TryParse(p[2].Replace(',','.'),NS,IC,out x)&&double.TryParse(p[3].Replace(',','.'),NS,IC,out y)&&double.TryParse(p[4].Replace(',','.'),NS,IC,out z))customWP.Add(new MyWaypointInfo(p[1],new Vector3D(x,y,z)));}}}
-void WriteCustomData(){ParseCustomGPS();Me.CustomData="[GPS TARGETS]\n"+gpsData+"===LOG===\n"+bbLog;}
+void WriteCustomData(){ParseCustomGPS();var d=Me.CustomData;int b=d.IndexOf("[BLACKBOX]");Me.CustomData=(b>0?d.Substring(0,b):d+"\n")+"[BLACKBOX]\n"+bbLog+"\n[GPS]\n"+gpsData;}
 void LogState(string evt){string ts=DT.ToString("HH:mm:ss");bbLog+=$"{ts}|PAD:{evt}\n";if(bbLog.Length>2000){int nl=bbLog.IndexOf('\n',300);if(nl>0)bbLog=bbLog.Substring(nl+1);}WriteCustomData();}
 void CheckStateLog(){if(cS!=lastBBState){lastBBState=cS;string sn=cS==S.BUILD?"BUILD":cS==S.DOCK?"DOCKED":cS==S.FUEL?"FUELING":cS==S.READY?"READY":cS==S.ARM?"ARMED":cS==S.LAUNCH?"LAUNCHING":cS==S.GONE?"AWAY":"";if(sn!="")LogState(sn);}}
 void WriteMslStatus(){string cd=Me.CustomData;string ph=cS==S.GONE?mslPhase:cS==S.ARM?"ARMED":cS==S.READY?"READY":cS==S.FUEL?"FUELING":cS==S.DOCK?"DOCKING":cS==S.BUILD?"BUILD":cS==S.PRINT?"PRINT":mslFound?"DOCKED":"IDLE";int armCnt=cS==S.ARM||warArmed?1:0,rdyCnt=cS==S.READY?1:0,mCnt=cS==S.GONE?1:0;double dAlt=mslAlt,dDist=mslDTT,dFuel=mslFuelPct,dSpd=mslVel;if(cS!=S.GONE&&mslFound){dFuel=h2Pct;dSpd=0;if(mslRC!=null){Vector3D rcPos=mslRC.GetPosition();double seaLvl=0;if(mslRC.TryGetPlanetElevation(MyPlanetElevation.Sealevel,out seaLvl))dAlt=seaLvl;else dAlt=rcPos.Length();}if(tgtSet)dDist=VD(mslRC!=null?mslRC.GetPosition():Me.GetPosition(),tgtGPS);}string mslLine=$"msl_phase={ph}|target={tgtName}|mslDist={dDist:F0}|mslSpeed={dSpd:F0}|mslAlt={dAlt:F0}|mslFuel={dFuel:F0}|mslBatPct={batPct:F0}|mslH2Pct={h2Pct:F0}|mslO2Pct={o2Pct:F0}|mslCount={mCnt}|mslArmed={armCnt}|mslReady={rdyCnt}|conLocked={(conLocked?1:0)}|warArmed={(warArmed?1:0)}|warCount={mslWar.Count}|mslAmmo={mslAmmo}|mslAmmoLoad={ammoLoad}|mslGenCnt={mslGen.Count}|mslH2Cnt={mslH2.Count}|mslO2Cnt={mslO2.Count}|mslIce={(int)icePct}|mslUran=0";if(!cd.Contains("[PAD_DATA]"))cd+="[PAD_DATA]\n";int pi=cd.IndexOf("msl_phase=");if(pi>=0){int pe=cd.IndexOf("\n",pi);if(pe<0)pe=cd.Length;cd=cd.Remove(pi,pe-pi);cd=cd.Insert(pi,mslLine);}else{int si=cd.IndexOf("[PAD_DATA]")+10;int ni=cd.IndexOf("\n",si);if(ni<0)ni=cd.Length;cd=cd.Insert(ni,"\n"+mslLine);}Me.CustomData=cd;}
@@ -968,6 +1026,8 @@ if(cS==S.ARM)cS=S.READY;
 void StartLaunch(){
 for(int i=0;i<16;i++){fDist[i]=0;fAlt[i]=0;fSpd[i]=0;}
 fIdx=0;mslVel=0;
+foreach(var w in mslWar){w.IsArmed=false;}
+warArmed=false;
 foreach(var a in padAnt){a.Enabled=true;a.Radius=50000f;a.EnableBroadcasting=true;}
 if(padCon!=null){padCon.Disconnect();padCon.CollectAll=false;padCon.ThrowOut=false;}
 if(padMerge!=null)padMerge.Enabled=false;
@@ -977,7 +1037,9 @@ string padLaserStr="";
 if(padLsr.Count>0){var lp=padLsr[0].GetPosition();padLaserStr=$"\nPadLaser={lp.X:F0},{lp.Y:F0},{lp.Z:F0}";}
 if(mslPB!=null){
 bool inSpace=fltMd==0?!hasGrav:fltMd==2;
-string cfg=$"[UNITY_MISSILE]\nMode={tM}\nGPS={tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}\nAntenna={tgtAntenna}\nBroadcast={bcTag}\nClimb={clbDst}\nDetonate={detDist}\nSensorRange={sensorRng}\nLidarRange={lidarRng}\nLidarAngle={lidarAng}\nAntBroadcast={(antBC?"1":"0")}\nInSpace={(inSpace?"1":"0")}\nGravity={gravStr:F2}\nBurnTime={brnT}\nReentryDist={reDst}\nFlightMode={fltMd}{padLaserStr}\nMslNumber={bldNum}\nPadID={padID}\nTargetRel={tgtRel}";
+string satCfg="";
+if(tM==T.SATELLITE){if(satLaunchGridX==0&&satLaunchGridZ==0){satLaunchGridX=nextGridX;satLaunchGridZ=nextGridZ;AdvanceGridSlot();}int satId=bldNum*100+padID;satCfg=$"\nSatID={satId}\nSatGridX={satLaunchGridX}\nSatGridZ={satLaunchGridZ}\nGridSpacing={satGridSpacing:F0}\nInterceptDist=10";if(satLaunchTgt!=Vector3D.Zero)satCfg+=$"\nGPS={satLaunchTgt.X:F0},{satLaunchTgt.Y:F0},{satLaunchTgt.Z:F0}";satLaunchGridX=0;satLaunchGridZ=0;}
+string cfg=$"[UNITY_MISSILE]\nMode={tM}\nGPS={tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}\nAntenna={tgtAntenna}\nBroadcast={bcTag}\nClimb={clbDst}\nDetonate={detDist}\nSensorRange={sensorRng}\nLidarRange={lidarRng}\nLidarAngle={lidarAng}\nAntBroadcast={(antBC?"1":"0")}\nInSpace={(inSpace?"1":"0")}\nGravity={gravStr:F2}\nBurnTime={brnT}\nReentryDist={reDst}\nFlightMode={fltMd}{padLaserStr}\nMslNumber={bldNum}\nPadID={padID}\nTargetRel={tgtRel}{satCfg}";
 mslPB.CustomData=cfg;
 mslPB.TryRun("LAUNCH");
 }
@@ -988,7 +1050,8 @@ cS=S.LAUNCH;
 }
 
 void RemoteDetonate(bool force=false){
-if(!force&&(DT-lnchT).TotalSeconds<5){Echo("DETONATE BLOCKED: Launch grace period");return;}
+if(cS!=S.GONE){Echo("DETONATE BLOCKED: Not in flight");return;}
+if(!force&&(DT-lnchT).TotalSeconds<10){Echo("DETONATE BLOCKED: 10s grace period");return;}
 foreach(var a in padAnt){a.Enabled=true;a.Radius=50000f;a.EnableBroadcasting=true;}
 IGC.SendBroadcastMessage(bcTag+"_CMD",$"DETONATE:{padID}");
 LogState("ABORT_CMD_SENT");
@@ -1090,7 +1153,7 @@ void ReadBlueprint(){string d=Me.CustomData;bpNd.Clear();bpMis.Clear();if(string
 void NamePadParts(){Action<IMyTerminalBlock>N=x=>{if(!HasSysTag(x)&&!x.CustomName.StartsWith("[PAD]"))x.CustomName=$"[PAD] {BT(x)}";};foreach(var b in padBat)N(b);foreach(var t in padH2)N(t);foreach(var t in padO2)N(t);foreach(var c in padCargo)N(c);foreach(var r in padRef)N(r);foreach(var a in padAsm)N(a);foreach(var a in padAnt)N(a);foreach(var l in padLsr)N(l);foreach(var r in padReact)N(r);foreach(var s in padSolar)N(s);foreach(var g in padGyr)N(g);foreach(var t in padThr)N(t);foreach(var g in padGen)N(g);foreach(var c in padCam)N(c);foreach(var s in padSen)N(s);}
 
 void StartPrint(){ScanPrinter();string pt=padID>0?$"[PAD{padID}-PRINT]":"[PRINT]";if(prtPist.Count==0)return;if(prtWeld.Count==0)return;if(prtProj==null)return;if(padMerge==null)return;if(padMerge.IsConnected)return;if(printing){StopPrint();return;}prtStopped=false;printing=true;prtState=0;cS=S.PRINT;bldCmp=false;pNmd=false;prtLastVPos=0;prtST=0;if(prtPistV.Count>0&&prtPistH.Count>0){prtVZero=1.4f;prtVMax=10f;prtHMax=7.2f;foreach(var p in prtPistV){p.MinLimit=0;p.MaxLimit=prtVZero;p.Velocity=prtVSpeed;}foreach(var p in prtPistH){p.MinLimit=0;p.Velocity=prtHSpeed;}prtHPos=prtHMax;}else{prtHPos=0;foreach(var p in prtPist){p.MinLimit=0f;p.Velocity=-0.5f;}}foreach(var w in prtWeld)w.Enabled=false;if(prtProj!=null)prtProj.Enabled=true;if(padMerge!=null)padMerge.Enabled=true;}
-void StopPrint(){printing=false;prtState=0;prtStopped=true;bldCmp=true;prtHPos=0;prtLastVPos=0;prtST=0;foreach(var p in prtPistV){p.Velocity=-prtVSpeed;p.MinLimit=0;}foreach(var p in prtPistH){p.Velocity=-prtHSpeed;p.MinLimit=0;}foreach(var p in prtPist){p.Velocity=-0.5f;p.MinLimit=0;}foreach(var w in prtWeld)w.Enabled=false;if(prtProj!=null)prtProj.Enabled=false;cS=S.IDLE;}
+void StopPrint(){printing=false;prtState=0;prtStopped=true;bldCmp=true;prtHPos=0;prtLastVPos=0;prtST=0;foreach(var p in prtPistV){p.Velocity=-prtVSpeed;p.MinLimit=0;}foreach(var p in prtPistH){p.Velocity=-prtHSpeed;p.MinLimit=0;}foreach(var p in prtPist){p.Velocity=-0.5f;p.MinLimit=0;}foreach(var w in prtWeld)w.Enabled=false;if(prtProj!=null)prtProj.Enabled=false;cS=S.IDLE;IGC.SendBroadcastMessage("UNITY_PRINTER_ACK",$"{padID}|COMPLETE|{bldNum}");}
 void ResetPrinterPosition(){printing=false;prtState=0;prtStopped=true;prtHPos=0;prtLastVPos=0;prtST=0;foreach(var p in prtPistV){p.Velocity=-prtVSpeed;p.MinLimit=0;}foreach(var p in prtPistH){p.Velocity=-prtHSpeed;p.MinLimit=0;}foreach(var p in prtPist){p.Velocity=-0.5f;p.MinLimit=0;}foreach(var w in prtWeld)w.Enabled=false;}
 
 void UpdatePrinter(){if(!printing)return;if(prtProj==null||prtProj.RemainingBlocks==0){StopPrint();return;}if(prtPistV.Count==0||prtPistH.Count==0){UpdatePrinterLegacy();return;}Func<float>gV=()=>{float v=0;foreach(var p in prtPistV)v+=p.CurrentPosition;return v/prtPistV.Count;};Action sH=()=>{prtHPos-=prtHStep;if(prtHPos<0)prtHPos=0;if(prtHPos<=0.05f){StopPrint();return;}foreach(var p in prtPistH){p.Velocity=-prtHSpeed;}prtState=4;};switch(prtState){case 0:bool vZ=true,hR=true;foreach(var p in prtPistV){p.MinLimit=0;float d=p.CurrentPosition-prtVZero;if(d<-0.2f){p.Velocity=prtVSpeed;vZ=false;}else if(d>0.2f){p.Velocity=-prtVSpeed;vZ=false;}else p.Velocity=0;}foreach(var p in prtPistH){p.MinLimit=0;p.Velocity=prtHSpeed;if(p.CurrentPosition<prtHMax-0.1f)hR=false;}if(vZ&&hR){prtHPos=prtHMax;foreach(var p in prtPistV){p.MaxLimit=prtVMax;p.Velocity=prtVSpeed;}foreach(var p in prtPistH)p.Velocity=0;foreach(var w in prtWeld)w.Enabled=true;prtState=1;}break;case 1:foreach(var p in prtPistV)p.Velocity=prtVSpeed;float c1=gV();if(Math.Abs(c1-prtLastVPos)<0.01f)prtST++;else prtST=0;prtLastVPos=c1;if(prtST>10){foreach(var p in prtPistV)p.Velocity=0;prtST=0;prtLastVPos=0;sH();break;}bool aT=true;foreach(var p in prtPistV)if(p.CurrentPosition<prtVMax-0.1f)aT=false;if(aT){foreach(var p in prtPistV)p.Velocity=-prtVSpeed;prtST=0;prtLastVPos=0;prtState=2;}break;case 2:foreach(var p in prtPistV)p.Velocity=-prtVSpeed;float c2=gV();if(Math.Abs(c2-prtLastVPos)<0.01f)prtST++;else prtST=0;prtLastVPos=c2;if(prtST>10){foreach(var p in prtPistV)p.Velocity=0;prtST=0;prtLastVPos=0;sH();break;}bool aB=true;foreach(var p in prtPistV)if(p.CurrentPosition>0.1f)aB=false;if(aB){foreach(var p in prtPistV)p.Velocity=prtVSpeed;prtST=0;prtLastVPos=0;prtState=3;}break;case 3:foreach(var p in prtPistV)p.Velocity=prtVSpeed;float c3=gV();if(Math.Abs(c3-prtLastVPos)<0.01f)prtST++;else prtST=0;prtLastVPos=c3;bool vAt=true;foreach(var p in prtPistV)if(p.CurrentPosition<prtVZero-0.2f)vAt=false;if(vAt||prtST>10){foreach(var p in prtPistV)p.Velocity=0;prtST=0;prtLastVPos=0;sH();}break;case 4:bool hC=true;foreach(var p in prtPistH)if(p.CurrentPosition>prtHPos+0.05f)hC=false;if(hC){foreach(var p in prtPistH)p.Velocity=0;foreach(var p in prtPistV)p.Velocity=prtVSpeed;prtState=1;}break;}}
@@ -1184,45 +1247,74 @@ var allLcds=new List<IMyTextPanel>();
 GridTerminalSystem.GetBlocksOfType(allLcds,b=>b.CubeGrid==Me.CubeGrid&&b.CustomName.Contains("[PAD"));
 if(allLcds.Count==0)return;
 bool mslDocked=padMerge!=null&&padMerge.IsConnected;
-bool invReady=false;
-if(invPB==null)FindSiblingPBs();
+bool invReady=false;bool sigReady=false;
+if(invPB==null||signalPB==null)FindSiblingPBs();
 if(invPB!=null&&padSession!="")invReady=invPB.CustomData.Contains($"inv_for_session={padSession}");
+if(signalPB!=null&&padSession!="")sigReady=signalPB.CustomData.Contains($"signal_for_session={padSession}");
 int sec=DateTime.Now.Second;
-bool showInv=invReady&&(sec/5)%2==1;
+bool showSig=invReady&&sigReady&&(sec/5)%2==1;
+bool showInv=invReady&&!sigReady&&(sec/5)%2==1;
 foreach(var lcd in allLcds){
 var sf=lcd as IMyTextSurface;if(sf==null)continue;
 sf.ContentType=ContentType.SCRIPT;sf.Script="";sf.ScriptBackgroundColor=cBg;
 var f=sf.DrawFrame();float y=20;
 SH(f,y,"UNITY MISSILE SYSTEM",cAcc);y+=40;
-if(showInv){
+if(showSig){
+ST(f,256,y,"SIGNAL SCRIPT COMPILED",cOK,0.7f,TextAlignment.CENTER);y+=40;
+SBx(f,30,y,452,80,cBg,cSec);y+=15;
+ST(f,50,y,"NEXT STEP:",cPri,0.5f);y+=22;
+ST(f,50,y,"Compile BOOT script",cTxt,0.5f);y+=40;
+SBx(f,30,y,452,90,cBg,cBdr);y+=12;
+ST(f,50,y,"COMPILE ORDER:",cSec,0.45f);y+=20;
+ST(f,50,y,"PAD > INV > SIGNAL > BOOT",cAcc,0.4f);y+=20;
+ST(f,50,y,"PAD [OK] | INV [OK] | SIG [OK] <<<< COMPILED",cOK,0.4f);
+}else if(invReady&&sigReady){
+ST(f,256,y,"SIGNAL SCRIPT COMPILED",cOK,0.7f,TextAlignment.CENTER);y+=40;
+SBx(f,30,y,452,80,cBg,cSec);y+=15;
+ST(f,50,y,"NEXT STEP:",cPri,0.5f);y+=22;
+ST(f,50,y,"Compile BOOT script",cTxt,0.5f);y+=40;
+SBx(f,30,y,452,90,cBg,cBdr);y+=12;
+ST(f,50,y,"COMPILE ORDER:",cSec,0.45f);y+=20;
+ST(f,50,y,"PAD > INV > SIGNAL > BOOT",cAcc,0.4f);y+=20;
+ST(f,50,y,"PAD [OK] | INV [OK] | SIG [OK]",cOK,0.4f);
+}else if(showInv){
 ST(f,256,y,"INVENTORY SCRIPT COMPILED",cOK,0.7f,TextAlignment.CENTER);y+=40;
 SBx(f,30,y,452,80,cBg,cSec);y+=15;
 ST(f,50,y,"NEXT STEP:",cPri,0.5f);y+=22;
-ST(f,50,y,"Compile BOOT script",cTxt,0.5f);y+=40;
+ST(f,50,y,"Compile SIGNAL script",cTxt,0.5f);y+=40;
 SBx(f,30,y,452,90,cBg,cBdr);y+=12;
 ST(f,50,y,"COMPILE ORDER:",cSec,0.45f);y+=20;
-ST(f,50,y,"PAD > INVENTORY > BOOT",cAcc,0.4f);y+=20;
-ST(f,50,y,"PAD [OK] | INVENTORY [OK] <<<< COMPILED",cOK,0.4f);
+ST(f,50,y,"PAD > INV > SIGNAL > BOOT",cAcc,0.4f);y+=20;
+ST(f,50,y,"PAD [OK] | INV [OK] <<<< COMPILED",cOK,0.4f);
 }else if(invReady){
-ST(f,256,y,"PAD SCRIPT COMPILED",cOK,0.7f,TextAlignment.CENTER);y+=40;
+ST(f,256,y,"INVENTORY SCRIPT COMPILED",cOK,0.7f,TextAlignment.CENTER);y+=40;
 SBx(f,30,y,452,80,cBg,cSec);y+=15;
 ST(f,50,y,"NEXT STEP:",cPri,0.5f);y+=22;
-ST(f,50,y,"Compile BOOT script",cTxt,0.5f);y+=40;
-SBx(f,30,y,452,90,cBg,cBdr);y+=12;
-ST(f,50,y,"COMPILE ORDER:",cSec,0.45f);y+=20;
-ST(f,50,y,"PAD > INVENTORY > BOOT",cAcc,0.4f);y+=20;
-ST(f,50,y,"PAD [OK] | INVENTORY [OK]",cOK,0.4f);
+ST(f,50,y,"Compile SIGNAL script",cTxt,0.5f);y+=40;
+SBx(f,30,y,452,140,cBg,cBdr);y+=12;
+ST(f,50,y,"SIGNAL DEBUG:",cErr,0.45f);y+=18;
+string pSess2=padSession.Length>8?padSession.Substring(padSession.Length-8):padSession;
+ST(f,50,y,$"signalPB found: {(signalPB!=null?"YES":"NO")}",signalPB!=null?cOK:cErr,0.4f);y+=16;
+string sigSess="NOT FOUND";
+if(signalPB!=null){int sx=signalPB.CustomData.IndexOf("signal_for_session=");if(sx>=0){int ex=signalPB.CustomData.IndexOf('\n',sx);if(ex<0)ex=signalPB.CustomData.Length;sigSess=signalPB.CustomData.Substring(sx+19,ex-sx-19).Trim();if(sigSess.Length>8)sigSess=sigSess.Substring(sigSess.Length-8);}}
+ST(f,50,y,$"SIG session: {sigSess}",sigSess==pSess2?cOK:cErr,0.4f);y+=16;
+ST(f,50,y,$"PAD session: {(padSession==""?"EMPTY":pSess2)}",cWrn,0.4f);y+=16;
+ST(f,50,y,$"Match: {(sigSess==pSess2&&padSession!=""?"YES":"NO")}",sigSess==pSess2&&padSession!=""?cOK:cErr,0.4f);
 }else{
 ST(f,256,y,"PAD SCRIPT COMPILED",cOK,0.7f,TextAlignment.CENTER);y+=40;
 SBx(f,30,y,452,100,cBg,cSec);y+=15;
 ST(f,50,y,"NEXT STEP:",cPri,0.5f);y+=22;
 ST(f,50,y,"Compile INVENTORY script",cTxt,0.5f);y+=22;
-ST(f,50,y,"Then compile BOOT script",cTxt,0.45f);y+=40;
-SBx(f,30,y,452,90,cBg,cBdr);y+=12;
-ST(f,50,y,"COMPILE ORDER:",cSec,0.45f);y+=20;
-string order=mslDocked?"BEACON > MISSILE > PAD > INVENTORY > BOOT":"PAD > INVENTORY > BOOT";
-ST(f,50,y,order,cAcc,0.4f);y+=20;
-ST(f,50,y,"PAD [OK] <<<< COMPILED",cOK,0.4f);
+ST(f,50,y,"Then SIGNAL, then BOOT",cTxt,0.45f);y+=40;
+SBx(f,30,y,452,140,cBg,cBdr);y+=12;
+ST(f,50,y,"SESSION DEBUG:",cErr,0.45f);y+=18;
+string pSess=padSession.Length>8?padSession.Substring(padSession.Length-8):padSession;
+ST(f,50,y,$"PAD session: {(padSession==""?"EMPTY":pSess)}",cWrn,0.4f);y+=16;
+ST(f,50,y,$"invPB found: {(invPB!=null?"YES":"NO")}",invPB!=null?cOK:cErr,0.4f);y+=16;
+string invSess="NOT FOUND";
+if(invPB!=null){int ix=invPB.CustomData.IndexOf("inv_for_session=");if(ix>=0){int ex=invPB.CustomData.IndexOf('\n',ix);if(ex<0)ex=invPB.CustomData.Length;invSess=invPB.CustomData.Substring(ix+16,ex-ix-16).Trim();if(invSess.Length>8)invSess=invSess.Substring(invSess.Length-8);}}
+ST(f,50,y,$"INV session: {invSess}",invSess==pSess?cOK:cErr,0.4f);y+=16;
+ST(f,50,y,$"Match: {(invSess==pSess&&padSession!=""?"YES":"NO")}",invSess==pSess&&padSession!=""?cOK:cErr,0.4f);
 }
 f.Dispose();
 }}
@@ -1234,6 +1326,7 @@ if(lcd3!=null)UpdateLCD3();
 if(lcd7!=null)UpdateLCD7();
 if(lcd8!=null)UpdateLCD8();
 if(bbLCDs.Count>0)UpdateBlackBox();
+if(mmLCDs.Count>0)UpdateMiniMap();
 Echo("Unity Missile System");
 Echo($"UnityPad [PAD{padID}]");
 Echo("+------------------+");
@@ -1247,6 +1340,7 @@ Echo("--- PAD SYSTEMS ---");
 Echo($"Bat:{padBat.Count} H2:{padH2.Count} O2:{padO2.Count} Gen:{padGen.Count}");
 Echo($"Asm:{padAsm.Count} Ref:{padRef.Count} Cargo:{padCargo.Count}");
 Echo($"Ant:{padAnt.Count} Cam:{padCam.Count} Sen:{padSen.Count}");
+Echo($"Med:{padMedCount} Surv:{padSurvCount} Cryo:{padCryoCount}");
 int lcdCnt=(lcd1!=null?1:0)+(lcd2!=null?1:0)+(lcd3!=null?1:0)+(lcd7!=null?1:0)+(lcd8!=null?1:0);
 Echo($"LCDs:{lcdCnt}/5 Printer:{(prtProj!=null?"YES":"NO")}");
 Echo($"Target: {(tgtGPS!=Vector3D.Zero?"GPS SET":"---")}");
@@ -1388,12 +1482,12 @@ for(int i=setScroll;i<Math.Min(setScroll+SET_VISIBLE,si.Count);i++){SMI(f,y,i,si
 if(setScroll+SET_VISIBLE<si.Count)ST(f,256,y,"v more v",cSec,0.4f,TextAlignment.CENTER);break;
 case M.WIZARD:
 string ev=env==E.SPACE?"SPACE":env==E.PLANET?"PLANET":env==E.MOON?"MOON":"???";
-int lc=(lcd1!=null?1:0)+(lcd2!=null?1:0)+(lcd3!=null?1:0)+(lcd4!=null?1:0)+(lcd5!=null?1:0)+(lcd6!=null?1:0)+(lcd7!=null?1:0)+(lcd8!=null?1:0);
-bool w1=padMerge!=null&&padCon!=null,w2=lc>=4,w3=btn!=null,w4=mslFound,w5=tgtSet||tM!=T.GPS;
+int lc=(lcd1!=null?1:0)+(lcd2!=null?1:0)+(lcd3!=null?1:0)+(lcd7!=null?1:0)+(lcd8!=null?1:0);
+bool w1=padMerge!=null&&padCon!=null,w2=lc>=3,w3=btn!=null,w4=mslFound,w5=tgtSet||tM!=T.GPS;
 int wDone=(w1?1:0)+(w2?1:0)+(w3?1:0)+(w4?1:0)+(w5?1:0);float wPct=wDone/5f;
 y=80;ST(f,20,y,"INITIAL SETUP",cAcc,0.65f);y+=25;
 SB(f,20,y,472,10,wPct,PctCol(wPct),cBdr);y+=18;
-ST(f,20,y,$"Environment: {ev}   LCDs: {lc}/8",cTxt,0.5f);y+=22;
+ST(f,20,y,$"Environment: {ev}   LCDs: {lc}/5",cTxt,0.5f);y+=22;
 ST(f,20,y,$"{(w1?"[X]":"[o]")} Pad   {(w3?"[X]":"[o]")} Button   {(w4?"[X]":"[o]")} Missile",w1&&w3&&w4?cOK:cWrn,0.5f);y+=22;
 ST(f,20,y,$"{(w5?"[X]":"[o]")} Target   {(setupDone?"[READY]":"")}",w5?cOK:cWrn,0.5f);y+=28;
 SMI(f,y,0,"Rescan",sel==0);y+=26;SMI(f,y,1,"Target",sel==1);y+=26;SMI(f,y,2,"Config",sel==2);y+=26;
@@ -1569,7 +1663,7 @@ SLB(f,20,160,380,18,"Build Progress",pp,PctCol(pp),cBdr);
 ST(f,20,220,$"Blocks Completed: {tot-rem} / {tot}",cTxt,0.55f);
 ST(f,20,260,$"Blocks Remaining: {rem}",rem>0?cWrn:cOK,0.55f);}
 f.Dispose();return;}
-string stNm=cS==S.DOCK?"DOCKING MISSILE":cS==S.FUEL?"LOADING MISSILE":cS==S.READY?"MISSILE READY":cS==S.ARM?"MISSILE ARMED":"MISSILE STATUS";
+string stNm=cS==S.DOCK?"DOCKING MISSILE":cS==S.FUEL?"LOADING MISSILE":cS==S.READY?"MISSILE READY":cS==S.ARM?"MISSILE ARMED":cS==S.LAUNCH?"LAUNCHING":"MISSILE STATUS";
 Color stCol=cS==S.ARM?cErr:cS==S.READY?cOK:cS==S.FUEL?cWrn:cPri;
 SH(f,10,stNm,stCol);
 bool pmLk=padMerge!=null&&padMerge.IsConnected;
@@ -1741,4 +1835,28 @@ void ParseBtnSettings(){string d=Me.CustomData;if(string.IsNullOrEmpty(d))return
 List<MyInventoryItem>GL(IMyInventory v){var L=new List<MyInventoryItem>();if(v!=null)v.GetItems(L);return L;}
 void AD(Dictionary<string,int>d,string k,int v){if(d.ContainsKey(k))d[k]+=v;else d[k]=v;}
 Dictionary<string,string>ParseSecs(string d){var r=new Dictionary<string,string>();if(string.IsNullOrEmpty(d))return r;string cur="";var sb=new StringBuilder();var lns=d.Split('\n');foreach(var l in lns){if(l.StartsWith("[")){int e=l.IndexOf("]");if(e>0){if(cur!=""&&sb.Length>0)r[cur]=sb.ToString();cur=l.Substring(0,e+1);sb.Clear();sb.Append(l).Append("\n");continue;}}if(cur!=""&&l.Length>0)sb.Append(l).Append("\n");}if(cur!=""&&sb.Length>0)r[cur]=sb.ToString();return r;}
+void UpdateMiniMap(){
+foreach(var mm in mmLCDs){var sf=mm as IMyTextSurface;if(sf==null)continue;
+sf.ContentType=ContentType.SCRIPT;sf.Script="";
+float w=sf.SurfaceSize.X,h=sf.SurfaceSize.Y,s=Math.Min(w,h)/512f;
+var f=sf.DrawFrame();
+f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,h/2),new Vector2(w,h),cBg));
+f.Add(new MySprite(SpriteType.TEXT,$"SAT GRID - PAD{padID}",new Vector2(w/2,10*s),null,cAcc,"White",TextAlignment.CENTER,0.6f*s));
+int gRange=5;float cX=w/2,cY=h/2+15*s,cellS=Math.Min(w-40*s,h-80*s)/(gRange*2+1);
+for(int gx=-gRange;gx<=gRange;gx++){float lx=cX+gx*cellS;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lx,cY),new Vector2(1,cellS*(gRange*2+1)),cBdr));}
+for(int gz=-gRange;gz<=gRange;gz++){float ly=cY+gz*cellS;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cX,ly),new Vector2(cellS*(gRange*2+1),1),cBdr));}
+f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cX,cY),new Vector2(10*s,10*s),cPri));
+foreach(int sid in kSats){
+if(!satGridX.ContainsKey(sid)||!satGridZ.ContainsKey(sid))continue;
+int gx=satGridX[sid],gz=satGridZ[sid];
+if(Math.Abs(gx)>gRange||Math.Abs(gz)>gRange)continue;
+float sx=cX+gx*cellS,sy=cY+gz*cellS;
+int bat=sBat.ContainsKey(sid)?sBat[sid]:0;
+string st=satStatus.ContainsKey(sid)?satStatus[sid]:"?";
+Color sc=st=="SAT_INTERCEPT"?cErr:st=="SAT_HOLD"||st=="ACTIVE"?cOK:bat<30?cWrn:cOK;
+f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(sx,sy),new Vector2(8*s,8*s),sc));
+f.Add(new MySprite(SpriteType.TEXT,$"{bat}",new Vector2(sx,sy-4*s),null,cTxt,"Monospace",TextAlignment.CENTER,0.25f*s));}
+float fy=h-25*s;
+f.Add(new MySprite(SpriteType.TEXT,$"Satellites: {kSats.Count}   Replace Queue: {satReplaceQueue.Count}",new Vector2(w/2,fy),null,cTxt,"Monospace",TextAlignment.CENTER,0.4f*s));
+f.Dispose();}}
 

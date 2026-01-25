@@ -1,87 +1,192 @@
 ![Unity Inventory](Unity%20Inventory%202.png)
 
-# UNITY INVENTORY v01.00
+# UnityInventory v01.00
 
-**Inventory Management System | Sprite-Based LCD Displays | Auto-Cycling Views | Miner Fleet Tracking | Auto-Crafting | Container Organization**
+Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 9, 10, 11 with sprite rendering, auto-production, miner fleet tracking, and recycling.
+
+**Location:** `Unity Missile System/UnityInventory/`
+**PB Name:** `[PAD1] Unity Inventory`
+**Version:** v01.00 | 2026-01-24
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [System Integration](#system-integration)
+3. [Required Blocks](#required-blocks)
+4. [LCD Displays](#lcd-displays)
+5. [Container Tags](#container-tags)
+6. [Production System](#production-system)
+7. [Recycling System](#recycling-system)
+8. [Miner Fleet Tracking](#miner-fleet-tracking)
+9. [Commands](#arguments)
+10. [CustomData Schema](#per-pb-customdata)
+11. [Build and Deploy](#build-and-deploy)
+12. [Character Budget](#character-budget)
+13. [Quick Reference](#quick-reference)
+
+---
+
+## Overview
+
+UnityInventory is the inventory controller that:
+1. **Manages 6 LCD displays** with sprite-based rendering
+2. **Tracks production** via assemblers and refineries
+3. **Auto-crafts** components, tools, weapons, ammo, bottles
+4. **Recycles excess** items when stock exceeds targets
+5. **Routes items** to designated containers
+6. **Tracks miner fleet** via MINER_BEACON broadcasts
+7. **Displays missile status** during docking and flight
+8. **Responds to boot handshakes** during system initialization
+
+---
+
+## System Integration
+
+### The Unity Missile System
+
+| Component | Script | PB Name | Purpose |
+|-----------|--------|---------|---------|
+| **Boot Controller** | Unity Boot.cs | `[PAD1] UNITY BOOT` | 26-check boot sequence |
+| **Launch Pad** | UnityPad.cs | `[PAD1] Unity Pad` | Missile control, LCDs 1,2,3,7,8 |
+| **Inventory** | **UnityInventory.cs** | **`[PAD1] Unity Inventory`** | **Production, LCDs 4,5,6,9,10,11** |
+| **Signal Hub** | UnitySignal.cs | `[PAD1] UNITY SIGNAL` | Camera display, laser targeting, satellite tracking |
+| **Missile** | UnityMissile.cs | `[PAD1] Missile #1 Program` | Guided flight |
+| **Fleet Beacon** | UnityBeacon.cs | `[BEACON] Unity Beacon` | Miner status broadcast |
+
+### Compile Order (Pad Grid)
+
+**PAD → INVENTORY → SIGNAL → BOOT**
+
+| Order | Script | Action |
+|-------|--------|--------|
+| 1 | UnityPad | Clears CustomData, writes `pad_ready=true` |
+| 2 | UnityInventory | Clears CustomData, writes `inv_ready=true` |
+| 3 | UnitySignal | Clears CustomData, writes `signal_ready=true` |
+| 4 | Unity Boot | Reads ready flags, runs 26 checks, sets `boot_complete=true` |
+
+*Note: UnityBeacon (miners) and UnityMissile (missiles) are on separate grids - compile anytime.*
+
+---
+
+## REQUIRED BLOCKS
+
+| Block | Purpose |
+|-------|---------|
+| Programmable Block | Runs this script |
+| LCDs [PAD1:4-11] | Status displays |
+| Cargo Containers | Item storage |
+| Assemblers | Production |
+| Refineries | Ore processing |
+
+## OPTIONAL BLOCKS
+
+| Block | Purpose |
+|-------|---------|
+| Button Panel | GPS input (Controls) |
+| Reactors | Power generation |
+| Gas Generators | H2/O2 production |
+| Gas Tanks | Fuel storage |
+| Batteries | Power storage |
+| Medical Rooms | Facility count |
+| Survival Kits | Facility count |
+| Cryo Chambers | Facility count |
 
 ---
 
 ## BOOT SYSTEM DEPENDENCY
 
-**UnityInventory requires Unity Boot to run first.**
+**UnityInventory waits for boot_complete=true before taking LCD control.**
 
-Unity Boot must complete 40 system checks before UnityInventory takes control of LCDs 4, 5, 6, 9, 10.
+### Compile Order
 
-UnityInventory waits for `boot_complete=true` in the [SYSTEM] button panel CustomData.
+**COMPILE ORDER: PAD -> INVENTORY -> SIGNAL -> BOOT**
 
----
+| Order | Script | PB Name | Action |
+|-------|--------|---------|--------|
+| 1 | UnityPad | `[PAD1] Unity Pad` | Sets `pad_ready=true` |
+| 2 | UnityInventory | `[PAD1] Unity Inventory` | Sets `inv_ready=true` |
+| 3 | UnitySignal | `[PAD1] UNITY SIGNAL` | Sets `signal_ready=true` |
+| 4 | Unity Boot | `[PAD1] UNITY BOOT` | Runs 26 checks, sets `boot_complete=true` |
 
-## FEATURES
+### Ready Flag
 
-- **5 LCD Displays** - LCD4, LCD5, LCD6, LCD9, LCD10 with sprite rendering
-- **Miner Fleet Tracking** - Monitor mining ships via MinerBeacon broadcasts
-- **Auto-Crafting** - Tools, ammo, bottles, components
-- **Container Organization** - Auto-sort items to designated containers
-- **Production Management** - Feed refineries and assemblers automatically
-- **Sprite-Based Rendering** - Modern visual LCD system
+On compile, ClearForBoot() writes to Me.CustomData:
+```ini
+[SYSTEM]
+inv_ready=true
+inv_for_session={padSession}
+inv_status=OK:cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
+```
 
----
+### Boot Response Protocol
 
-## OVERVIEW
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| `UNITY_BOOT_REQ` | Boot -> Inv | Request status |
+| `UNITY_BOOT_RSP` | Inv -> Boot | Respond with block counts |
 
-UnityInventory runs on a separate Programmable Block from UnityPad. It handles all inventory management, freeing UnityPad to focus on missile operations. The two scripts communicate via button panel CustomData.
-
----
-
-## SETUP
-
-1. Add Programmable Block to your launch pad grid
-2. Load the `Unity Inventory` script
-3. Name the PB: `[PAD1] Unity Inventory`
-4. Tag LCDs: `[PAD1:4]` through `[PAD1:10]`
-5. Tag containers for routing (see Container Tags below)
-6. Run `RESCAN` to detect all blocks
+**Response Format:**
+```
+INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
+```
 
 ---
 
 ## LCD DISPLAYS
 
-| LCD | Name | Content |
-|-----|------|---------|
-| 4 | PAD OVERVIEW | **Auto-cycles through 7 views every ~5 seconds** |
-| 5 | POWER | Battery details, power production, solar/reactor status |
-| 6 | GRAPHS | **Auto-cycles through 7 graph types every ~5 seconds** |
-| 9 | MINER FLEET | Overview of all MinerBeacon-tracked ships |
-| 10 | MINER DETAIL | Selected miner details with full stats |
+UnityInventory controls LCDs 4, 5, 6, 9, 10, 11 after boot completion.
 
-### LCD4 Auto-Cycle Views (7 views)
+| LCD | Content | Notes |
+|-----|---------|-------|
+| 4 | Pad Overview | Auto-cycles through 7 views |
+| 5 | Power/Systems | Battery, solar, wind, reactors |
+| 6 | Graphs | Auto-cycles through 12 graph types |
+| 9 | Miner Fleet | Overview of tracked ships |
+| 10 | Miner Details | Selected miner full stats |
+| 11 | Personal Items | Tools, weapons, ammo, bottles (wide LCD) |
 
-1. **BUILD STATUS** - Ores, ingots, components, missing items
-2. **MISSILE STATUS** - Ready/armed counts, phase info
-3. **FUEL/TARGET** - H2/O2/battery bars, ammo, bottles
-4. **POWER** - Battery charge, power flow, uranium (storage+reactors)
-5. **CARGO** - Fill percentage, ore/ingot counts
-6. **PRODUCTION** - Refinery/assembler status, queued items
-7. **COMMS** - Pad facilities (Medical/Kit/Cryo), miners tracked
+### LCD4 Auto-Cycle Views (7 views, ~5 seconds each)
 
-### LCD6 Auto-Cycle Graphs (7 graphs)
+| View | Content |
+|------|---------|
+| 0 | BUILD STATUS - Components stock/missing |
+| 1 | MISSILE STATUS - Ready/armed counts, phase |
+| 2 | FUEL/TARGET - H2/O2/battery bars, ammo, bottles |
+| 3 | POWER - Battery charge, net flow, uranium |
+| 4 | CARGO - Scrolling inventory list |
+| 5 | PRODUCTION - Refinery/assembler queue |
+| 6 | COMMS - Pad facilities, miner count |
 
-1. **Power** - Battery charge over time
-2. **Hydrogen** - H2 tank fill percentage
-3. **Oxygen** - O2 tank fill percentage
-4. **Cargo Fill** - Cargo volume usage
-5. **Refinery** - Refinery activity %
-6. **Assembler** - Assembler activity %
-7. **Production** - Combined production activity
+### LCD6 Auto-Cycle Graphs (12 graphs, ~3 seconds each)
+
+| Index | Graph |
+|-------|-------|
+| 0 | Battery Power (MWh) |
+| 1 | Hydrogen Tanks (kL) |
+| 2 | Oxygen Tanks (kL) |
+| 3 | Cargo Capacity (L) |
+| 4 | Refinery Input (L) |
+| 5 | Assembler Input (L) |
+| 6 | Production Queue |
+| 7 | Power Input (MW) |
+| 8 | Power Output (MW) |
+| 9 | Solar Output (MW) |
+| 10 | Wind Output (MW) |
+| 11 | Reactor Output (MW) |
 
 ### Display Modes
 
-Each LCD adapts based on pad state:
-- **NORMAL** - Standard inventory/miner display with auto-cycling
-- **FLIGHT** - Missile telemetry mode
-- **CTRL** - Controller mode (multi-pad)
-- **MISSILE** - Docked missile stats
-- **PRINT** - Build progress display
+LCDs adapt based on pad state:
+
+| Mode | Description |
+|------|-------------|
+| NORMAL | Standard inventory/miner display |
+| FLIGHT | Missile telemetry during active flight |
+| CONTROLLER | Multi-pad command center |
+| MISSILE | Missile docked - loading status |
+| PRINT | Printer active - build progress |
 
 ---
 
@@ -94,10 +199,162 @@ Tag containers for automatic routing:
 | `[PAD1-ore]` | Ore storage |
 | `[PAD1-ingot]` | Ingot storage |
 | `[PAD1-comp]` | Component storage |
-| `[PAD1-ammo]` | Ammo storage |
-| `[PAD1-tools]` | Tool storage |
+| `[PAD1-ammo]` | Turret ammo storage |
+| `[PAD1-tools]` | Tool/weapon storage |
 | `[PAD1-bottle]` | Bottle storage |
 | `[PAD1-pammo]` | Personal ammo storage |
+| `[PAD1-food]` | Food/consumables |
+| `[PAD1-data]` | Datapads |
+| `[PAD1-misc]` | Miscellaneous items |
+
+---
+
+## PRODUCTION SYSTEM
+
+### Quota Dictionaries
+
+| Dictionary | Item Type | Default Min |
+|------------|-----------|-------------|
+| `cNd` | Components | Per-item targets |
+| `tNd` | Tools & Weapons | 20 each |
+| `paNd` | Personal Ammo | 20 each |
+| `bNd` | Bottles (H2/O2) | 20 each |
+
+### Component Default Quotas
+
+| Component | Target |
+|-----------|--------|
+| SteelPlate | 6,000 |
+| Construction | 3,500 |
+| SmallTube | 3,200 |
+| LargeTube | 1,500 |
+| Motor | 1,200 |
+| Computer | 1,500 |
+| MetalGrid | 950 |
+| Display | 600 |
+| BulletproofGlass | 2,050 |
+| PowerCell | 800 |
+| Thrust | 1,050 |
+| Explosives | 2,600 |
+
+### Production Flow
+
+1. `CountStocks()` - Count items in all containers
+2. `CalcMissing()` - Compare stock vs quotas
+3. `QueueProduction()` - Queue missing items
+4. `QueueMissing()` - Generic queue for tools/ammo/bottles
+
+---
+
+## RECYCLING SYSTEM
+
+The RecycleExcess() function automatically disassembles excess items.
+
+### How It Works
+
+1. Calculate excess for all item types (stock - target)
+2. Scale recycler count: `Math.Min(padAsm.Count, totEx/100+1)`
+3. Set selected assemblers to Disassembly mode
+4. Disable conveyor system (prevent auto-pull)
+5. Transfer excess items to recycler inputs
+6. Queue disassembly for transferred items
+7. Return empty recyclers to Assembly mode
+
+### Recycled Item Types
+
+- Components (when stock > quota)
+- Tools & Weapons (when stock > toolTarget)
+- Personal Ammo (when stock > pAmmoTarget)
+- Turret Ammo (when stock > ammoTarget)
+- H2/O2 Bottles (when stock > h2/o2Target)
+
+---
+
+## S-10 AMMO ROUTING
+
+S-10 pistol ammo (10,106 rounds per missile) routes specially:
+
+| Ammo Type | Destination | Reason |
+|-----------|-------------|--------|
+| S-10 (SemiAutoPistolMagazine) | Generic cargo | Bulk storage for missiles |
+| All other personal ammo | pAmmoCargo | Personal carry ammo |
+
+### LoadMissileAmmo()
+
+When pad requests ammo (ammoReq=true):
+1. Find missile [AMMO] connector
+2. Push S-10 ammo from cargo to missile
+3. Track transfer progress
+
+---
+
+## MINER FLEET TRACKING
+
+### IGC Channel
+- `MINER_BEACON` - Receives broadcasts from UnityBeacon
+
+### Tracked Data (MinerData class)
+
+| Field | Description |
+|-------|-------------|
+| name | Ship name |
+| bat, crg, h2, o2 | Battery, cargo, H2, O2 percentages |
+| pos | World position (Vector3D) |
+| spd, alt, dist | Speed, altitude, distance from pad |
+| status | DOCKED, DRILLING, TRAVELING, etc. |
+| drills, drillsOn | Drill counts |
+| grinders, grindersOn | Grinder counts |
+| portNum | Docked connector port number |
+| ice, uranium | Fuel stock counts |
+| cargoItems | Dictionary of cargo contents |
+
+### Status Types
+
+- DOCKED - Connected to pad
+- DRILLING - Drills active
+- DRILL_MOVE - Moving while drilling
+- GRINDING - Grinders active
+- TRAVELING - In transit
+- HOME - At home base
+- IDLE - Stationary
+
+### Stale Miner Cleanup
+
+Miners not seen for 120 seconds (and not docked) are removed from tracking.
+
+---
+
+## CONFIGURATION
+
+Settings stored in Me.CustomData [CONFIG] section:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| ammo | 500 | Turret ammo target |
+| load | 10,106 | Ammo per missile |
+| ice | 0 | Ice target (kg) |
+| uran | 0 | Uranium target (kg) |
+| h2 | 20 | H2 bottles target |
+| o2 | 20 | O2 bottles target |
+| tool | 20 | Tool sets target |
+| pAmmo | 500 | Personal ammo target |
+| s10 | 50,000 | S-10 missile ammo target |
+| type | 4 | Ammo type index (0-9) |
+
+### Ammo Types
+
+| Index | Name | Blueprint |
+|-------|------|-----------|
+| 0 | S-10 Pistol | SemiAutoPistolMagazine |
+| 1 | MR-20 Rifle | AutomaticRifleGun_Mag_20rd |
+| 2 | MR-50A Rifle | RapidFireAutomaticRifleGun_Mag_50rd |
+| 3 | 200mm Missile | Missile200mm |
+| 4 | 25x184mm NATO | NATO_25x184mm |
+| 5 | Autocannon | AutocannonClip |
+| 6 | Assault Cannon | MediumCalibreAmmo |
+| 7 | Artillery | LargeCalibreAmmo |
+| 8 | Small Railgun | SmallRailgunAmmo |
+| 9 | Large Railgun | LargeRailgunAmmo |
 
 ---
 
@@ -105,103 +362,160 @@ Tag containers for automatic routing:
 
 | Argument | Action |
 |----------|--------|
-| `SORT` | Force immediate inventory sort cycle |
-| `RESCAN` | Re-detect all blocks and containers |
-| `AUTOORG` | Toggle automatic organization on/off |
+| `SORT` | Force immediate inventory sort |
+| `RESCAN` | Re-detect all blocks |
+| `AUTOORG` | Toggle automatic organization |
 
 ---
 
-## AUTO-ORGANIZATION
+## KEY FUNCTIONS
 
-- Enabled by default (`autoOrg=true`)
-- Routes items to designated containers
-- Overflow handling when containers full
-- Prefers Large > Medium > Small containers
+### Initialization
+
+| Function | Purpose |
+|----------|---------|
+| `Program()` | Initialize, load storage, scan |
+| `ClearForBoot()` | Write inv_ready flag |
+| `InitBlueprints()` | Build blueprint dictionaries |
+| `SetDefaultQuotas()` | Set tool/ammo/bottle quotas |
+| `FindSiblingPBs()` | Find bootPB, padPB |
+
+### Boot System
+
+| Function | Purpose |
+|----------|---------|
+| `IsBootComplete()` | Check boot_complete in bootPB |
+| `IsBootRunning()` | Check if boot in progress |
+| `IsBootStale()` | Check if boot needs recompile |
+| `CheckBootRequest()` | Listen for INV_CHECK |
+| `SendBootResponse()` | Reply with block counts |
+
+### Inventory Management
+
+| Function | Purpose |
+|----------|---------|
+| `Scan()` | Find all blocks |
+| `CountStocks()` | Count all item types |
+| `ManageInventory()` | Route items, feed production |
+| `HardSort()` | Force sort all items |
+| `RouteItem()` | Get destination for item |
+| `GD()` | Get designated container |
+
+### Production
+
+| Function | Purpose |
+|----------|---------|
+| `QueueProduction()` | Queue missing items |
+| `QueueMissing()` | Generic queue function |
+| `CalcMissing()` | Calculate shortfalls |
+| `CalcAmmoIngotNeeds()` | Calculate ingots for ammo |
+| `RecycleExcess()` | Disassemble excess items |
+| `FeedRefineries()` | Supply ore to refineries |
+| `FeedAssemblers()` | Supply ingots to assemblers |
+
+### LCD Rendering
+
+| Function | Purpose |
+|----------|---------|
+| `UpdateLCDs()` | Route to mode-specific updates |
+| `UpdateHistory()` | Record graph data points |
+| `UpdateLCD4()` | Pad overview (7 views) |
+| `UpdateLCD5()` | Power overview |
+| `UpdateLCD6()` | Graphs (12 types) |
+| `UpdateLCD9()` | Miner fleet list |
+| `UpdateLCD10()` | Miner details |
+| `UpdateLCD11()` | Personal equipment |
+
+### Miner Tracking
+
+| Function | Purpose |
+|----------|---------|
+| `CheckBeacons()` | Process MINER_BEACON messages |
+| `CorrelateDockedMiners()` | Match docked grids to miners |
+| `CleanStaleMiners()` | Remove old entries |
+| `ParseMinerCargo()` | Parse cargo item list |
 
 ---
 
-## PRODUCTION MANAGEMENT
+## SPRITE SYSTEM
 
-### Refinery Feeding
-- Pulls ore from cargo to refineries
-- Maintains input level at 500-1000 ore
-- Skips ice (used for H2 generation)
+### Sprite Functions
 
-### Assembler Feeding
-- Supplies ingots to assemblers
-- Monitors output fullness
-- Auto-queues component production
+| Function | Purpose |
+|----------|---------|
+| `BL(surface)` | Begin LCD frame |
+| `SH(f,y,text,c)` | Draw header with underline |
+| `ST(f,x,y,t,c)` | Draw text |
+| `SB(f,x,y,w,h,pct,fg,bg)` | Draw progress bar |
+| `SLB(f,x,y,w,h,lbl,pct,fg,bg)` | Draw labeled bar |
+| `SBx(f,x,y,w,h,bg,bdr)` | Draw box |
+| `SD(f,y)` | Draw divider line |
+| `SGraph(...)` | Draw line graph |
+| `PctCol(pct)` | Get color from percentage |
 
-### Tool Crafting
-- Tracks tool inventory by tier
-- Auto-queues missing tools
-- Supports all 4 tiers per tool type
+### Color Palette
 
-### Ammo Crafting
-- Missile ammo (Pistol, Rifle, Rapid, Rocket, Gatling)
-- Personal ammo for hand weapons
-- Configurable stock targets
-
----
-
-## MINER FLEET TRACKING
-
-Receives broadcasts from MinerBeacon scripts on mining ships.
-
-**Works with [PAM] Path Auto Miner by Keks** - https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929
-
-MinerBeacon is designed to complement PAM - PAM handles autopilot and mining, UnityBeacon broadcasts status to your base. All credit for PAM goes to **Keks**!
-
-### Tracked Data
-- Ship name and status
-- Battery, cargo, H2 percentages
-- Position, speed, altitude
-- Distance from home
-- Drill/grinder counts and states
-- Cycle timing and ETA
-
-### Status Types
-- DOCKED, DRILLING, DRILL_MOVE
-- GRINDING, GRIND_MOVE
-- TRAVELING, DEPARTING
-- HOME, IDLE
+| Variable | Color | Usage |
+|----------|-------|-------|
+| cPri | Blue (0,180,255) | Primary |
+| cSec | Gray (100,100,100) | Secondary |
+| cAcc | Gold (255,200,0) | Accent |
+| cOK | Green (0,255,100) | Good status |
+| cWrn | Orange (255,180,0) | Warning |
+| cErr | Red (255,60,60) | Error |
+| cBg | Dark (10,10,15) | Background |
+| cBdr | Border (40,40,50) | Border |
+| cTxt | Light (220,220,220) | Text |
 
 ---
 
-## COMMUNICATION PROTOCOL
+## PER-PB CUSTOMDATA
 
-UnityInventory reads/writes to button panel CustomData:
+**UnityInventory writes ONLY to Me.CustomData:**
 
-### Read from Pad (REQ section)
-```ini
-[UNITY_INV]
-padID=1
-status=FUEL
-missileType=4
+| Section | Content |
+|---------|---------|
+| [SYSTEM] | inv_ready, inv_for_session, inv_status |
+| [QUOTAS] | ammo, ice, uran, h2, o2, tool, pammo, s10 |
+| [MISSILE] | status, target, distance, fuel, etc. |
+| [CONFIG] | User-editable targets |
+| [WAYPOINTS] | GPS coordinates |
+| [STATUS] | Refinery/assembler status |
+| [ORE] | Ore stock counts |
+| [INGOTS] | Ingot stock/target |
+| [COMPONENTS] | Component stock+need/target |
+| [TURRET_AMMO] | Turret ammo stock |
+| [BOTTLES] | H2/O2 bottle counts |
+| [TOOLS_WEAPONS] | Tool/weapon counts |
+| [PERSONAL_AMMO] | Personal ammo counts |
 
-[REQ]
-missiles=2
-fuelReady=1
-ammoType=4
+**UnityInventory READS from:**
+- `bootPB.CustomData` - boot_complete status
+- `padPB.CustomData` - pad mode, missile telemetry
+
+---
+
+## BUILD AND DEPLOY
+
+### Build Commands
+
+```powershell
+cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
+dotnet build UnityInventory -c Debug
 ```
 
-### Write to Pad (Stock sections)
-```ini
-[ORE]
-Iron=25000
-[ING]
-Iron=15000
-[CMP]
-SteelPlate=500
-[AMO]
-Missile200mm=45+5
-[BTL]
-HydrogenBottle=15+5
-[TLS]
-Drl=3/2/1/0
-[STAT]
-refWorking=3
-asmWorking=2
+### Deploy Location
+
+Script auto-deploys to:
+```
+C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs
+```
+
+### Verify Deployment
+
+```powershell
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs").Length
 ```
 
 ---
@@ -210,36 +524,22 @@ asmWorking=2
 
 | Metric | Value |
 |--------|-------|
-| Deployed | 83,137 chars |
+| Raw Lines | ~1,360 |
+| Deployed | ~90,247 chars |
 | Budget | 100,000 chars |
-| Status | OK (17% margin) |
-
-*Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
+| Status | OK (9.8% margin) |
 
 ---
 
-## BUILD COMMAND
+## STORAGE FORMAT
 
-```powershell
-cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build UnityInventory -c Debug
+Persistent storage via `Save()`:
+```
+padID|ammoTarget|toolTarget|autoOrg|h2Target|o2Target|pAmmoTarget|iceTarget|uranTarget|s10Target
 ```
 
-Deploys to: `%APPDATA%\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs`
-
----
-
-## FEATURES IN v01.00
-
-- **Auto-Cycling Pad Overview** - LCD4 cycles through 7 views every ~5 seconds
-- **Auto-Cycling Graphs** - LCD6 cycles through 7 graph types every ~5 seconds
-- **Pad Facilities Display** - Medical rooms, survival kits, cryo chambers in COMMS view
-- **Improved Survival Kit Detection** - Recognizes "KIT mark II" and other mod kits
-- **Uranium/Ice Split** - Shows storage vs reactor/generator amounts separately
-- **Bottle Queue Fix** - Bottles now correctly show queued production counts
+Example: `1|500|20|1|20|20|500|0|0|50000`
 
 ---
 
 *Unity AI Lab - Inventory Systems Division*
-*Version v01.00 | 2026-01-18*

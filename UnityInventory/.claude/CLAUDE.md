@@ -1,10 +1,31 @@
 # UnityInventory - .claude Workflow System
 
-Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 9, 10 with sprite rendering.
+Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 9, 10, 11 with sprite rendering.
 
 **Location:** `Unity Missile System/UnityInventory/`
 **PB Name:** `[PAD1] Unity Inventory`
-**Version:** v01.00 | 2026-01-18
+**Version:** v01.00 | 2026-01-24
+
+---
+
+## Table of Contents
+
+1. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)
+2. [Boot System Dependency](#boot-system-dependency)
+3. [Boot Response Protocol](#boot-response-protocol)
+4. [File Sync Rule](#critical-file-sync-rule)
+5. [Build and Deploy](#build-and-deploy)
+6. [Critical Rules](#critical-rules-always-enforced)
+7. [LCD Displays](#lcd-displays-sprite-based)
+8. [Unified Production System](#unified-production-system)
+9. [Inventory Management](#inventory-management)
+10. [Recycling System](#recycling-system-recycleexcess)
+11. [S-10 Ammo Routing](#s-10-ammo-routing)
+12. [Miner Beacon Integration](#miner-beacon-integration)
+13. [Per-PB CustomData Summary](#per-pb-customdata-summary)
+14. [CustomData Ownership](#customdata-ownership)
+15. [Character Budget](#character-budget)
+16. [Quick Reference](#quick-reference)
 
 ---
 
@@ -46,21 +67,22 @@ inv_ready=true
 
 **UnityInventory waits for boot_complete=true before taking LCD control.**
 
-Unity Boot runs first with 23 unified checks using real PB-to-PB IGC handshaking.
+Unity Boot runs first with 26 unified checks using real PB-to-PB IGC handshaking.
 
 ### Compile Order
 
-**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → BOOT**
+**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → SIGNAL → BOOT**
 
 | Order | Script | PB Name | What Happens |
 |-------|--------|---------|--------------|
 | 1 | **UnityBeacon** | `[BEACON] Unity Beacon` | Optional - broadcasts miner status |
-| 2 | **UnityMissile** | `PAD1 Missile #1 Program` | Optional - missile guidance |
+| 2 | **UnityMissile** | `[PAD1] Missile #1 Program` | Optional - missile guidance |
 | 3 | **UnityPad** | `[PAD1] Unity Pad` | ClearForBoot() wipes Me.CustomData, sets `pad_ready=true` |
 | 4 | **UnityInventory** | `[PAD1] Unity Inventory` | ClearForBoot() wipes Me.CustomData, sets `inv_ready=true` |
-| 5 | **Unity Boot** | `[PAD1] UNITY BOOT` | Finds sibling PBs, reads ready flags, runs 23 checks, sets `boot_complete=true` |
+| 5 | **UnitySignal** | `[PAD1] UNITY SIGNAL` | Sets `signal_ready=true`, camera display |
+| 6 | **Unity Boot** | `[PAD1] UNITY BOOT` | LAST - runs 26 checks, handshakes all scripts, sets `boot_complete=true` |
 
-**NOTE:** BEACON/MISSILE are on different PBs. The 3 on pad PB (PAD, INVENTORY, BOOT) can be compiled in any order - each has its own CustomData.
+**NOTE:** BEACON/MISSILE are on different grids (miners/missiles) - may not be docked at boot. The 4 pad grid scripts MUST compile in order: PAD → INVENTORY → SIGNAL → BOOT.
 
 ### FindSiblingPBs() - Locating Other PBs
 
@@ -465,7 +487,7 @@ This fixes old Storage data that had pAmmoTarget=100.
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityInventory | ~125,500 | 90,247 | 100,000 | OK (9.8% margin) |
+| UnityInventory | ~1,650 | ~90,200 | 100,000 | OK (9.8% margin) |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 *Handles ALL personal equipment: tools, weapons, ammo, bottles (removed from UnityPad).*

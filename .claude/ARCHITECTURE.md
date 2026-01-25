@@ -1,15 +1,16 @@
 # UNITY MISSILE SYSTEM - Architecture
 
-*Last updated: 2026-01-22 (Recycling System + S-10 Routing)*
+*Last updated: 2026-01-24 (Documentation Unification)*
 
 ---
 
 ## System Overview
 
-Five-script guided missile system for Space Engineers:
-- **Unity Boot** - Boot controller runs 23 unified checks with real IGC handshaking
+Six-script guided missile system for Space Engineers:
+- **Unity Boot** - Boot controller runs 26 unified checks with real IGC handshaking
 - **UnityPad** - Pad handles everything pre-launch (menus, fueling, targeting, printing)
 - **UnityInventory** - Inventory management (sorting, production, fleet tracking)
+- **UnitySignal** - Central signal controller (antennas, lasers, satellites, cameras)
 - **UnityMissile** - Missile handles everything in-flight (guidance, targeting, detonation)
 - **UnityBeacon** - Optional miner fleet status broadcasting
 
@@ -26,11 +27,12 @@ Five-script guided missile system for Space Engineers:
 | **Boot PB** | `[PAD{id}]` | `[PAD1] UNITY BOOT` | Boot controller |
 | **Pad PB** | `[PAD{id}]` (no suffix) | `[PAD1] Unity Pad` | Launch pad controller |
 | **Inventory PB** | `[PAD{id}]` | `[PAD1] Unity Inventory` | Inventory manager |
-| **Missile PB** | `PAD{id} Missile #X` | `PAD1 Missile #1 Program` | Missile guidance |
+| **Signal PB** | `[PAD{id}]` | `[PAD1] UNITY SIGNAL` | Signal controller |
+| **Missile PB** | `[PAD{id}] Missile #X` | `[PAD1] Missile #1 Program` | Missile guidance |
 | **Beacon PB** | `[BEACON]` | `[BEACON] Unity Beacon` | Fleet tracker |
 | **Button Panel** | `[PAD{id}]` | `[PAD1] Controls` | GPS input (NOT a PB) |
 
-**NOTE:** UnityPad and UnityInventory both use `[PAD{id}]` naming (no suffix). They are distinguished by the full name ("Unity Pad" vs "Unity Inventory").
+**NOTE:** UnityPad, UnityInventory, and UnitySignal all use `[PAD{id}]` naming. They are distinguished by the full name ("Unity Pad" vs "Unity Inventory" vs "UNITY SIGNAL").
 
 ### Section Ownership (Who Writes What)
 
@@ -41,6 +43,7 @@ Each script writes ONLY to its own `Me.CustomData` with specific sections:
 | `[PAD{id}] UNITY BOOT` | Unity Boot | `[SYSTEM]` (bootOwn array) |
 | `[PAD{id}] Unity Pad` | UnityPad | `[BLACKBOX]`, `[PAD_CFG]`, `[PAD_STATUS]`, `[PAD_DATA]` (padOwn array) |
 | `[PAD{id}] Unity Inventory` | UnityInventory | `[QUOTAS]`, `[MISSILE]`, `[CONFIG]`, `[WAYPOINTS]`, `[STATUS]`, `[ORE]`, `[INGOTS]`, `[COMPONENTS]`, `[TURRET_AMMO]`, `[BOTTLES]`, `[TOOLS_WEAPONS]`, `[PERSONAL_AMMO]` (invOwn array) |
+| `[PAD{id}] UNITY SIGNAL` | UnitySignal | `[SIGNAL]` (signalOwn array) |
 
 ### Button Panel GPS (User Input Only)
 
@@ -96,43 +99,43 @@ Scripts read from other PBs' CustomData (never write to them):
 
 ## Boot System Architecture
 
-Unity Boot is a dedicated boot controller that runs 23 boot checks after UnityPad and UnityInventory compile.
+Unity Boot is a dedicated boot controller that runs 26 boot checks after UnityPad, UnityInventory, and UnitySignal compile.
 
 ### IN-GAME COMPILE ORDER
 
-**COMPILE ORDER: PAD -> INVENTORY -> BOOT**
+**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → SIGNAL → BOOT**
 
-| Order | Script | PB Name | What Happens On Compile |
-|-------|--------|---------|-------------------------|
-| 1 | **UnityPad** | `[PAD1] Unity Pad` | Wipes Me.CustomData, writes [SYSTEM] with `pad_ready=true`, [PAD_CFG], [PAD_STATUS], [PAD_DATA], [BLACKBOX] |
-| 2 | **UnityInventory** | `[PAD1] Unity Inventory` | Wipes Me.CustomData, writes [SYSTEM] with `inv_ready=true`, [QUOTAS], and all inventory sections |
-| 3 | **Unity Boot** | `[PAD1] UNITY BOOT` | Wipes Me.CustomData, writes [SYSTEM] with `boot_ready=true`, finds padPB/invPB, reads ready flags, runs 23 checks, sets `boot_complete=true` |
+| Order | Script | PB Name | Notes |
+|-------|--------|---------|-------|
+| 1 | UnityBeacon | `[BEACON] Unity Beacon` | Optional - on miners only |
+| 2 | UnityMissile | `[PAD1] Missile #1 Program` | Optional - compile on missile PB |
+| 3 | **UnityPad** | `[PAD1] Unity Pad` | **CLEARS CustomData - must be first of pad grid scripts** |
+| 4 | UnityInventory | `[PAD1] Unity Inventory` | Adds `inv_ready` flag, syncs session ID |
+| 5 | UnitySignal | `[PAD1] UNITY SIGNAL` | Adds `signal_ready` flag, camera display |
+| 6 | **Unity Boot** | `[PAD1] UNITY BOOT` | **LAST - runs 26 checks, handshakes all scripts, sets `boot_complete`** |
 
-**Optional scripts (can compile anytime):**
-- **UnityBeacon** (`[BEACON]`) - Broadcasts miner status
-- **UnityMissile** (`PAD1 Missile #1`) - Missile guidance (on missile PB)
-
-**NOTE:** All 3 pad scripts (Boot, Pad, Inventory) are on SEPARATE PBs with distinct names. Each wipes and writes ONLY to its own Me.CustomData on compile.
+**NOTE:** Beacon and Missile are on DIFFERENT grids (miners/missiles) - may not be docked at boot time. Signal can acquire non-docked missiles and miners via IGC. All pad grid scripts (Pad, Inventory, Signal, Boot) wipe and write ONLY to their own Me.CustomData on compile.
 
 ### Boot Flow Diagram
 
 ```
-UnityPad compiles    -> Wipes Me.CustomData, writes pad_ready=true
+UnityPad compiles       -> Wipes Me.CustomData, writes pad_ready=true
 UnityInventory compiles -> Wipes Me.CustomData, writes inv_ready=true
-Unity Boot compiles  -> Wipes Me.CustomData, writes boot_ready=true
-                     -> FindSiblingPBs() discovers padPB, invPB
-                     -> Reads padPB.CustomData for pad_ready
-                     -> Reads invPB.CustomData for inv_ready
-                     -> Runs 23 checks -> Controls ALL 11 LCDs
-                     -> Writes boot_complete=true to Me.CustomData
-                     -> Self-disables (UpdateFrequency.None)
-                                      |
-                                      v
+UnitySignal compiles    -> Wipes Me.CustomData, writes signal_ready=true
+Unity Boot compiles     -> Wipes Me.CustomData, writes boot_ready=true
+                        -> FindSiblingPBs() discovers padPB, invPB, signalPB
+                        -> Reads ready flags from sibling PBs
+                        -> Runs 26 checks -> Controls ALL 11 LCDs
+                        -> Writes boot_complete=true to Me.CustomData
+                        -> Self-disables (UpdateFrequency.None)
+                                       |
+                                       v
 UnityPad's IsBootComplete() reads bootPB.CustomData -> Takes LCDs 1,2,3,7,8
 UnityInventory's IsBootComplete() reads bootPB.CustomData -> Takes LCDs 4,5,6,9,10,11
+UnitySignal's IsBootComplete() reads bootPB.CustomData -> Takes CAMS LCDs
 ```
 
-### The 23 Boot Checks
+### The 26 Boot Checks
 
 | # | Check | What It Does |
 |---|-------|--------------|
@@ -152,13 +155,16 @@ UnityInventory's IsBootComplete() reads bootPB.CustomData -> Takes LCDs 4,5,6,9,
 | 13 | Validate Inv Refinery | Validate refineries |
 | 14 | Validate Inv Assembler | Validate assemblers |
 | 15 | Validate Inv Gas | Validate generators |
-| 16 | Cross-Validate | Both systems responded |
-| 17 | Module Sync | Check sibling pads |
-| 18 | Write Config | EnsureQuotas + SetupBtnGPS |
-| 19 | Beacon Detection | Count miners (optional) |
-| 20 | Controller Modules | Report connected pads |
-| 21 | System Ready | Mark boot complete |
-| 22 | All Systems Operational | Final status |
+| 16 | Request Signal Status | Send SIGNAL_CHECK via IGC |
+| 17 | Await Signal Response | Wait up to 90 ticks |
+| 18 | Validate Signal | Validate cameras and LCDs |
+| 19 | Cross-Validate | All systems responded |
+| 20 | Module Sync | Check sibling pads |
+| 21 | Write Config | EnsureQuotas + SetupBtnGPS |
+| 22 | Beacon Detection | Count miners (optional) |
+| 23 | Controller Modules | Report connected pads |
+| 24 | System Ready | Mark boot complete |
+| 25 | All Systems Operational | Final status |
 
 ---
 
@@ -269,26 +275,25 @@ GPS:Enemy Base:5000:2000:800:#FFFF0000:
 
 ## Script Architecture
 
-### Unity Boot.cs (~15,000 chars deployed)
+### Unity Boot.cs (~20,000 chars deployed)
 
 Boot controller running on dedicated PB `[PAD1] UNITY BOOT`.
 
 **On Compile:**
 - Wipes Me.CustomData
 - Writes [SYSTEM] with boot_ready=true
-- Finds padPB and invPB via FindSiblingPBs()
-- Reads pad_ready from padPB.CustomData
-- Reads inv_ready from invPB.CustomData
-- Runs 23 boot checks
+- Finds padPB, invPB, signalPB via FindSiblingPBs()
+- Reads ready flags from all sibling PBs
+- Runs 26 boot checks
 - Writes boot_complete=true to Me.CustomData
 - Self-disables
 
 **Key Functions:**
-- `FindSiblingPBs()` - Discovers padPB and invPB by name pattern
-- `CheckReadyFlags()` - Reads pad_ready from padPB, inv_ready from invPB
+- `FindSiblingPBs()` - Discovers padPB, invPB, signalPB by name pattern
+- `CheckReadyFlags()` - Reads ready flags from all sibling PBs
 - `WriteBootComplete()` - Writes boot_complete=true to Me.CustomData
 
-### UnityPad.cs (~98,000 chars deployed)
+### UnityPad.cs (~97,400 chars deployed - WARNING: 2.6% margin)
 
 Launch pad controller running on `[PAD1] Unity Pad` PB.
 
@@ -308,7 +313,7 @@ INIT -> IDLE -> PRINT -> BUILD -> DOCK -> FUEL -> AMMO -> READY -> ARM -> LAUNCH
 - `ReadGPSFromBtn()` - Reads GPS targets from btn.CustomData (button panel)
 - `UpdateMyData()` - Writes pad sections to Me.CustomData
 
-### UnityInventory.cs (~90,000 chars deployed)
+### UnityInventory.cs (~90,200 chars deployed)
 
 Inventory manager running on `[PAD1] Unity Inventory` PB.
 
@@ -340,7 +345,7 @@ Inventory manager running on `[PAD1] Unity Inventory` PB.
 - pAmmoTarget minimum enforced at 50,000 (was incorrectly 100 in old storage)
 - Active cleanup pushes S-10 from pAmmoCargo to generic storage
 
-### UnityMissile.cs (~26,000 chars deployed)
+### UnityMissile.cs (~34,200 chars deployed)
 
 In-flight guidance running on missile PB.
 
@@ -354,11 +359,25 @@ IDLE -> CLIMB -> ARM -> COAST -> REENTRY -> TARGET -> DETONATE
 SAT_CLIMB -> SAT_BRAKE -> SAT_HOLD
 ```
 
-### UnityBeacon.cs (~15,000 chars deployed)
+### UnityBeacon.cs (~16,600 chars deployed)
 
 Miner fleet broadcaster running on mining ship PBs.
 
 **Broadcasts:** Ship status every 3 seconds on MINER_BEACON channel.
+
+### UnitySignal.cs (~41,800 chars deployed)
+
+Central signal controller running on `[PAD1] UNITY SIGNAL` PB.
+
+**On Compile:**
+- Wipes Me.CustomData
+- Writes [SYSTEM] with signal_ready=true
+- Writes [SIGNAL] section
+
+**Key Functions:**
+- `FindSiblingPBs()` - Discovers bootPB, padPB by name pattern
+- `IsBootComplete()` - Reads boot_complete from bootPB.CustomData
+- Manages: antennas, laser antennas, satellite constellation, cameras
 
 ---
 
@@ -404,6 +423,7 @@ Unity Missile System/
 |-- UnityMissile.cs          # RAW missile script (EDIT THIS)
 |-- UnityInventory.cs        # RAW inventory script (EDIT THIS)
 |-- UnityBeacon.cs           # RAW beacon script (EDIT THIS)
+|-- UnitySignal.cs           # RAW signal script (EDIT THIS)
 |-- wrap-scripts.ps1         # Wraps all raw .cs to Program.cs
 |
 |-- Unity Boot/              # MDK Project
@@ -417,11 +437,11 @@ Unity Missile System/
 |-- UnityMissile/            # MDK Project
 |-- UnityInventory/          # MDK Project
 |-- UnityBeacon/             # MDK Project
+|-- UnitySignal/             # MDK Project
 |
 +-- .claude/                 # Main workflow system
     |-- ARCHITECTURE.md      # This file
     |-- CLAUDE.md            # Rules and enforcement
-    |-- MINIFY.md            # UnityPad minification reference
     |-- TODO.md              # Active tasks
     +-- FINALIZED.md         # Completed tasks
 ```
@@ -432,11 +452,14 @@ Unity Missile System/
 
 | Script | Deployed | Limit | Margin | Status |
 |--------|----------|-------|--------|--------|
-| Unity Boot | 15,050 | 100,000 | 85% | OK |
-| UnityPad | 91,863 | 100,000 | 8.1% | OK |
-| UnityMissile | 24,321 | 100,000 | 76% | OK |
-| UnityInventory | 90,247 | 100,000 | 9.8% | OK |
-| UnityBeacon | 14,658 | 100,000 | 85% | OK |
+| Unity Boot | ~20,000 | 100,000 | 80% | OK |
+| UnityPad | ~97,400 | 100,000 | 2.6% | **WARNING** |
+| UnityMissile | ~34,200 | 100,000 | 66% | OK |
+| UnityInventory | ~90,200 | 100,000 | 9.8% | OK |
+| UnityBeacon | ~16,600 | 100,000 | 83% | OK |
+| UnitySignal | ~41,800 | 100,000 | 58% | OK |
+
+**WARNING:** UnityPad is at 97.4% capacity. Code optimizations required before adding features.
 
 ---
 
