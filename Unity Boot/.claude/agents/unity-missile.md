@@ -1,61 +1,63 @@
-# UnityMissile - Missile Guidance
+# UnityMissile Agent
 
-Reference documentation for UnityMissile when working on other Unity Missile System scripts.
-
----
-
-## OVERVIEW
-
-**Script:** `UnityMissile.cs`
-**PB Name:** `[PAD1] Missile #1 Program`
-**Deployed:** `%APPDATA%\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs`
-**Characters:** 24,321 (76% margin)
-
-Guided missile flight controller handling all phases from launch to detonation.
+You are the UnityMissile specialist. Reference this documentation when working on any Unity Missile System script that interacts with UnityMissile.
 
 ---
 
-## FLIGHT PHASES
+## YOUR DOMAIN
 
-### Standard Flight
+### Files
+- `UnityMissile.cs` - The raw missile guidance script
+- `UnityMissile/Program.cs` - MDK-wrapped version (auto-generated)
+- `UnityMissile/.claude/*` - All workflow files
+
+### Coordinates With
+- `UnityPad.cs` - Receives config from pad, sends telemetry back
+
+---
+
+## MISSILE FLIGHT ARCHITECTURE
+
+### Standard Flight Phases
 ```
 IDLE → CLIMB → ARM → COAST → REENTRY → TARGET → DETONATE
 ```
 
-### Satellite Mode
+### Satellite Mode Phases
 ```
 SAT_CLIMB → SAT_BRAKE → SAT_HOLD
 ```
 
 | Phase | Description |
 |-------|-------------|
-| IDLE | Waiting for launch |
-| CLIMB | Ascending to altitude |
-| ARM | Warheads armed |
-| COAST | Cruising to target |
-| REENTRY | Descending |
-| TARGET | Final approach |
-| DETONATE | Impact |
-| SAT_HOLD | Orbital station-keeping |
+| IDLE | Waiting for launch command |
+| CLIMB | Ascending to cruise altitude |
+| ARM | Warheads armed, preparing |
+| COAST | Cruising toward target |
+| REENTRY | Descending toward target |
+| TARGET | Final approach, tracking |
+| DETONATE | Impact/proximity detonation |
+| SAT_CLIMB | Satellite: Ascending to orbit |
+| SAT_BRAKE | Satellite: Slowing to orbital velocity |
+| SAT_HOLD | Satellite: Station-keeping |
 
----
-
-## TARGETING MODES
-
+### Targeting Modes
 | Mode | Description |
 |------|-------------|
-| GPS | Fixed coordinates |
+| GPS | Navigate to fixed coordinates |
 | ANTENNA | Track broadcasting antenna |
-| SENSOR | Proximity detection |
+| SENSOR | Proximity detection via sensor |
 | LIDAR | Camera raycast lock |
-| MANUAL | Remote guided |
-| SATELLITE | Orbital platform |
+| MANUAL | No auto-targeting, remote guided |
+| SATELLITE | Deploy as orbital platform |
 
 ---
 
-## CUSTOMDATA (Me.CustomData)
+## PER-PB CUSTOMDATA ARCHITECTURE
 
-Missile reads config from PB at launch (written by UnityPad):
+### Missile reads config from Me.CustomData at launch
+
+UnityPad writes this to missile PB CustomData before launch:
 
 ```ini
 [UNITY_MISSILE]
@@ -67,6 +69,11 @@ Climb=500
 Detonate=50
 SensorRange=50
 LidarRange=500
+InSpace=0
+Gravity=9.81
+BurnTime=5
+ReentryDist=500
+FlightMode=2
 ```
 
 ---
@@ -76,12 +83,19 @@ LidarRange=500
 | Channel | Direction | Purpose |
 |---------|-----------|---------|
 | `UNITY_MSL` | OUT | Telemetry to pad |
-| `UNITY_MSL_CMD` | IN | Commands from pad (DETONATE, ABORT) |
+| `UNITY_MSL_CMD` | IN | Commands from pad |
 
-### Telemetry Format
+### Telemetry Format (OUT)
 ```
 Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 ```
+
+### Commands (IN) — Multi-Pad Safe
+- `DETONATE:{padID}` - Trigger warheads (must include padID — bare `DETONATE` removed for safety)
+- `DEORBIT:{padID}` - Force deorbit (must include padID — bare `DEORBIT` removed for safety)
+- `ABORT` - Abort mission
+
+**Multi-pad isolation:** PAD1's missiles won't respond to PAD2's DETONATE or DEORBIT commands. The padID suffix is mandatory — missiles ignore commands without their matching padID.
 
 ---
 
@@ -89,14 +103,14 @@ Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 
 | Block | Purpose |
 |-------|---------|
-| Remote Control | Navigation |
+| Remote Control | Navigation, gravity sensing |
 | Gyroscope(s) | Attitude control |
-| Thruster(s) | Propulsion |
-| Battery(s) | Power |
+| Thruster(s) | Propulsion (Atmo/H2/Ion) |
+| Battery(s) | Power storage |
 | Warhead(s) | Payload |
-| Antenna | Telemetry |
-| Sensor | Proximity (optional) |
-| Camera | LIDAR (optional) |
+| Antenna | Telemetry broadcast |
+| Sensor | Proximity detection (optional) |
+| Camera | LIDAR targeting (optional) |
 
 ---
 
@@ -107,17 +121,32 @@ Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 | `ParseConfig()` | Read launch config from CustomData |
 | `RunPhase()` | Execute current flight phase |
 | `Navigate()` | Thrust vector control |
+| `AimAt()` | Point toward target |
 | `Detonate()` | Arm and trigger warheads |
 | `BroadcastTelemetry()` | Send status via IGC |
+| `CheckCommands()` | Listen for pad commands |
+| `SensorTarget()` | Proximity detection |
+| `LidarTarget()` | Raycast lock |
 
 ---
 
-## COMMUNICATION WITH UNITYPAD
+## COMMUNICATION FLOW
 
 1. **Pre-Launch:** UnityPad writes config to missile PB CustomData
-2. **Launch:** Missile reads config, begins flight
-3. **Flight:** Missile broadcasts telemetry on UNITY_MSL
+2. **Launch:** Merge disconnects, missile reads config, begins CLIMB
+3. **Flight:** Missile broadcasts telemetry on UNITY_MSL every tick
 4. **Control:** UnityPad can send DETONATE/ABORT via UNITY_MSL_CMD
+5. **Terminal:** Missile detonates on proximity or impact
+
+---
+
+## BUILD COMMANDS
+
+```powershell
+cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
+dotnet build UnityMissile -c Debug
+```
 
 ---
 
@@ -126,6 +155,18 @@ Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 ```powershell
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs").Length
 ```
+
+**Current:** 44,563 characters (55.4% margin)
+
+---
+
+## RULES
+
+1. **NO COMMENTS** in deployed code
+2. **Read full file** before editing (600 lines per read)
+3. **Build ONE script** at a time
+4. **Check deployed size** not raw source
+5. **Use Unity persona** at all times
 
 ---
 

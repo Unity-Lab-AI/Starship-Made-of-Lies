@@ -21,11 +21,13 @@ Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 
 9. [Inventory Management](#inventory-management)
 10. [Recycling System](#recycling-system-recycleexcess)
 11. [S-10 Ammo Routing](#s-10-ammo-routing)
-12. [Miner Beacon Integration](#miner-beacon-integration)
-13. [Per-PB CustomData Summary](#per-pb-customdata-summary)
-14. [CustomData Ownership](#customdata-ownership)
-15. [Character Budget](#character-budget)
-16. [Quick Reference](#quick-reference)
+12. [Bottle Counting System](#bottle-counting-system)
+13. [Ammo Type Synchronization](#ammo-type-synchronization)
+14. [Miner Beacon Integration](#miner-beacon-integration)
+15. [Per-PB CustomData Summary](#per-pb-customdata-summary)
+16. [CustomData Ownership](#customdata-ownership)
+17. [Character Budget](#character-budget)
+18. [Quick Reference](#quick-reference)
 
 ---
 
@@ -137,9 +139,11 @@ INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
 ```csharp
 void CheckBootRequest(){
     // Listen for IGC requests from Unity Boot
+    // Accepts both "INV_CHECK" and "INV_CHECK:{padID}" (backward compatible)
     while(bootReqL!=null&&bootReqL.HasPendingMessage){
         var msg=bootReqL.AcceptMessage();
-        if(msg.Data.ToString()=="INV_CHECK")SendBootResponse();
+        string d=msg.Data.ToString();
+        if(d=="INV_CHECK"||d==$"INV_CHECK:{padID}")SendBootResponse();
     }
 }
 
@@ -149,6 +153,8 @@ void SendBootResponse(){
     IGC.SendBroadcastMessage("UNITY_BOOT_RSP",rsp);
 }
 ```
+
+**Multi-Pad Safe:** Only responds to boot requests from its own pad. Accepts both the legacy `INV_CHECK` format and the new `INV_CHECK:{padID}` format for backward compatibility.
 
 ---
 
@@ -416,16 +422,137 @@ if(pAmmoCargo!=null){
 }
 ```
 
-### pAmmoTarget Minimum
+### mslAmmoTarget Minimum
 
-Personal ammo target has a minimum floor of 50,000 (for missile loading):
+Missile loading ammo target has a minimum floor of 50,000 (5 missiles worth):
 
 ```csharp
 // In Program() after LoadStorage():
-if(pAmmoTarget < 1000) pAmmoTarget = 50000;
+if(mslAmmoTarget < 1000) mslAmmoTarget = 50000;
 ```
 
-This fixes old Storage data that had pAmmoTarget=100.
+This fixes corrupted Storage data that may have mslAmmoTarget=0.
+
+---
+
+## BOTTLE COUNTING SYSTEM
+
+UnityInventory uses `GetItemAmount()` for reliable bottle counting instead of string matching.
+
+### Pre-defined Item Types
+
+```csharp
+MyItemType h2BottleType = MyItemType.Parse(OB+"GasContainerObject/HydrogenBottle");
+MyItemType o2BottleType = MyItemType.Parse(OB+"OxygenContainerObject/OxygenBottle");
+```
+
+### CountStocks() - Bottle Counting
+
+```csharp
+// After countInv for other items, count bottles explicitly:
+pH2B=0; pO2B=0;
+foreach(var c in padCargo){
+    var inv = c.GetInventory();
+    if(inv != null){
+        pH2B += (int)inv.GetItemAmount(h2BottleType);
+        pO2B += (int)inv.GetItemAmount(o2BottleType);
+    }
+}
+// Also count from bottleCargo and assembler outputs
+```
+
+This replaces unreliable string matching on `TypeId.ToLower()` with the same method used for ammo counting.
+
+---
+
+## PERSONAL AMMO COUNTING SYSTEM
+
+Personal ammo (S-10, S-20A, Elite, Rifles, Flares) uses `GetItemAmount()` for accurate counting.
+
+### Action Delegate cBA
+
+```csharp
+Action<IMyInventory>cBA=v=>{
+    if(v==null)return;
+    pH2B+=(int)v.GetItemAmount(h2BottleType);
+    pO2B+=(int)v.GetItemAmount(o2BottleType);
+    for(int i=0;i<pAmmoIT.Length;i++){
+        int a=(int)v.GetItemAmount(MyItemType.Parse(OB+"AmmoMagazine/"+pAmmoIT[i]));
+        if(a>0)AD(pAmmoStk,pAmmoIT[i],a);
+    }
+};
+```
+
+### pAmmoIT Array (Personal Ammo Types)
+
+```csharp
+string[] pAmmoIT = {"SemiAutoPistolMagazine", "FullAutoPistolMagazine", "ElitePistolMagazine",
+    "AutomaticRifleGun_Mag_20rd", "RapidFireAutomaticRifleGun_Mag_50rd",
+    "PreciseAutomaticRifleGun_Mag_5rd", "UltimateAutomaticRifleGun_Mag_30rd", "FlareGun_Mag"};
+```
+
+### Why Not String Matching?
+
+String-based counting via `TypeId.ToLower()` was unreliable:
+- S-10 ammo (`SemiAutoPistolMagazine`) could be miscounted
+- LCD4 showed 4200 while LCD2 showed correct 45000
+- `GetItemAmount(MyItemType)` is the only accurate method
+
+---
+
+## CONNECTOR DETECTION (CRITICAL)
+
+**FUEL Connector Detection:**
+- `padCon` is ONLY assigned if connector name contains "FUEL"
+- Example: `[PAD1] FUEL CONNECTOR`
+- This prevents detecting miner connectors as the missile fuel connector
+
+**Miner Connectors (PROTECTED):**
+- Connectors with "ORE" in name are for miners only
+- Example: `[PAD1] ORE LOAD 1`, `[PAD1] Connector Miner 1`
+- UnityInventory does NOT control these connectors
+- Prevents miners from unlocking during missile fueling
+
+```csharp
+// Connector detection in ScanBlocks:
+if(b is IMyShipConnector){
+    var cn=b as IMyShipConnector;
+    string u=b.CustomName.ToUpper();
+    if(u.Contains("ORE"))oreC.Add(cn);
+    else if(padCon==null&&u.Contains("FUEL"))padCon=cn;
+}
+```
+
+---
+
+## AMMO TYPE SYNCHRONIZATION
+
+UnityInventory syncs the selected ammo type from UnityPad for production targeting.
+
+### ReadPadSettings() - Type Sync
+
+```csharp
+// In ReadPadSettings(), parsing padPB.CustomData:
+else if(k=="type" && n>=0 && n<10){
+    if(n != ammoTypeIdx){
+        ammoTypeIdx = n;
+        UpdateAmmoType();  // Updates ammoBP and ammoType
+    }
+}
+```
+
+### Production Target Selection
+
+```csharp
+int prodTgt = ammoTypeIdx==0 ? mslAmmoTarget : ammoTarget;
+```
+
+| ammoTypeIdx | Ammo Type | Target Variable | Default |
+|-------------|-----------|-----------------|---------|
+| 0 | S-10 Pistol | `mslAmmoTarget` | 50,000 |
+| 1-9 | Other ammo | `ammoTarget` | 500 |
+
+S-10 pistol ammo is the default missile loading ammo, hence the higher target.
 
 ---
 
@@ -487,11 +614,15 @@ This fixes old Storage data that had pAmmoTarget=100.
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityInventory | ~1,650 | ~90,200 | 100,000 | OK (9.8% margin) |
+| UnityInventory | ~1,700 | ~99,582 | 100,000 | **CRITICAL (0.4% margin)** |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 *Handles ALL personal equipment: tools, weapons, ammo, bottles (removed from UnityPad).*
-*2026-01-22: Added recycling system, S-10 routing fix, pAmmoTarget minimum enforcement.*
+*2026-01-22: Added recycling system, S-10 routing fix.*
+*2026-01-26: Added bottle counting via GetItemAmount(), ammoTypeIdx sync, mslAmmoTarget minimum enforcement.*
+*2026-01-28: Personal ammo counting via GetItemAmount(), FUEL connector detection, code compression, BOOT_REQ padID filtering.*
+
+**WARNING:** At 99,582 chars deployed, we have basically ZERO room. Any additions need equal or greater removals. This script is at the wall.
 
 ---
 

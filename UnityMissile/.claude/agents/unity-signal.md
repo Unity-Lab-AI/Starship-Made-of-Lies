@@ -95,6 +95,9 @@ miners=3
 SIGNAL|OK|cams={count},lcds={count}
 ```
 
+### BOOT_REQ Filtering (Multi-Pad)
+UnitySignal accepts both `"SIGNAL_CHECK"` and `"SIGNAL_CHECK:{padID}"` from UNITY_BOOT_REQ. Only responds when the padID matches (or no padID suffix for backward compat). PAD2's boot won't trigger PAD1's signal to respond.
+
 ---
 
 ## LCD OWNERSHIP
@@ -143,7 +146,7 @@ dotnet build UnitySignal -c Debug
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnitySignal\script.cs").Length
 ```
 
-**Current:** ~11,998 characters (88% margin)
+**Current:** 47,118 characters (52.9% margin)
 
 ---
 

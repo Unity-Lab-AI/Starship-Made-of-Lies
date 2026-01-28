@@ -1,0 +1,70 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>UMSMod</AssemblyName>
+    <RootNamespace>UMSMod</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <OutputType>Library</OutputType>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Version>1.0.0.1</Version>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
+    <InformationalVersion>1.0.0.1</InformationalVersion>
+    <Product>UMS Mod - Auto DeMerge Ship</Product>
+    <Description>Unity Missile System companion plugin. Automatically converts grids to ships when detaching from merge blocks.</Description>
+    <Company>Unity AI Lab</Company>
+    <Authors>Unity AI Lab</Authors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SEBin>C:\Program Files (x86)\Steam\steamapps\common\SpaceEngineers\Bin64</SEBin>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Sandbox.Game">
+      <HintPath>$(SEBin)\Sandbox.Game.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Sandbox.Common">
+      <HintPath>$(SEBin)\Sandbox.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VRage">
+      <HintPath>$(SEBin)\VRage.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VRage.Game">
+      <HintPath>$(SEBin)\VRage.Game.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VRage.Library">
+      <HintPath>$(SEBin)\VRage.Library.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VRage.Math">
+      <HintPath>$(SEBin)\VRage.Math.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="UMSMod.dll.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="CopyToPulsar" AfterTargets="Build">
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
+          DestinationFolder="$(APPDATA)\Pulsar\Legacy\Local"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll.xml"
+          DestinationFolder="$(APPDATA)\Pulsar\Legacy\Local"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

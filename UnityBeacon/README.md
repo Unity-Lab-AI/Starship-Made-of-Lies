@@ -50,7 +50,7 @@ Miner status broadcaster for the Unity Missile System. Broadcasts fleet status v
 
 | Component | Script | PB Name | Purpose |
 |-----------|--------|---------|---------|
-| **Boot Controller** | Unity Boot.cs | `[PAD1] UNITY BOOT` | 23-check boot sequence |
+| **Boot Controller** | Unity Boot.cs | `[PAD1] UNITY BOOT` | 26-check boot sequence |
 | **Launch Pad** | UnityPad.cs | `[PAD1] Unity Pad` | Missile control, LCDs 1,2,3,7,8 |
 | **Inventory** | UnityInventory.cs | `[PAD1] Unity Inventory` | Production, LCDs 4,5,6,9,10,11 |
 | **Signal Hub** | UnitySignal.cs | `[PAD1] UNITY SIGNAL` | Camera display, laser targeting, satellite tracking |
@@ -269,13 +269,19 @@ When MinerBeacon broadcasts, the UnityPad:
 ## Broadcast Format
 
 ```
-MB|EntityId|ShipName|Bat%|Cargo%|H2%|X,Y,Z|Speed|Alt|DistHome|Status|DrillCount|DrillsOn|GrinderCount|GrindersOn|Docked
+MB|PadID|EntityId|ShipName|Bat%|Cargo%|H2%|X,Y,Z|Speed|Alt|DistHome|Status|DrillCount|DrillsOn|GrinderCount|GrindersOn|Docked
 ```
 
 Example:
 ```
-MB|123456789|Ice Miner|78|42|95|1000,2000,3000|5|150|2500|DRILLING|4|4|0|0|0
+MB|1|123456789|Ice Miner|78|42|95|1000,2000,3000|5|150|2500|DRILLING|4|4|0|0|0
 ```
+
+### Multi-Pad Filtering
+
+Broadcasts include PadID so receivers can filter by pad ownership:
+- **UnityPad/UnitySignal/UnityInventory** filter by `bcnPad != padID`
+- **Controller mode** sees ALL miners regardless of PadID
 
 ---
 

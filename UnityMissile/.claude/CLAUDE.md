@@ -153,6 +153,19 @@ FlightMode=2
 
 **NOTE:** UnityMissile communicates via IGC only - reads launch config from its own PB CustomData.
 
+### Multi-Pad Command Safety
+
+**CRITICAL:** Bare `DETONATE` and `DEORBIT` commands are REMOVED. All destructive commands require padID qualification:
+
+| Command | Status |
+|---------|--------|
+| `DETONATE` (bare) | **REMOVED** -- ignored |
+| `DETONATE:{padID}` | Required -- only responds if padID matches |
+| `DEORBIT` (bare) | **REMOVED** -- ignored |
+| `DEORBIT:{padID}` | Required -- only responds if padID matches |
+
+This prevents PAD1's missiles from responding to PAD2's commands in multi-pad setups.
+
 ---
 
 ## IGC COMMUNICATION
@@ -160,7 +173,7 @@ FlightMode=2
 | Channel | Direction | Purpose |
 |---------|-----------|---------|
 | `UNITY_MSL` | OUT | Telemetry to pad |
-| `UNITY_MSL_CMD` | IN | Commands from pad (DETONATE, ABORT) |
+| `UNITY_MSL_CMD` | IN | Commands from pad (DETONATE:{padID}, DEORBIT:{padID}, ABORT) |
 
 ### Telemetry Format
 ```
@@ -188,7 +201,7 @@ Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityMissile | ~1,100 | ~34,200 | 100,000 | OK (66% margin) |
+| UnityMissile | ~1,165 | ~44,563 | 100,000 | OK (55.4% margin) |
 
 *Note: Character count increased with satellite laser mesh networking, grid tracking, and SAT_INTERCEPT phase.*
 

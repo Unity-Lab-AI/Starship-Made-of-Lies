@@ -35,6 +35,7 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
     - [Boot Flow](#boot-flow-per-pb-architecture)
     - [Checking Boot Status](#checking-boot-status-in-operational-scripts)
 15. [Credits & Acknowledgements](#credits--acknowledgements)
+16. [Multi-Pad Setup](#multi-pad-setup)
 
 ---
 
@@ -300,14 +301,14 @@ namespaces=IngameScript
 
 | Script | Lines | MDK Deployed | Budget | Status |
 |--------|-------|--------------|--------|--------|
-| Unity Boot | ~320 | ~20,000 | 100,000 | OK (80% margin) |
-| UnityPad | ~2,300 | ~97,400 | 100,000 | **WARNING (2.6% margin)** |
-| UnityMissile | ~1,165 | ~34,200 | 100,000 | OK (66% margin) |
-| UnityInventory | ~1,650 | ~90,200 | 100,000 | OK (9.8% margin) |
-| UnityBeacon | ~300 | ~16,600 | 100,000 | OK (83% margin) |
-| UnitySignal | ~390 | ~41,800 | 100,000 | OK (58% margin) |
+| Unity Boot | ~450 | ~30,372 | 100,000 | OK (69.6% margin) |
+| UnityPad | ~2,400 | ~96,265 | 100,000 | **TIGHT (3.7% margin)** |
+| UnityMissile | ~1,300 | ~44,563 | 100,000 | OK (55.4% margin) |
+| UnityInventory | ~1,700 | ~99,582 | 100,000 | **CRITICAL (0.4% margin)** |
+| UnityBeacon | ~300 | ~16,600 | 100,000 | OK (83.4% margin) |
+| UnitySignal | ~430 | ~47,118 | 100,000 | OK (52.9% margin) |
 
-**WARNING:** UnityPad is at 97.4% capacity - major additions require code optimization first.
+**WARNING:** UnityInventory at 99.6% - virtually no room for additions. UnityPad at 96.3%. Boot grew significantly with multi-pad setup commands.
 
 ### Character Count Commands
 
@@ -332,22 +333,23 @@ namespaces=IngameScript
 
 ## IGC COMMUNICATION CHANNELS
 
-| Channel | Sender | Receiver | Purpose |
-|---------|--------|----------|---------|
-| `UNITY_MSL` | Missile | Signal, Pad | Telemetry broadcast + camera info |
-| `UNITY_MSL_CMD` | Pad | Missile | Commands (DETONATE, ABORT) |
-| `UNITY_PAD_CMD` | Controller | Slaves | Mass commands |
-| `UNITY_PAD_STATUS` | All Pads | Controller | Status updates |
-| `UNITY_SAT_RELAY` | Satellite | Satellite | Inter-satellite mesh |
-| `UNITY_SAT_RELAY_STATUS` | Satellite | Signal | Status with grid position, laser links |
-| `UNITY_SAT_INTERCEPT` | Satellite | Signal | Intercept/detonation messages |
-| `ENEMY_SIGNAL` | External | Controller | Enemy positions |
-| `MINER_BEACON` | UnityBeacon | Signal, Pad | Fleet status + camera info |
-| `UNITY_PRINTER` | Printer | Pad | Build completion |
-| `UNITY_BOOT_REQ` | Boot | Pad, Inv, Signal | Request system status |
-| `UNITY_BOOT_RSP` | Pad, Inv, Signal | Boot | Respond with block counts |
-| `UNITY_SIGNAL_CMD` | Pad | Signal | Signal commands (TRACK, LASER, RESCAN) |
-| `UNITY_SIGNAL_RSP` | Signal | Pad | Signal command responses |
+| Channel | Sender | Receiver | Purpose | PadID Filtering |
+|---------|--------|----------|---------|-----------------|
+| `UNITY_MSL` | Missile | Signal, Pad | Telemetry broadcast + camera info | No |
+| `UNITY_MSL_CMD` | Pad | Missile | Commands (DETONATE, ABORT) | Yes — `DETONATE:{padID}` only (bare DETONATE removed) |
+| `UNITY_PAD_CMD` | Controller | Slaves | Mass commands | Yes — `fromPad==padID` filtering |
+| `UNITY_PAD_STATUS` | All Pads | Controller | Status updates | No |
+| `UNITY_SAT_RELAY` | Satellite | Satellite | Inter-satellite mesh | No |
+| `UNITY_SAT_RELAY_STATUS` | Satellite | Signal | Status with grid position, laser links | No |
+| `UNITY_SAT_INTERCEPT` | Satellite | Signal | Intercept/detonation messages | No |
+| `ENEMY_SIGNAL` | External | Controller | Enemy positions | No |
+| `MINER_BEACON` | UnityBeacon | Signal, Pad | Fleet status + camera info | Yes — filtered by `bcnPad!=padID` |
+| `UNITY_PRINTER` | Printer | Pad | Build completion | No |
+| `UNITY_BOOT_REQ` | Boot | Pad, Inv, Signal | Request system status | Yes — sends `PAD_CHECK:{padID}`, `INV_CHECK:{padID}`, `SIGNAL_CHECK:{padID}` |
+| `UNITY_BOOT_RSP` | Pad, Inv, Signal | Boot | Respond with block counts | Yes — responders filter by padID |
+| `UNITY_SIGNAL_CMD` | Pad | Signal | Signal commands (TRACK, LASER, RESCAN) | No |
+| `UNITY_SIGNAL_RSP` | Signal | Pad | Signal command responses | No |
+| `UNITY_SETUP_CMD` | Boot | Boot (siblings) | Multi-pad setup commands | Yes — only matching padID boot PB executes |
 
 ---
 
@@ -383,6 +385,9 @@ namespaces=IngameScript
 - **LCDs:** 4,5,6,9,10,11 (after boot_complete)
 - **Features:** Auto-production, unified quota system, tool/weapon/ammo/bottle crafting, miner tracking
 - **Production System:** Uses dictionary-based quotas (cNd, tNd, paNd, bNd) with generic QueueMissing()
+- **Bottle Counting:** Uses `GetItemAmount(h2BottleType/o2BottleType)` for reliable counting (not string matching)
+- **Ammo Type Sync:** Reads `type` key from padPB.CustomData, calls UpdateAmmoType() to sync ammoTypeIdx
+- **Production Target:** `prodTgt = ammoTypeIdx==0 ? mslAmmoTarget : ammoTarget` (S-10 uses 50k default)
 - **Ready Flag:** Writes `inv_ready=true` to Me.CustomData on compile
 - **Boot Check:** Reads `boot_complete=true` from bootPB.CustomData
 
@@ -393,8 +398,10 @@ namespaces=IngameScript
 - **Satellite Features:** 5-laser mesh networking, grid formation tracking, auto-intercept enemy detection
 
 ### UnityBeacon.cs (Fleet Tracker)
+- **PB Name:** `[PAD1] [BEACON] Unity Beacon` (includes pad ID for multi-pad filtering)
 - **Broadcasts:** Ship status every 3 seconds on MINER_BEACON channel
-- **Data:** EntityId, ShipName, Battery%, Cargo%, H2%, Position, Speed, Altitude, Distance, Status
+- **Data:** PadID, EntityId, ShipName, Battery%, Cargo%, H2%, Position, Speed, Altitude, Distance, Status
+- **Filtering:** UnityPad/UnitySignal filter broadcasts by PadID - controller mode sees ALL miners
 - **Status Inference:** DOCKED, DRILLING, DRILL_MOVE, GRINDING, TRAVELING, HOME, IDLE
 - **PAM Compatible:** Works alongside [PAM] Path Auto Miner by Keks (https://steamcommunity.com/sharedfiles/filedetails/?id=1507646929)
 
@@ -501,7 +508,7 @@ GPS:Target Bravo:2000:600:300:#FFFF0000:
 
 ### PB Discovery Pattern
 
-Each script finds sibling PBs using FindSiblingPBs():
+Each script finds sibling PBs on the same grid using `FindSiblingPBs()`, matching by padID tag (e.g. `[PAD1]`):
 ```csharp
 IMyProgrammableBlock bootPB, padPB, invPB;
 
@@ -510,12 +517,27 @@ void FindSiblingPBs(){
     GridTerminalSystem.GetBlocksOfType(pbs, b => b.CubeGrid == Me.CubeGrid && b != Me);
     foreach(var pb in pbs){
         string nm = pb.CustomName;
-        if(nm.Contains("[PAD1]") && nm.ToUpper().Contains("UNITY BOOT")) bootPB = pb;
-        else if(nm.Contains("[PAD1] Unity Inventory")) invPB = pb;
-        else if(nm.Contains("[PAD1] Unity Pad")) padPB = pb;
+        if(nm.Contains(padID) && nm.ToUpper().Contains("UNITY BOOT")) bootPB = pb;
+        else if(nm.Contains(padID + " Unity Inventory")) invPB = pb;
+        else if(nm.Contains(padID + " Unity Pad")) padPB = pb;
     }
 }
 ```
+
+**Multi-pad discovery** uses `IsSameConstructAs(Me)` instead of `CubeGrid == Me.CubeGrid` to find pads across connector chains:
+```csharp
+void DiscoverSiblingPads(){
+    var pbs = new List<IMyProgrammableBlock>();
+    GridTerminalSystem.GetBlocksOfType(pbs, b => b.IsSameConstructAs(Me) && b != Me);
+    foreach(var pb in pbs){
+        string nm = pb.CustomName;
+        if(nm.Contains("UNITY BOOT") && !nm.Contains(padID))
+            // Found a sibling pad's boot PB on another grid via connector
+    }
+}
+```
+
+**IMPORTANT:** UnityPad's `FindSiblingPBs()` no longer has fallback discovery — it strictly requires the padID tag match. PBs without the correct `[PAD#]` tag are ignored, preventing cross-pad contamination.
 
 ### How Scripts Read From Other PBs
 
@@ -558,16 +580,17 @@ void FindSiblingPBs(){
 
 | Channel | Direction | Purpose |
 |---------|-----------|---------|
-| `UNITY_BOOT_REQ` | Boot → Pad/Inv | Request system status |
-| `UNITY_BOOT_RSP` | Pad/Inv → Boot | Respond with block counts |
-| `MINER_BEACON` | Beacon → Boot/Pad | Fleet status broadcasts |
+| `UNITY_BOOT_REQ` | Boot → Pad/Inv/Signal | Request system status (includes padID: `PAD_CHECK:{padID}`, `INV_CHECK:{padID}`, `SIGNAL_CHECK:{padID}`) |
+| `UNITY_BOOT_RSP` | Pad/Inv/Signal → Boot | Respond with block counts (responders filter by padID) |
+| `MINER_BEACON` | Beacon → Boot/Pad | Fleet status broadcasts (filtered by PadID) |
+| `UNITY_SETUP_CMD` | Boot → Boot (siblings) | Multi-pad setup commands (SETUPMOD, SETUPFORCE, etc.) |
 
 ### Response Formats
 
 ```
 PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
 INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
-MB|EntityId|ShipName|Bat%|Cargo%|H2%|X,Y,Z|Speed|...  (miner beacon)
+MB|PadID|EntityId|ShipName|Bat%|Cargo%|H2%|X,Y,Z|Speed|...  (miner beacon - PadID allows multi-pad filtering)
 ```
 
 ### Per-PB CustomData Contents
@@ -671,9 +694,12 @@ GPS:Target Bravo:2000:600:300:#FFFF0000:
 
 | Script | Function | Purpose |
 |--------|----------|---------|
-| **Unity Boot** | `FindSiblingPBs()` | Discovers padPB, invPB by name pattern |
+| **Unity Boot** | `FindSiblingPBs()` | Discovers padPB, invPB, signalPB by name pattern on same grid |
 | **Unity Boot** | `CheckReadyFlags()` | Reads pad_ready from padPB, inv_ready from invPB |
-| **UnityPad** | `FindSiblingPBs()` | Discovers bootPB, invPB by name pattern |
+| **Unity Boot** | `DiscoverSiblingPads()` | Discovers sibling pads via `IsSameConstructAs` across connectors |
+| **Unity Boot** | `SetupModule()` | Renames all blocks on pad grid, strips old [PAD] tags, applies new padID |
+| **UnityPad** | `FindSiblingPBs()` | Discovers bootPB, invPB by name pattern (strict padID match, no fallback) |
+| **UnityPad** | `DiscoverSiblingPads()` | Discovers sibling pads via `IsSameConstructAs` for multi-pad coordination |
 | **UnityPad** | `IsBootComplete()` | Reads boot_complete from bootPB.CustomData |
 | **UnityPad** | `ReadGPSFromBtn()` | Reads GPS from button panel `[PAD1] Controls` CustomData |
 | **UnityInventory** | `FindSiblingPBs()` | Discovers bootPB, padPB by name pattern |
@@ -732,14 +758,14 @@ GPS:Target Bravo:2000:600:300:#FFFF0000:
 ### Checking Boot Status in Operational Scripts
 
 ```csharp
-// Find boot PB first (call in Program() or when needed)
+// Find boot PB on same grid, matching padID tag
 IMyProgrammableBlock bootPB;
 void FindSiblingPBs(){
     bootPB = null;
     var pbs = new List<IMyProgrammableBlock>();
     GridTerminalSystem.GetBlocksOfType(pbs, b => b.CubeGrid == Me.CubeGrid && b != Me);
     foreach(var pb in pbs){
-        if(pb.CustomName.Contains("[PAD1]") && pb.CustomName.ToUpper().Contains("UNITY BOOT")) bootPB = pb;
+        if(pb.CustomName.Contains(padID) && pb.CustomName.ToUpper().Contains("UNITY BOOT")) bootPB = pb;
     }
 }
 
@@ -749,7 +775,80 @@ bool IsBootComplete(){
     if(bootPB == null) return false;
     return bootPB.CustomData.Contains("boot_complete=true");
 }
+
+// Discover sibling pads across connectors (multi-pad)
+void DiscoverSiblingPads(){
+    var pbs = new List<IMyProgrammableBlock>();
+    GridTerminalSystem.GetBlocksOfType(pbs, b => b.IsSameConstructAs(Me) && b != Me);
+    // IsSameConstructAs spans connector chains, CubeGrid does not
+}
 ```
+
+---
+
+## MULTI-PAD SETUP
+
+I'm real proud of this one — the whole multi-pad system lets you run multiple independent launch pads from a single base, all connected via connectors and talking over IGC without stepping on each other.
+
+### Setup Order
+
+1. **Blueprint-copy PAD1** — place the new pad grid nearby
+2. **Connect via CON1/CON2** — dock the new grid to your existing construct with connectors
+3. **Compile all scripts on the new pad:** PAD → INV → SIGNAL → BOOT (same order as always)
+4. **Run `SETUPMOD` on the new pad's Boot PB** — this renames every block on that grid from `[PAD1]` to `[PAD2]` (or whatever the next available ID is)
+5. **Re-compile all scripts** on the renamed pad — they'll pick up the new padID tags
+
+### Setup Commands (Run as arguments on Unity Boot PB)
+
+| Command | What It Does |
+|---------|--------------|
+| `SETUPMOD` | Auto-detects next available padID, renames all blocks on this grid, strips old `[PAD#]` tags |
+| `SETUPFORCE` | Same as SETUPMOD but forces re-rename even if already set up |
+| `NAMEPAD` | Renames just the pad PBs (Boot, Pad, Inventory, Signal) |
+| `NAMEMSL` | Renames missile PBs on this grid |
+| `SETPADCONTROL` | Marks this pad as the controller — gets BUILDALL/ARMALL/LAUNCHALL/ABORTALL commands |
+
+### How IsSameConstructAs Works
+
+`IsSameConstructAs(Me)` is the key to multi-pad — it discovers ALL blocks across connector chains, not just the current grid. This means:
+
+- `CubeGrid == Me.CubeGrid` → only blocks on THIS physical grid (one pad)
+- `IsSameConstructAs(Me)` → blocks on ALL connected grids (all pads via connectors)
+
+Unity Boot and UnityPad use `DiscoverSiblingPads()` with `IsSameConstructAs` to find other pads' Boot PBs, then read their CustomData for status and coordination.
+
+### Controller Mode
+
+When a pad is set as controller via `SETPADCONTROL`, it gains mass-command capability:
+
+| Command | What It Does |
+|---------|--------------|
+| `BUILDALL` | Triggers print/build on all connected slave pads |
+| `ARMALL` | Arms all pads that are in READY state |
+| `LAUNCHALL` | Launches all armed pads (salvo) |
+| `ABORTALL` | Aborts all active launches |
+
+Commands flow over `UNITY_PAD_CMD` with `fromPad==padID` filtering so each pad only executes commands from its own controller.
+
+### Topology Example
+
+```
+[PAD3]-CON1><CON2-[PAD1 CONTROLLER]-CON2><CON1-[PAD2]
+```
+
+- PAD1 is the controller (has `SETPADCONTROL`)
+- PAD2 and PAD3 are slaves, connected via connector pairs
+- Each pad has its own Boot, Pad, Inventory, Signal PBs — all tagged with their own `[PAD#]`
+- `IsSameConstructAs` spans the entire chain, so PAD1 can see PAD2 and PAD3's Boot PBs
+- IGC messages include padID so PAD2's boot request doesn't trigger PAD3's response
+
+### PadID Isolation Rules
+
+- **Block names:** Every block on a pad grid gets `[PAD#]` prefix — no exceptions
+- **IGC messages:** Include padID in request payloads (`PAD_CHECK:PAD2`, `INV_CHECK:PAD2`, etc.)
+- **DETONATE command:** Now `DETONATE:{padID}` — bare DETONATE was removed to prevent cross-pad detonation
+- **Miner beacons:** Filtered by `bcnPad!=padID` so each pad only sees its own miners (controller sees all)
+- **FindSiblingPBs:** Strict padID tag match — no fallback discovery that could grab wrong pad's PBs
 
 ---
 

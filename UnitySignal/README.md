@@ -45,7 +45,7 @@ UnitySignal is the **central signal hub** that:
 
 | Component | Script | PB Name | Purpose |
 |-----------|--------|---------|---------|
-| Boot Controller | Unity Boot.cs | `[PAD1] UNITY BOOT` | 23-check boot sequence |
+| Boot Controller | Unity Boot.cs | `[PAD1] UNITY BOOT` | 26-check boot sequence |
 | Launch Pad | UnityPad.cs | `[PAD1] Unity Pad` | Missile control, LCDs 1,2,3,7,8 |
 | Inventory | UnityInventory.cs | `[PAD1] Unity Inventory` | Production, LCDs 4,5,6,9,10,11 |
 | Missile | UnityMissile.cs | `[PAD1] Missile #1 Program` | Guided flight |
@@ -61,7 +61,7 @@ UnitySignal is the **central signal hub** that:
 | 1 | UnityPad | Clears CustomData, writes `pad_ready=true` |
 | 2 | UnityInventory | Clears CustomData, writes `inv_ready=true` |
 | 3 | **UnitySignal** | Clears CustomData, writes `signal_ready=true` |
-| 4 | Unity Boot | Reads ready flags, runs 23 checks, sets `boot_complete=true` |
+| 4 | Unity Boot | Reads ready flags, runs 26 checks, sets `boot_complete=true` |
 
 *Note: UnityBeacon (miners) and UnityMissile (missiles) are on separate grids - compile anytime.*
 
@@ -172,11 +172,13 @@ MB|EntityId|Name|Bat|Crg|H2|...|CAMS:id1,id2,...
 
 ### Boot Response
 
-When Boot sends `SIGNAL_CHECK`:
+When Boot sends `SIGNAL_CHECK` or `SIGNAL_CHECK:{padID}` (backward compatible):
 
 ```
 SIGNAL|OK|cams={count},lcds={count}
 ```
+
+**Multi-Pad Safe:** Only responds to boot requests matching its own padID. Accepts both the legacy `SIGNAL_CHECK` format and the new `SIGNAL_CHECK:{padID}` format.
 
 ---
 
@@ -337,10 +339,10 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnitySignal\sc
 
 | Metric | Value |
 |--------|-------|
-| Raw Lines | ~350 |
-| Deployed | ~41,800 chars |
+| Raw Lines | ~390 |
+| Deployed | ~47,118 chars |
 | Budget | 100,000 chars |
-| Status | OK (58% margin) |
+| Status | OK (52.9% margin) |
 
 *SE limit is 100,000 characters on DEPLOYED script.cs in AppData.*
 

@@ -170,13 +170,21 @@ Unity Missile System/
 ### Broadcast Format
 
 ```
-MB|EntityId|ShipName|Bat%|Cargo%|H2%|X,Y,Z|Speed|Alt|DistHome|Status|DrillCount|DrillsOn|GrinderCount|GrindersOn|Docked
+MB|PadID|EntityId|ShipName|Bat%|Cargo%|H2%|X,Y,Z|Speed|Alt|DistHome|Status|DrillCount|DrillsOn|GrinderCount|GrindersOn|Docked
 ```
 
 **Example:**
 ```
-MB|123456789|Miner1|85|42|68|1000,500,200|5|150|2500|DRILLING|4|4|0|0|0
+MB|1|123456789|Miner1|85|42|68|1000,500,200|5|150|2500|DRILLING|4|4|0|0|0
 ```
+
+### Multi-Pad PadID Filtering
+
+Broadcasts include the PadID field so receivers can filter by pad:
+- **UnityPad** filters by `bcnPad != padID` -- ignores miners from other pads
+- **UnitySignal** filters the same way
+- **Controller mode** sees ALL miners regardless of PadID
+- PadID is extracted from the PB name pattern `[PAD{id}]`
 
 ---
 

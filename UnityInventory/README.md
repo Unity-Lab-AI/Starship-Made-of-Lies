@@ -6,7 +6,7 @@ Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 
 
 **Location:** `Unity Missile System/UnityInventory/`
 **PB Name:** `[PAD1] Unity Inventory`
-**Version:** v01.00 | 2026-01-24
+**Version:** v01.00 | 2026-01-28
 
 ---
 
@@ -39,6 +39,10 @@ UnityInventory is the inventory controller that:
 6. **Tracks miner fleet** via MINER_BEACON broadcasts
 7. **Displays missile status** during docking and flight
 8. **Responds to boot handshakes** during system initialization
+9. **Counts bottles reliably** using `GetItemAmount()` instead of string matching
+10. **Syncs ammo type** from UnityPad for correct production targeting
+11. **Counts personal ammo reliably** using `GetItemAmount()` for all ammo types
+12. **Protects miner connectors** - only manipulates FUEL-tagged connectors
 
 ---
 
@@ -270,6 +274,31 @@ The RecycleExcess() function automatically disassembles excess items.
 
 ---
 
+## CONNECTOR DETECTION (CRITICAL)
+
+**Missile Fuel Connector Detection:**
+- `padCon` is ONLY assigned if connector name contains "FUEL"
+- Example: `[PAD1] FUEL CONNECTOR`
+- This prevents detecting miner connectors as the missile fuel connector
+
+**Miner Connectors (PROTECTED):**
+- Connectors with "ORE" in name are for miners only
+- Example: `[PAD1] ORE LOAD 1`, `[PAD1] Connector Miner 1`
+- UnityInventory does NOT control these connectors
+- Prevents miners from unlocking during missile fueling
+
+**Connector Scan Logic:**
+```csharp
+if(b is IMyShipConnector){
+    var cn=b as IMyShipConnector;
+    string u=b.CustomName.ToUpper();
+    if(u.Contains("ORE"))oreC.Add(cn);       // Miner connectors
+    else if(padCon==null&&u.Contains("FUEL"))padCon=cn;  // Missile FUEL connector
+}
+```
+
+---
+
 ## S-10 AMMO ROUTING
 
 S-10 pistol ammo (10,106 rounds per missile) routes specially:
@@ -285,6 +314,31 @@ When pad requests ammo (ammoReq=true):
 1. Find missile [AMMO] connector
 2. Push S-10 ammo from cargo to missile
 3. Track transfer progress
+
+---
+
+## PERSONAL AMMO COUNTING
+
+Personal ammo (S-10, S-20A, Elite, Rifles, Flares) is counted using `GetItemAmount()` for accuracy.
+
+### pAmmoIT Array (Personal Ammo Types)
+
+| Index | SubtypeId | Friendly Name |
+|-------|-----------|---------------|
+| 0 | SemiAutoPistolMagazine | S-10 Pistol |
+| 1 | FullAutoPistolMagazine | S-20A Pistol |
+| 2 | ElitePistolMagazine | Elite Pistol |
+| 3 | AutomaticRifleGun_Mag_20rd | MR-20 Rifle |
+| 4 | RapidFireAutomaticRifleGun_Mag_50rd | MR-50A Rifle |
+| 5 | PreciseAutomaticRifleGun_Mag_5rd | MR-8P Rifle |
+| 6 | UltimateAutomaticRifleGun_Mag_30rd | MR-30E Rifle |
+| 7 | FlareGun_Mag | Flare |
+
+### Why Not String Matching?
+
+String-based counting via `TypeId.ToLower()` was unreliable:
+- S-10 ammo could be miscounted (showed 4200 instead of 45000)
+- `GetItemAmount(MyItemType)` is the only accurate method
 
 ---
 
@@ -524,10 +578,16 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory
 
 | Metric | Value |
 |--------|-------|
-| Raw Lines | ~1,360 |
-| Deployed | ~90,247 chars |
+| Raw Lines | ~1,700 |
+| Deployed | ~99,582 chars |
 | Budget | 100,000 chars |
-| Status | OK (9.8% margin) |
+| Status | **CRITICAL (0.4% margin)** |
+
+**WARNING:** Basically zero room for additions. Any new features require equal or greater code removal.
+
+### Multi-Pad Context
+
+UnityInventory is multi-pad safe. The BOOT_REQ handler accepts both the legacy `INV_CHECK` format and the new `INV_CHECK:{padID}` format, so it only responds to boot requests from its own pad. This prevents cross-pad interference when multiple pad grids share the same IGC channel.
 
 ---
 

@@ -78,13 +78,14 @@ lastLaunch=2026-01-20 08:00
 ; Event log
 ```
 
-### Reading From Other PBs
+### Reading From Other PBs (Multi-Pad Aware)
 ```csharp
 IMyProgrammableBlock bootPB, invPB;
 
-void FindSiblingPBs(){
+// Uses IsSameConstructAs(Me) — finds PBs across CON1/CON2 connectors, not just same grid
+void DiscoverSiblingPads(){
     var pbs = new List<IMyProgrammableBlock>();
-    GridTerminalSystem.GetBlocksOfType(pbs, b => b.CubeGrid == Me.CubeGrid && b != Me);
+    GridTerminalSystem.GetBlocksOfType(pbs, b => b.IsSameConstructAs(Me) && b != Me);
     foreach(var pb in pbs){
         string nm = pb.CustomName;
         if(nm.Contains($"[PAD{padID}]") && nm.ToUpper().Contains("UNITY BOOT")) bootPB = pb;
@@ -93,11 +94,13 @@ void FindSiblingPBs(){
 }
 
 bool IsBootComplete(){
-    if(bootPB == null) FindSiblingPBs();
+    if(bootPB == null) DiscoverSiblingPads();
     if(bootPB == null) return false;
     return bootPB.CustomData.Contains("boot_complete=true");
 }
 ```
+
+**Multi-pad isolation:** Fallback PB discovery (grabbing PBs without padID tag match) has been REMOVED. If a PB doesn't have the matching `[PAD{padID}]` tag, we don't touch it. This prevents PAD1 from accidentally grabbing PAD2's boot or inventory PBs.
 
 ---
 
@@ -118,6 +121,26 @@ bool IsBootComplete(){
 ```
 PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
 ```
+
+### BOOT_REQ Filtering (Multi-Pad)
+UnityPad accepts both `"PAD_CHECK"` and `"PAD_CHECK:{padID}"` from UNITY_BOOT_REQ. Only responds when the padID matches (or no padID suffix for backward compat).
+
+### Setup Commands (sent to Boot via UNITY_SETUP_CMD)
+| Command | Purpose |
+|---------|---------|
+| `SETUPMOD` | Re-tag blocks with correct `[PAD{padID}]` tags |
+| `SETUPFORCE` | Force re-tag even if already tagged |
+| `NAMEPAD` | Rename pad PB with padID |
+| `NAMEMSL` | Rename missile PB with padID |
+
+### Controller Mode Commands
+| Command | Purpose |
+|---------|---------|
+| `SETPADCONTROL` | Toggle controller mode |
+| `BUILDALL` | Print missiles on all pads |
+| `ARMALL` | Arm all pads |
+| `LAUNCHALL` | Launch all pads |
+| `ABORTALL` | Abort all pads |
 
 ### Missile Telemetry Format
 ```
@@ -182,7 +205,7 @@ dotnet build UnityPad -c Debug
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\script.cs").Length
 ```
 
-**Current:** 91,863 characters (8.1% margin)
+**Current:** 96,265 characters (**3.7% margin - CRITICAL**)
 
 ---
 

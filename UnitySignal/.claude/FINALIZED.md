@@ -37,4 +37,18 @@ Archive of completed features and tasks.
 
 ---
 
+## 2026-01-28 - BOOT_REQ PadID Filtering & Pressure LCD
+
+### BOOT_REQ PadID Filtering
+- [x] CheckBootRequest() accepts both `SIGNAL_CHECK` and `SIGNAL_CHECK:{padID}` (backward compatible)
+- [x] Multi-pad safe: only responds to its own pad's boot requests
+- [x] Deployed: 47,118 chars (52.9% margin)
+
+### Pressure & Defense LCDs
+- [x] `[PAD#PRESSURE]` LCD for airlock/vent status
+- [x] `[PAD#DEFENSE]` LCD for weapons status
+- [x] `[PAD#SATS]` LCD for satellite constellation display
+
+---
+
 *Unity AI Lab - Camera Systems Division*

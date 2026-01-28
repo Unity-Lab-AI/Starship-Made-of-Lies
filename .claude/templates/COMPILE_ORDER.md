@@ -1,6 +1,6 @@
 # UNIFIED COMPILE ORDER
 
-**Last Updated:** 2026-01-24
+**Last Updated:** 2026-01-28
 **Purpose:** In-game script compile order for Unity Missile System
 
 ---
@@ -16,7 +16,7 @@ PAD GRID (must be in order):
   1. UnityPad      → Clears CustomData, sets pad_ready=true
   2. UnityInventory → Clears CustomData, sets inv_ready=true
   3. UnitySignal   → Clears CustomData, sets signal_ready=true
-  4. Unity Boot    → Reads ready flags, runs 23 checks, sets boot_complete=true
+  4. Unity Boot    → Reads ready flags, runs 26 checks, sets boot_complete=true
 ```
 
 ---
@@ -32,7 +32,7 @@ PAD GRID (must be in order):
 | 1 | **UnityPad** | `[PAD1] Unity Pad` | `ClearForBoot()` wipes Me.CustomData, writes `pad_ready=true` |
 | 2 | **UnityInventory** | `[PAD1] Unity Inventory` | `ClearForBoot()` wipes Me.CustomData, writes `inv_ready=true` |
 | 3 | **UnitySignal** | `[PAD1] UNITY SIGNAL` | `ClearForBoot()` wipes Me.CustomData, writes `signal_ready=true` |
-| 4 | **Unity Boot** | `[PAD1] UNITY BOOT` | Finds sibling PBs by name, reads ready flags, runs 23 checks |
+| 4 | **Unity Boot** | `[PAD1] UNITY BOOT` | Finds sibling PBs by name, reads ready flags, runs 26 checks |
 
 ### How Boot Finds Other Scripts
 
@@ -117,7 +117,7 @@ LCDs:    Show "SIGNAL SCRIPT COMPILED - Next: Compile BOOT"
 ```
 PB Name: [PAD1] UNITY BOOT
 Action:  FindSiblingPBs(), CheckReadyFlags(), RunBootSequence()
-Result:  boot_complete=true after 23 checks pass
+Result:  boot_complete=true after 26 checks pass
 LCDs:    Boot animation on ALL 11 LCDs, then releases to Pad/Inv/Signal
 ```
 
@@ -144,14 +144,61 @@ LCDs:    Boot animation on ALL 11 LCDs, then releases to Pad/Inv/Signal
 
 ---
 
+## MULTI-PAD SETUP ORDER
+
+Adding a new pad module to an existing grid? Here's the full setup flow. I'm gonna walk you through every step.
+
+### Step-by-Step: Adding PAD2 (or PAD3, PAD4, etc.)
+
+```
+1. BLUEPRINT COPY    → Place the pad module blueprint on your grid
+2. CONNECT           → Attach via CON1 (fuel) and CON2 (ammo) connectors
+3. COMPILE PAD       → Compile UnityPad on the new module's PB
+4. COMPILE INVENTORY → Compile UnityInventory on the new module's PB
+5. COMPILE SIGNAL    → Compile UnitySignal on the new module's PB
+6. COMPILE BOOT      → Compile Unity Boot on the new module's PB
+7. RUN SETUPMOD      → Run "SETUPMOD" argument on the Boot PB
+8. RE-COMPILE ALL    → Re-compile PAD → INV → SIGNAL → BOOT (now with correct names)
+```
+
+### Boot Setup Commands
+
+These commands are run as arguments on the **Unity Boot** PB:
+
+| Command | What It Does |
+|---------|--------------|
+| `SETUPMOD` | Auto-detects the next available pad number, renames ALL blocks on the module with `[PAD#]` tags (PBs, LCDs, merge, connectors, buttons, etc.) |
+| `SETUPFORCE` | Same as SETUPMOD but forces re-rename even if blocks already have `[PAD#]` tags. Use when fixing a botched setup. |
+| `NAMEPAD` | Renames just the pad PBs (Boot, Pad, Inventory, Signal) with the correct `[PAD#]` prefix |
+| `NAMEMSL` | Renames the missile PB to `[PAD#] Missile #1 Program` matching the pad's number |
+| `SETPADCONTROL` | Designates this pad as the controller pad - enables multi-pad aggregation mode |
+
+### Why SETUPMOD Needs a Re-Compile
+
+SETUPMOD renames all the blocks, but the scripts discovered their sibling PBs at compile time using the OLD names. After SETUPMOD renames everything from `[PAD1]` to `[PAD2]`, the PB references are stale. Re-compiling in order (PAD → INV → SIGNAL → BOOT) lets each script re-discover siblings with the new `[PAD2]` tag.
+
+### Multi-Pad Isolation
+
+Each pad module is fully isolated:
+- All blocks tagged with `[PAD#]` (e.g., `[PAD2] Unity Pad`)
+- LCDs tagged with `[PAD#:1-11]` (e.g., `[PAD2:1]`, `[PAD2:7]`)
+- IGC messages filtered by padID so PAD1 and PAD2 don't interfere
+- Missiles tagged with pad number so DETONATE only affects the right missile
+- Miner beacons include `bcnPad` for per-pad fleet filtering
+- Controller pad sees ALL pads and can issue mass commands
+
+---
+
 ## RECOMPILE SCENARIOS
 
 ### Adding a New Pad
 
-1. Build new pad module (merge, connector, LCDs, buttons)
-2. Add 4 new PBs with scripts
-3. Name them with new pad ID: `[PAD2] Unity Pad`, etc.
-4. Compile in order: PAD2 → INV2 → SIGNAL2 → BOOT2
+1. Place pad module blueprint on grid
+2. Connect via CON1/CON2 connectors
+3. Compile scripts in order: PAD → INV → SIGNAL → BOOT
+4. Run `SETUPMOD` on Boot PB to auto-rename blocks
+5. Re-compile all four scripts in order (PAD → INV → SIGNAL → BOOT)
+6. Boot runs 26 checks and you're operational
 
 ### Updating a Single Script
 
@@ -165,7 +212,7 @@ LCDs:    Boot animation on ALL 11 LCDs, then releases to Pad/Inv/Signal
 2. Recompile UnityInventory
 3. Recompile UnitySignal
 4. Recompile Unity Boot
-5. Wait for 23-check boot sequence
+5. Wait for 26-check boot sequence
 
 ---
 

@@ -15,33 +15,32 @@
 
 ---
 
-## PRIORITY 1: In-Game Testing
+## COMPLETED - In-Game Testing
 
-### [ ] Test Beacon Broadcasting
-- [ ] Verify beacon broadcasts received at pad
-- [ ] Confirm all data fields parse correctly
-- [ ] Test range limits with antenna
+### [x] Test Beacon Broadcasting
+- [x] Beacon broadcasts received at pad
+- [x] All data fields parse correctly including PadID
+- [x] Multi-pad filtering works (pads ignore other pad's miners, controller sees all)
 
-### [ ] Test Status Inference
-- [ ] DOCKED status when connector locked
-- [ ] DRILLING status when drills active
-- [ ] TRAVELING status when moving fast
-- [ ] HOME status when idle at base
+### [x] Test Status Inference
+- [x] DOCKED status when connector locked
+- [x] DRILLING status when drills active
+- [x] TRAVELING status when moving fast
+- [x] HOME status when idle at base
 
-### [ ] Test PAM Compatibility
-- [ ] Confirm no interference with PAM operation
-- [ ] Test dual-tagged blocks `[PAM] [BEACON]`
-- [ ] Verify alongside active PAM mining
+### [x] Test PAM Compatibility
+- [x] No interference with PAM operation
+- [x] Dual-tagged blocks `[PAM] [BEACON]` work
+- [x] Verified alongside active PAM mining
 
 ---
 
-## PRIORITY 2: LCD Modernization
+## COMPLETED - LCD Modernization
 
-### [ ] Modern LCD Theme Design
-- [ ] Design Windows 11 2026 hacker green theme
-- [ ] Replace old progress bar style
-- [ ] Add box drawing characters
-- [ ] Modernize all pad LCDs (1-10)
+### [x] Modern LCD Theme
+- [x] Sprite-based rendering with MySpriteDrawFrame
+- [x] Color-coded progress bars with PctCol()
+- [x] Minimum font scale for small LCDs
 
 ---
 

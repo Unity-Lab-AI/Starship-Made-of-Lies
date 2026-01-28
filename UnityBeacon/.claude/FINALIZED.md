@@ -46,4 +46,14 @@ Status: Ready for in-game testing
 
 ---
 
+## 2026-01-28 - Multi-Pad PadID Filtering Documentation
+
+### Multi-Pad Context
+- [x] Documented PadID field in broadcast format
+- [x] Broadcast includes PadID so pads filter by `bcnPad != padID`
+- [x] Controller mode sees ALL miners regardless of PadID
+- [x] Deployed: ~16,600 chars (83.4% margin)
+
+---
+
 *Unity AI Lab - Mining Division*

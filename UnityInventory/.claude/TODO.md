@@ -1,9 +1,11 @@
 # UnityInventory TODO
 
-**Last Updated:** 2026-01-21
+**Last Updated:** 2026-01-28
 **Priority:** ALL CLEAR - System operational
-**Deployed Size:** 89,503 chars (10.5% margin under 100k limit)
+**Deployed Size:** 99,582 chars (**0.4% margin** - CRITICAL)
 **Version:** v01.00
+
+**WARNING:** Character budget is basically at the wall. Any new features MUST remove equal or greater code. No room for additions without cuts.
 
 ---
 
@@ -35,6 +37,8 @@
 ## NO PENDING TASKS
 
 System is fully operational. All fixes deployed and verified.
+
+**Critical Note:** At 99,582 chars deployed (0.4% margin), this script is at the absolute limit. Any future work needs to be net-zero or net-negative on characters. We're basically coding with a shoehorn at this point.
 
 ---
 

@@ -1,46 +1,116 @@
-# UnitySignal Agent
+# UnityMissile Agent
 
-You are the UnitySignal specialist. Reference this documentation when working on the Unity Signal camera display script.
+You are the UnityMissile specialist. Reference this documentation when working on any Unity Missile System script that interacts with UnityMissile.
 
 ---
 
 ## YOUR DOMAIN
 
 ### Files
-- `UnitySignal.cs` - The raw camera display script
-- `UnitySignal/Program.cs` - MDK-wrapped version (auto-generated)
-- `UnitySignal/.claude/*` - All workflow files
+- `UnityMissile.cs` - The raw missile guidance script
+- `UnityMissile/Program.cs` - MDK-wrapped version (auto-generated)
+- `UnityMissile/.claude/*` - All workflow files
 
 ### Coordinates With
-- `UnityMissile.cs` - Receives camera info via UNITY_MSL broadcast
-- `UnityBeacon.cs` - Receives camera info via MINER_BEACON broadcast
-- `Unity Boot.cs` - Waits for boot_complete=true before activating
+- `UnityPad.cs` - Receives config from pad, sends telemetry back
 
 ---
 
-## CAMERA DISPLAY ARCHITECTURE
+## MISSILE FLIGHT ARCHITECTURE
 
-### Camera Sources
-| Source | Channel | Data |
-|--------|---------|------|
-| Local Grid | Block scan | Cameras tagged [PAD#] |
-| Missiles | UNITY_MSL IGC | Camera names in broadcast |
-| Miners | MINER_BEACON IGC | Camera entity IDs in broadcast |
+### Standard Flight Phases
+```
+IDLE → CLIMB → ARM → COAST → REENTRY → TARGET → DETONATE
+```
 
-### LCD Tags
-| Tag | Mode | Purpose |
-|-----|------|---------|
-| `[PAD1CAMS]:1` | Single pad | LCD slot 1 for PAD1 |
-| `[CTRLCAMS]:1` | Controller | LCD slot 1 (all cameras) |
+### Satellite Mode Phases
+```
+SAT_CLIMB → SAT_BRAKE → SAT_HOLD
+```
+
+| Phase | Description |
+|-------|-------------|
+| IDLE | Waiting for launch command |
+| CLIMB | Ascending to cruise altitude |
+| ARM | Warheads armed, preparing |
+| COAST | Cruising toward target |
+| REENTRY | Descending toward target |
+| TARGET | Final approach, tracking |
+| DETONATE | Impact/proximity detonation |
+| SAT_CLIMB | Satellite: Ascending to orbit |
+| SAT_BRAKE | Satellite: Slowing to orbital velocity |
+| SAT_HOLD | Satellite: Station-keeping |
+
+### Targeting Modes
+| Mode | Description |
+|------|-------------|
+| GPS | Navigate to fixed coordinates |
+| ANTENNA | Track broadcasting antenna |
+| SENSOR | Proximity detection via sensor |
+| LIDAR | Camera raycast lock |
+| MANUAL | No auto-targeting, remote guided |
+| SATELLITE | Deploy as orbital platform |
 
 ---
 
-## IGC CHANNELS (LISTENERS)
+## PER-PB CUSTOMDATA ARCHITECTURE
 
-| Channel | Data Format |
-|---------|-------------|
-| `UNITY_MSL` | `...|CAMS:count|name1,name2,...` |
-| `MINER_BEACON` | `...|CAMS:entityId1,entityId2,...` |
+### Missile reads config from Me.CustomData at launch
+
+UnityPad writes this to missile PB CustomData before launch:
+
+```ini
+[UNITY_MISSILE]
+Mode=GPS
+GPS=1000,500,200
+Antenna=Enemy Base
+Broadcast=UNITY_MSL
+Climb=500
+Detonate=50
+SensorRange=50
+LidarRange=500
+InSpace=0
+Gravity=9.81
+BurnTime=5
+ReentryDist=500
+FlightMode=2
+```
+
+---
+
+## IGC CHANNELS
+
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| `UNITY_MSL` | OUT | Telemetry to pad |
+| `UNITY_MSL_CMD` | IN | Commands from pad |
+
+### Telemetry Format (OUT)
+```
+Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
+```
+
+### Commands (IN) — Multi-Pad Safe
+- `DETONATE:{padID}` - Trigger warheads (must include padID — bare `DETONATE` removed for safety)
+- `DEORBIT:{padID}` - Force deorbit (must include padID — bare `DEORBIT` removed for safety)
+- `ABORT` - Abort mission
+
+**Multi-pad isolation:** PAD1's missiles won't respond to PAD2's DETONATE or DEORBIT commands. The padID suffix is mandatory — missiles ignore commands without their matching padID.
+
+---
+
+## REQUIRED BLOCKS
+
+| Block | Purpose |
+|-------|---------|
+| Remote Control | Navigation, gravity sensing |
+| Gyroscope(s) | Attitude control |
+| Thruster(s) | Propulsion (Atmo/H2/Ion) |
+| Battery(s) | Power storage |
+| Warhead(s) | Payload |
+| Antenna | Telemetry broadcast |
+| Sensor | Proximity detection (optional) |
+| Camera | LIDAR targeting (optional) |
 
 ---
 
@@ -48,12 +118,25 @@ You are the UnitySignal specialist. Reference this documentation when working on
 
 | Function | Purpose |
 |----------|---------|
-| `CheckBoot()` | Wait for boot_complete=true |
-| `CheckControllerMode()` | Detect [CTRLCAMS] LCD presence |
-| `ScanBlocks()` | Find cameras and LCDs |
-| `ProcessMessages()` | Handle IGC broadcasts |
-| `BuildCameraList()` | Compile all cameras |
-| `DrawCameraLCD()` | Sprite-based LCD rendering |
+| `ParseConfig()` | Read launch config from CustomData |
+| `RunPhase()` | Execute current flight phase |
+| `Navigate()` | Thrust vector control |
+| `AimAt()` | Point toward target |
+| `Detonate()` | Arm and trigger warheads |
+| `BroadcastTelemetry()` | Send status via IGC |
+| `CheckCommands()` | Listen for pad commands |
+| `SensorTarget()` | Proximity detection |
+| `LidarTarget()` | Raycast lock |
+
+---
+
+## COMMUNICATION FLOW
+
+1. **Pre-Launch:** UnityPad writes config to missile PB CustomData
+2. **Launch:** Merge disconnects, missile reads config, begins CLIMB
+3. **Flight:** Missile broadcasts telemetry on UNITY_MSL every tick
+4. **Control:** UnityPad can send DETONATE/ABORT via UNITY_MSL_CMD
+5. **Terminal:** Missile detonates on proximity or impact
 
 ---
 
@@ -62,7 +145,7 @@ You are the UnitySignal specialist. Reference this documentation when working on
 ```powershell
 cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
 powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build UnitySignal -c Debug
+dotnet build UnityMissile -c Debug
 ```
 
 ---
@@ -70,10 +153,10 @@ dotnet build UnitySignal -c Debug
 ## CHARACTER COUNT
 
 ```powershell
-[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnitySignal\script.cs").Length
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs").Length
 ```
 
-**Current:** 9,333 characters (91% margin)
+**Current:** 44,563 characters (55.4% margin)
 
 ---
 
@@ -87,4 +170,4 @@ dotnet build UnitySignal -c Debug
 
 ---
 
-*Unity AI Lab - Camera Systems Division*
+*Unity AI Lab - Missile Systems Division*

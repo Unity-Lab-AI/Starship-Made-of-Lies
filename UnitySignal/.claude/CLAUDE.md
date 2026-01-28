@@ -126,8 +126,8 @@ satellites=4
 | `UNITY_MSL` | IN | Missile telemetry + position |
 | `MINER_BEACON` | IN | Miner status + camera info |
 | `UNITY_SAT_RELAY_STATUS` | IN | Satellite status broadcasts |
-| `UNITY_BOOT_REQ` | IN | Boot SIGNAL_CHECK request |
-| `UNITY_BOOT_RSP` | OUT | Signal responds with status |
+| `UNITY_BOOT_REQ` | IN | Boot SIGNAL_CHECK request (accepts both `SIGNAL_CHECK` and `SIGNAL_CHECK:{padID}`) |
+| `UNITY_BOOT_RSP` | OUT | Signal responds with camera/LCD counts |
 
 ---
 
@@ -226,7 +226,7 @@ Auto-detected when any `[CTRLCAMS]` LCD exists on grid.
 
 | Script | Deployed | Budget | Status |
 |--------|----------|--------|--------|
-| UnitySignal | ~41,800 | 100,000 | OK (58% margin) |
+| UnitySignal | ~47,118 | 100,000 | OK (52.9% margin) |
 
 ---
 

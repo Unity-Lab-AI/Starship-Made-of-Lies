@@ -60,15 +60,17 @@ HomeZ=200
 |---------|-----------|---------|
 | `MINER_BEACON` | OUT | Broadcast status every 3 seconds |
 
-### Broadcast Format
+### Broadcast Format (Multi-Pad Aware)
 ```
-MB|EntityId|ShipName|Bat%|Cargo%|H2%|X,Y,Z|Speed|Alt|DistHome|Status|DrillCount|DrillsOn|GrinderCount|GrindersOn|Docked
+MB|PadID|EntityId|ShipName|Bat%|Cargo%|H2%|X,Y,Z|Speed|Alt|DistHome|Status|DrillCount|DrillsOn|GrinderCount|GrindersOn|Docked
 ```
 
 **Example:**
 ```
-MB|123456789|Miner1|85|42|68|1000,500,200|5|150|2500|DRILLING|4|4|0|0|0
+MB|1|123456789|Miner1|85|42|68|1000,500,200|5|150|2500|DRILLING|4|4|0|0|0
 ```
+
+**Multi-pad filtering:** Broadcasts include PadID in the data payload. Receiving pads filter by `bcnPad != padID` to ignore miners belonging to other pads. Controller mode sees ALL miners regardless of PadID.
 
 ---
 
@@ -134,7 +136,7 @@ dotnet build UnityBeacon -c Debug
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityBeacon\script.cs").Length
 ```
 
-**Current:** 14,658 characters (85% margin)
+**Current:** ~16,600 characters (83.4% margin)
 
 ---
 

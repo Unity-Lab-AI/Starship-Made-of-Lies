@@ -1,4 +1,4 @@
-public enum S{INIT,IDLE,PRINT,BUILD,DOCK,FUEL,AMMO,READY,ARM,LAUNCH,GONE}
+public enum S{INIT,IDLE,PRINT,BUILD,DOCK,FUEL,READY,ARM,LAUNCH,GONE}
 public enum M{MAIN,TGT,SET,ARM,WIZARD,VIEW}
 public enum T{GPS,ANTENNA,SENSOR,LIDAR,MANUAL,SATELLITE}
 public enum E{UNKNOWN,SPACE,PLANET,MOON}
@@ -36,6 +36,7 @@ List<IMyRadioAntenna> mslAnt=new List<IMyRadioAntenna>();
 List<IMyLaserAntenna> mslLsr=new List<IMyLaserAntenna>();
 List<IMyCockpit> mslCock=new List<IMyCockpit>();
 List<IMyLightingBlock> mslLights=new List<IMyLightingBlock>();
+List<IMyLightingBlock> padLts=new List<IMyLightingBlock>();
 IMyRemoteControl mslRC;
 DateTime lMnuT;
 float batPct,h2Pct,o2Pct,icePct,ammoPct;
@@ -47,7 +48,7 @@ string tgtAntenna="",tgtName="",bcTag="UNITY_MSL";
 bool tgtSet=false,antBC=true,counting=false;
 List<MyWaypointInfo> wpts=new List<MyWaypointInfo>(),customWP=new List<MyWaypointInfo>();
 List<string> detAnts=new List<string>();
-int wpIdx=0,antIdx=0,clbDst=500,detDist=50,cntDn=10,sensorRng=50,lidarRng=500,lidarAng=5,brnT=5,reDst=500,fltMd=2,tgtRel=0;
+int wpIdx=0,antIdx=0,clbDst=500,detDist=50,cntDn=10,sensorRng=50,lidarRng=500,lidarAng=5,reDst=500,fltMd=2,tgtRel=0;
 DateTime armTime;
 IMyBroadcastListener mslL,relL;
 IMyProgrammableBlock bootPB,invPB,signalPB;
@@ -127,6 +128,8 @@ Dictionary<int,int> satGridX=new Dictionary<int,int>();
 Dictionary<int,int> satGridZ=new Dictionary<int,int>();
 double satGridSpacing=5000;
 Queue<Vector3D> satReplaceQueue=new Queue<Vector3D>();
+Queue<int> satReplaceGridX=new Queue<int>();
+Queue<int> satReplaceGridZ=new Queue<int>();
 int nextGridX=0;
 int nextGridZ=0;
 int satLaunchGridX=0;
@@ -156,7 +159,7 @@ string[] ammoITNames={"SemiAutoPistolMagazine","AutomaticRifleGun_Mag_20rd","Rap
 MyDefinitionId ammoBP;
 MyItemType ammoType;
 int toolTarget=10;
-int pAmmoTarget=100,s10Target=50000;
+int pAmmoTarget=100,mslAmmoTarget=50000;
 
 public Program(){
 Runtime.UpdateFrequency=UpdateFrequency.Update100;
@@ -166,6 +169,7 @@ UpdatePadTag();
 UpdateAmmoType();
 DetectEnvironment();
 Scan();
+if(padCon!=null)padCon.Enabled=true;
 WriteCustomData();
 foreach(var w in prtWeld)w.Enabled=false;
 foreach(var p in prtPist){p.Velocity=-0.5f;}
@@ -189,9 +193,6 @@ string nm=pb.CustomName;string nmU=nm.ToUpper();
 if(nm.Contains($"[PAD{padID}")&&nmU.Contains("UNITY BOOT"))bootPB=pb;
 else if(nm.Contains($"[PAD{padID}]")&&nmU.Contains("UNITY INVENTORY"))invPB=pb;
 else if(nm.Contains($"[PAD{padID}]")&&nmU.Contains("UNITY SIGNAL"))signalPB=pb;
-else if(nmU.Contains("UNITY INVENTORY")&&invPB==null)invPB=pb;
-else if(nmU.Contains("UNITY SIGNAL")&&signalPB==null)signalPB=pb;
-else if(nmU.Contains("UNITY BOOT")&&bootPB==null)bootPB=pb;
 }
 }
 string padSession="";
@@ -224,7 +225,7 @@ IGC.SendBroadcastMessage("UNITY_BOOT_ACK","PAD_RUNNING");
 sentAck=true;
 }
 void CheckBootRequest(){
-while(bootReqL!=null&&bootReqL.HasPendingMessage){var msg=bootReqL.AcceptMessage();if(msg.Data.ToString()=="PAD_CHECK")SendBootResponse();}
+while(bootReqL!=null&&bootReqL.HasPendingMessage){var msg=bootReqL.AcceptMessage();string d=msg.Data.ToString();if(d=="PAD_CHECK"||d==$"PAD_CHECK:{padID}")SendBootResponse();}
 }
 void SendBootResponse(){
 int mc=padMerge!=null?1:0,cc=padCon!=null?1:0;
@@ -255,7 +256,7 @@ padTag=$"[PAD{padID}";Me.CustomName=$"[PAD{padID}] UNITY PAD";
 List<int> DiscoverSiblingPads(){
 var ids=new List<int>();
 var pbs=new List<IMyProgrammableBlock>();
-GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me&&b.CustomName.ToUpper().Contains("UNITY PAD"));
+GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me&&b.CustomName.ToUpper().Contains("UNITY PAD"));
 foreach(var pb in pbs){
 string n=pb.CustomName;
 int idx=n.IndexOf("[PAD");
@@ -273,8 +274,6 @@ int next=1;
 while(taken.Contains(next))next++;
 return next;
 }
-void SetupModule(){SetupModule(false);}
-void SetupModule(bool force){if(padID==0){padID=GetNextPadID();UpdatePadTag();}string tg=$"[PAD{padID}]",pt=$"[PAD{padID}-PRINT]";Vector3D mp=Me.GetPosition();var aB=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(aB);var pB=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(pB,b=>b.CubeGrid==Me.CubeGrid);IMyShipMergeBlock pm=null;double pd=999;foreach(var b in pB)if(b is IMyShipMergeBlock){double d=VD(b.GetPosition(),mp);if(d<pd){pm=b as IMyShipMergeBlock;pd=d;}}Vector3D mP=pm!=null?pm.GetPosition():mp;IMyShipMergeBlock om=null;bool iM=pm!=null&&pm.IsConnected;if(iM){var aM=new List<IMyShipMergeBlock>();GridTerminalSystem.GetBlocksOfType(aM,m=>m.IsConnected&&m!=pm);if(aM.Count>0)om=aM[0];}Vector3D mD=Vector3D.Zero;if(iM&&om!=null)mD=VN(om.GetPosition()-mP);var sG=new HashSet<long>();foreach(var b in pB)if(b is IMyPistonBase){var p=b as IMyPistonBase;if(p.Top!=null&&VD(b.GetPosition(),mp)<50)sG.Add(p.Top.CubeGrid.EntityId);}int li=1,vi=1,hi=1,wi=1,ci=1;Action<IMyTerminalBlock>T=b=>b.CustomName=$"{tg} {BT(b)}";Func<string,string>Strip=n=>{int i=n.IndexOf("[PAD");if(i>=0){int e=n.IndexOf("]",i);if(e>i)n=n.Remove(i,e-i+1).Trim();}return n;};foreach(var b in pB){if(b.CustomName.Contains("Missile #")||b.CustomName.Contains("-PRINT")||b==Me)continue;double d=VD(b.GetPosition(),mp);if(d>80)continue;if(iM&&mD!=Vector3D.Zero&&Vector3D.Dot(b.GetPosition()-mP,mD)>1)continue;string nm=b.CustomName;if(force&&nm.Contains("[PAD")&&!nm.Contains($"[PAD{padID}"))nm=Strip(nm);if(nm.Contains("[PRINT]")&&!nm.Contains("-PRINT]")){b.CustomName=nm.Replace("[PRINT]",pt);continue;}if(!force&&(nm.Contains($"[PAD{padID}")||(nm.Contains("[PAD")&&!nm.Contains($"[PAD{padID}"))))continue;if(b is IMyShipMergeBlock&&b==pm)b.CustomName=$"{tg} Merge";else if(b is IMyShipConnector){var cn=b as IMyShipConnector;string u=nm.ToUpper();if(u.Contains("ORE")||u.Contains("EJECTOR"))b.CustomName=$"{tg} {nm}";else if(ci<=2){b.CustomName=$"[PAD{padID}-CON{ci}]";ci++;}else b.CustomName=$"{tg} Con";}else if(b is IMyTextPanel&&li<=8){b.CustomName=$"[PAD{padID}:{li}] LCD";li++;}else if(b is IMyPistonBase){var ps=b as IMyPistonBase;if(Math.Abs(Vector3D.Dot(ps.WorldMatrix.Up,Vector3D.Up))>0.7){b.CustomName=$"{pt} V{vi}";vi++;}else{b.CustomName=$"{pt} H{hi}";hi++;}}else if(b is IMyShipWelder){b.CustomName=$"{pt} W{wi}";wi++;}else if(b is IMyProjector)b.CustomName=$"{pt} Proj";else if(b is IMyButtonPanel)b.CustomName=$"{tg} Btn";else if(b is IMyBatteryBlock||b is IMyGasTank||b is IMyCargoContainer||b is IMyRefinery||b is IMyAssembler||b is IMyRadioAntenna||b is IMyLaserAntenna||b is IMyReactor||b is IMySolarPanel||b is IMyGasGenerator||b is IMyGyro||b is IMyThrust||b is IMySensorBlock||b is IMyCameraBlock||b is IMyRemoteControl||b is IMyCockpit||b is IMyMedicalRoom)T(b);else if(b is IMyDoor)b.CustomName=$"{tg} Dr";else if(b is IMyLightingBlock)b.CustomName=$"{tg} Lt";else if(b is IMyConveyorSorter)b.CustomName=$"{tg} Srt";else if(b is IMyShipDrill)b.CustomName=$"{tg} Drl";else if(b is IMyShipGrinder)b.CustomName=$"{tg} Grd";else if(b is IMyOreDetector)b.CustomName=$"{tg} ODt";else if(b is IMyBeacon)b.CustomName=$"{tg} Bcn";else if(b is IMyTimerBlock)b.CustomName=$"{tg} Tmr";else if(b is IMyAirVent)b.CustomName=$"{tg} Vnt";else if(b is IMyGravityGenerator)b.CustomName=$"{tg} Grv";else if(b is IMyJumpDrive)b.CustomName=$"{tg} Jmp";else{string bt=BT(b);if(!string.IsNullOrEmpty(bt)&&bt.Length<30)b.CustomName=$"{tg} {bt}";}}foreach(var b in aB){if(b.CubeGrid==Me.CubeGrid||!sG.Contains(b.CubeGrid.EntityId)||b.CustomName.Contains("[PAD")||b.CustomName.Contains("Missile #")||b.CustomName.Contains("-PRINT"))continue;if(b is IMyShipWelder){b.CustomName=$"{pt} W{wi}";wi++;}else if(b is IMyProjector&&!b.CustomName.Contains("-PRINT]"))b.CustomName=$"{pt} Proj";else if(b is IMyCockpit)T(b);}bool mDk=pm!=null&&pm.IsConnected;if(mDk){ScanMissile();if(mslFound){bldNum++;NameMissileParts();AutoNameConnectors();pNmd=true;}}setupDone=true;}
 void UpdateAmmoType(){
 ammoBP=MyDefinitionId.Parse(BP+ammoBPNames[ammoTypeIdx]);
 ammoType=MyItemType.Parse(OB+"AmmoMagazine/"+ammoITNames[ammoTypeIdx]);
@@ -327,7 +326,8 @@ if(tick%5==0)UpdateAutoAttack();
 if(tick%5==0)UpdateBtnConfig();
 if(tick%5==0)ReadInvStats();
 if(tick%10==0&&cNd.Count>6){bldScroll=(bldScroll+1)%(cNd.Count-5);}
-if(mslFound&&cS!=S.GONE)UpdateMissileLights();
+if(cS!=S.IDLE&&cS!=S.GONE)UpdateMissileLights();
+else ResetPadLights();
 }
 
 void CheckTelemetry(){
@@ -338,7 +338,8 @@ CheckTelemetryTimeout();
 }
 void ProcessTelemetry(MyIGCMessage msg){
 if(!(msg.Data is string))return;
-var parts=((string)msg.Data).Split(',');
+string tlmRaw=(string)msg.Data;
+var parts=tlmRaw.Split(',');
 if(parts.Length>=5){
 double x,y,z,d;
 if(double.TryParse(parts[0],out x)&&double.TryParse(parts[1],out y)&&double.TryParse(parts[2],out z)){
@@ -353,6 +354,11 @@ if(double.TryParse(parts[3],out d))mslDTT=d;
 mslPhase=parts[4];
 if(mslPhase=="ENTERING_BLACKOUT"){mslBO=true;lKPh=mslPhase;lKDst=mslDTT;}
 else if(mslPhase=="CONTACT_RESTORED"){mslBO=false;if(abtQ){RemoteDetonate();abtQ=false;mslLnch=false;hasTlm=false;cS=S.IDLE;return;}}
+else if(mslPhase=="BLACKOUT_SAT"){int oi=tlmRaw.IndexOf("ORIGTGT:");
+if(oi>=0){int oe=tlmRaw.IndexOf('|',oi);if(oe<0)oe=tlmRaw.Length;string og=tlmRaw.Substring(oi+8,oe-oi-8);
+var oc=og.Split(',');if(oc.Length==3){double ox,oy,oz;if(double.TryParse(oc[0],out ox)&&double.TryParse(oc[1],out oy)&&double.TryParse(oc[2],out oz)){
+tgtGPS=new Vector3D(ox,oy,oz);tgtSet=true;tgtName="RELAY";}}}
+mslLnch=false;hasTlm=false;mslBO=false;shwOut=false;cS=S.IDLE;return;}
 else{lKPh=mslPhase;lKDst=mslDTT;mslBO=false;}
 if(parts.Length>=7){
 double g,fp;
@@ -372,7 +378,7 @@ fSpd[fIdx%16]=(float)mslSpeed;
 fIdx=(fIdx+1)%1000000;
 lTlm=DT;
 hasTlm=true;
-if(mslPhase!=lastBBPhase){string ts=DT.ToString("HH:mm:ss");string detail=mslPhase=="WARHEADS_ARMED"?$" @{mslDTT:F0}m":mslPhase=="IMPACT"?$" DTT:{mslDTT:F0}m":mslPhase=="TARGET"?$" DTT:{mslDTT:F0}m SPD:{mslSpeed:F0}m/s":"";bbLog+=$"{ts}|MSL:{mslPhase}{detail}\n";lastBBPhase=mslPhase;if(bbLog.Length>3000){int nl=bbLog.IndexOf('\n',500);if(nl>0)bbLog=bbLog.Substring(nl+1);}WriteCustomData();}
+if(mslPhase!=lastBBPhase){string ts=DT.ToString("HH:mm:ss");string detail=mslPhase=="AMMO_EJECT"?$" @{mslDTT:F0}m":mslPhase=="WARHEADS_ARMED"?$" @{mslDTT:F0}m":mslPhase=="IMPACT"?$" DTT:{mslDTT:F0}m":mslPhase=="TARGET"?$" DTT:{mslDTT:F0}m SPD:{mslSpeed:F0}m/s":"";bbLog+=$"{ts}|MSL:{mslPhase}{detail}\n";lastBBPhase=mslPhase;if(bbLog.Length>3000){int nl=bbLog.IndexOf('\n',500);if(nl>0)bbLog=bbLog.Substring(nl+1);}WriteCustomData();}
 if(padLsr.Count>0){
 foreach(var l in padLsr){
 l.Enabled=true;
@@ -396,10 +402,11 @@ else if(finalPhase=="TARGET")mslOutcome="SIGNAL LOST - TARGETING";
 else mslOutcome="SIGNAL LOST";
 LogState(mslOutcome);
 shwOut=true;
+if(mslOutcome=="SIGNAL LOST"&&lKPh=="ENTERING_BLACKOUT"){tgtSet=true;tgtName="RELAY";mslLnch=false;cS=S.IDLE;}
 }}
 }
 void AckOutcome(){
-shwOut=false;mslOutcome="";mslLnch=false;hasTlm=false;mslBO=false;abtQ=false;abtS=false;cS=S.IDLE;
+shwOut=false;mslOutcome="";mslLnch=false;hasTlm=false;mslBO=false;abtQ=false;abtS=false;cS=S.IDLE;ResetPadLights();
 }
 void BroadcastCommand(string cmd,object data){
 string msg=$"{padID}|{cmd}|{data}";
@@ -575,6 +582,8 @@ int srcPad;if(!int.TryParse(parts[2],out srcPad))continue;
 var coords=parts[3].Split(',');
 if(coords.Length==3){double x,y,z;if(double.TryParse(coords[0],out x)&&double.TryParse(coords[1],out y)&&double.TryParse(coords[2],out z)){
 satReplaceQueue.Enqueue(new Vector3D(x,y,z));
+int gx=0,gz=0;if(parts.Length>=5){var gp=parts[4].Split(',');if(gp.Length>=2){int.TryParse(gp[0],out gx);int.TryParse(gp[1],out gz);}}
+satReplaceGridX.Enqueue(gx);satReplaceGridZ.Enqueue(gz);
 if(kSats.Contains(sid))kSats.Remove(sid);
 if(sPos.ContainsKey(sid))sPos.Remove(sid);
 if(satGridX.ContainsKey(sid))satGridX.Remove(sid);
@@ -591,7 +600,9 @@ if(satReplaceQueue.Count==0)break;
 if(!pStat.ContainsKey(pid))continue;
 if(pStat[pid]=="IDLE"||pStat[pid]=="READY"){
 var tgt=satReplaceQueue.Dequeue();
-BroadcastCommand("SATLAUNCH",$"{pid}|{tgt.X:F0},{tgt.Y:F0},{tgt.Z:F0}");
+int gx=satReplaceGridX.Count>0?satReplaceGridX.Dequeue():0;
+int gz=satReplaceGridZ.Count>0?satReplaceGridZ.Dequeue():0;
+BroadcastCommand("SATLAUNCH",$"{pid}|GRID|{gx},{gz}");
 sRQ++;
 }}}
 int activeSats=kSats.Count;
@@ -620,18 +631,20 @@ while(bcnL.HasPendingMessage){
 var msg=bcnL.AcceptMessage();
 if(!(msg.Data is string))continue;
 var p=((string)msg.Data).Split('|');
-if(p.Length<16||p[0]!="MB")continue;
-long eid;if(!long.TryParse(p[1],out eid))continue;
+if(p.Length<17||p[0]!="MB")continue;
+int bcnPad;if(!int.TryParse(p[1],out bcnPad))continue;
+if(!isCtl&&bcnPad!=padID)continue;
+long eid;if(!long.TryParse(p[2],out eid))continue;
 MinerData m;
 if(!trkM.TryGetValue(eid,out m)){m=new MinerData();trkM[eid]=m;}
-m.name=p[2];
-float.TryParse(p[3],out m.bat);float.TryParse(p[4],out m.crg);float.TryParse(p[5],out m.h2);
-var pos=p[6].Split(',');if(pos.Length>=3){double x,y,z;if(double.TryParse(pos[0],out x)&&double.TryParse(pos[1],out y)&&double.TryParse(pos[2],out z))m.pos=new Vector3D(x,y,z);}
-double.TryParse(p[7],out m.spd);double.TryParse(p[8],out m.alt);double.TryParse(p[9],out m.dist);
-m.status=p[10];int.TryParse(p[11],out m.drills);int.TryParse(p[12],out m.drillsOn);int.TryParse(p[13],out m.grinders);int.TryParse(p[14],out m.grindersOn);
-m.docked=p[15]=="1";m.lastSeen=DT;
-if(p.Length>=21){double.TryParse(p[16],out m.outboundSecs);double.TryParse(p[17],out m.returnSecs);int.TryParse(p[18],out m.cycles);double.TryParse(p[19],out m.etaSecs);m.outbound=p[20]=="1";}
-if(p.Length>=22&&p[21].StartsWith("CARGO:")){m.cargoRaw=p[21].Substring(6);ParseMinerCargo(m);}
+m.name=p[3];
+float.TryParse(p[4],out m.bat);float.TryParse(p[5],out m.crg);float.TryParse(p[6],out m.h2);
+var pos=p[7].Split(',');if(pos.Length>=3){double x,y,z;if(double.TryParse(pos[0],out x)&&double.TryParse(pos[1],out y)&&double.TryParse(pos[2],out z))m.pos=new Vector3D(x,y,z);}
+double.TryParse(p[8],out m.spd);double.TryParse(p[9],out m.alt);double.TryParse(p[10],out m.dist);
+m.status=p[11];int.TryParse(p[12],out m.drills);int.TryParse(p[13],out m.drillsOn);int.TryParse(p[14],out m.grinders);int.TryParse(p[15],out m.grindersOn);
+m.docked=p[16]=="1";m.lastSeen=DT;
+if(p.Length>=22){double.TryParse(p[17],out m.outboundSecs);double.TryParse(p[18],out m.returnSecs);int.TryParse(p[19],out m.cycles);double.TryParse(p[20],out m.etaSecs);m.outbound=p[21]=="1";}
+if(p.Length>=23&&p[22].StartsWith("CARGO:")){m.cargoRaw=p[22].Substring(6);ParseMinerCargo(m);}
 }
 CorrelateDockedMiners();
 CleanStaleMiners();}
@@ -666,13 +679,13 @@ case"SETUP":cM=M.WIZARD;sel=0;break;
 case"RESCAN":DetectEnvironment();Scan();break;
 case"PRINT":StartPrint();break;
 case"CREATIVE":isCreative=!isCreative;break;
-case"NAMEPAD":NamePadParts();break;
-case"NAMEMSL":if(mslFound){NameMissileParts();AutoNameConnectors();}break;
-case"SETUPMOD":SetupModule();break;
-case"SETUPFORCE":SetupModule(true);break;
+case"NAMEPAD":IGC.SendBroadcastMessage("UNITY_SETUP_CMD",$"NAMEPAD|{padID}");Echo("Setup: NAMEPAD sent to Boot");break;
+case"NAMEMSL":IGC.SendBroadcastMessage("UNITY_SETUP_CMD",$"NAMEMSL|{padID}");Echo("Setup: NAMEMSL sent to Boot");break;
+case"SETUPMOD":IGC.SendBroadcastMessage("UNITY_SETUP_CMD",$"SETUPMOD|{padID}");Echo("Setup: SETUPMOD sent to Boot");break;
+case"SETUPFORCE":IGC.SendBroadcastMessage("UNITY_SETUP_CMD",$"SETUPFORCE|{padID}");Echo("Setup: SETUPFORCE sent to Boot");break;
 case"RESET#":bldNum=0;break;
 case"STOP":StopPrint();break;
-case"RESET":cS=S.IDLE;mslLnch=false;hasTlm=false;abtQ=false;abtS=false;shwOut=false;mslOutcome="";bldCmp=true;mergePaused=false;if(padMerge!=null)padMerge.Enabled=true;ResetPrinterPosition();ResetAttachedMissile();break;
+case"RESET":cS=S.IDLE;mslLnch=false;hasTlm=false;abtQ=false;abtS=false;shwOut=false;mslOutcome="";bldCmp=true;mergePaused=false;if(padMerge!=null)padMerge.Enabled=true;if(padCon!=null)padCon.Enabled=true;ResetPrinterPosition();ResetAttachedMissile();ResetPadLights();break;
 case"ACK":case"OK":case"CLEAR":if(shwOut)AckOutcome();break;
 case"CLAIM":if(padID==0){padID=GetNextPadID();UpdatePadTag();}break;
 case"SETPADCONTROL":isCtl=!isCtl;if(isCtl){ctrlSel=0;viewLCD=0;cM=M.MAIN;}break;
@@ -711,7 +724,7 @@ double closest=50;
 foreach(var m in allMerge){if(m.CustomName.Contains("[PAD")){double d=VD(m.GetPosition(),Me.GetPosition());if(d<closest){padMerge=m;closest=d;}}}
 }
 foreach(var b in blks){
-if(b is IMyShipConnector){var cn=b as IMyShipConnector;string u=b.CustomName.ToUpper();if(u.Contains("-CON1")&&padCon1==null)padCon1=cn;else if(u.Contains("-CON2")&&padCon2==null)padCon2=cn;else if(padCon==null&&!u.Contains("ORE")&&!u.Contains("-CON"))padCon=cn;}
+if(b is IMyShipConnector){var cn=b as IMyShipConnector;string u=b.CustomName.ToUpper();if(u.Contains("-CON1")&&padCon1==null)padCon1=cn;else if(u.Contains("-CON2")&&padCon2==null)padCon2=cn;else if(padCon==null&&u.Contains("FUEL"))padCon=cn;}
 if(b is IMyTextPanel){
 var p=b as IMyTextPanel;string pn=p.CustomName;
 if(LCDMatch(pn,1)&&lcd1==null)lcd1=p;
@@ -743,7 +756,7 @@ foreach(var a in mslAnt){padAnt.Remove(a);}
 }
 
 void ScanPad(){
-padBat.Clear();padH2.Clear();padO2.Clear();padCargo.Clear();padCargoL.Clear();padCargoM.Clear();padCargoS.Clear();padRef.Clear();padAsm.Clear();padAnt.Clear();padLsr.Clear();padReact.Clear();padSolar.Clear();padGyr.Clear();padThr.Clear();padGen.Clear();padCam.Clear();padSen.Clear();oreC.Clear();padWind.Clear();padMedCount=0;padSurvCount=0;padCryoCount=0;
+padBat.Clear();padH2.Clear();padO2.Clear();padCargo.Clear();padCargoL.Clear();padCargoM.Clear();padCargoS.Clear();padRef.Clear();padAsm.Clear();padAnt.Clear();padLsr.Clear();padReact.Clear();padSolar.Clear();padGyr.Clear();padThr.Clear();padGen.Clear();padCam.Clear();padSen.Clear();oreC.Clear();padWind.Clear();padLts.Clear();padMedCount=0;padSurvCount=0;padCryoCount=0;
 var blks=new List<IMyTerminalBlock>();
 GridTerminalSystem.GetBlocksOfType(blks,b=>b.CubeGrid==Me.CubeGrid);
 Vector3D padPos=padMerge!=null?padMerge.GetPosition():Me.GetPosition();
@@ -769,9 +782,10 @@ if(b is IMyShipConnector&&b.CustomName.ToUpper().Contains("ORE"))oreC.Add(b as I
 if(b is IMyPowerProducer){var pp=b as IMyPowerProducer;if(pp.BlockDefinition.SubtypeId.Contains("Wind"))padWind.Add(pp);}
 if(b is IMyMedicalRoom){string st=b.BlockDefinition.SubtypeId;if(st.Contains("Survival")||st.Contains("Kit"))padSurvCount++;else padMedCount++;}
 if(b is IMyCockpit&&b.BlockDefinition.SubtypeId.Contains("Cryo"))padCryoCount++;
+if(b is IMyLightingBlock&&!b.CustomName.Contains("Missile"))padLts.Add(b as IMyLightingBlock);
 }
 var allBlk=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(allBlk);
-foreach(var x in allBlk){if(IsMslBlock(x))continue;if(x is IMyBatteryBlock){var bb=x as IMyBatteryBlock;if(!padBat.Contains(bb))padBat.Add(bb);}else if(x is IMySolarPanel){var sp=x as IMySolarPanel;if(!padSolar.Contains(sp))padSolar.Add(sp);}else if(x is IMyReactor){var rr=x as IMyReactor;if(!padReact.Contains(rr))padReact.Add(rr);}else if(x is IMyGasGenerator){var gg=x as IMyGasGenerator;if(!padGen.Contains(gg))padGen.Add(gg);}else if(x is IMyGasTank){var tt=x as IMyGasTank;if(tt.BlockDefinition.SubtypeId.Contains("Hydrogen")){if(!padH2.Contains(tt))padH2.Add(tt);}else{if(!padO2.Contains(tt))padO2.Add(tt);}}else if(x is IMyCargoContainer&&x.CubeGrid==Me.CubeGrid){var cc=x as IMyCargoContainer;if(!padCargo.Contains(cc)){padCargo.Add(cc);string st=cc.BlockDefinition.SubtypeId;if(st.Contains("LargeContainer"))padCargoL.Add(cc);else if(st.Contains("MediumContainer"))padCargoM.Add(cc);else padCargoS.Add(cc);}}else if(x is IMyRefinery){var rf=x as IMyRefinery;if(!padRef.Contains(rf))padRef.Add(rf);}else if(x is IMyAssembler){var am=x as IMyAssembler;if(!padAsm.Contains(am))padAsm.Add(am);}else if(x is IMyPowerProducer){var pp=x as IMyPowerProducer;if(pp.BlockDefinition.SubtypeId.Contains("Wind")&&!padWind.Contains(pp))padWind.Add(pp);}}
+foreach(var x in allBlk){if(IsMslBlock(x))continue;if(x is IMyBatteryBlock){var bb=x as IMyBatteryBlock;if(!padBat.Contains(bb))padBat.Add(bb);}else if(x is IMySolarPanel&&x.IsSameConstructAs(Me)){var sp=x as IMySolarPanel;if(!padSolar.Contains(sp))padSolar.Add(sp);}else if(x is IMyReactor){var rr=x as IMyReactor;if(!padReact.Contains(rr))padReact.Add(rr);}else if(x is IMyGasGenerator){var gg=x as IMyGasGenerator;if(!padGen.Contains(gg))padGen.Add(gg);}else if(x is IMyGasTank){var tt=x as IMyGasTank;if(tt.BlockDefinition.SubtypeId.Contains("Hydrogen")){if(!padH2.Contains(tt))padH2.Add(tt);}else{if(!padO2.Contains(tt))padO2.Add(tt);}}else if(x is IMyCargoContainer&&x.IsSameConstructAs(Me)){var cc=x as IMyCargoContainer;if(!padCargo.Contains(cc)){padCargo.Add(cc);string st=cc.BlockDefinition.SubtypeId;if(st.Contains("LargeContainer"))padCargoL.Add(cc);else if(st.Contains("MediumContainer"))padCargoM.Add(cc);else padCargoS.Add(cc);}}else if(x is IMyRefinery){var rf=x as IMyRefinery;if(!padRef.Contains(rf))padRef.Add(rf);}else if(x is IMyAssembler){var am=x as IMyAssembler;if(!padAsm.Contains(am))padAsm.Add(am);}else if(x is IMyPowerProducer){var pp=x as IMyPowerProducer;if(pp.BlockDefinition.SubtypeId.Contains("Wind")&&!padWind.Contains(pp))padWind.Add(pp);}}
 toolCargo=oreCargo=ingotCargo=compCargo=ammoCargo=bottleCargo=null;string mt=$"[pad{padID}".ToLower();
 padCargo.Sort((a,b)=>{string sa=a.BlockDefinition.SubtypeId,sb=b.BlockDefinition.SubtypeId;int la=sa.Contains("Large")?0:sa.Contains("Medium")?1:2,lb=sb.Contains("Large")?0:sb.Contains("Medium")?1:2;return la-lb;});
 foreach(var c in padCargo){string n=c.CustomName.ToLower().Replace(" ","");bool my=padID==0||n.Contains(mt),ot=false;for(int p=1;p<=8;p++)if(p!=padID&&n.Contains($"[pad{p}"))ot=true;if(ot)continue;if(n.Contains("-ore")&&my&&oreCargo==null)oreCargo=c;else if(n.Contains("-ingot")&&my&&ingotCargo==null)ingotCargo=c;else if(n.Contains("-comp")&&my&&compCargo==null)compCargo=c;else if(n.Contains("-tools")&&my&&toolCargo==null)toolCargo=c;else if(n.Contains("-ammo")&&my&&ammoCargo==null)ammoCargo=c;else if(n.Contains("-bottle")&&my&&bottleCargo==null)bottleCargo=c;}
@@ -830,16 +844,16 @@ else{foreach(var p in prtPist)p.Velocity=0;}
 }
 
 void ScanMissile(){
-mslMerge=null;mslConFuel=null;mslConAmmo=null;mslRC=null;mslPB=null;
-mslBat.Clear();mslH2.Clear();mslO2.Clear();mslWar.Clear();mslThr.Clear();mslGen.Clear();mslReact.Clear();mslGyr.Clear();mslSen.Clear();mslCam.Clear();mslAnt.Clear();mslLsr.Clear();mslCock.Clear();mslLights.Clear();
-mslFound=false;batPct=0;h2Pct=0;o2Pct=0;warArmed=false;
 merged=padMerge!=null&&padMerge.IsConnected;
 conLocked=IsLk(padCon);
-if(!merged||padMerge==null){mslFound=false;return;}
+if(!merged||padMerge==null){mslFound=false;mslMerge=null;return;}
 var allMerge=new List<IMyShipMergeBlock>();
 GridTerminalSystem.GetBlocksOfType(allMerge,b=>b.IsConnected&&b!=padMerge);
-if(allMerge.Count==0){mslFound=false;return;}
+if(allMerge.Count==0){mslFound=false;mslMerge=null;return;}
 mslMerge=allMerge[0];
+mslConFuel=null;mslConAmmo=null;mslRC=null;mslPB=null;
+mslBat.Clear();mslH2.Clear();mslO2.Clear();mslWar.Clear();mslThr.Clear();mslGen.Clear();mslReact.Clear();mslGyr.Clear();mslSen.Clear();mslCam.Clear();mslAnt.Clear();mslLsr.Clear();mslCock.Clear();mslLights.Clear();
+mslFound=false;batPct=0;h2Pct=0;o2Pct=0;warArmed=false;
 var allBlks=new List<IMyTerminalBlock>();
 var mslCons=new List<IMyShipConnector>();
 GridTerminalSystem.GetBlocksOfType(allBlks);
@@ -872,7 +886,7 @@ if(b is IMyCameraBlock)mslCam.Add(b as IMyCameraBlock);
 if(b is IMyRadioAntenna)mslAnt.Add(b as IMyRadioAntenna);
 if(b is IMyLaserAntenna)mslLsr.Add(b as IMyLaserAntenna);
 if(b is IMyCockpit)mslCock.Add(b as IMyCockpit);
-if(b is IMyLightingBlock)mslLights.Add(b as IMyLightingBlock);
+if(b is IMyLightingBlock&&bn.Contains("Missile"))mslLights.Add(b as IMyLightingBlock);
 if(b is IMyProgrammableBlock&&b!=Me&&mslPB==null){string pbn=b.CustomName;if(!pbn.Contains("[PAD")||pbn.Contains("Missile"))mslPB=b as IMyProgrammableBlock;}
 }
 if(mslCons.Count>0&&padCon!=null){
@@ -891,14 +905,15 @@ mslH2Cur=mslH2Max=0;if(mslH2.Count>0){foreach(var h in mslH2){mslH2Max+=h.Capaci
 mslO2Cur=mslO2Max=o2Pct=0;if(mslO2.Count>0){foreach(var o in mslO2){mslO2Max+=o.Capacity;mslO2Cur+=o.Capacity*(float)o.FilledRatio;}o2Pct=mslO2Max>0?(mslO2Cur/mslO2Max)*100:0;}
 mslIceCur=mslIceMax=icePct=0;
 if(mslGen.Count>0){foreach(var g in mslGen){var inv=g.GetInventory();if(inv!=null){mslIceCur+=(float)inv.CurrentVolume;mslIceMax+=(float)inv.MaxVolume;}}icePct=mslIceMax>0?(mslIceCur/mslIceMax)*100:0;}
-ammoPct=0;
-if(mslConAmmo!=null){var ammoInv=mslConAmmo.GetInventory();if(ammoInv!=null){float cur=(float)ammoInv.CurrentVolume;float max=(float)ammoInv.MaxVolume;ammoPct=max>0?(cur/max)*100:0;}}
+ammoPct=0;mslAmmo=0;
+if(mslConAmmo!=null){var ammoInv=mslConAmmo.GetInventory();if(ammoInv!=null){float cur=(float)ammoInv.CurrentVolume;float max=(float)ammoInv.MaxVolume;ammoPct=max>0?(cur/max)*100:0;mslAmmo=(int)ammoInv.GetItemAmount(ammoType);}}
 if(mslWar.Count>0){warArmed=true;foreach(var w in mslWar)if(!w.IsArmed){warArmed=false;break;}}
 if(cS==S.LAUNCH)warArmed=false;
 if(warArmed&&cS!=S.GONE&&cS!=S.ARM){foreach(var w in mslWar)w.IsArmed=false;warArmed=false;}
 thrAtmo=0;thrH2=0;thrIon=0;
 foreach(var t in mslThr){string sub=t.BlockDefinition.SubtypeId;if(sub.Contains("Atmospheric"))thrAtmo++;else if(sub.Contains("Hydrogen"))thrH2++;else thrIon++;}
 ScanAntennas();
+if(mslFound){if(mslMerge!=null)mslMerge.Enabled=true;if(padMerge!=null)padMerge.Enabled=true;}
 }
 
 void ScanAntennas(){
@@ -916,10 +931,11 @@ customWP.Clear();gpsData="";
 string d=btn!=null?btn.CustomData:"";if(string.IsNullOrEmpty(d))return;
 var NS=System.Globalization.NumberStyles.Any;var IC=System.Globalization.CultureInfo.InvariantCulture;
 foreach(var ln in d.Split('\n')){string l=ln.Trim();if(l.StartsWith(";"))continue;if(!l.StartsWith("GPS:"))continue;gpsData+=l+"\n";var p=l.Split(':');if(p.Length>=5){double x,y,z;if(double.TryParse(p[2].Replace(',','.'),NS,IC,out x)&&double.TryParse(p[3].Replace(',','.'),NS,IC,out y)&&double.TryParse(p[4].Replace(',','.'),NS,IC,out z))customWP.Add(new MyWaypointInfo(p[1],new Vector3D(x,y,z)));}}}
-void WriteCustomData(){ParseCustomGPS();var d=Me.CustomData;int b=d.IndexOf("[BLACKBOX]");Me.CustomData=(b>0?d.Substring(0,b):d+"\n")+"[BLACKBOX]\n"+bbLog+"\n[GPS]\n"+gpsData;}
+void WriteCustomData(){ParseCustomGPS();var d=Me.CustomData;int b=d.IndexOf("[BLACKBOX]");string pre=b>=0?d.Substring(0,b):(d.EndsWith("\n")?d:d+"\n");if(!pre.Contains("[SYSTEM]"))pre=$"[SYSTEM]\npad_ready=true\npad_session={padSession}\n"+pre;Me.CustomData=pre+"[BLACKBOX]\n"+bbLog+"\n[GPS]\n"+gpsData;}
 void LogState(string evt){string ts=DT.ToString("HH:mm:ss");bbLog+=$"{ts}|PAD:{evt}\n";if(bbLog.Length>2000){int nl=bbLog.IndexOf('\n',300);if(nl>0)bbLog=bbLog.Substring(nl+1);}WriteCustomData();}
 void CheckStateLog(){if(cS!=lastBBState){lastBBState=cS;string sn=cS==S.BUILD?"BUILD":cS==S.DOCK?"DOCKED":cS==S.FUEL?"FUELING":cS==S.READY?"READY":cS==S.ARM?"ARMED":cS==S.LAUNCH?"LAUNCHING":cS==S.GONE?"AWAY":"";if(sn!="")LogState(sn);}}
-void WriteMslStatus(){string cd=Me.CustomData;string ph=cS==S.GONE?mslPhase:cS==S.ARM?"ARMED":cS==S.READY?"READY":cS==S.FUEL?"FUELING":cS==S.DOCK?"DOCKING":cS==S.BUILD?"BUILD":cS==S.PRINT?"PRINT":mslFound?"DOCKED":"IDLE";int armCnt=cS==S.ARM||warArmed?1:0,rdyCnt=cS==S.READY?1:0,mCnt=cS==S.GONE?1:0;double dAlt=mslAlt,dDist=mslDTT,dFuel=mslFuelPct,dSpd=mslVel;if(cS!=S.GONE&&mslFound){dFuel=h2Pct;dSpd=0;if(mslRC!=null){Vector3D rcPos=mslRC.GetPosition();double seaLvl=0;if(mslRC.TryGetPlanetElevation(MyPlanetElevation.Sealevel,out seaLvl))dAlt=seaLvl;else dAlt=rcPos.Length();}if(tgtSet)dDist=VD(mslRC!=null?mslRC.GetPosition():Me.GetPosition(),tgtGPS);}string mslLine=$"msl_phase={ph}|target={tgtName}|mslDist={dDist:F0}|mslSpeed={dSpd:F0}|mslAlt={dAlt:F0}|mslFuel={dFuel:F0}|mslBatPct={batPct:F0}|mslH2Pct={h2Pct:F0}|mslO2Pct={o2Pct:F0}|mslCount={mCnt}|mslArmed={armCnt}|mslReady={rdyCnt}|conLocked={(conLocked?1:0)}|warArmed={(warArmed?1:0)}|warCount={mslWar.Count}|mslAmmo={mslAmmo}|mslAmmoLoad={ammoLoad}|mslGenCnt={mslGen.Count}|mslH2Cnt={mslH2.Count}|mslO2Cnt={mslO2.Count}|mslIce={(int)icePct}|mslUran=0";if(!cd.Contains("[PAD_DATA]"))cd+="[PAD_DATA]\n";int pi=cd.IndexOf("msl_phase=");if(pi>=0){int pe=cd.IndexOf("\n",pi);if(pe<0)pe=cd.Length;cd=cd.Remove(pi,pe-pi);cd=cd.Insert(pi,mslLine);}else{int si=cd.IndexOf("[PAD_DATA]")+10;int ni=cd.IndexOf("\n",si);if(ni<0)ni=cd.Length;cd=cd.Insert(ni,"\n"+mslLine);}Me.CustomData=cd;}
+void WriteMslStatus(){string cd=Me.CustomData;string ph=cS==S.GONE?mslPhase:cS==S.ARM?"ARMED":cS==S.READY?"READY":cS==S.FUEL?"FUELING":cS==S.DOCK?"DOCKING":cS==S.BUILD?"BUILD":cS==S.PRINT?"PRINT":mslFound?"DOCKED":"IDLE";int armCnt=cS==S.ARM||warArmed?1:0,rdyCnt=cS==S.READY?1:0,mCnt=cS==S.GONE?1:0;double dAlt=mslAlt,dDist=mslDTT,dFuel=mslFuelPct,dSpd=mslVel;if(cS!=S.GONE&&mslFound){dFuel=h2Pct;dSpd=0;if(mslRC!=null){Vector3D rcPos=mslRC.GetPosition();double seaLvl=0;if(mslRC.TryGetPlanetElevation(MyPlanetElevation.Sealevel,out seaLvl))dAlt=seaLvl;else dAlt=rcPos.Length();}if(tgtSet)dDist=VD(mslRC!=null?mslRC.GetPosition():Me.GetPosition(),tgtGPS);}int ammoNeed=Math.Max(0,ammoLoad-mslAmmo);bool needAmmo=conLocked&&mslConAmmo!=null&&ammoNeed>0&&(cS==S.FUEL||cS==S.DOCK);
+string mslLine=$"msl_phase={ph}|target={tgtName}|mslDist={dDist:F0}|mslSpeed={dSpd:F0}|mslAlt={dAlt:F0}|mslFuel={dFuel:F0}|mslBatPct={batPct:F0}|mslH2Pct={h2Pct:F0}|mslO2Pct={o2Pct:F0}|mslCount={mCnt}|mslArmed={armCnt}|mslReady={rdyCnt}|conLocked={(conLocked?1:0)}|warArmed={(warArmed?1:0)}|warCount={mslWar.Count}|mslAmmo={mslAmmo}|mslAmmoLoad={ammoLoad}|mslGenCnt={mslGen.Count}|mslH2Cnt={mslH2.Count}|mslO2Cnt={mslO2.Count}|mslIce={(int)icePct}|mslUran=0|ammoReq={(needAmmo?1:0)}|ammoReqType={ammoTypeIdx}|ammoReqNeed={ammoNeed}";if(!cd.Contains("[PAD_DATA]"))cd+="[PAD_DATA]\n";int pi=cd.IndexOf("msl_phase=");if(pi>=0){int pe=cd.IndexOf("\n",pi);if(pe<0)pe=cd.Length;cd=cd.Remove(pi,pe-pi);cd=cd.Insert(pi,mslLine);}else{int si=cd.IndexOf("[PAD_DATA]")+10;int ni=cd.IndexOf("\n",si);if(ni<0)ni=cd.Length;cd=cd.Insert(ni,"\n"+mslLine);}Me.CustomData=cd;}
 
 void UpdateState(){
 if(padMerge==null||padCon==null){cS=S.INIT;return;}
@@ -932,31 +948,30 @@ if(printing){cS=S.PRINT;return;}
 if(!mslFound){if(prtProj!=null)prtProj.Enabled=true;bldCmp=false;return;}
 if(prtProj!=null)prtProj.Enabled=false;
 if(!bldCmp){cS=S.BUILD;return;}
-if(merged){if(!pNmd){bldNum++;NameMissileParts();AutoNameConnectors();pNmd=true;}cS=S.DOCK;hasTlm=false;}
+if(merged){if(!pNmd){bldNum++;NameMissileParts();AutoNameConnectors();pNmd=true;}if(padCon!=null)padCon.Enabled=true;cS=S.DOCK;hasTlm=false;}
 break;
 case S.BUILD:
-if(prtProj!=null&&prtProj.RemainingBlocks>0){bldCmp=false;return;}
-bool allFunctional=true;
-foreach(var b in mslBat)if(!b.IsFunctional)allFunctional=false;
-foreach(var t in mslThr)if(!t.IsFunctional)allFunctional=false;
-foreach(var g in mslGyr)if(!g.IsFunctional)allFunctional=false;
-if(allFunctional){
+if(prtProj!=null&&prtProj.RemainingBlocks>0&&!prtStopped){bldCmp=false;return;}
 if(!pNmd){bldNum++;NameMissileParts();pNmd=true;}
 AutoNameConnectors();
 DisableMissileThrusters();
+if(mslMerge!=null)mslMerge.Enabled=true;
+if(padMerge!=null)padMerge.Enabled=true;
+if(padCon!=null)padCon.Enabled=true;
 if(prtProj!=null)prtProj.Enabled=false;
 bldCmp=true;cS=S.DOCK;
-}
 break;
 case S.DOCK:
 if(!mslFound){cS=S.IDLE;dockTicks=0;return;}
 dockTicks++;
 if(dockTicks>300){cS=S.IDLE;dockTicks=0;break;}
+if(padCon!=null)padCon.Enabled=true;
 if(!conLocked&&padCon.Status==MyShipConnectorStatus.Connectable)padCon.Connect();
 CheckPreLaunchComms();
 if(conLocked){DisableMissileThrusters();fuelTicks=0;dockTicks=0;cS=S.FUEL;}
 break;
 case S.FUEL:
+foreach(var h in mslH2){h.Enabled=true;h.Stockpile=true;}
 fuelTicks++;
 if(fuelTicks>600){if(IsLk(padCon))padCon.Disconnect();cS=S.READY;break;}
 if(conLocked){
@@ -981,13 +996,6 @@ if(IsLk(padCon))padCon.Disconnect();
 cS=S.READY;
 }
 break;
-case S.AMMO:
-if(!mslFound){cS=S.IDLE;break;}
-if(mslConAmmo==null||ammoLoad<=0){cS=S.READY;break;}
-mslAmmo=0;
-if(mslConAmmo!=null){var aInv=mslConAmmo.GetInventory();if(aInv!=null)mslAmmo=(int)aInv.GetItemAmount(ammoType);}
-if(mslAmmo>=ammoLoad||(ammoStock<=0&&mslAmmo>0)){cS=S.READY;}
-break;
 case S.READY:counting=false;CheckPreLaunchComms();break;
 case S.ARM:
 CheckPreLaunchComms();
@@ -998,15 +1006,17 @@ if(cntDn==0||elapsed>=cntDn){StartLaunch();counting=false;}
 break;
 case S.LAUNCH:
 lnchTk++;
-if(padCon!=null){padCon.Disconnect();padCon.CollectAll=false;}
+if(padCon!=null){padCon.Disconnect();padCon.Enabled=false;padCon.CollectAll=false;}
 if(padMerge!=null&&padMerge.Enabled)padMerge.Enabled=false;
 if(mslMerge!=null&&mslMerge.Enabled)mslMerge.Enabled=false;
 if(padMerge==null||!padMerge.IsConnected){
 if(padLsr.Count>0&&mslMerge!=null){
 Vector3D mslPos=mslMerge.GetPosition();
 foreach(var l in padLsr){l.Enabled=true;l.SetTargetCoords($"GPS:MSL:{mslPos.X:F0}:{mslPos.Y:F0}:{mslPos.Z:F0}:");l.Connect();}}
+if(padCon!=null)padCon.Enabled=true;
+if(padMerge!=null)padMerge.Enabled=true;
 cS=S.GONE;sel=0;}
-else if(lnchTk>10){cS=S.GONE;sel=0;}
+else if(lnchTk>10){if(padCon!=null)padCon.Enabled=true;if(padMerge!=null)padMerge.Enabled=true;cS=S.GONE;sel=0;}
 break;
 }}
 
@@ -1028,21 +1038,24 @@ for(int i=0;i<16;i++){fDist[i]=0;fAlt[i]=0;fSpd[i]=0;}
 fIdx=0;mslVel=0;
 foreach(var w in mslWar){w.IsArmed=false;}
 warArmed=false;
-foreach(var a in padAnt){a.Enabled=true;a.Radius=50000f;a.EnableBroadcasting=true;}
-if(padCon!=null){padCon.Disconnect();padCon.CollectAll=false;padCon.ThrowOut=false;}
-if(padMerge!=null)padMerge.Enabled=false;
-if(mslMerge!=null)mslMerge.Enabled=false;
+foreach(var a in padAnt){a.Enabled=true;a.Radius=75000f;a.EnableBroadcasting=true;}
 lnchT=DT;
 string padLaserStr="";
 if(padLsr.Count>0){var lp=padLsr[0].GetPosition();padLaserStr=$"\nPadLaser={lp.X:F0},{lp.Y:F0},{lp.Z:F0}";}
 if(mslPB!=null){
-bool inSpace=fltMd==0?!hasGrav:fltMd==2;
+bool inSpace=fltMd==1?false:!hasGrav;
 string satCfg="";
-if(tM==T.SATELLITE){if(satLaunchGridX==0&&satLaunchGridZ==0){satLaunchGridX=nextGridX;satLaunchGridZ=nextGridZ;AdvanceGridSlot();}int satId=bldNum*100+padID;satCfg=$"\nSatID={satId}\nSatGridX={satLaunchGridX}\nSatGridZ={satLaunchGridZ}\nGridSpacing={satGridSpacing:F0}\nInterceptDist=10";if(satLaunchTgt!=Vector3D.Zero)satCfg+=$"\nGPS={satLaunchTgt.X:F0},{satLaunchTgt.Y:F0},{satLaunchTgt.Z:F0}";satLaunchGridX=0;satLaunchGridZ=0;}
-string cfg=$"[UNITY_MISSILE]\nMode={tM}\nGPS={tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}\nAntenna={tgtAntenna}\nBroadcast={bcTag}\nClimb={clbDst}\nDetonate={detDist}\nSensorRange={sensorRng}\nLidarRange={lidarRng}\nLidarAngle={lidarAng}\nAntBroadcast={(antBC?"1":"0")}\nInSpace={(inSpace?"1":"0")}\nGravity={gravStr:F2}\nBurnTime={brnT}\nReentryDist={reDst}\nFlightMode={fltMd}{padLaserStr}\nMslNumber={bldNum}\nPadID={padID}\nTargetRel={tgtRel}{satCfg}";
+if(tM==T.SATELLITE){if(satLaunchGridX==0&&satLaunchGridZ==0){satLaunchGridX=nextGridX;satLaunchGridZ=nextGridZ;AdvanceGridSlot();}int satId=bldNum*100+padID;satCfg=$"\nSatID={satId}\nSatGridX={satLaunchGridX}\nSatGridZ={satLaunchGridZ}\nGridSpacing={satGridSpacing:F0}\nInterceptDist=10\nSatAlt=62000";if(satLaunchTgt!=Vector3D.Zero)satCfg+=$"\nGPS={satLaunchTgt.X:F0},{satLaunchTgt.Y:F0},{satLaunchTgt.Z:F0}";satLaunchGridX=0;satLaunchGridZ=0;}
+string cfg=$"[UNITY_MISSILE]\nMode={tM}\nGPS={tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}\nAntenna={tgtAntenna}\nBroadcast={bcTag}\nClimb={clbDst}\nDetonate={detDist}\nSensorRange={sensorRng}\nLidarRange={lidarRng}\nLidarAngle={lidarAng}\nAntBroadcast={(antBC?"1":"0")}\nInSpace={(inSpace?"1":"0")}\nGravity={gravStr:F2}\nReentryDist={reDst}\nFlightMode={fltMd}{padLaserStr}\nMslNumber={bldNum}\nPadID={padID}\nTargetRel={tgtRel}{satCfg}";
 mslPB.CustomData=cfg;
 mslPB.TryRun("LAUNCH");
 }
+foreach(var t in mslThr){t.Enabled=true;t.ThrustOverridePercentage=1f;}
+foreach(var g in mslGyr){g.Enabled=true;g.GyroOverride=true;}
+if(mslRC!=null){mslRC.IsMainCockpit=true;mslRC.ControlThrusters=true;mslRC.DampenersOverride=false;}
+if(padCon!=null){padCon.Disconnect();padCon.Enabled=false;padCon.CollectAll=false;padCon.ThrowOut=false;}
+if(padMerge!=null)padMerge.Enabled=false;
+if(mslMerge!=null)mslMerge.Enabled=false;
 mslLnch=true;lnchTk=0;lastBBPhase="";
 string modeStr=tM==T.GPS?"GPS":tM==T.ANTENNA?"ANT":tM==T.SENSOR?"SNS":tM==T.LIDAR?"LDR":tM==T.SATELLITE?"SAT":"MAN";
 LogState($"LAUNCH>{tgtName} M:{modeStr} G:{tgtGPS.X:F0},{tgtGPS.Y:F0},{tgtGPS.Z:F0}");
@@ -1052,12 +1065,12 @@ cS=S.LAUNCH;
 void RemoteDetonate(bool force=false){
 if(cS!=S.GONE){Echo("DETONATE BLOCKED: Not in flight");return;}
 if(!force&&(DT-lnchT).TotalSeconds<10){Echo("DETONATE BLOCKED: 10s grace period");return;}
-foreach(var a in padAnt){a.Enabled=true;a.Radius=50000f;a.EnableBroadcasting=true;}
+foreach(var a in padAnt){a.Enabled=true;a.Radius=75000f;a.EnableBroadcasting=true;}
 IGC.SendBroadcastMessage(bcTag+"_CMD",$"DETONATE:{padID}");
 LogState("ABORT_CMD_SENT");
 }
 
-void DisableMissileThrusters(){foreach(var t in mslThr){t.Enabled=false;t.ThrustOverridePercentage=0f;}foreach(var g in mslGyr){g.GyroOverride=false;g.Enabled=false;}foreach(var x in mslGen)x.Enabled=false;foreach(var b in mslBat)b.ChargeMode=ChargeMode.Recharge;foreach(var w in mslWar)w.IsArmed=false;foreach(var a in mslAnt)a.Enabled=false;foreach(var s in mslSen)s.Enabled=false;foreach(var c in mslCam)c.Enabled=false;}
+void DisableMissileThrusters(){foreach(var t in mslThr){t.Enabled=false;t.ThrustOverridePercentage=0f;}foreach(var g in mslGyr){g.GyroOverride=false;g.Enabled=false;}foreach(var x in mslGen)x.Enabled=false;foreach(var b in mslBat)b.ChargeMode=ChargeMode.Recharge;foreach(var w in mslWar)w.IsArmed=false;foreach(var a in mslAnt){a.Enabled=true;a.Radius=75000f;a.EnableBroadcasting=true;}foreach(var s in mslSen)s.Enabled=false;foreach(var c in mslCam)c.Enabled=true;foreach(var h in mslH2){h.Enabled=true;h.Stockpile=true;}foreach(var o in mslO2){o.Enabled=true;o.Stockpile=true;}}
 void ResetAttachedMissile(){
 DisableMissileThrusters();
 if(mslMerge!=null)mslMerge.Enabled=true;
@@ -1065,7 +1078,7 @@ if(mslPB!=null)mslPB.TryRun("RESET");
 IGC.SendBroadcastMessage(bcTag+"_CMD",$"RESET:{padID}");
 LogState("MSL_RESET");
 }
-void EnableMissileForLaunch(){foreach(var g in mslGyr){g.Enabled=true;g.GyroOverride=true;}foreach(var x in mslGen)x.Enabled=true;foreach(var b in mslBat)b.ChargeMode=ChargeMode.Discharge;foreach(var a in mslAnt){a.Enabled=true;a.Radius=50000f;a.EnableBroadcasting=true;}foreach(var s in mslSen)s.Enabled=true;foreach(var c in mslCam){c.Enabled=true;c.EnableRaycast=true;}}
+void EnableMissileForLaunch(){foreach(var t in mslThr){t.Enabled=true;t.ThrustOverridePercentage=0f;}foreach(var g in mslGyr){g.Enabled=true;g.GyroOverride=false;}foreach(var x in mslGen)x.Enabled=true;foreach(var b in mslBat)b.ChargeMode=ChargeMode.Discharge;foreach(var h in mslH2)h.Stockpile=false;foreach(var o in mslO2)o.Stockpile=false;foreach(var a in mslAnt){a.Enabled=true;a.Radius=75000f;a.EnableBroadcasting=true;}foreach(var s in mslSen)s.Enabled=true;foreach(var c in mslCam){c.Enabled=true;c.EnableRaycast=true;}}
 bool preLaunchCommsReady=false;
 void CheckPreLaunchComms(){
 if(merged){preLaunchCommsReady=mslAnt.Count>0;return;}
@@ -1082,7 +1095,7 @@ if(preLaunchCommsReady){hasTlm=true;lTlm=DT;}
 }
 
 void UpdateMissileLights(){
-if(mslLights.Count==0)return;
+if(mslLights.Count==0&&padLts.Count==0)return;
 Color c=Color.Black;float intensity=1f,falloff=1f,radius=2f;bool on=true;
 double sec=(DT-DateTime.Today).TotalSeconds;
 bool lowRes=ammoStock<ammoLoad||padH2Pct<50||pIceC<iceTarget;
@@ -1095,7 +1108,9 @@ else if(cS==S.READY){c=new Color(0,255,0);intensity=1f;}
 else if(cS==S.ARM){c=new Color(255,0,0);int rate=counting&&cntDn>0&&(cntDn-(int)(DT-armTime).TotalSeconds)<5?4:2;on=((int)(sec*rate)%2)==0;}
 else{c=new Color(50,50,50);intensity=0.3f;}
 foreach(var l in mslLights){l.Enabled=on;l.Color=c;l.Intensity=intensity;l.Falloff=falloff;l.Radius=radius;}
+foreach(var l in padLts){l.Enabled=true;l.Color=c;}
 }
+void ResetPadLights(){foreach(var l in mslLights)l.Color=Color.White;foreach(var l in padLts)l.Color=Color.White;mslLights.Clear();}
 
 void AutoNameConnectors(){
 if(mslMerge==null||padMerge==null)return;
@@ -1128,7 +1143,6 @@ if(ammoCon!=null&&ammoCon!=dockCon)ammoCon.CustomName=$"[PAD{padID}] Missile #{b
 
 void NameMissileParts(){string t=$"[PAD{padID}] Missile #{bldNum}";Action<IMyTerminalBlock>N=x=>x.CustomName=$"{t} {BT(x)}";foreach(var b in mslBat)N(b);foreach(var h in mslH2)N(h);foreach(var w in mslWar)N(w);foreach(var x in mslThr)N(x);foreach(var g in mslGen)N(g);foreach(var g in mslGyr)N(g);foreach(var s in mslSen)N(s);foreach(var c in mslCam)N(c);foreach(var a in mslAnt)N(a);foreach(var l in mslLsr)N(l);foreach(var c in mslCock)N(c);for(int i=0;i<mslLights.Count;i++)mslLights[i].CustomName=$"{t} Light {i+1}";if(mslRC!=null)N(mslRC);if(mslPB!=null)mslPB.CustomName=$"{t} Program";if(mslMerge!=null)N(mslMerge);}
 string BT(IMyTerminalBlock b){string s=b.BlockDefinition.SubtypeId;if(string.IsNullOrEmpty(s)){if(b is IMyGasGenerator)return"O2/H2 Gen";if(b is IMyGasTank)return"Gas Tank";s=b.BlockDefinition.TypeIdString.Replace(OB,"");}return s.Contains("Battery")?"Battery":s.Contains("HydrogenTank")?"H2 Tank":s.Contains("OxygenTank")?"O2 Tank":s.Contains("LargeContainer")?"Large Cargo":s.Contains("MediumContainer")?"Medium Cargo":s.Contains("SmallContainer")?"Small Cargo":s.Contains("Refinery")?"Refinery":s.Contains("Assembler")?"Assembler":s.Contains("RadioAntenna")?"Antenna":s.Contains("LaserAntenna")?"Laser Ant":s.Contains("Gyro")?"Gyroscope":s.Contains("HydrogenThrust")?"H2 Thruster":s.Contains("AtmosphericThrust")?"Atmo Thruster":s.Contains("Thrust")?"Ion Thruster":s.Contains("Programmable")?"Program":s.Contains("Merge")?"Merge Block":s.Contains("Connector")?"Connector":s.Contains("Projector")?"Projector":s.Contains("Piston")?"Piston":s.Contains("Camera")?"Camera":s.Contains("Sensor")?"Sensor":s.Contains("RemoteControl")?"Remote Control":s.Contains("Warhead")?"Warhead":s.Contains("ButtonPanel")?"Button Panel":s.Contains("LCD")?"LCD Panel":s.Contains("Reactor")?"Reactor":s.Contains("Solar")?"Solar Panel":s.Contains("Wind")?"Wind Turbine":s.Contains("Medical")?"Medical Room":s.Contains("Survival")?"Survival Kit":s.Contains("Cryo")?"Cryo Chamber":s.Contains("Cockpit")?"Cockpit":s;}
-bool HasSysTag(IMyTerminalBlock b){string n=b.CustomName;return n.Contains("[PAD")||n.Contains("[PRINT]")||n.Contains("[DOCK]")||n.Contains("[AMMO]");}
 bool IsMslBlock(IMyTerminalBlock b){if(!merged||mslMerge==null)return false;bool sameGrid=mslMerge.CubeGrid==Me.CubeGrid;if(sameGrid)return b.CustomName.Contains("Missile #");return b.CubeGrid==mslMerge.CubeGrid;}
 string CnS(IMyShipConnector c)=>c==null?"N/A":c.Status==MyShipConnectorStatus.Connected?"LOCK":"OPEN";
 void TC(IMyShipConnector c){if(c!=null){if(c.Status==MyShipConnectorStatus.Connected)c.Disconnect();else c.Connect();}}
@@ -1139,10 +1153,8 @@ Vector3D VN(Vector3D v)=>Vector3D.Normalize(v);
 void ReadInvStats(){if(invPB==null)FindSiblingPBs();if(invPB==null)return;string d=invPB.CustomData;if(string.IsNullOrEmpty(d))return;
 Action<string,Action<string>>PS=(tag,act)=>{int si=d.IndexOf(tag);if(si<0)return;int ei=d.IndexOf("\n[",si+tag.Length);string sec=ei>0?d.Substring(si,ei-si):d.Substring(si);foreach(var ln in sec.Split('\n')){foreach(var it in ln.Split('|'))act(it);}};
 Func<string,int>PV=s=>{int v=0;if(string.IsNullOrEmpty(s))return 0;string f=s.Split('+')[0].Split('/')[0].Split('%')[0].Split(' ').FirstOrDefault(x=>x.Length>0&&char.IsDigit(x[0]))??"";int.TryParse(f,out v);return v;};
-PS("[QUOTAS]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Length<2)return;string k=kv[0].Trim().ToLower().Replace("_","").Replace(" ","");int v;if(!int.TryParse(kv[1].Trim(),out v))return;if(k=="ammotarget"||k=="tgt")ammoTarget=v;else if(k=="pammotarget")pAmmoTarget=v;else if(k=="s10target"||k=="s10")s10Target=v;else if(k=="h2target")h2Target=v;else if(k=="o2target")o2Target=v;else if(k=="tooltarget")toolTarget=v;});
-ammoStock=0;ammoQueued=0;
-PS("[TURRET_AMMO]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Length<2)return;string k=kv[0].Trim();if(k.StartsWith("NATO_5p56")||k.StartsWith("S-10")){string vp=kv[1];int stk=PV(vp);int pi=vp.IndexOf('+');int si=vp.IndexOf('/');if(pi>=0&&si>pi){int nd;if(int.TryParse(vp.Substring(pi+1,si-pi-1).Trim(),out nd))ammoQueued=nd;}ammoStock=stk;}});
-PS("[STATUS]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Length<2)return;string k=kv[0].Trim().ToLower(),v=kv[1].Trim();if(k=="cargo"){int pi=v.IndexOf('%');if(pi>0)float.TryParse(v.Substring(0,pi),out invCargoPct);}else if(k=="cargol")int.TryParse(v,out invCargoL);else if(k=="cargom")int.TryParse(v,out invCargoM);else if(k=="cargos")int.TryParse(v,out invCargoS);invCargoT=invCargoL+invCargoM+invCargoS;});
+PS("[QUOTAS]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Length<2)return;string k=kv[0].Trim().ToLower().Replace("_","").Replace(" ","");int v;if(!int.TryParse(kv[1].Trim(),out v))return;if(k=="ammotarget"||k=="tgt")ammoTarget=v;else if(k=="pammotarget")pAmmoTarget=v;else if(k=="mslammotarget"||k=="mslammo"||k=="s10target"||k=="s10")mslAmmoTarget=v;else if(k=="h2target")h2Target=v;else if(k=="o2target")o2Target=v;else if(k=="tooltarget")toolTarget=v;});
+PS("[STATUS]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Length<2)return;string k=kv[0].Trim().ToLower().Replace(" ",""),vs=kv[1].Trim();int vi;if(int.TryParse(vs,out vi)){if(k=="ammostock")ammoStock=vi;else if(k=="ammotype"&&vi!=ammoTypeIdx){ammoTypeIdx=vi;UpdateAmmoType();}else if(k=="ammoqueued")ammoQueued=vi;else if(k=="cargol")invCargoL=vi;else if(k=="cargom")invCargoM=vi;else if(k=="cargos")invCargoS=vi;}if(k=="cargo"){int pi=vs.IndexOf('%');if(pi>0)float.TryParse(vs.Substring(0,pi),out invCargoPct);}invCargoT=invCargoL+invCargoM+invCargoS;});
 PS("[BOTTLES]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Length<2)return;string k=kv[0].Trim().ToLower(),v=kv[1];var vp=v.Split('+');int stk=PV(vp[0]);int q=vp.Length>1?PV(vp[1]):0;if(k.StartsWith("h")){pH2B=stk;h2Queued=q;}else if(k.StartsWith("o")){pO2B=stk;o2Queued=q;}});
 oStk.Clear();cStk.Clear();cNd.Clear();cMis.Clear();
 PS("[ORE]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Length>=2){string k=kv[0].Trim();int v=PV(kv[1]);if(k.Length>0&&!k.StartsWith("["))oStk[k]=v;}});
@@ -1150,13 +1162,11 @@ PS("[COMPONENTS]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Le
 foreach(var kv in cNd){int have=0;if(cStk.ContainsKey(kv.Key))have=cStk[kv.Key];if(have<kv.Value)cMis[kv.Key]=kv.Value-have;}
 ReadBlueprint();}
 void ReadBlueprint(){string d=Me.CustomData;bpNd.Clear();bpMis.Clear();if(string.IsNullOrEmpty(d)||!d.Contains("[BLUEPRINT]"))return;int si=d.IndexOf("[BLUEPRINT]");if(si<0)return;int ei=d.IndexOf("\n[",si+11);string sec=ei>0?d.Substring(si,ei-si):d.Substring(si);foreach(var ln in sec.Split('\n')){if(!ln.Contains("="))continue;var kv=ln.Split('=');if(kv.Length<2)continue;string k=kv[0].Trim();if(k.Length==0||k.StartsWith("["))continue;int v;if(int.TryParse(kv[1].Trim(),out v)&&v>0)bpNd[k]=v;}foreach(var kv in bpNd){int have=cStk.ContainsKey(kv.Key)?cStk[kv.Key]:0;if(have<kv.Value)bpMis[kv.Key]=kv.Value-have;}}
-void NamePadParts(){Action<IMyTerminalBlock>N=x=>{if(!HasSysTag(x)&&!x.CustomName.StartsWith("[PAD]"))x.CustomName=$"[PAD] {BT(x)}";};foreach(var b in padBat)N(b);foreach(var t in padH2)N(t);foreach(var t in padO2)N(t);foreach(var c in padCargo)N(c);foreach(var r in padRef)N(r);foreach(var a in padAsm)N(a);foreach(var a in padAnt)N(a);foreach(var l in padLsr)N(l);foreach(var r in padReact)N(r);foreach(var s in padSolar)N(s);foreach(var g in padGyr)N(g);foreach(var t in padThr)N(t);foreach(var g in padGen)N(g);foreach(var c in padCam)N(c);foreach(var s in padSen)N(s);}
-
-void StartPrint(){ScanPrinter();string pt=padID>0?$"[PAD{padID}-PRINT]":"[PRINT]";if(prtPist.Count==0)return;if(prtWeld.Count==0)return;if(prtProj==null)return;if(padMerge==null)return;if(padMerge.IsConnected)return;if(printing){StopPrint();return;}prtStopped=false;printing=true;prtState=0;cS=S.PRINT;bldCmp=false;pNmd=false;prtLastVPos=0;prtST=0;if(prtPistV.Count>0&&prtPistH.Count>0){prtVZero=1.4f;prtVMax=10f;prtHMax=7.2f;foreach(var p in prtPistV){p.MinLimit=0;p.MaxLimit=prtVZero;p.Velocity=prtVSpeed;}foreach(var p in prtPistH){p.MinLimit=0;p.Velocity=prtHSpeed;}prtHPos=prtHMax;}else{prtHPos=0;foreach(var p in prtPist){p.MinLimit=0f;p.Velocity=-0.5f;}}foreach(var w in prtWeld)w.Enabled=false;if(prtProj!=null)prtProj.Enabled=true;if(padMerge!=null)padMerge.Enabled=true;}
+void StartPrint(){ScanPrinter();string pt=padID>0?$"[PAD{padID}-PRINT]":"[PRINT]";if(prtPist.Count==0)return;if(prtWeld.Count==0)return;if(prtProj==null)return;if(padMerge==null)return;if(padMerge.IsConnected)return;if(printing){StopPrint();return;}padMerge.Enabled=true;prtStopped=false;printing=true;prtState=0;cS=S.PRINT;bldCmp=false;pNmd=false;prtLastVPos=0;prtST=0;if(prtPistV.Count>0&&prtPistH.Count>0){prtVZero=1.4f;prtVMax=10f;prtHMax=7.2f;foreach(var p in prtPistV){p.MinLimit=0;p.MaxLimit=prtVZero;p.Velocity=prtVSpeed;}foreach(var p in prtPistH){p.MinLimit=0;p.Velocity=prtHSpeed;}prtHPos=prtHMax;}else{prtHPos=0;foreach(var p in prtPist){p.MinLimit=0f;p.Velocity=-0.5f;}}foreach(var w in prtWeld)w.Enabled=false;if(prtProj!=null)prtProj.Enabled=true;if(padMerge!=null)padMerge.Enabled=true;}
 void StopPrint(){printing=false;prtState=0;prtStopped=true;bldCmp=true;prtHPos=0;prtLastVPos=0;prtST=0;foreach(var p in prtPistV){p.Velocity=-prtVSpeed;p.MinLimit=0;}foreach(var p in prtPistH){p.Velocity=-prtHSpeed;p.MinLimit=0;}foreach(var p in prtPist){p.Velocity=-0.5f;p.MinLimit=0;}foreach(var w in prtWeld)w.Enabled=false;if(prtProj!=null)prtProj.Enabled=false;cS=S.IDLE;IGC.SendBroadcastMessage("UNITY_PRINTER_ACK",$"{padID}|COMPLETE|{bldNum}");}
 void ResetPrinterPosition(){printing=false;prtState=0;prtStopped=true;prtHPos=0;prtLastVPos=0;prtST=0;foreach(var p in prtPistV){p.Velocity=-prtVSpeed;p.MinLimit=0;}foreach(var p in prtPistH){p.Velocity=-prtHSpeed;p.MinLimit=0;}foreach(var p in prtPist){p.Velocity=-0.5f;p.MinLimit=0;}foreach(var w in prtWeld)w.Enabled=false;}
 
-void UpdatePrinter(){if(!printing)return;if(prtProj==null||prtProj.RemainingBlocks==0){StopPrint();return;}if(prtPistV.Count==0||prtPistH.Count==0){UpdatePrinterLegacy();return;}Func<float>gV=()=>{float v=0;foreach(var p in prtPistV)v+=p.CurrentPosition;return v/prtPistV.Count;};Action sH=()=>{prtHPos-=prtHStep;if(prtHPos<0)prtHPos=0;if(prtHPos<=0.05f){StopPrint();return;}foreach(var p in prtPistH){p.Velocity=-prtHSpeed;}prtState=4;};switch(prtState){case 0:bool vZ=true,hR=true;foreach(var p in prtPistV){p.MinLimit=0;float d=p.CurrentPosition-prtVZero;if(d<-0.2f){p.Velocity=prtVSpeed;vZ=false;}else if(d>0.2f){p.Velocity=-prtVSpeed;vZ=false;}else p.Velocity=0;}foreach(var p in prtPistH){p.MinLimit=0;p.Velocity=prtHSpeed;if(p.CurrentPosition<prtHMax-0.1f)hR=false;}if(vZ&&hR){prtHPos=prtHMax;foreach(var p in prtPistV){p.MaxLimit=prtVMax;p.Velocity=prtVSpeed;}foreach(var p in prtPistH)p.Velocity=0;foreach(var w in prtWeld)w.Enabled=true;prtState=1;}break;case 1:foreach(var p in prtPistV)p.Velocity=prtVSpeed;float c1=gV();if(Math.Abs(c1-prtLastVPos)<0.01f)prtST++;else prtST=0;prtLastVPos=c1;if(prtST>10){foreach(var p in prtPistV)p.Velocity=0;prtST=0;prtLastVPos=0;sH();break;}bool aT=true;foreach(var p in prtPistV)if(p.CurrentPosition<prtVMax-0.1f)aT=false;if(aT){foreach(var p in prtPistV)p.Velocity=-prtVSpeed;prtST=0;prtLastVPos=0;prtState=2;}break;case 2:foreach(var p in prtPistV)p.Velocity=-prtVSpeed;float c2=gV();if(Math.Abs(c2-prtLastVPos)<0.01f)prtST++;else prtST=0;prtLastVPos=c2;if(prtST>10){foreach(var p in prtPistV)p.Velocity=0;prtST=0;prtLastVPos=0;sH();break;}bool aB=true;foreach(var p in prtPistV)if(p.CurrentPosition>0.1f)aB=false;if(aB){foreach(var p in prtPistV)p.Velocity=prtVSpeed;prtST=0;prtLastVPos=0;prtState=3;}break;case 3:foreach(var p in prtPistV)p.Velocity=prtVSpeed;float c3=gV();if(Math.Abs(c3-prtLastVPos)<0.01f)prtST++;else prtST=0;prtLastVPos=c3;bool vAt=true;foreach(var p in prtPistV)if(p.CurrentPosition<prtVZero-0.2f)vAt=false;if(vAt||prtST>10){foreach(var p in prtPistV)p.Velocity=0;prtST=0;prtLastVPos=0;sH();}break;case 4:bool hC=true;foreach(var p in prtPistH)if(p.CurrentPosition>prtHPos+0.05f)hC=false;if(hC){foreach(var p in prtPistH)p.Velocity=0;foreach(var p in prtPistV)p.Velocity=prtVSpeed;prtState=1;}break;}}
+void UpdatePrinter(){if(!printing)return;if(padMerge!=null)padMerge.Enabled=true;var pm=new List<IMyShipMergeBlock>();GridTerminalSystem.GetBlocksOfType(pm);foreach(var m in pm){if(m!=padMerge&&!m.Enabled)m.Enabled=true;}if(prtProj==null||prtProj.RemainingBlocks==0){StopPrint();return;}if(prtPistV.Count==0||prtPistH.Count==0){UpdatePrinterLegacy();return;}Func<float>gV=()=>{float v=0;foreach(var p in prtPistV)v+=p.CurrentPosition;return v/prtPistV.Count;};Action sH=()=>{prtHPos-=prtHStep;if(prtHPos<0)prtHPos=0;if(prtHPos<=0.05f){StopPrint();return;}foreach(var p in prtPistH){p.Velocity=-prtHSpeed;}prtState=4;};switch(prtState){case 0:bool vZ=true,hR=true;foreach(var p in prtPistV){p.MinLimit=0;float d=p.CurrentPosition-prtVZero;if(d<-0.2f){p.Velocity=prtVSpeed;vZ=false;}else if(d>0.2f){p.Velocity=-prtVSpeed;vZ=false;}else p.Velocity=0;}foreach(var p in prtPistH){p.MinLimit=0;p.Velocity=prtHSpeed;if(p.CurrentPosition<prtHMax-0.1f)hR=false;}if(vZ&&hR){prtHPos=prtHMax;foreach(var p in prtPistV){p.MaxLimit=prtVMax;p.Velocity=prtVSpeed;}foreach(var p in prtPistH)p.Velocity=0;foreach(var w in prtWeld)w.Enabled=true;prtState=1;}break;case 1:foreach(var p in prtPistV)p.Velocity=prtVSpeed;float c1=gV();if(Math.Abs(c1-prtLastVPos)<0.01f)prtST++;else prtST=0;prtLastVPos=c1;if(prtST>10){foreach(var p in prtPistV)p.Velocity=0;prtST=0;prtLastVPos=0;sH();break;}bool aT=true;foreach(var p in prtPistV)if(p.CurrentPosition<prtVMax-0.1f)aT=false;if(aT){foreach(var p in prtPistV)p.Velocity=-prtVSpeed;prtST=0;prtLastVPos=0;prtState=2;}break;case 2:foreach(var p in prtPistV)p.Velocity=-prtVSpeed;float c2=gV();if(Math.Abs(c2-prtLastVPos)<0.01f)prtST++;else prtST=0;prtLastVPos=c2;if(prtST>10){foreach(var p in prtPistV)p.Velocity=0;prtST=0;prtLastVPos=0;sH();break;}bool aB=true;foreach(var p in prtPistV)if(p.CurrentPosition>0.1f)aB=false;if(aB){foreach(var p in prtPistV)p.Velocity=prtVSpeed;prtST=0;prtLastVPos=0;prtState=3;}break;case 3:foreach(var p in prtPistV)p.Velocity=prtVSpeed;float c3=gV();if(Math.Abs(c3-prtLastVPos)<0.01f)prtST++;else prtST=0;prtLastVPos=c3;bool vAt=true;foreach(var p in prtPistV)if(p.CurrentPosition<prtVZero-0.2f)vAt=false;if(vAt||prtST>10){foreach(var p in prtPistV)p.Velocity=0;prtST=0;prtLastVPos=0;sH();}break;case 4:bool hC=true;foreach(var p in prtPistH)if(p.CurrentPosition>prtHPos+0.05f)hC=false;if(hC){foreach(var p in prtPistH)p.Velocity=0;foreach(var p in prtPistV)p.Velocity=prtVSpeed;prtState=1;}break;}}
 void UpdatePrinterLegacy(){switch(prtState){case 0:bool iR=true;foreach(var p in prtPist){p.Velocity=-0.5f;if(p.CurrentPosition>0.1f)iR=false;}if(iR){foreach(var p in prtPist)p.Velocity=0.5f;prtState=1;}break;case 1:bool eX=true;foreach(var p in prtPist)if(p.CurrentPosition<p.MaxLimit-0.05f)eX=false;if(eX){foreach(var p in prtPist)p.Velocity=-prtSpeed;foreach(var w in prtWeld)w.Enabled=true;prtState=2;}break;case 2:bool rT=true;foreach(var p in prtPist)if(p.CurrentPosition>p.MinLimit+0.05f)rT=false;if(rT){int bd=prtProj!=null?prtProj.BuildableBlocksCount:0;if(bd>0){foreach(var p in prtPist)p.Velocity=0;}else{foreach(var w in prtWeld)w.Enabled=false;foreach(var p in prtPist)p.Velocity=0.5f;prtState=1;}}break;}}
 
 void DoApply(){
@@ -1200,36 +1210,34 @@ else if(sel==1)DisarmMissile();
 else if(sel==2){cM=M.MAIN;sel=0;}
 break;
 case M.SET:
-if(sel==0){clbDst+=50;if(clbDst>500)clbDst=50;}
+if(sel==0){if(clbDst<1000)clbDst+=250;else if(clbDst<3000)clbDst+=500;else if(clbDst<5000)clbDst+=1000;else if(clbDst<10000)clbDst+=2500;else clbDst=500;}
 else if(sel==1){detDist+=10;if(detDist>100)detDist=10;}
-else if(sel==2){cntDn+=1;if(cntDn>10)cntDn=0;}
+else if(sel==2){if(cntDn<30)cntDn+=5;else if(cntDn<60)cntDn+=15;else if(cntDn<120)cntDn+=30;else if(cntDn<300)cntDn+=60;else cntDn=10;}
 else if(sel==3){sensorRng+=10;if(sensorRng>100)sensorRng=10;}
 else if(sel==4){lidarRng+=500;if(lidarRng>5000)lidarRng=500;}
 else if(sel==5){fltMd=(fltMd+1)%3;}
-else if(sel==6){brnT+=1;if(brnT>15)brnT=1;}
-else if(sel==7){reDst+=500;if(reDst>5000)reDst=500;}
-else if(sel==8){antBC=!antBC;}
-else if(sel==9){ammoTypeIdx=(ammoTypeIdx+1)%ammoNames.Length;UpdateAmmoType();}
-else if(sel==10){ammoLoad+=1000;if(ammoLoad>50000)ammoLoad=1000;}
-else if(sel==11){ammoEject+=1000;if(ammoEject>50000)ammoEject=1000;}
-else if(sel==12){}
-else if(sel==13){iceTarget+=500;if(iceTarget>5000)iceTarget=500;}
-else if(sel==14){uranTarget+=10;if(uranTarget>200)uranTarget=10;}
-else if(sel==15){h2PT+=10;if(h2PT>100)h2PT=50;}
-else if(sel==16){o2PT+=10;if(o2PT>100)o2PT=50;}
-else if(sel==17){h2Target+=10;if(h2Target>100)h2Target=10;}
-else if(sel==18){o2Target+=10;if(o2Target>100)o2Target=10;}
-else if(sel==19){toolTarget+=5;if(toolTarget>50)toolTarget=5;}
-else if(sel==20){isCreative=!isCreative;}
-else if(sel==21){mergePaused=!mergePaused;if(!mergePaused&&padMerge!=null){padMerge.Enabled=true;IGC.SendBroadcastMessage(bcTag+"_CMD","MERGE");}}
-else if(sel==22){if(padMerge!=null){padMerge.Enabled=!padMerge.Enabled;if(padMerge.Enabled)IGC.SendBroadcastMessage(bcTag+"_CMD","MERGE");}}
-else if(sel==23)TC(padCon);else if(sel==24)TC(padCon1);else if(sel==25)TC(padCon2);
-else if(sel==26){tlmTO+=300;if(tlmTO>1800)tlmTO=300;}
-else if(sel==27){graphTimeIdx=(graphTimeIdx+1)%graphLabels.Length;}
-else if(sel==28){bldNum=0;}
-else if(sel==29){clbDst=500;detDist=50;cntDn=10;sensorRng=50;lidarRng=500;brnT=5;reDst=500;antBC=true;fltMd=2;tgtGPS=new Vector3D(0,0,0);tgtName="";tgtSet=false;wpIdx=0;tM=T.GPS;isCreative=false;ammoLoad=10106;ammoEject=10106;tlmTO=1000;ammoTypeIdx=0;graphTimeIdx=0;h2PT=90;o2PT=90;bldNum=0;mergePaused=false;tgtRel=0;UpdateAmmoType();}
-else if(sel==30){tgtRel=(tgtRel+1)%3;}
-else if(sel==31){cM=M.MAIN;sel=0;}
+else if(sel==6){if(reDst<2000)reDst+=500;else if(reDst<5000)reDst+=1000;else if(reDst<10000)reDst+=2500;else reDst=500;}
+else if(sel==7){antBC=!antBC;}
+else if(sel==8){ammoTypeIdx=(ammoTypeIdx+1)%ammoNames.Length;UpdateAmmoType();}
+else if(sel==9){ammoLoad+=1000;if(ammoLoad>50000)ammoLoad=1000;}
+else if(sel==10){ammoEject+=1000;if(ammoEject>50000)ammoEject=1000;}
+else if(sel==11){}
+else if(sel==12){iceTarget+=500;if(iceTarget>5000)iceTarget=500;}
+else if(sel==13){uranTarget+=10;if(uranTarget>200)uranTarget=10;}
+else if(sel==14){h2PT+=10;if(h2PT>100)h2PT=50;}
+else if(sel==15){o2PT+=10;if(o2PT>100)o2PT=50;}
+else if(sel==16){h2Target+=10;if(h2Target>100)h2Target=10;}
+else if(sel==17){o2Target+=10;if(o2Target>100)o2Target=10;}
+else if(sel==18){toolTarget+=5;if(toolTarget>50)toolTarget=5;}
+else if(sel==19){isCreative=!isCreative;}
+else if(sel==20){mergePaused=!mergePaused;if(!mergePaused&&padMerge!=null){padMerge.Enabled=true;IGC.SendBroadcastMessage(bcTag+"_CMD","MERGE");}}
+else if(sel==21){if(padMerge!=null){padMerge.Enabled=!padMerge.Enabled;if(padMerge.Enabled)IGC.SendBroadcastMessage(bcTag+"_CMD","MERGE");}}
+else if(sel==22)TC(padCon);else if(sel==23)TC(padCon1);else if(sel==24)TC(padCon2);
+else if(sel==25){tlmTO+=300;if(tlmTO>1800)tlmTO=300;}
+else if(sel==26){graphTimeIdx=(graphTimeIdx+1)%graphLabels.Length;}
+else if(sel==27){bldNum=0;}
+else if(sel==28){clbDst=500;detDist=50;cntDn=10;sensorRng=50;lidarRng=500;reDst=500;antBC=true;fltMd=2;tgtGPS=new Vector3D(0,0,0);tgtName="";tgtSet=false;wpIdx=0;tM=T.GPS;isCreative=false;ammoLoad=10106;ammoEject=10106;tlmTO=1000;ammoTypeIdx=0;graphTimeIdx=0;h2PT=90;o2PT=90;bldNum=0;mergePaused=false;tgtRel=0;UpdateAmmoType();}
+else if(sel==29){cM=M.MAIN;sel=0;}
 break;
 case M.WIZARD:
 if(sel==0){DetectEnvironment();Scan();}
@@ -1345,8 +1353,8 @@ int lcdCnt=(lcd1!=null?1:0)+(lcd2!=null?1:0)+(lcd3!=null?1:0)+(lcd7!=null?1:0)+(
 Echo($"LCDs:{lcdCnt}/5 Printer:{(prtProj!=null?"YES":"NO")}");
 Echo($"Target: {(tgtGPS!=Vector3D.Zero?"GPS SET":"---")}");
 if(isCtl){Echo("--- CONTROLLER MODE ---");Echo($"Fleet: {kPads.Count} pads online");foreach(int pid in kPads){string st=pStat.ContainsKey(pid)?pStat[pid]:"UNKNOWN";bool hasMissile=pMslF.ContainsKey(pid)&&pMslF[pid];bool isArmed=pArm.ContainsKey(pid)&&pArm[pid];string flags="";if(hasMissile)flags+=" Missile";if(isArmed)flags+=" Armed";Echo($"  PAD{pid}: {st}{flags}");}
-Echo("--- COMMANDS ---");Echo("SETPADCONTROL - Toggle controller");Echo("COPYTGT - Send GPS to all pads");Echo("BUILDALL - Print all pads");Echo("ARMALL - Arm all missiles");Echo("LAUNCHALL - Launch all missiles");Echo("STARTSALVO - Begin salvo sequence");Echo("ABORTALL - Abort all missiles");}
-else{Echo("--- COMMANDS ---");Echo("LAUNCH - Fire missile");Echo("ARM - Arm missile warheads");Echo("DISARM - Disarm warheads");Echo("PRINT - Start printer");Echo("RESCAN - Refresh blocks");Echo("SETPADCONTROL - Controller mode");Echo("NAMEPAD - Auto-name pad blocks");Echo("NAMEMSL - Auto-name missile");}
+Echo("--- COMMANDS ---");Echo("SETPADCONTROL COPYTGT BUILDALL");Echo("ARMALL LAUNCHALL STARTSALVO ABORTALL");}
+else{Echo("--- COMMANDS ---");Echo("LAUNCH ARM DISARM PRINT RESCAN");Echo("SETPADCONTROL NAMEPAD NAMEMSL");}
 }
 
 void UpdateControllerLCD1(){
@@ -1455,11 +1463,11 @@ f.Dispose();return;}
 string stStr=cS==S.ARM?"ARMED":cS==S.READY?"READY":cS==S.PRINT?"PRINTING":cS==S.BUILD?"BUILDING":mslFound?"DOCKED":"IDLE";
 SH(f,y,$"CONTROL {Clk()}",hc);y+=32;
 SBx(f,15,y,482,24,cBg,hc);ST(f,256,y+2,stStr+(setupDone?"":" - SETUP REQUIRED"),hc,0.55f,TextAlignment.CENTER);y+=35;
-if(cS==S.ARM&&counting&&cntDn>0){int rem=cntDn-(int)(DT-armTime).TotalSeconds;if(rem<0)rem=0;ST(f,256,y,$"T-{rem}s @ {ClkAtSec(rem)}",cErr,0.7f,TextAlignment.CENTER);y+=30;}
+if(cS==S.ARM&&counting&&cntDn>0){int rem=cntDn-(int)(DT-armTime).TotalSeconds;if(rem<0)rem=0;string rs=rem>=60?$"{rem/60}:{rem%60:D2}":$"{rem}s";ST(f,256,y,$"T-{rs} @ {ClkAtSec(rem)}",cErr,0.7f,TextAlignment.CENTER);y+=30;}
 switch(cM){
 case M.MAIN:
 bool canL=(tgtSet||tM!=T.GPS)&&setupDone;bool canSkip=(cS==S.FUEL||cS==S.DOCK);
-string lt=cS==S.ARM&&counting&&cntDn>0?(cntDn-(int)(DT-armTime).TotalSeconds>0?$"T-{cntDn-(int)(DT-armTime).TotalSeconds}":"GO!"):"Launch";
+int _cr=cntDn-(int)(DT-armTime).TotalSeconds;string _cs=_cr>=60?$"{_cr/60}:{_cr%60:D2}":$"{_cr}";string lt=cS==S.ARM&&counting&&cntDn>0?(_cr>0?$"T-{_cs}":"GO!"):"Launch";
 string m0=canSkip?"Skip Load":(canL?lt:setupDone?"No Target":"Setup Required");
 y=90;SMI(f,y,0,m0,sel==0);y+=28;SMI(f,y,1,"Target",sel==1);y+=28;SMI(f,y,2,"Config",sel==2);y+=28;
 SMI(f,y,3,printing?"Stop Print":"Print",sel==3);y+=28;SMI(f,y,4,"Setup",sel==4);y+=28;SMI(f,y,5,"View",sel==5);
@@ -1473,8 +1481,8 @@ string md=tM==T.GPS?"GPS":tM==T.ANTENNA?"ANTENNA":tM==T.SENSOR?"SENSOR":tM==T.LI
 y=80;ST(f,20,y,$"Mode: {md}",cPri,0.6f);y+=30;SMI(f,y,0,"Cycle Mode",sel==0);y+=28;
 ST(f,20,y,$"Target: {(tgtSet?tgtName:"none")}",cPri,0.6f);y+=30;SMI(f,y,1,"Select Target",sel==1);y+=28;SMI(f,y,2,"Back",sel==2);break;
 case M.SET:
-string fmS=fltMd==0?"AUTO":fltMd==1?"ICBM":"DIRECT";string clS=fltMd==1?"N/A":$"{clbDst}m";
-var si=new List<string>{$"Climb: {clS}",$"Detonate: {detDist}m",$"T-Minus: {cntDn}s",$"Sensor: {sensorRng}m",$"LIDAR: {lidarRng}m",$"Flight: {fmS}",$"Burn: {brnT}s",$"Reentry: {reDst}m",$"Broadcast: {(antBC?"ON":"OFF")}",$"Payload: {ammoNames[ammoTypeIdx]}",$"Load: {ammoLoad}",$"Eject: {ammoEject}",$"Stock: {ammoTarget/1000}k",$"Ice: {iceTarget}",$"Uranium: {uranTarget}",$"H2 Tank: {h2PT}%",$"O2 Tank: {o2PT}%",$"H2 Bot: {h2Target}",$"O2 Bot: {o2Target}",$"Tools: {toolTarget}",$"Mode: {(isCreative?"CREATIVE":"SURVIVAL")}",$"Auto: {(mergePaused?"PAUSED":"ACTIVE")}",$"Merge: {(padMerge==null?"N/A":padMerge.Enabled?"ON":"OFF")}",$"Dock: {CnS(padCon)}",$"Con1: {CnS(padCon1)}",$"Con2: {CnS(padCon2)}",$"Timeout: {tlmTO}s",$"Graph: {graphLabels[graphTimeIdx]}",$"Missile#: {bldNum}","RESET ALL","BACK"};
+string fmS=fltMd==0?"AUTO":fltMd==1?"ICBM":"DIRECT";string clS=fltMd==1?"N/A":(clbDst>=1000?$"{clbDst/1000f:0.#}km":$"{clbDst}m");string tmS=cntDn>=60?$"{cntDn/60}m{cntDn%60}s":$"{cntDn}s";string reS=reDst>=1000?$"{reDst/1000f:0.#}km":$"{reDst}m";
+var si=new List<string>{$"Climb: {clS}",$"Detonate: {detDist}m",$"T-Minus: {tmS}",$"Sensor: {sensorRng}m",$"LIDAR: {lidarRng}m",$"Flight: {fmS}",$"Reentry: {reS}",$"Broadcast: {(antBC?"ON":"OFF")}",$"Payload: {ammoNames[ammoTypeIdx]}",$"Load: {ammoLoad}",$"Eject: {ammoEject}",$"Stock: {ammoTarget/1000}k",$"Ice: {iceTarget}",$"Uranium: {uranTarget}",$"H2 Tank: {h2PT}%",$"O2 Tank: {o2PT}%",$"H2 Bot: {h2Target}",$"O2 Bot: {o2Target}",$"Tools: {toolTarget}",$"Mode: {(isCreative?"CREATIVE":"SURVIVAL")}",$"Auto: {(mergePaused?"PAUSED":"ACTIVE")}",$"Merge: {(padMerge==null?"N/A":padMerge.Enabled?"ON":"OFF")}",$"Dock: {CnS(padCon)}",$"Con1: {CnS(padCon1)}",$"Con2: {CnS(padCon2)}",$"Timeout: {tlmTO}s",$"Graph: {graphLabels[graphTimeIdx]}",$"Missile#: {bldNum}","RESET ALL","BACK"};
 if(sel<setScroll)setScroll=sel;if(sel>=setScroll+SET_VISIBLE)setScroll=sel-SET_VISIBLE+1;
 y=70;ST(f,20,y,$"SETTINGS [{sel+1}/{si.Count}]",cPri,0.55f);y+=22;
 if(setScroll>0){ST(f,256,y,"^ more ^",cSec,0.4f,TextAlignment.CENTER);y+=18;}else y+=18;
@@ -1529,7 +1537,7 @@ string hdr=bpNd.Count>0?"BLUEPRINT NEEDS":"PRODUCTION QUOTAS";
 ST(f,20,y,$"{hdr} [{bldScroll+1}-{Math.Min(bldScroll+maxC,dispNd.Count)}/{dispNd.Count}]:",cSec,0.45f);y+=18;
 int cc=0,ci=0;foreach(var kv in dispNd){if(ci++<bldScroll)continue;if(cc>=maxC)break;int hv=cStk.ContainsKey(kv.Key)?cStk[kv.Key]:0;int nd=Math.Max(0,kv.Value-hv);Color nc=hv>=kv.Value?cOK:cErr;ST(f,20,y,$"{kv.Key}: {hv}+{nd}/{kv.Value}",nc,0.42f);y+=16;cc++;}
 if(dispMis.Count>0&&cc<maxC){foreach(var kv in dispMis){if(cc>=maxC)break;ST(f,25,y,$"-{kv.Key}: {kv.Value}",cErr,0.38f);y+=14;cc++;}}
-y+=8;int aT=ammoTypeIdx==0?s10Target:pAmmoTarget;int ammoNd=Math.Max(0,aT-ammoStock);ST(f,20,y,$"Ammo ({ammoNames[ammoTypeIdx]}): {ammoStock}+{ammoNd}/{aT}",ammoStock>=aT?cOK:cWrn,0.5f);
+y+=8;int ammoNd=Math.Max(0,mslAmmoTarget-ammoStock);ST(f,20,y,$"Ammo ({ammoNames[ammoTypeIdx]}): {ammoStock}+{ammoNd}/{mslAmmoTarget}",ammoStock>=mslAmmoTarget?cOK:cWrn,0.5f);
 y+=22;int refW=0,asmW=0;foreach(var r in padRef)if(r.IsProducing)refW++;foreach(var a in padAsm)if(a.IsProducing)asmW++;
 ST(f,20,y,$"Refineries: {refW}/{padRef.Count}   Assemblers: {asmW}/{padAsm.Count}",cTxt,0.5f);
 f.Dispose();}
@@ -1606,11 +1614,9 @@ ST(f,20,60,$"Pad Antennas: {padAnt.Count}",cTxt,0.55f);
 ST(f,20,100,$"Laser Antennas: {padLsr.Count}   Linked: {plLnk}",plLnk>0?cOK:cTxt,0.55f);
 if(mslFound&&(mslAnt.Count>0||mslLsr.Count>0)){ST(f,20,150,$"Pre-Launch Comms: {(preLaunchCommsReady?"READY":"PENDING")}",preLaunchCommsReady?cOK:cWrn,0.55f);}
 else{ST(f,20,150,"Pre-Launch Comms: N/A",cSec,0.55f);}
-SD(f,200);
 string md7=tM==T.GPS?"GPS":tM==T.ANTENNA?"ANTENNA":tM==T.SENSOR?"SENSOR":tM==T.LIDAR?"LIDAR":"MANUAL";
 ST(f,20,230,$"Targeting Mode: {md7}",cAcc,0.6f);
 ST(f,20,290,$"Target: {(tgtSet?tgtName:"NONE")}",tgtSet?cOK:cSec,0.6f);
-SD(f,350);
 ST(f,20,380,$"Game Mode: {(isCreative?"CREATIVE":"SURVIVAL")}",cTxt,0.55f);
 ST(f,20,430,$"Environment: {(env==E.SPACE?"SPACE":env==E.PLANET?"PLANET":"MOON")}",cTxt,0.55f);
 }else{
@@ -1673,7 +1679,6 @@ ST(f,20,50,$"Pad Merge: {(pmLk?"LOCKED":"OPEN")}",pmLk?cOK:cErr,0.5f);
 ST(f,260,50,$"Missile Merge: {(mmLk?"LOCKED":"OPEN")}",mmLk?cOK:cErr,0.5f);
 ST(f,20,80,$"Connector: {(cnLk?"DOCKED":"OPEN")}",cnLk?cOK:cWrn,0.5f);
 ST(f,260,80,$"Warheads: {mslWar.Count} [{(warArmed?"ARMED":"SAFE")}]",warArmed?cErr:cOK,0.5f);
-SD(f,115);
 if(!mslFound){ST(f,256,160,"NO MISSILE DOCKED",cWrn,0.7f,TextAlignment.CENTER);
 ST(f,256,210,"Waiting for missile...",cSec,0.55f,TextAlignment.CENTER);}else{
 float bp=batPct/100f;SLB(f,20,130,340,15,"Battery",bp,PctCol(bp),cBdr);
@@ -1681,19 +1686,17 @@ ST(f,380,130,bp>=1f?"FULL":$"{mslBatCur:F2}/{mslBatMax:F2}",bp>=1f?cOK:cWrn,0.45
 float hp=h2Pct/100f;SLB(f,20,175,340,15,"Hydrogen",hp,PctCol(hp),cBdr);
 ST(f,380,175,hp>=1f?"FULL":$"{mslH2Cur:F0}/{mslH2Max:F0}L",hp>=1f?cOK:cWrn,0.45f);
 float ry=220;
-if(mslO2.Count>0){float op=o2Pct/100f;SLB(f,20,ry,340,15,"Oxygen",op,PctCol(op),cBdr);
-ST(f,380,ry,op>=1f?"FULL":$"{mslO2Cur:F0}/{mslO2Max:F0}L",op>=1f?cOK:cWrn,0.45f);ry+=45;}
-if(mslGen.Count>0){float ip=icePct/100f;SLB(f,20,ry,340,15,"Ice Storage",ip,PctCol(ip),cBdr);
-ST(f,380,ry,ip>=1f?"FULL":$"{mslIceCur:F1}/{mslIceMax:F1}L",ip>=1f?cOK:cWrn,0.45f);ry+=45;}
-if(mslReact.Count>0){int mslUran=0;foreach(var r in mslReact){var rI=r.GetInventory();if(rI!=null){var rt=new List<MyInventoryItem>();rI.GetItems(rt);foreach(var x in rt)if(x.Type.SubtypeId=="Uranium")mslUran+=(int)x.Amount;}}float up=mslUran/(float)uranTarget;SLB(f,20,ry,340,15,"Uranium",up>1?1:up,PctCol(up),cBdr);
-ST(f,380,ry,$"{mslUran}/{uranTarget}",mslUran>=uranTarget?cOK:cWrn,0.45f);ry+=45;}
-if(ammoLoad>0){float ap=mslConAmmo!=null?(float)mslAmmo/ammoLoad:0;Color ac=mslConAmmo==null?cErr:PctCol(ap);SLB(f,20,ry,340,15,ammoNames[ammoTypeIdx],ap>1?1:ap,ac,cBdr);
+if(mslO2.Count>0){float op=o2Pct/100f;SLB(f,20,ry,340,15,"Oxygen",op,PctCol(op),cBdr);ST(f,380,ry,op>=1f?"FULL":$"{mslO2Cur:F0}/{mslO2Max:F0}L",op>=1f?cOK:cWrn,0.45f);}
+else{SLB(f,20,ry,340,15,"Oxygen",0,cSec,cBdr);ST(f,380,ry,"N/A",cSec,0.45f);}ry+=45;
+if(mslGen.Count>0){float ip=icePct/100f;SLB(f,20,ry,340,15,"Ice Storage",ip,PctCol(ip),cBdr);ST(f,380,ry,ip>=1f?"FULL":$"{mslIceCur:F1}/{mslIceMax:F1}L",ip>=1f?cOK:cWrn,0.45f);}
+else{SLB(f,20,ry,340,15,"Ice Storage",0,cSec,cBdr);ST(f,380,ry,"N/A",cSec,0.45f);}ry+=45;
+if(mslReact.Count>0){int mslUran=0;foreach(var r in mslReact){var rI=r.GetInventory();if(rI!=null){var rt=new List<MyInventoryItem>();rI.GetItems(rt);foreach(var x in rt)if(x.Type.SubtypeId=="Uranium")mslUran+=(int)x.Amount;}}float up=mslUran/(float)uranTarget;SLB(f,20,ry,340,15,"Uranium",up>1?1:up,PctCol(up),cBdr);ST(f,380,ry,$"{mslUran}/{uranTarget}",mslUran>=uranTarget?cOK:cWrn,0.45f);}
+else{SLB(f,20,ry,340,15,"Uranium",0,cSec,cBdr);ST(f,380,ry,"N/A",cSec,0.45f);}ry+=45;
+float ap=mslConAmmo!=null?(float)mslAmmo/ammoLoad:0;Color ac=mslConAmmo==null?cErr:PctCol(ap);SLB(f,20,ry,340,15,ammoNames[ammoTypeIdx],ap>1?1:ap,ac,cBdr);
 string ast=mslConAmmo==null?"NO CONNECTOR":mslAmmo>=ammoLoad?"READY":$"{mslAmmo}/{ammoLoad}";
-ST(f,380,ry,ast,mslConAmmo==null?cErr:mslAmmo>=ammoLoad?cOK:cWrn,0.45f);ry+=45;}
-SD(f,ry);
+ST(f,380,ry,ast,mslConAmmo==null?cErr:mslAmmo>=ammoLoad?cOK:cWrn,0.45f);ry+=45;
 ST(f,20,ry+15,$"Thrusters: {mslThr.Count}   Gyroscopes: {mslGyr.Count}   Remote Control: {(mslRC!=null?"OK":"NONE")}",cTxt,0.48f);
 ST(f,20,ry+50,$"Computer: {(mslPB!=null?"OK":"NONE")}   Sensors: {mslSen.Count}   Cameras: {mslCam.Count}",cTxt,0.48f);}
-SD(f,410);
 string md=tM==T.GPS?"GPS":tM==T.ANTENNA?"ANTENNA":tM==T.SENSOR?"SENSOR":tM==T.LIDAR?"LIDAR":"MANUAL";
 ST(f,20,425,$"Targeting Mode: {md}",cAcc,0.55f);
 ST(f,20,460,$"Target: {(tgtSet?tgtName:"NONE")}",tgtSet?cOK:cSec,0.55f);
@@ -1717,7 +1720,7 @@ if(prtProj==null){ST(f,256,y,"No Projector",cWrn,0.55f,TextAlignment.CENTER);}
 else{int t2=prtProj.TotalBlocks,r2=prtProj.RemainingBlocks;float p2=t2>0?(float)(t2-r2)/t2:0;
 ST(f,20,y,isCreative?"CREATIVE":"SURVIVAL",cAcc,0.5f);y+=22;SLB(f,20,y,350,10,"Progress",p2,PctCol(p2),cBdr);y+=30;
 ST(f,20,y,$"Blocks: {t2-r2}/{t2}  Buildable: {prtBuildable}",cTxt,0.45f);y+=20;}
-int aT2=ammoTypeIdx==0?s10Target:pAmmoTarget;ST(f,20,y,$"Ammo: {ammoStock}/{aT2}{(ammoQueued>0?$" +{ammoQueued}":"")}",cTxt,0.45f);break;
+ST(f,20,y,$"Ammo: {ammoStock}/{mslAmmoTarget}{(ammoQueued>0?$" +{ammoQueued}":"")}",cTxt,0.45f);break;
 case 3:
 if(!mslFound){ST(f,256,y,"No Missile",cWrn,0.55f,TextAlignment.CENTER);}
 else{ST(f,20,y,$"PB: {(mslPB!=null?"OK":"X")}   RC: {(mslRC!=null?"OK":"X")}",cTxt,0.5f);y+=22;
@@ -1741,7 +1744,7 @@ ST(f,20,y,$"Reactor: {padReact.Count}   Solar: {padSolar.Count}   Wind: {padWind
 case 6:
 int ra6=0,aa6=0;foreach(var r in padRef)if(r.IsProducing)ra6++;foreach(var a in padAsm)if(a.IsProducing)aa6++;
 ST(f,20,y,$"Refinery: {ra6}/{padRef.Count}   Assembly: {aa6}/{padAsm.Count}",cTxt,0.5f);y+=25;
-int aT6=ammoTypeIdx==0?s10Target:pAmmoTarget;float ap6=aT6>0?(float)ammoStock/aT6:0;SB(f,20,y,200,8,ap6,PctCol(ap6),cBdr);ST(f,225,y-2,$"Ammo: {ammoStock}/{aT6}",cTxt,0.4f);y+=20;
+float ap6=mslAmmoTarget>0?(float)ammoStock/mslAmmoTarget:0;SB(f,20,y,200,8,ap6,PctCol(ap6),cBdr);ST(f,225,y-2,$"Ammo: {ammoStock}/{mslAmmoTarget}",cTxt,0.4f);y+=20;
 float hp6=padH2Pct/100f,op6=padO2Pct/100f;
 SB(f,20,y,100,8,hp6,PctCol(hp6),cBdr);ST(f,125,y-2,$"H2: {padH2Pct:F0}%",cTxt,0.4f);
 SB(f,220,y,100,8,op6,PctCol(op6),cBdr);ST(f,325,y-2,$"O2: {padO2Pct:F0}%",cTxt,0.4f);y+=20;
@@ -1780,10 +1783,11 @@ if(bbLog.Length>0){var ln=bbLog.Split('\n');int c=0;for(int i=ln.Length-1;i>=0&&
 fr.Dispose();}
 }
 void UpdateBtnConfig(){ParseBtnSettings();var secs=ParseSecs(Me.CustomData);var c=new StringBuilder();
+c.AppendLine("[SYSTEM]");
+c.AppendLine($"pad_ready=true");
+c.AppendLine($"pad_session={padSession}");
 c.AppendLine("[BLACKBOX]");
-c.AppendLine("; System event log - entries appended automatically");
 if(secs.ContainsKey("[BLACKBOX]")){var oldBB=secs["[BLACKBOX]"].Split('\n');foreach(var ln in oldBB){string t=ln.Trim();if(t.Length>0&&!t.StartsWith("[BLACKBOX]")&&!t.StartsWith("; System"))c.AppendLine(t);}}
-c.AppendLine();
 c.AppendLine("[PAD_CFG]");
 c.AppendLine($"load={ammoLoad}");
 c.AppendLine($"type={ammoTypeIdx}");
@@ -1791,16 +1795,17 @@ string sNm=cS==S.INIT?"INIT":cS==S.IDLE?"IDLE":cS==S.PRINT?"PRINT":cS==S.BUILD?"
 c.AppendLine($"state={sNm}");
 c.AppendLine($"phase={mslPhase}");
 int curAmmo=0;if(mslConAmmo!=null){var ai=mslConAmmo.GetInventory();if(ai!=null)curAmmo=(int)ai.GetItemAmount(ammoType);}int need=ammoLoad-curAmmo;
-c.AppendLine($"ammoReq={(cS==S.FUEL&&need>0?"YES":"NO")}");
-c.AppendLine($"ammoNeed={need}");
+c.AppendLine($"ammoReq={(cS==S.FUEL&&need>0?1:0)}");
+c.AppendLine($"ammoReqNeed={need}");
+c.AppendLine($"ammoReqType={ammoTypeIdx}");
 c.AppendLine($"ammoHave={curAmmo}");
-c.AppendLine();
 c.AppendLine("[PAD_STATUS]");
 string md=isCtl?"CONTROLLER":cS==S.GONE?"FLIGHT":(printing||cS==S.PRINT||cS==S.BUILD)?"PRINT":mslFound?"MISSILE":"NORMAL";
 c.AppendLine($"mode={md}");
 c.AppendLine($"connector={(conLocked?"LOCKED":"OPEN")}");
 c.AppendLine($"warheads={mslWar.Count}[{(warArmed?"ARMED":"SAFE")}]");
-if(mslFound){float mBatC=0,mBatM=0;foreach(var b in mslBat){mBatC+=b.CurrentStoredPower;mBatM+=b.MaxStoredPower;}float mH2F=0,mH2C=0;foreach(var h in mslH2){mH2F+=(float)h.FilledRatio*h.Capacity;mH2C+=h.Capacity;}float mO2F=0,mO2C=0;foreach(var o in mslO2){mO2F+=(float)o.FilledRatio*o.Capacity;mO2C+=o.Capacity;}int mIce=0,mUrn=0;foreach(var g in mslGen){var inv=g.GetInventory();if(inv!=null)foreach(var x in GL(inv))if(x.Type.SubtypeId=="Ice")mIce+=(int)x.Amount;}foreach(var r in mslReact){var inv=r.GetInventory();if(inv!=null)foreach(var x in GL(inv))if(x.Type.SubtypeId=="Uranium")mUrn+=(int)x.Amount;}
+float mBatC=0,mBatM=0,mH2F=0,mH2C=0,mO2F=0,mO2C=0;int mIce=0,mUrn=0,lsLnk=0;
+if(mslFound){foreach(var b in mslBat){mBatC+=b.CurrentStoredPower;mBatM+=b.MaxStoredPower;}foreach(var h in mslH2){mH2F+=(float)h.FilledRatio*h.Capacity;mH2C+=h.Capacity;}foreach(var o in mslO2){mO2F+=(float)o.FilledRatio*o.Capacity;mO2C+=o.Capacity;}foreach(var g in mslGen){var inv=g.GetInventory();if(inv!=null)foreach(var x in GL(inv))if(x.Type.SubtypeId=="Ice")mIce+=(int)x.Amount;}foreach(var r in mslReact){var inv=r.GetInventory();if(inv!=null)foreach(var x in GL(inv))if(x.Type.SubtypeId=="Uranium")mUrn+=(int)x.Amount;}foreach(var l in mslLsr)if(l.Status==MyLaserAntennaStatus.Connected)lsLnk++;
 c.AppendLine($"battery={(mBatM>0?mBatC/mBatM*100:0):F0}%");
 c.AppendLine($"hydrogen={(mH2C>0?mH2F/mH2C*100:0):F0}%");
 c.AppendLine($"oxygen={(mO2C>0?mO2F/mO2C*100:0):F0}%");
@@ -1808,28 +1813,26 @@ c.AppendLine($"ice={mIce}");
 c.AppendLine($"uranium={mUrn}");
 c.AppendLine($"ammo={mslAmmo}/{ammoLoad}");
 c.AppendLine($"gen={mslGen.Count}|h2t={mslH2.Count}|o2t={mslO2.Count}|react={mslReact.Count}");}
-if(printing||cS==S.PRINT||cS==S.BUILD){string ps=prtState==1?"EXTEND":prtState==2?"WELD":"CHECK";int rem=prtProj!=null?prtProj.RemainingBlocks:0,tot=prtProj!=null?prtProj.TotalBlocks:0,bld=prtProj!=null?prtProj.BuildableBlocksCount:0;float pist=prtPist.Count>0?prtPist[0].CurrentPosition:0;
-c.AppendLine($"prt={ps}|on={(printing?1:0)}|rem={rem}/{tot}|bld={bld}|pos={pist:F1}");}
-if(cS==S.GONE||hasTlm){c.AppendLine($"flt={mslPhase}|tgt={tgtName}|d={mslDTT:F0}|s={mslVel:F0}|a={mslAlt:F0}|f={mslFuelPct:F0}%|eta={(mslVel>0?mslDTT/mslVel:0):F0}");}
+int pRem=prtProj!=null?prtProj.RemainingBlocks:0,pTot=prtProj!=null?prtProj.TotalBlocks:0,pBld=prtProj!=null?prtProj.BuildableBlocksCount:0;float pPist=prtPist.Count>0?prtPist[0].CurrentPosition:0;
+if(printing||cS==S.PRINT||cS==S.BUILD){string ps=prtState==1?"EXTEND":prtState==2?"WELD":"CHECK";c.AppendLine($"prt={ps}|on={(printing?1:0)}|rem={pRem}/{pTot}|bld={pBld}|pos={pPist:F1}");}
+if(cS==S.GONE||hasTlm){c.AppendLine($"flight={mslPhase}|target={tgtName}|dist={mslDTT:F0}|speed={mslVel:F0}|alt={mslAlt:F0}|fuel={mslFuelPct:F0}%|eta={(mslVel>0?mslDTT/mslVel:0):F0}");}
 if(isCtl){int ctPads=kPads.Count,ctArm=0,ctRdy=0,ctFly=0;foreach(int pid in kPads){if(pArm.ContainsKey(pid)&&pArm[pid])ctArm++;if(pRdy.ContainsKey(pid)&&pRdy[pid])ctRdy++;if(pStat.ContainsKey(pid)&&pStat[pid]=="GONE")ctFly++;}string ctMd=tM==T.GPS?"GPS":tM==T.ANTENNA?"ANT":tM==T.SENSOR?"SEN":tM==T.LIDAR?"LDR":tM==T.SATELLITE?"SAT":"MAN";
 c.AppendLine($"ctrl={ctPads}|arm={ctArm}|rdy={ctRdy}|fly={ctFly}|md={ctMd}|st={(svAct?"SALVO":"OK")}");}
 c.AppendLine("[PAD_DATA]");
-if(mslFound){float mBatC2=0,mBatM2=0;foreach(var b in mslBat){mBatC2+=b.CurrentStoredPower;mBatM2+=b.MaxStoredPower;}float mH2F2=0,mH2C2=0;foreach(var h in mslH2){mH2F2+=(float)h.FilledRatio*h.Capacity;mH2C2+=h.Capacity;}float mO2F2=0,mO2C2=0;foreach(var o in mslO2){mO2F2+=(float)o.FilledRatio*o.Capacity;mO2C2+=o.Capacity;}int mIce2=0,mUrn2=0;foreach(var g in mslGen){var inv=g.GetInventory();if(inv!=null)foreach(var x in GL(inv))if(x.Type.SubtypeId=="Ice")mIce2+=(int)x.Amount;}foreach(var r in mslReact){var inv=r.GetInventory();if(inv!=null)foreach(var x in GL(inv))if(x.Type.SubtypeId=="Uranium")mUrn2+=(int)x.Amount;}
-c.AppendLine($"merged={(merged?1:0)}|conLocked={(conLocked?1:0)}|warArmed={(warArmed?1:0)}|warCount={mslWar.Count}");
-c.AppendLine($"mslBatPct={(mBatM2>0?mBatC2/mBatM2*100:0):F0}|mslBatC={mBatC2:F2}|mslBatM={mBatM2:F2}");
-c.AppendLine($"mslH2Pct={(mH2C2>0?mH2F2/mH2C2*100:0):F0}|mslH2F={mH2F2:F0}|mslH2C={mH2C2:F0}");
-c.AppendLine($"mslO2Pct={(mO2C2>0?mO2F2/mO2C2*100:0):F0}|mslO2F={mO2F2:F0}|mslO2C={mO2C2:F0}");
-c.AppendLine($"mslIce={mIce2}|mslUran={mUrn2}|mslAmmo={mslAmmo}|mslAmmoLoad={ammoLoad}");
+c.AppendLine($"tgtGPS={tgtGPS.X:F0},{tgtGPS.Y:F0},{tgtGPS.Z:F0}|tgtName={tgtName}|tgtSet={(tgtSet?1:0)}");
+if(mslFound){c.AppendLine($"merged={(merged?1:0)}|conLocked={(conLocked?1:0)}|warArmed={(warArmed?1:0)}|warCount={mslWar.Count}");
+c.AppendLine($"mslBatPct={(mBatM>0?mBatC/mBatM*100:0):F0}|mslBatC={mBatC:F2}|mslBatM={mBatM:F2}");
+c.AppendLine($"mslH2Pct={(mH2C>0?mH2F/mH2C*100:0):F0}|mslH2F={mH2F:F0}|mslH2C={mH2C:F0}");
+c.AppendLine($"mslO2Pct={(mO2C>0?mO2F/mO2C*100:0):F0}|mslO2F={mO2F:F0}|mslO2C={mO2C:F0}");
+c.AppendLine($"mslIce={mIce}|mslUran={mUrn}|mslAmmo={mslAmmo}|mslAmmoLoad={ammoLoad}");
 c.AppendLine($"mslGenCnt={mslGen.Count}|mslH2Cnt={mslH2.Count}|mslO2Cnt={mslO2.Count}|mslReactCnt={mslReact.Count}");
-int lsLnk=0;foreach(var l in mslLsr)if(l.Status==MyLaserAntennaStatus.Connected)lsLnk++;
 c.AppendLine($"mslCount=1|mslReady={(cS==S.READY||cS==S.ARM?1:0)}|mslArmed={(cS==S.ARM?1:0)}|mslLsrCnt={mslLsr.Count}|mslLsrLnk={lsLnk}|mslAntCnt={mslAnt.Count}");}
-if(printing||cS==S.PRINT||cS==S.BUILD){int rem2=prtProj!=null?prtProj.RemainingBlocks:0,tot2=prtProj!=null?prtProj.TotalBlocks:0,bld2=prtProj!=null?prtProj.BuildableBlocksCount:0;float pist2=prtPist.Count>0?prtPist[0].CurrentPosition:0;
-c.AppendLine($"prtState={prtState}|printing={(printing?1:0)}|prtRem={rem2}|prtTot={tot2}|prtBld={bld2}|prtPist={pist2:F1}");}
+if(printing||cS==S.PRINT||cS==S.BUILD){c.AppendLine($"prtState={prtState}|printing={(printing?1:0)}|prtRem={pRem}|prtTot={pTot}|prtBld={pBld}|prtPist={pPist:F1}");}
 if(cS==S.GONE||hasTlm){c.AppendLine($"msl_phase={mslPhase}|target={tgtName}|mslDist={mslDTT:F0}|mslSpeed={mslVel:F0}|mslAlt={mslAlt:F0}|mslFuel={mslFuelPct:F0}|mslETA={(mslVel>0?mslDTT/mslVel:0):F0}");}
 if(isCtl){int ctPads2=kPads.Count,ctArm2=0,ctRdy2=0,ctFly2=0;foreach(int pid in kPads){if(pArm.ContainsKey(pid)&&pArm[pid])ctArm2++;if(pRdy.ContainsKey(pid)&&pRdy[pid])ctRdy2++;if(pStat.ContainsKey(pid)&&pStat[pid]=="GONE")ctFly2++;}string ctMd2=tM==T.GPS?"GPS":tM==T.ANTENNA?"ANTENNA":tM==T.SENSOR?"SENSOR":tM==T.LIDAR?"LIDAR":tM==T.SATELLITE?"SATELLITE":"MANUAL";
 c.AppendLine($"ctrlPads={ctPads2}|ctrlArmed={ctArm2}|ctrlReady={ctRdy2}|mslCount={ctFly2}|ctrlMode={ctMd2}|ctrlTarget={tgtName}|ctrlStatus={(svAct?"SALVO":"ACTIVE")}");}
-if(printing||cS==S.PRINT||cS==S.BUILD){int bpRem=prtProj!=null?prtProj.RemainingBlocks:0,bpBld=prtProj!=null?prtProj.BuildableBlocksCount:0;
-if(bpRem>0&&bpBld<bpRem){int sc=Math.Max(1,bpRem/5);c.AppendLine("[BLUEPRINT]");c.AppendLine($"SteelPlate={sc*10}");c.AppendLine($"Construction={sc*5}");c.AppendLine($"SmallTube={sc*3}");c.AppendLine($"LargeTube={sc*2}");c.AppendLine($"Motor={sc*2}");c.AppendLine($"Computer={sc*2}");c.AppendLine($"Thrust={sc*3}");c.AppendLine($"Explosives={sc*4}");c.AppendLine($"PowerCell={sc}");c.AppendLine($"Detector={sc}");c.AppendLine($"RadioCommunication={sc}");}}
+if(printing||cS==S.PRINT||cS==S.BUILD){
+if(pRem>0&&pBld<pRem){int sc=Math.Max(1,pRem/5);c.Append($"[BLUEPRINT]\nSteelPlate={sc*10}\nConstruction={sc*5}\nSmallTube={sc*3}\nLargeTube={sc*2}\nMotor={sc*2}\nComputer={sc*2}\nThrust={sc*3}\nExplosives={sc*4}\nPowerCell={sc}\nDetector={sc}\nRadioComm={sc}\n");}}
 Me.CustomData=c.ToString();}
 void ParseBtnSettings(){string d=Me.CustomData;if(string.IsNullOrEmpty(d))return;bool inSec=false;var ls=d.Split('\n');foreach(var l in ls){string lt=l.Trim();if(lt.StartsWith("[SET]")||lt.StartsWith("[PAD_CFG]")){inSec=true;continue;}if(lt.StartsWith("[")&&inSec){inSec=false;continue;}if(!inSec||lt.StartsWith(";")||lt.StartsWith("#")||!lt.Contains("="))continue;var ps=lt.Split('|');foreach(var p in ps){string pt=p.Split(';')[0].Trim();var kv=pt.Split('=');if(kv.Length<2)continue;string k=kv[0].Trim(),v=kv[1].Trim();int n;if(!int.TryParse(v.Split(' ')[0],out n))continue;if(k=="tgt")ammoTarget=n;else if(k=="load")ammoLoad=n;else if(k=="ice")iceTarget=n;else if(k=="uran")uranTarget=n;else if(k=="h2")h2Target=n;else if(k=="o2")o2Target=n;else if(k=="tool")toolTarget=n;else if(k=="pAmmo")pAmmoTarget=n;else if(k=="type"&&n>=0&&n<5)ammoTypeIdx=n;}}}
 List<MyInventoryItem>GL(IMyInventory v){var L=new List<MyInventoryItem>();if(v!=null)v.GetItems(L);return L;}

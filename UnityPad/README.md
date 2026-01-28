@@ -138,11 +138,14 @@ UnityPad generates a unique `pad_session` on compile. Unity Boot validates this 
 
 ### Finding Sibling PBs
 
+Uses `IsSameConstructAs(Me)` for multi-pad safe discovery. No fallback -- if a PB doesn't have the exact `[PAD{id}]` tag, it's ignored.
+
 ```csharp
 void FindSiblingPBs(){
-    // Searches for:
+    // IsSameConstructAs(Me) -- multi-pad safe, no fallback
     // bootPB: Contains "[PAD{id}]" AND "UNITY BOOT"
     // invPB: Contains "[PAD{id}]" AND "Unity Inventory"
+    // signalPB: Contains "[PAD{id}]" AND "UNITY SIGNAL"
 }
 ```
 
@@ -587,12 +590,43 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityPad\scrip
 | Metric | Value |
 |--------|-------|
 | Raw Lines | ~2,300 |
-| Deployed | ~97,400 chars |
+| Deployed | ~96,265 chars |
 | Budget | 100,000 chars |
-| Status | **WARNING (2.6% margin)** |
+| Status | **CRITICAL (3.7% margin)** |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 *v01.00+: Added satellite array management, intercept handling, and laser mesh coordination.*
+
+---
+
+## MULTI-PAD SETUP
+
+When running multiple launch pads on the same construct, each pad claims a unique ID. The setup system handles block tagging and naming automatically.
+
+### Setup Commands
+
+| Command | Action |
+|---------|--------|
+| `SETUPMOD` | Auto-claim next available pad ID, tag all blocks with `[PAD{id}]` |
+| `SETUPFORCE` | Force re-setup even if blocks are already tagged |
+| `NAMEPAD` | Rename all pad blocks with clean standardized names |
+| `NAMEMSL` | Rename all missile blocks with clean standardized names |
+
+Setup commands are forwarded to Boot via `UNITY_SETUP_CMD` IGC channel so Boot can update its records.
+
+### Multi-Pad Discovery
+
+`DiscoverSiblingPads()` uses `IsSameConstructAs(Me)` to find all pads on the construct. Controller mode aggregates status from all discovered pads.
+
+### Controller Mode Commands
+
+| Command | Action |
+|---------|--------|
+| `SETPADCONTROL` | Toggle controller mode on/off |
+| `BUILDALL` | Start build on all empty pads |
+| `ARMALL` | Arm all missiles in READY state |
+| `LAUNCHALL` | Launch all armed missiles |
+| `ABORTALL` | Remote detonate all in-flight missiles |
 
 ---
 

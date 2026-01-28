@@ -410,12 +410,14 @@ InterceptDist=10
 
 ### IGC Commands (received from pad)
 
+**CRITICAL:** Bare `DETONATE` and `DEORBIT` are removed -- padID is REQUIRED. This prevents PAD1 missiles from responding to PAD2 commands.
+
 | Command | Action |
 |---------|--------|
-| `DETONATE:{padID}` | Immediately detonate warheads |
+| `DETONATE:{padID}` | Immediately detonate warheads (padID required) |
 | `RESET:{padID}` | Safe reset |
 | `MERGE` | Re-enable merge block (for recall) |
-| `DEORBIT:{padID}` | Satellite: exit hold and attack |
+| `DEORBIT:{padID}` | Satellite: exit hold and attack (padID required) |
 | `ATTACK:X,Y,Z` | Satellite: attack specific coordinates |
 
 ---
@@ -535,10 +537,10 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityMissile\s
 
 | Metric | Value |
 |--------|-------|
-| Raw Lines | ~1,100 |
-| Deployed | ~34,200 chars |
+| Raw Lines | ~1,165 |
+| Deployed | ~44,563 chars |
 | Budget | 100,000 chars |
-| Status | OK (66% margin) |
+| Status | OK (55.4% margin) |
 
 *Note: Character count increased with satellite laser mesh networking and SAT_INTERCEPT phase.*
 

@@ -1,39 +1,44 @@
 # UNIFIED IGC CHANNELS REFERENCE
 
-**Last Updated:** 2026-01-24
+**Last Updated:** 2026-01-28
 **Purpose:** Complete IGC (Inter-Grid Communication) channel reference for Unity Missile System
 
 ---
 
 ## ALL IGC CHANNELS
 
-| Channel | Sender | Receiver | Purpose |
-|---------|--------|----------|---------|
-| `UNITY_BOOT_REQ` | Boot | Pad/Inv | Request system status during boot |
-| `UNITY_BOOT_RSP` | Pad/Inv | Boot | Respond with block counts |
-| `UNITY_MSL` | Missile | Pad/Signal | Telemetry broadcast (position, phase, fuel) |
-| `UNITY_MSL_CMD` | Pad | Missile | Commands (DETONATE, ABORT, RESET) |
-| `UNITY_PAD_CMD` | Controller | Slave Pads | Mass commands (BUILDALL, ARMALL, LAUNCHALL) |
-| `UNITY_PAD_STATUS` | All Pads | Controller | Status updates for multi-pad display |
-| `UNITY_SAT_RELAY` | Satellite | Satellite | Inter-satellite mesh relay traffic |
-| `UNITY_SAT_RELAY_STATUS` | Satellite | Pad/Signal | Status with grid position, laser links |
-| `UNITY_SAT_INTERCEPT` | Satellite | Pad/Signal | Intercept/detonation messages |
-| `ENEMY_SIGNAL` | External/Sat | Controller | Enemy positions for auto-attack |
-| `MINER_BEACON` | UnityBeacon | Pad/Inv/Boot | Fleet status (battery, cargo, position) |
-| `UNITY_PRINTER` | Printer | Pad | Build completion notification |
+| Channel | Sender | Receiver | PadID Filtering | Purpose |
+|---------|--------|----------|-----------------|---------|
+| `UNITY_BOOT_REQ` | Boot | Pad/Inv/Signal | **Yes** - includes padID in request | Request system status during boot |
+| `UNITY_BOOT_RSP` | Pad/Inv/Signal | Boot | Yes - response includes padID | Respond with block counts |
+| `UNITY_MSL` | Missile | Pad/Signal | No - broadcast to all | Telemetry broadcast (position, phase, fuel) |
+| `UNITY_MSL_CMD` | Pad | Missile | **Yes** - DETONATE requires padID | Commands (DETONATE, ABORT, RESET) |
+| `UNITY_PAD_CMD` | Controller | Slave Pads | **Yes** - filtered by padID (SETUPMOD) | Mass commands (BUILDALL, ARMALL, LAUNCHALL, SETUPMOD) |
+| `UNITY_PAD_STATUS` | All Pads | Controller | Yes - status includes padID | Status updates for multi-pad display |
+| `UNITY_SAT_RELAY` | Satellite | Satellite | No - mesh relay | Inter-satellite mesh relay traffic |
+| `UNITY_SAT_RELAY_STATUS` | Satellite | Pad/Signal | No - broadcast to all | Status with grid position, laser links |
+| `UNITY_SAT_INTERCEPT` | Satellite | Pad/Signal | Yes - includes padID | Intercept/detonation messages |
+| `ENEMY_SIGNAL` | External/Sat | Controller | No - broadcast to all | Enemy positions for auto-attack |
+| `MINER_BEACON` | UnityBeacon | Pad/Inv/Boot | **Yes** - bcnPad field filters by pad | Fleet status (battery, cargo, position) |
+| `UNITY_PRINTER` | Printer | Pad | No - local grid only | Build completion notification |
+| `UNITY_SIGNAL_CMD` | Pad | Signal | Yes - padID scoped | Signal commands (TRACK, LASER, RESCAN) |
+| `UNITY_SIGNAL_RSP` | Signal | Pad | Yes - padID scoped | Signal command responses |
 
 ---
 
 ## BOOT HANDSHAKE PROTOCOL
 
-### Request (Boot → Pad/Inv)
+### Request (Boot → Pad/Inv/Signal)
 
 **Channel:** `UNITY_BOOT_REQ`
 
 ```
-PAD_CHECK    # Request Pad status
-INV_CHECK    # Request Inventory status
+PAD_CHECK:{padID}      # Request Pad status (padID for multi-pad isolation)
+INV_CHECK:{padID}      # Request Inventory status
+SIGNAL_CHECK:{padID}   # Request Signal status
 ```
+
+**Note:** The padID is included so that on multi-pad grids, only the correct sibling scripts respond to their own boot controller's requests.
 
 ### Response (Pad/Inv → Boot)
 
@@ -88,13 +93,13 @@ X,Y,Z,DTT,Phase,Gravity,DFP,Altitude,Speed,Fuel%,GuideState|CAMS:count|cam1,cam2
 
 **Channel:** `UNITY_MSL_CMD`
 
-| Command | Action |
-|---------|--------|
-| `DETONATE:{padID}` | Immediately detonate warheads |
-| `RESET:{padID}` | Safe reset - disarm, disable, recharge |
-| `MERGE` | Re-enable merge block (for recall) |
-| `DEORBIT:{padID}` | Satellite: exit hold and attack |
-| `ATTACK:X,Y,Z` | Satellite: attack specific coordinates |
+| Command | PadID Required | Action |
+|---------|----------------|--------|
+| `DETONATE:{padID}` | **Yes** | Immediately detonate warheads (missile checks padID matches) |
+| `RESET:{padID}` | **Yes** | Safe reset - disarm, disable, recharge |
+| `MERGE` | No | Re-enable merge block (for recall) |
+| `DEORBIT:{padID}` | **Yes** | Satellite: exit hold and attack |
+| `ATTACK:X,Y,Z` | No | Satellite: attack specific coordinates |
 
 ---
 
@@ -153,6 +158,8 @@ DETONATE|{satID}|{padID}|{enemyX,Y,Z}|{gridX,gridZ}
 | `LAUNCH` | Launch all armed missiles |
 | `ABORT` | Remote detonate all in-flight |
 | `SALVO:{interval}` | Start salvo mode |
+| `SETUPMOD:{padID}` | Setup module - auto-rename blocks with correct pad number |
+| `SETUPFORCE:{padID}` | Force setup - re-rename even if already tagged |
 
 ### Status (All Pads → Controller)
 
@@ -171,12 +178,15 @@ DETONATE|{satID}|{padID}|{enemyX,Y,Z}|{gridX,gridZ}
 **Channel:** `MINER_BEACON`
 
 ```
-MB|{EntityId}|{ShipName}|{Bat%}|{Cargo%}|{H2%}|{X,Y,Z}|{Speed}|{Alt}|{DistHome}|{Status}|{DrillCount}|{DrillsOn}|{GrinderCount}|{GrindersOn}|{Docked}|CAMS:{camId1},{camId2}...
+MB|{bcnPad}|{EntityId}|{ShipName}|{Bat%}|{Cargo%}|{H2%}|{X,Y,Z}|{Speed}|{Alt}|{DistHome}|{Status}|{DrillCount}|{DrillsOn}|{GrinderCount}|{GrindersOn}|{Docked}|CAMS:{camId1},{camId2}...
 ```
+
+**PadID Filtering:** The `bcnPad` field contains the beacon's assigned pad number (e.g., `PAD1`). Receiving scripts (UnityPad, UnitySignal) filter broadcasts by matching `bcnPad` against their own padID. Controller mode ignores this filter and sees ALL miners across all pads.
 
 | Field | Description |
 |-------|-------------|
 | MB | Message identifier |
+| bcnPad | Beacon's assigned pad ID (e.g., PAD1) for multi-pad filtering |
 | EntityId | Unique grid entity ID |
 | ShipName | Miner name from config |
 | Bat% | Battery percentage |
@@ -244,6 +254,19 @@ Used by:
 | UnityMissile | UNITY_MSL_CMD | UNITY_MSL, UNITY_SAT_RELAY_STATUS, UNITY_SAT_INTERCEPT |
 | UnityBeacon | (none) | MINER_BEACON |
 | UnitySignal | UNITY_MSL, MINER_BEACON, UNITY_SAT_RELAY_STATUS, UNITY_SAT_INTERCEPT, UNITY_BOOT_REQ | UNITY_BOOT_RSP |
+
+---
+
+## MULTI-PAD PADID ISOLATION
+
+All IGC messages that need pad-level isolation include a `padID` field. This ensures that on grids with multiple pad modules (PAD1, PAD2, PAD3...), each script only processes messages meant for its own pad.
+
+**Key isolation points:**
+- `UNITY_BOOT_REQ` includes padID so only the correct sibling scripts respond
+- `UNITY_MSL_CMD` DETONATE/RESET include padID so missiles only obey their own pad
+- `MINER_BEACON` includes `bcnPad` so each pad only tracks its own miners (controller sees all)
+- `UNITY_PAD_CMD` SETUPMOD is filtered by padID for targeted module setup
+- `UNITY_SAT_INTERCEPT` includes padID for correct pad attribution
 
 ---
 

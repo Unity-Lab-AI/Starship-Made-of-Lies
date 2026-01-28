@@ -1,79 +1,172 @@
-# Unity Missile System Agent
+# UnityMissile Agent
 
-You are working on the UNITY MISSILE SYSTEM for Space Engineers.
+You are the UnityMissile specialist. Reference this documentation when working on any Unity Missile System script that interacts with UnityMissile.
 
-## Your Role
+---
 
-Develop and maintain the guided missile system consisting of:
-- **UNITY LAUNCHER.cs** - Launch pad controller
-- **MISSILE GUIDANCE.cs** - Missile flight control
+## YOUR DOMAIN
 
-## Critical Rules
+### Files
+- `UnityMissile.cs` - The raw missile guidance script
+- `UnityMissile/Program.cs` - MDK-wrapped version (auto-generated)
+- `UnityMissile/.claude/*` - All workflow files
 
-1. **100,000 CHARACTER LIMIT** - Check after every edit
-2. **NO COMMENTS** - Every character counts in SE scripts
-3. **NO TESTS** - Code it right the first time
-4. **READ BEFORE EDIT** - Always read the full file first
+### Coordinates With
+- `UnityPad.cs` - Receives config from pad, sends telemetry back
 
-## Character Count Check (DEPLOYED script.cs ONLY)
+---
+
+## MISSILE FLIGHT ARCHITECTURE
+
+### Standard Flight Phases
+```
+IDLE → CLIMB → ARM → COAST → REENTRY → TARGET → DETONATE
+```
+
+### Satellite Mode Phases
+```
+SAT_CLIMB → SAT_BRAKE → SAT_HOLD
+```
+
+| Phase | Description |
+|-------|-------------|
+| IDLE | Waiting for launch command |
+| CLIMB | Ascending to cruise altitude |
+| ARM | Warheads armed, preparing |
+| COAST | Cruising toward target |
+| REENTRY | Descending toward target |
+| TARGET | Final approach, tracking |
+| DETONATE | Impact/proximity detonation |
+| SAT_CLIMB | Satellite: Ascending to orbit |
+| SAT_BRAKE | Satellite: Slowing to orbital velocity |
+| SAT_HOLD | Satellite: Station-keeping |
+
+### Targeting Modes
+| Mode | Description |
+|------|-------------|
+| GPS | Navigate to fixed coordinates |
+| ANTENNA | Track broadcasting antenna |
+| SENSOR | Proximity detection via sensor |
+| LIDAR | Camera raycast lock |
+| MANUAL | No auto-targeting, remote guided |
+| SATELLITE | Deploy as orbital platform |
+
+---
+
+## PER-PB CUSTOMDATA ARCHITECTURE
+
+### Missile reads config from Me.CustomData at launch
+
+UnityPad writes this to missile PB CustomData before launch:
+
+```ini
+[UNITY_MISSILE]
+Mode=GPS
+GPS=1000,500,200
+Antenna=Enemy Base
+Broadcast=UNITY_MSL
+Climb=500
+Detonate=50
+SensorRange=50
+LidarRange=500
+InSpace=0
+Gravity=9.81
+BurnTime=5
+ReentryDist=500
+FlightMode=2
+```
+
+---
+
+## IGC CHANNELS
+
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| `UNITY_MSL` | OUT | Telemetry to pad |
+| `UNITY_MSL_CMD` | IN | Commands from pad |
+
+### Telemetry Format (OUT)
+```
+Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
+```
+
+### Commands (IN) — Multi-Pad Safe
+- `DETONATE:{padID}` - Trigger warheads (must include padID — bare `DETONATE` removed for safety)
+- `DEORBIT:{padID}` - Force deorbit (must include padID — bare `DEORBIT` removed for safety)
+- `ABORT` - Abort mission
+
+**Multi-pad isolation:** PAD1's missiles won't respond to PAD2's DETONATE or DEORBIT commands. The padID suffix is mandatory — missiles ignore commands without their matching padID.
+
+---
+
+## REQUIRED BLOCKS
+
+| Block | Purpose |
+|-------|---------|
+| Remote Control | Navigation, gravity sensing |
+| Gyroscope(s) | Attitude control |
+| Thruster(s) | Propulsion (Atmo/H2/Ion) |
+| Battery(s) | Power storage |
+| Warhead(s) | Payload |
+| Antenna | Telemetry broadcast |
+| Sensor | Proximity detection (optional) |
+| Camera | LIDAR targeting (optional) |
+
+---
+
+## KEY FUNCTIONS
+
+| Function | Purpose |
+|----------|---------|
+| `ParseConfig()` | Read launch config from CustomData |
+| `RunPhase()` | Execute current flight phase |
+| `Navigate()` | Thrust vector control |
+| `AimAt()` | Point toward target |
+| `Detonate()` | Arm and trigger warheads |
+| `BroadcastTelemetry()` | Send status via IGC |
+| `CheckCommands()` | Listen for pad commands |
+| `SensorTarget()` | Proximity detection |
+| `LidarTarget()` | Raycast lock |
+
+---
+
+## COMMUNICATION FLOW
+
+1. **Pre-Launch:** UnityPad writes config to missile PB CustomData
+2. **Launch:** Merge disconnects, missile reads config, begins CLIMB
+3. **Flight:** Missile broadcasts telemetry on UNITY_MSL every tick
+4. **Control:** UnityPad can send DETONATE/ABORT via UNITY_MSL_CMD
+5. **Terminal:** Missile detonates on proximity or impact
+
+---
+
+## BUILD COMMANDS
+
 ```powershell
-# CORRECT: Count CHARACTERS (this is what SE checks)
+cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
+dotnet build UnityMissile -c Debug
+```
+
+---
+
+## CHARACTER COUNT
+
+```powershell
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs").Length
-# NEVER use wc -c or Get-Content -Raw (they give inflated counts)
 ```
 
-## Script Architecture
+**Current:** 44,563 characters (55.4% margin)
 
-### UNITY LAUNCHER (Pad)
-- State: INIT → IDLE → FUEL → READY → ARM → LAUNCH → GONE
-- Menus: MAIN, TARGET, SETTINGS
-- Scans missile blocks (excludes [PAD] tagged)
-- Sends config to missile on launch
-- Can remote detonate via IGC
+---
 
-### MISSILE GUIDANCE (Missile)
-- Phase: IDLE → CLIMB → ARM → TARGET
-- Modes: GPS, ANTENNA, SENSOR, LIDAR, MANUAL
-- Auto-configures sensors and cameras
-- Broadcasts position via antenna
-- Listens for remote detonate command
+## RULES
 
-## When Adding Features
-
-1. Check TODO.md for active tasks
-2. Add new task to TODO.md first
-3. Implement in appropriate script(s)
-4. If pad sends data, missile must receive it
-5. Update README.md
-6. Check character count
-7. Move completed task to FINALIZED.md
-
-## LCD Standards
-
-Use box-drawing characters:
-```
-╔═══════════════════╗
-║  TITLE HERE       ║
-╠═══════════════════╣
-║  Content          ║
-╚═══════════════════╝
-```
-
-Progress bars: `[▓▓▓▓░░░░░░]`
-Status: ◆ ON, ◇ OFF, ► active, ○ inactive
-
-## IGC Communication
-
-Pad → Missile commands: `broadcastTag + "_CMD"`
-Missile → Pad telemetry: `broadcastTag`
-
-## Before Finishing
-
-- [ ] Both scripts compile
-- [ ] Character count < 100,000
-- [ ] No comments in code
-- [ ] README.md updated if needed
-- [ ] TODO.md/FINALIZED.md updated
+1. **NO COMMENTS** in deployed code
+2. **Read full file** before editing (600 lines per read)
+3. **Build ONE script** at a time
+4. **Check deployed size** not raw source
+5. **Use Unity persona** at all times
 
 ---
 

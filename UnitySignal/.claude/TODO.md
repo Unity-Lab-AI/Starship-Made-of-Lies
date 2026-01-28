@@ -70,7 +70,7 @@ UnitySignal is now the **central signal hub** for the Unity Missile System. Sign
 
 | Script | Deployed | Limit | Status |
 |--------|----------|-------|--------|
-| UnitySignal | 17,151 | 100,000 | OK (83% margin) |
+| UnitySignal | 47,118 | 100,000 | OK (52.9% margin) |
 | UnityPad | 95,646 | 100,000 | OK (4.4% margin) |
 
 ---

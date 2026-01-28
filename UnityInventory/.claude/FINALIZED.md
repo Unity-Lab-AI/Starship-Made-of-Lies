@@ -91,4 +91,55 @@
 
 ---
 
+## 2026-01-26 - Production & Counting System Fixes
+
+### Bottle Counting Overhaul
+- [x] **Root Cause:** String matching on `TypeId.ToLower()` was unreliable
+- [x] Added explicit bottle counting using `GetItemAmount(h2BottleType/o2BottleType)`
+- [x] Pre-defined `MyItemType` objects at lines 100-101
+- [x] Counts from: padCargo, bottleCargo, assembler outputs
+- [x] Replaced unreliable `tp.Contains("gascontainerobject")` pattern
+
+### mslAmmoTarget Minimum Enforcement
+- [x] Added `if(mslAmmoTarget < 1000) mslAmmoTarget = 50000;` after LoadStorage()
+- [x] Prevents corrupted Storage data from breaking production
+- [x] Default 50,000 = ~5 missiles worth of S-10 ammo
+
+### Ammo Type Synchronization
+- [x] ReadPadSettings() now reads `type` key from padPB.CustomData
+- [x] Calls UpdateAmmoType() when ammoTypeIdx changes
+- [x] Ensures LCD 2 shows correct ammo type that UnityPad selected
+
+### Production Target Logic Fix
+- [x] Fixed `prodTgt = ammoTypeIdx==0 ? mslAmmoTarget : ammoTarget`
+- [x] S-10 (idx 0) uses mslAmmoTarget (50k default)
+- [x] Other ammo types (idx 1-9) use ammoTarget (500 default)
+
+### CanTransferItemTo Removal
+- [x] Removed conveyor check bottleneck from multiple transfer locations
+- [x] Subgrid transfers now work without false failures
+- [x] Uses TransferItemTo() directly for same-construct transfers
+
+### Build Status
+- [x] Deployed: 95,641 chars (**4.4% margin** - TIGHT)
+
+---
+
+## 2026-01-28 - BOOT_REQ PadID Filtering & Code Compression
+
+### BOOT_REQ PadID Filtering
+- [x] CheckBootRequest() now accepts both `INV_CHECK` and `INV_CHECK:{padID}` (backward compatible)
+- [x] Multi-pad safe: only responds to its own pad's boot requests
+- [x] Legacy format still works for older Unity Boot versions
+
+### Personal Ammo Counting & FUEL Connector
+- [x] Personal ammo counting via GetItemAmount() for all ammo types
+- [x] FUEL connector detection: padCon only assigned if name contains "FUEL"
+- [x] Code compression to stay under character limit
+
+### Build Status
+- [x] Deployed: 99,582 chars (**0.4% margin** - CRITICAL, basically zero room)
+
+---
+
 *Unity AI Lab - Inventory Systems Division*

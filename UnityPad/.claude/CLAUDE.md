@@ -58,25 +58,31 @@ Users paste SE clipboard GPS directly into `[PAD1] Controls` button panel Custom
 
 ### Finding Sibling PBs
 
-`FindSiblingPBs()` locates other PBs by name pattern:
+`FindSiblingPBs()` locates other PBs using `IsSameConstructAs(Me)` for multi-pad safe discovery. No fallback -- if a PB doesn't have the exact `[PAD{id}]` tag, it's ignored. This prevents PAD1 from accidentally grabbing PAD2's PBs.
 
 ```csharp
 void FindSiblingPBs(){
     var pbs=new List<IMyProgrammableBlock>();
-    GridTerminalSystem.GetBlocksOfType(pbs,p=>p.IsSameConstructAs(Me));
+    GridTerminalSystem.GetBlocksOfType(pbs,p=>p.IsSameConstructAs(Me)&&p!=Me);
     foreach(var p in pbs){
-        if(p.CustomName.Contains($"[PAD{id}")&&p.CustomName.Contains("UNITY BOOT"))bootPB=p;
+        if(p.CustomName.Contains($"[PAD{id}]")&&p.CustomName.ToUpper().Contains("UNITY BOOT"))bootPB=p;
         if(p.CustomName.Contains($"[PAD{id}]")&&p.CustomName.Contains("Unity Inventory"))invPB=p;
-        if(p.CustomName.Contains($"[PAD{id}]")&&p.CustomName.Contains("Unity Signal"))signalPB=p;
+        if(p.CustomName.Contains($"[PAD{id}]")&&p.CustomName.Contains("UNITY SIGNAL"))signalPB=p;
     }
 }
 ```
+
+**CRITICAL:** No fallback PB discovery. If a sibling PB isn't tagged with the exact `[PAD{id}]`, it won't be found. This is intentional for multi-pad safety.
 
 | PB | Name Pattern | Example |
 |----|--------------|---------|
 | bootPB | `[PAD{id}]` + "UNITY BOOT" | `[PAD1] UNITY BOOT` |
 | invPB | `[PAD{id}]` + "Unity Inventory" | `[PAD1] Unity Inventory` |
 | signalPB | `[PAD{id}]` + "UNITY SIGNAL" | `[PAD1] UNITY SIGNAL` |
+
+### Multi-Pad Discovery
+
+`DiscoverSiblingPads()` uses `IsSameConstructAs(Me)` to find all pad PBs on the same construct. This allows controller mode to see PAD1, PAD2, PAD3, etc. without risking cross-pad contamination.
 
 ---
 
@@ -141,17 +147,18 @@ PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
 
 ### Boot Response Functions
 
+BOOT_REQ filtering is backward compatible -- accepts both `"PAD_CHECK"` and `"PAD_CHECK:{padID}"`:
+
 ```csharp
 void CheckBootRequest(){
-    // Listen for IGC requests from Unity Boot
     while(bootReqL!=null&&bootReqL.HasPendingMessage){
         var msg=bootReqL.AcceptMessage();
-        if(msg.Data.ToString()=="PAD_CHECK")SendBootResponse();
+        string d=msg.Data.ToString();
+        if(d=="PAD_CHECK"||d==$"PAD_CHECK:{id}")SendBootResponse();
     }
 }
 
 void SendBootResponse(){
-    // Send block counts via IGC
     string rsp=$"PAD|OK|merge={mc},con={cc},bat={bc},h2={h2c},o2={o2c},prt={pc}";
     IGC.SendBroadcastMessage("UNITY_BOOT_RSP",rsp);
 }
@@ -335,12 +342,14 @@ Printing stops when:
 
 ## KEY FEATURES
 
-- **Multi-Pad Controller Mode:** Coordinate multiple pads
+- **Multi-Pad Controller Mode:** Coordinate multiple pads via SETPADCONTROL
 - **Salvo/Carpet Bombing:** Launch missiles in sequence
 - **Printer Integration:** Automated missile construction
 - **Fleet Tracking:** Monitor mining ships via UnityBeacon
 - **Telemetry:** Real-time missile tracking with graphs
 - **Satellite Array Management:** Grid position tracking, spiral expansion, intercept handling
+- **Setup Commands:** SETUPMOD, SETUPFORCE, NAMEPAD, NAMEMSL sent via UNITY_SETUP_CMD to Boot
+- **Controller Commands:** BUILDALL, ARMALL, LAUNCHALL, ABORTALL for mass operations
 
 ### Satellite Array Management
 
@@ -365,7 +374,7 @@ UnityPad manages the satellite mesh network with UnitySignal as the data source:
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityPad | ~2,300 | ~97,400 | 100,000 | **WARNING (2.6% margin)** |
+| UnityPad | ~2,300 | ~96,265 | 100,000 | **CRITICAL (3.7% margin)** |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 *Personal equipment tracking removed - UnityInventory handles all tools, weapons, ammo, bottles.*

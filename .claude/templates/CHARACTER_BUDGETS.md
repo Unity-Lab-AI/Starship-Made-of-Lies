@@ -1,6 +1,6 @@
 # UNIFIED CHARACTER BUDGETS
 
-**Last Updated:** 2026-01-24
+**Last Updated:** 2026-01-28
 **Purpose:** Character budget tracking for all Unity Missile System scripts
 
 ---
@@ -9,13 +9,13 @@
 
 | Script | Raw Lines | Deployed | Budget | Margin | Status |
 |--------|-----------|----------|--------|--------|--------|
-| Unity Boot | ~390 | 15,050 | 100,000 | 85% | OK |
-| UnityPad | ~2,300 | 95,427 | 100,000 | 4.6% | OK |
-| UnityMissile | ~1,100 | 28,577 | 100,000 | 71% | OK |
-| UnityInventory | ~1,650 | 90,247 | 100,000 | 9.8% | OK |
-| UnityBeacon | ~200 | 14,658 | 100,000 | 85% | OK |
-| UnitySignal | ~350 | 11,998 | 100,000 | 88% | OK |
-| **TOTAL** | ~6,000 | 256,000 | 600,000 | 57% | OK |
+| Unity Boot | ~450 | 30,372 | 100,000 | 69.6% | OK |
+| UnityPad | ~2,400 | 96,265 | 100,000 | 3.7% | **CRITICAL** |
+| UnityMissile | ~1,300 | 44,563 | 100,000 | 55.4% | OK |
+| UnityInventory | ~1,700 | 99,582 | 100,000 | 0.4% | **CRITICAL** |
+| UnityBeacon | ~300 | ~16,600 | 100,000 | 83.4% | OK |
+| UnitySignal | ~430 | 47,118 | 100,000 | 52.9% | OK |
+| **TOTAL** | ~6,580 | ~334,500 | 600,000 | 44.3% | OK |
 
 ---
 
@@ -76,8 +76,8 @@ wc -c                                    # Wrong - counts bytes
 
 | Script | Margin | Priority |
 |--------|--------|----------|
-| **UnityPad** | 4.6% | HIGH - Refactor if adding features |
-| **UnityInventory** | 9.8% | MEDIUM - Watch when editing |
+| **UnityInventory** | 0.4% | **CRITICAL** - Virtually no room for additions |
+| **UnityPad** | 3.7% | **CRITICAL** - Refactor before adding any features |
 
 ### Mitigation Strategies
 
@@ -92,10 +92,10 @@ wc -c                                    # Wrong - counts bytes
 
 | Script | Available | Good For |
 |--------|-----------|----------|
-| Unity Boot | ~85,000 | Minimal growth expected (self-disables) |
-| UnityMissile | ~71,000 | Room for advanced guidance |
-| UnityBeacon | ~85,000 | Room for cargo details, graphs |
-| UnitySignal | ~88,000 | Room for more camera features |
+| Unity Boot | ~69,600 | Growth from multi-pad setup commands, still plenty of room |
+| UnityMissile | ~55,400 | Room for advanced guidance |
+| UnityBeacon | ~83,400 | Room for cargo details, graphs |
+| UnitySignal | ~52,900 | Room for more camera features |
 
 ---
 
@@ -121,12 +121,12 @@ namespaces=IngameScript
 
 ```
 C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\
-├── Unity Boot\script.cs       (15,050 chars)
-├── UnityPad\script.cs         (95,427 chars)
-├── UnityMissile\script.cs     (28,577 chars)
-├── UnityInventory\script.cs   (90,247 chars)
-├── UnityBeacon\script.cs      (14,658 chars)
-└── UnitySignal\script.cs      (11,998 chars)
+├── Unity Boot\script.cs       (30,372 chars)
+├── UnityPad\script.cs         (96,265 chars) **CRITICAL**
+├── UnityMissile\script.cs     (44,563 chars)
+├── UnityInventory\script.cs   (99,582 chars) **CRITICAL**
+├── UnityBeacon\script.cs      (~16,600 chars)
+└── UnitySignal\script.cs      (47,118 chars)
 ```
 
 ---

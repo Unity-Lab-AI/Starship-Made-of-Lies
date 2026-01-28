@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "Sk+p6EmtDOo=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\gfour\\Desktop\\Space Engineers vGITHUB\\Unity Missile System\\UMS Mod\\UMSMod.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\gfour\\.nuget\\packages\\lib.harmony\\2.2.2\\lib.harmony.2.2.2.nupkg.sha512",
+    "C:\\Users\\gfour\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.3\\microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "C:\\Users\\gfour\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net48\\1.0.3\\microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

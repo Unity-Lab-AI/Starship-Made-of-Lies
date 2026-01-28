@@ -1,6 +1,6 @@
 # UNITY MISSILE SYSTEM - Architecture
 
-*Last updated: 2026-01-24 (Documentation Unification)*
+*Last updated: 2026-01-28 (Multi-Pad Isolation & Safety)*
 
 ---
 
@@ -19,6 +19,8 @@ Six-script guided missile system for Space Engineers:
 ## Per-PB CustomData Architecture
 
 **CRITICAL:** Each script wipes and writes ONLY to `Me.CustomData` (its own PB) on compile. Scripts find and READ other PBs' CustomData via `FindSiblingPBs()` when needed. This prevents race conditions when multiple scripts run in the same tick.
+
+**Multi-Pad Discovery:** `DiscoverSiblingPads()` uses `IsSameConstructAs(Me)` to find pads across CON1/CON2 connectors (not just `CubeGrid == Me.CubeGrid`). This allows pad modules connected via connectors to discover each other for padID assignment.
 
 ### PB and Block Names
 
@@ -64,7 +66,7 @@ GPS:Target Beta:2000:1000:400:#FFFF0000:
 
 ### PB Discovery Pattern
 
-Each script finds sibling PBs using `FindSiblingPBs()`:
+Each script finds sibling PBs using `FindSiblingPBs()` (same-grid, padID-filtered):
 
 ```csharp
 IMyProgrammableBlock bootPB, padPB, invPB;
@@ -77,6 +79,21 @@ void FindSiblingPBs(){
         if(nm.Contains($"[PAD{padID}]") && nm.ToUpper().Contains("UNITY BOOT")) bootPB = pb;
         else if(nm.Contains($"[PAD{padID}]") && nm.Contains("Inventory")) invPB = pb;
         else if(nm.Contains($"[PAD{padID}]") && nm.Contains("Pad")) padPB = pb;
+    }
+}
+```
+
+For **multi-pad discovery**, `DiscoverSiblingPads()` uses `IsSameConstructAs(Me)` to find pads across connectors:
+
+```csharp
+void DiscoverSiblingPads(){
+    var pbs = new List<IMyProgrammableBlock>();
+    GridTerminalSystem.GetBlocksOfType(pbs, b => b.IsSameConstructAs(Me) && b != Me);
+    // Finds UNITY PAD and UNITY BOOT PBs across CON1/CON2 connectors
+    foreach(var pb in pbs){
+        string nm = pb.CustomName;
+        if(nm.Contains("[PAD") && (nm.Contains("Unity Pad") || nm.ToUpper().Contains("UNITY BOOT")))
+            // Extract padID from name for next-available-ID calculation
     }
 }
 ```
@@ -275,7 +292,7 @@ GPS:Enemy Base:5000:2000:800:#FFFF0000:
 
 ## Script Architecture
 
-### Unity Boot.cs (~20,000 chars deployed)
+### Unity Boot.cs (~30,372 chars deployed)
 
 Boot controller running on dedicated PB `[PAD1] UNITY BOOT`.
 
@@ -293,7 +310,7 @@ Boot controller running on dedicated PB `[PAD1] UNITY BOOT`.
 - `CheckReadyFlags()` - Reads ready flags from all sibling PBs
 - `WriteBootComplete()` - Writes boot_complete=true to Me.CustomData
 
-### UnityPad.cs (~97,400 chars deployed - WARNING: 2.6% margin)
+### UnityPad.cs (~96,265 chars deployed - WARNING: 3.7% margin)
 
 Launch pad controller running on `[PAD1] Unity Pad` PB.
 
@@ -313,7 +330,7 @@ INIT -> IDLE -> PRINT -> BUILD -> DOCK -> FUEL -> AMMO -> READY -> ARM -> LAUNCH
 - `ReadGPSFromBtn()` - Reads GPS targets from btn.CustomData (button panel)
 - `UpdateMyData()` - Writes pad sections to Me.CustomData
 
-### UnityInventory.cs (~90,200 chars deployed)
+### UnityInventory.cs (~99,582 chars deployed - CRITICAL: 0.4% margin)
 
 Inventory manager running on `[PAD1] Unity Inventory` PB.
 
@@ -326,10 +343,24 @@ Inventory manager running on `[PAD1] Unity Inventory` PB.
 - `FindSiblingPBs()` - Discovers bootPB and padPB
 - `IsBootComplete()` - Reads boot_complete from bootPB.CustomData
 - `WriteMyData()` - Writes inventory sections to Me.CustomData
-- `ReadPadSettings()` - Reads mode/status from padPB.CustomData
+- `ReadPadSettings()` - Reads mode/status and ammo type from padPB.CustomData
+- `UpdateAmmoType()` - Updates ammoBP and ammoType when type index changes
+- `CountStocks()` - Counts all inventory using `GetItemAmount()` for reliable counting
 - `RecycleExcess()` - Multi-assembler recycling system
 - `QueueProduction()` - Queue missing items to assemblers
 - `GD()` - Item routing with S-10 exception
+
+**Bottle Counting System:**
+- Uses `GetItemAmount(h2BottleType/o2BottleType)` for reliable bottle counting
+- Pre-defined `MyItemType` objects: `h2BottleType`, `o2BottleType`
+- Replaces unreliable string matching on `TypeId.ToLower()`
+- Counts from: padCargo, bottleCargo, assembler outputs
+
+**Ammo Type Synchronization:**
+- Reads `type` key from padPB.CustomData in ReadPadSettings()
+- Calls `UpdateAmmoType()` when index changes
+- Production target: `prodTgt = ammoTypeIdx==0 ? mslAmmoTarget : ammoTarget`
+- mslAmmoTarget minimum enforced at 50,000 (prevents corrupted Storage)
 
 **Recycling System (RecycleExcess):**
 - Calculates excess for: components, tools, personal ammo, bottles, turret ammo
@@ -342,10 +373,10 @@ Inventory manager running on `[PAD1] Unity Inventory` PB.
 **S-10 Ammo Routing:**
 - S-10 (SemiAutoPistolMagazine) routes to generic cargo, not pAmmoCargo
 - Used for missile warhead loading (10,106 rounds per missile)
-- pAmmoTarget minimum enforced at 50,000 (was incorrectly 100 in old storage)
+- mslAmmoTarget default: 50,000 (5 missiles worth)
 - Active cleanup pushes S-10 from pAmmoCargo to generic storage
 
-### UnityMissile.cs (~34,200 chars deployed)
+### UnityMissile.cs (~44,563 chars deployed)
 
 In-flight guidance running on missile PB.
 
@@ -365,7 +396,7 @@ Miner fleet broadcaster running on mining ship PBs.
 
 **Broadcasts:** Ship status every 3 seconds on MINER_BEACON channel.
 
-### UnitySignal.cs (~41,800 chars deployed)
+### UnitySignal.cs (~47,118 chars deployed)
 
 Central signal controller running on `[PAD1] UNITY SIGNAL` PB.
 
@@ -383,16 +414,17 @@ Central signal controller running on `[PAD1] UNITY SIGNAL` PB.
 
 ## IGC Communication Channels
 
-| Channel | Sender | Receiver | Purpose |
-|---------|--------|----------|---------|
-| `UNITY_BOOT_REQ` | Boot | Pad/Inv | Request system status |
-| `UNITY_BOOT_RSP` | Pad/Inv | Boot | Respond with block counts |
-| `UNITY_MSL` | Missile | Pad | Telemetry broadcast |
-| `UNITY_MSL_CMD` | Pad | Missile | Commands (DETONATE, ABORT) |
-| `UNITY_PAD_CMD` | Controller | Slaves | Mass commands |
-| `UNITY_PAD_STATUS` | All Pads | Controller | Status updates |
-| `UNITY_SAT_RELAY` | Satellite | Satellite | Inter-satellite mesh |
-| `MINER_BEACON` | UnityBeacon | Pad/Boot | Fleet status |
+| Channel | Sender | Receiver | Purpose | PadID Filtered |
+|---------|--------|----------|---------|----------------|
+| `UNITY_BOOT_REQ` | Boot | Pad/Inv/Signal | Request system status (`PAD_CHECK:{padID}`, `INV_CHECK:{padID}`, `SIGNAL_CHECK:{padID}`) | **YES** |
+| `UNITY_BOOT_RSP` | Pad/Inv/Signal | Boot | Respond with block counts | No |
+| `UNITY_MSL` | Missile | Pad | Telemetry broadcast | No |
+| `UNITY_MSL_CMD` | Pad | Missile | Commands (`DETONATE:{padID}`, `DEORBIT:{padID}`) | **YES** |
+| `UNITY_PAD_CMD` | Controller | Slaves | Mass commands | No |
+| `UNITY_PAD_STATUS` | All Pads | Controller | Status updates | No |
+| `UNITY_SETUP_CMD` | Boot | Boot | Setup commands (filtered by padID) | **YES** |
+| `UNITY_SAT_RELAY` | Satellite | Satellite | Inter-satellite mesh | No |
+| `MINER_BEACON` | UnityBeacon | Pad/Boot | Fleet status (filtered by PadID) | **YES** |
 
 ---
 
@@ -403,14 +435,28 @@ Central signal controller running on `[PAD1] UNITY SIGNAL` PB.
 | `[PAD#]` | Pad blocks | `[PAD1] Merge Block` |
 | `[PAD#:1-11]` | LCD panels | `[PAD1:1]` through `[PAD1:11]` |
 | `[PAD#-PRINT]` | Printer components | `[PAD1-PRINT] Piston` |
-| `[DOCK]` | Fuel connector | Auto-named on setup |
+| `FUEL` | Missile fuel connector | `[PAD1] FUEL CONNECTOR` (REQUIRED in name) |
 | `[AMMO]` | Ammo connector | Auto-named on setup |
+| `ORE` or `ORE LOAD` | Miner ore connectors | `[PAD1] ORE LOAD 1` (protected from missile ops) |
 | `-ore` | Ore storage | `Large Cargo -ore` |
 | `-ingot` | Ingot storage | |
 | `-comp` | Component storage | |
 | `-tools` | Tools storage | |
 | `-ammo` | Turret ammo | |
 | `-bottle` | H2/O2 bottles | |
+
+### Connector Detection (CRITICAL)
+
+**Missile Fuel Connector (padCon):**
+- MUST contain "FUEL" in name to be recognized
+- Example: `[PAD1] FUEL CONNECTOR`
+- Only this connector is used for missile docking/fueling operations
+
+**Miner Connectors (PROTECTED):**
+- Connectors with "ORE" in name are for miners only
+- Example: `[PAD1] ORE LOAD 1`, `[PAD1] ORE LOAD 2`
+- UnityInventory does NOT control these connectors
+- Prevents miners from unlocking during missile fueling
 
 ---
 
@@ -452,14 +498,14 @@ Unity Missile System/
 
 | Script | Deployed | Limit | Margin | Status |
 |--------|----------|-------|--------|--------|
-| Unity Boot | ~20,000 | 100,000 | 80% | OK |
-| UnityPad | ~97,400 | 100,000 | 2.6% | **WARNING** |
-| UnityMissile | ~34,200 | 100,000 | 66% | OK |
-| UnityInventory | ~90,200 | 100,000 | 9.8% | OK |
+| Unity Boot | ~30,372 | 100,000 | 69.6% | OK |
+| UnityPad | ~96,265 | 100,000 | 3.7% | **TIGHT** |
+| UnityMissile | ~44,563 | 100,000 | 55.4% | OK |
+| UnityInventory | ~99,582 | 100,000 | 0.4% | **CRITICAL** |
 | UnityBeacon | ~16,600 | 100,000 | 83% | OK |
-| UnitySignal | ~41,800 | 100,000 | 58% | OK |
+| UnitySignal | ~47,118 | 100,000 | 52.9% | OK |
 
-**WARNING:** UnityPad is at 97.4% capacity. Code optimizations required before adding features.
+**WARNING:** UnityInventory at 99.6% - virtually no room for additions. UnityPad at 96.3%.
 
 ---
 
@@ -498,6 +544,61 @@ bool IsBootComplete(){
     return bootPB.CustomData.Contains("boot_complete=true");
 }
 ```
+
+---
+
+## Multi-Pad Architecture
+
+### IsSameConstructAs for Cross-Connector Discovery
+
+When multiple pad modules are connected via connectors (CON1/CON2), they share a "construct" but NOT a `CubeGrid`. The key distinction:
+
+- **`CubeGrid == Me.CubeGrid`** — Only finds blocks on the SAME physical grid (no connectors)
+- **`IsSameConstructAs(Me)`** — Finds blocks across connected grids (through connectors, rotors, pistons)
+
+`DiscoverSiblingPads()` in both Unity Boot and UnityPad uses `IsSameConstructAs(Me)` so that PAD1's boot can discover PAD2's PBs even when they're on separate subgrids connected by connectors. Boot discovery also finds UNITY BOOT PBs (not just UNITY PAD) for accurate pad ID detection.
+
+`FindSiblingPBs()` still uses `CubeGrid == Me.CubeGrid` because sibling PBs (Boot, Pad, Inventory, Signal) for the SAME pad are always on the same grid.
+
+### PadID-Filtered IGC Channels
+
+To prevent cross-pad interference in multi-pad setups, several IGC channels now include padID in their messages:
+
+| Channel | Message Format | Filtering |
+|---------|---------------|-----------|
+| `UNITY_BOOT_REQ` | `PAD_CHECK:{padID}`, `INV_CHECK:{padID}`, `SIGNAL_CHECK:{padID}` | Receivers check padID matches their own, backward compatible with old format (no colon) |
+| `UNITY_MSL_CMD` | `DETONATE:{padID}`, `DEORBIT:{padID}` | Missile only accepts commands matching its padID |
+| `UNITY_SETUP_CMD` | `SETUPMOD:{padID}`, `SETUPFORCE:{padID}`, etc. | Only matching boot PB executes |
+| `MINER_BEACON` | `MB\|PadID\|...` | Pad/Signal filter by PadID field; controller mode sees ALL |
+
+**Safety guarantee:** PAD1's DETONATE command cannot trigger PAD2's missiles. Each missile validates the padID suffix before executing destructive commands.
+
+### Setup Order of Operations
+
+For a new multi-pad installation:
+
+1. **Build PAD1 module** with all PBs, blocks, LCDs
+2. **Run SETUPMOD on PAD1 Boot** — claims padID=1, renames all blocks with `[PAD1]` tags
+3. **Compile scripts** in order: PAD -> INVENTORY -> SIGNAL -> BOOT
+4. **Build PAD2 module**, connect to PAD1 via connector
+5. **Run SETUPMOD on PAD2 Boot** — discovers PAD1 via `IsSameConstructAs`, claims padID=2
+6. **SETUPMOD re-tags** blocks with old/wrong `[PAD]` tags instead of skipping them
+7. **Compile PAD2 scripts** in order: PAD -> INVENTORY -> SIGNAL -> BOOT
+
+### Controller Mode Topology
+
+```
+[PAD1] Unity Pad (isController=true)
+    |
+    |-- IGC: UNITY_PAD_CMD --> [PAD2] Unity Pad (slave)
+    |-- IGC: UNITY_PAD_CMD --> [PAD3] Unity Pad (slave)
+    |
+    |-- IGC: UNITY_PAD_STATUS <-- All pads broadcast status
+    |
+    |-- MINER_BEACON <-- All miners (controller sees ALL, slaves filter by padID)
+```
+
+The controller pad aggregates status from all slave pads and can issue mass commands (BUILD ALL, ARM ALL, LAUNCH ALL, SALVO, CARPET BOMB). Each slave validates commands and executes independently. Missile commands (DETONATE, DEORBIT) are padID-stamped so only the correct pad's missiles respond.
 
 ---
 

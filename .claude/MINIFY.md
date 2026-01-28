@@ -3,7 +3,7 @@
 **File:** `UnityPad.cs`
 **Lines:** ~2,050
 **Raw Size:** ~130,000 chars
-**Deployed Size:** 98,438 chars (1,562 char margin - 1.6%)
+**Deployed Size:** 96,265 chars (3,735 char margin - 3.7%)
 
 ---
 
@@ -462,8 +462,8 @@ void LCD(IMyTextPanel p,bool ctrl,Func<bool> goneChk,Func<string> ctrlFn,Func<st
 | String Literal Abbreviation | ~200 chars |
 | **TOTAL POTENTIAL** | **~1,686 chars** |
 
-**Current Margin:** 1,562 chars (as of 2026-01-20)
-**Deployed Size:** 98,438 chars
+**Current Margin:** 3,735 chars (as of 2026-01-28)
+**Deployed Size:** 96,265 chars
 
 *Note: Personal equipment tracking (tStk, tQ, pAmmoStk, pAmmoQ) was removed from UnityPad - UnityInventory handles all personal items now.*
 
@@ -495,4 +495,4 @@ void LCD(IMyTextPanel p,bool ctrl,Func<bool> goneChk,Func<string> ctrlFn,Func<st
 ---
 
 *Unity AI Lab - Missile Systems Division*
-*Minification Architecture Document - 2026-01-20*
+*Minification Architecture Document - 2026-01-28*

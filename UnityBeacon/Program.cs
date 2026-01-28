@@ -204,7 +204,7 @@ namespace IngameScript
         double etaSecs=CalcETA(status);
         string cargo=ScanCargo();
         string camIds="";if(cams.Count>0){foreach(var c in cams)camIds+=(camIds.Length>0?",":"")+c.EntityId.ToString();}
-        string msg=$"MB|{eid}|{shipName}|{batPct:F0}|{crgPct:F0}|{h2Pct:F0}|{pos.X:F0},{pos.Y:F0},{pos.Z:F0}|{spd:F0}|{alt:F0}|{distHome:F0}|{status}|{drls.Count}|{drlOn}|{grnds.Count}|{grndOn}|{(docked?"1":"0")}|{outboundSecs:F0}|{returnSecs:F0}|{cycles}|{etaSecs:F0}|{(outbound?"1":"0")}|FUEL:{o2Pct:F0},{ice},{urn},{o2s.Count},{gens.Count},{reacts.Count}|CARGO:{cargo}|CAMS:{camIds}";
+        string msg=$"MB|{padID}|{eid}|{shipName}|{batPct:F0}|{crgPct:F0}|{h2Pct:F0}|{pos.X:F0},{pos.Y:F0},{pos.Z:F0}|{spd:F0}|{alt:F0}|{distHome:F0}|{status}|{drls.Count}|{drlOn}|{grnds.Count}|{grndOn}|{(docked?"1":"0")}|{outboundSecs:F0}|{returnSecs:F0}|{cycles}|{etaSecs:F0}|{(outbound?"1":"0")}|FUEL:{o2Pct:F0},{ice},{urn},{o2s.Count},{gens.Count},{reacts.Count}|CARGO:{cargo}|CAMS:{camIds}";
         IGC.SendBroadcastMessage(bcTag,msg);}
         
         void TrackShuttleCycle(string newSt,float cargo){

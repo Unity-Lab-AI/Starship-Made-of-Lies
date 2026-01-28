@@ -1,0 +1,11 @@
+UNITY NUKE - Warhead detonation system with countdown LCD displays
+
+Commands:
+- SETUP: Configure block names and timer
+- ARM/START: Begin 30-second countdown
+- ABORT/STOP: Cancel countdown and disarm
+- STATUS: Update displays
+- RESET: Full reset
+- TEST: Test display without detonation
+
+Tag: [NUKE]

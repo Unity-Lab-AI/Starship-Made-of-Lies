@@ -1,0 +1,9 @@
+C:\Users\gfour\Desktop\Space Engineers vGITHUB\Unity Missile System\UMS Mod\obj\Release\UMSMod.csproj.AssemblyReference.cache
+C:\Users\gfour\Desktop\Space Engineers vGITHUB\Unity Missile System\UMS Mod\obj\Release\UMSMod.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\gfour\Desktop\Space Engineers vGITHUB\Unity Missile System\UMS Mod\obj\Release\UMSMod.csproj.CoreCompileInputs.cache
+C:\Users\gfour\Desktop\Space Engineers vGITHUB\Unity Missile System\UMS Mod\obj\Release\UMSMod.sourcelink.json
+C:\Users\gfour\Desktop\Space Engineers vGITHUB\Unity Missile System\UMS Mod\bin\Release\UMSMod.dll
+C:\Users\gfour\Desktop\Space Engineers vGITHUB\Unity Missile System\UMS Mod\bin\Release\UMSMod.pdb
+C:\Users\gfour\Desktop\Space Engineers vGITHUB\Unity Missile System\UMS Mod\obj\Release\UMSMod.dll
+C:\Users\gfour\Desktop\Space Engineers vGITHUB\Unity Missile System\UMS Mod\obj\Release\UMSMod.pdb
+C:\Users\gfour\Desktop\Space Engineers vGITHUB\Unity Missile System\UMS Mod\bin\Release\UMSMod.dll.xml

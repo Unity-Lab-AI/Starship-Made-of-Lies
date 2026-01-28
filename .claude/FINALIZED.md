@@ -4,6 +4,38 @@
 
 ---
 
+## 2026-01-28: Multi-Pad Isolation & Safety
+
+### SETUPMOD Multi-Pad Fix
+- [x] `DiscoverSiblingPads()` in Unity Boot uses `IsSameConstructAs(Me)` — finds pads across CON1/CON2 connectors
+- [x] `DiscoverSiblingPads()` in UnityPad uses `IsSameConstructAs(Me)` — same fix
+- [x] Boot discovery also finds UNITY BOOT PBs (not just UNITY PAD) for pad ID detection
+- [x] SETUPMOD re-tags blocks with old [PAD] tags instead of skipping them
+
+### IGC Pad Isolation
+- [x] `UNITY_BOOT_REQ` now sends `PAD_CHECK:{padID}`, `INV_CHECK:{padID}`, `SIGNAL_CHECK:{padID}`
+- [x] UnityPad filters BOOT_REQ by padID (backward compatible with old format)
+- [x] UnityInventory filters BOOT_REQ by padID (backward compatible)
+- [x] UnitySignal filters BOOT_REQ by padID (backward compatible)
+- [x] `UNITY_SETUP_CMD` filtered by padID — only matching boot PB runs SETUPMOD/SETUPFORCE/NAMEPAD/NAMEMSL
+
+### Missile Safety
+- [x] Removed bare `"DETONATE"` acceptance from UnityMissile — must be `DETONATE:{padID}`
+- [x] Removed bare `"DEORBIT"` acceptance — must be `DEORBIT:{padID}`
+- [x] PAD1's DETONATE can no longer trigger PAD2's missiles
+
+### Cleanup
+- [x] Removed fallback PB discovery from UnityPad `FindSiblingPBs()` (lines 196-198) — no more grabbing wrong PBs
+
+### Updated Deployed Sizes
+- Unity Boot: 30,372 chars (69.6% margin)
+- UnityPad: 96,265 chars (3.7% margin)
+- UnityMissile: 44,563 chars (55.4% margin)
+- UnityInventory: 99,582 chars (0.4% margin — CRITICAL)
+- UnitySignal: 47,118 chars (52.9% margin)
+
+---
+
 ## 2026-01-09 - Initial System Build
 
 ### Core System
@@ -1708,5 +1740,86 @@ Full code audit of all 6 scripts using 6 specialized agents. After verification,
 
 ---
 
+## 2026-01-26 - UnityInventory Production & Counting Fixes
+
+### Bottle Counting System Rewrite
+- [x] **Root Cause:** String matching on `TypeId.ToLower()` was unreliable for bottle types
+- [x] **Symptom:** LCD showed 20+0/20 when 500 bottles existed in storage
+- [x] **Fix:** Added explicit `GetItemAmount()` counting using pre-defined `MyItemType` objects
+- [x] Lines 318-320: Reset pH2B/pO2B and re-count from all containers
+- [x] Uses `h2BottleType` and `o2BottleType` (same reliable method as ammo counting)
+- [x] Counts from: padCargo, bottleCargo (if not in padCargo), assembler outputs
+
+### mslAmmoTarget Minimum Enforcement
+- [x] **Root Cause:** Corrupted Storage data could set mslAmmoTarget to 0
+- [x] **Symptom:** LCD 2 showed 0+0/0 for missile ammo
+- [x] **Fix:** Line 142: `if(mslAmmoTarget<1000)mslAmmoTarget=50000;`
+- [x] Resets to 50000 (5 missiles worth) if Storage has invalid value
+
+### ammoTypeIdx Synchronization from UnityPad
+- [x] **Root Cause:** UnityInventory didn't read ammo type selection from UnityPad
+- [x] **Symptom:** Wrong ammo type counted/displayed on LCD 2
+- [x] **Fix:** Line 675: ReadPadSettings() now reads `type` key from padPB.CustomData
+- [x] Calls `UpdateAmmoType()` when type changes (updates ammoBP and ammoType)
+
+### CanTransferItemTo Bottleneck Removed
+- [x] **Root Cause:** `CanTransferItemTo()` checks conveyor connectivity
+- [x] **Symptom:** Subgrid assembler outputs not pulled to storage
+- [x] **Fix:** Removed CanTransferItemTo checks from transfer functions
+- [x] `TransferItemTo()` works for same-construct blocks regardless of conveyors
+- [x] Lines affected: 446 (PO function), 458 (xf function), 466, 468, 518
+
+### Production Target Logic
+- [x] Line 350: `prodTgt = ammoTypeIdx==0 ? mslAmmoTarget : ammoTarget`
+- [x] S-10 (ammoTypeIdx=0) uses 50000 target, other ammo uses 500 target
+- [x] Production distributes evenly across all assemblers
+
+### Build Status
+- [x] UnityInventory deployed: 95,641 chars (4.4% margin)
+
+---
+
+## 2026-01-28 - Connector Detection, Ammo Counting, Miner Protection
+
+### FUEL Connector Detection Fix (UnityPad + UnityInventory)
+- [x] **Root Cause:** `padCon` was assigned to ANY connector not containing "ORE" or "-CON"
+- [x] **Symptom:** LCD8 showed DOCKED when missile was NOT docked (detecting miner connector)
+- [x] **Fix:** Changed padCon detection to REQUIRE "FUEL" in connector name
+- [x] UnityPad.cs: `if(padCon==null&&u.Contains("FUEL"))padCon=cn;`
+- [x] UnityInventory.cs: Same fix applied
+
+### Miner Connector Protection
+- [x] **Issue:** Miners disconnecting during missile fueling
+- [x] **Miner connectors:** `[PAD1] Connector Miner 1`, `[PAD1] Connector Miner 2`
+- [x] **ORE LOAD connectors:** `[PAD1] ORE LOAD 1`, `[PAD1] ORE LOAD 2`
+- [x] **Fix:** FUEL requirement for padCon prevents miner connectors from being manipulated
+- [x] UnityInventory does NOT call Connect/Disconnect on any connectors except FUEL tagged
+
+### Personal Ammo Counting Fix (UnityInventory)
+- [x] **Root Cause:** `pAmmoStk` was counted via string iteration, not GetItemAmount()
+- [x] **Symptom:** LCD4 showed S-10 ammo at 4200, LCD2 showed correct 45000
+- [x] **Fix:** Created `cBA` action to count bottles AND personal ammo using GetItemAmount()
+- [x] Uses `MyItemType.Parse()` for accurate counting (same method as missile ammo)
+- [x] Personal ammo types: S-10, S-20A, Elite, Rifles, Flare (all in pAmmoIT array)
+
+### V3 Working Version Alignment (UnityPad)
+- [x] Removed line 971 that set pad H2 tanks Stockpile=false (v3 doesn't have this)
+- [x] Added `&&ammoStock>0` guard back to ammo transfer condition
+- [x] Added `||(ammoStock<=0&&mslAmmo>0)` to ammoReady check (handles zero-stock case)
+- [x] H2 transfer now works correctly: only missile tanks get Stockpile=true
+
+### Code Compression (UnityInventory)
+- [x] Removed duplicate pAmmoStk counting from countInv lambda
+- [x] Created action delegates cIt (item counting) and cBA (bottles/ammo counting)
+- [x] Kept script under 100k character limit (99,288 chars deployed)
+
+### Deployed Script Sizes (Final)
+| Script | Characters | Limit | Margin |
+|--------|------------|-------|--------|
+| UnityPad | 95,773 | 100,000 | 4.2% |
+| UnityInventory | 99,288 | 100,000 | 0.7% |
+
+---
+
 *Unity AI Lab - Missile Systems Division*
-*Archive updated: 2026-01-24*
+*Archive updated: 2026-01-28*

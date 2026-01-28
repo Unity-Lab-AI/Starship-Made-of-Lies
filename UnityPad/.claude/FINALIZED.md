@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-01-28 - Multi-Pad Safety Overhaul
+
+### IsSameConstructAs Discovery + Fallback Removal
+- [x] DiscoverSiblingPads() now uses IsSameConstructAs(Me) for multi-pad discovery
+- [x] Fallback PB discovery REMOVED -- no more grabbing wrong PBs without padID tag
+- [x] BOOT_REQ filtering: accepts both "PAD_CHECK" and "PAD_CHECK:{padID}" (backward compatible)
+- [x] Setup commands: SETUPMOD, SETUPFORCE, NAMEPAD, NAMEMSL sent via UNITY_SETUP_CMD to Boot
+- [x] Controller mode: SETPADCONTROL toggles, BUILDALL/ARMALL/LAUNCHALL/ABORTALL
+- [x] Deployed: 96,265 chars (3.7% margin -- CRITICAL)
+
+---
+
 ## 2026-01-21 - Inventory Handoff Complete
 
 ### Personal Equipment Tracking Moved to UnityInventory

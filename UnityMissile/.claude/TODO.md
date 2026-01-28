@@ -1,15 +1,15 @@
 # UnityMissile - Active Tasks
 
 *Unity AI Lab - Missile Systems Division*
-*Last Updated: 2026-01-16*
+*Last Updated: 2026-01-28*
 
 ---
 
 ## Character Budget
 
-**Current:** ~25,000 chars deployed
+**Current:** ~44,563 chars deployed
 **Limit:** 100,000 chars
-**Remaining:** ~75,000 chars (75% margin)
+**Remaining:** ~55,437 chars (55.4% margin)
 
 Status: **HEALTHY** - No immediate minification needed
 
@@ -35,6 +35,12 @@ Status: **HEALTHY** - No immediate minification needed
 - [ ] Confirm telemetry received at pad
 - [ ] Test blackout detection and recovery
 - [ ] Verify satellite relay communication
+
+### [x] Multi-Pad Command Safety (COMPLETE 2026-01-28)
+
+- [x] Bare DETONATE removed -- must be DETONATE:{padID}
+- [x] Bare DEORBIT removed -- must be DEORBIT:{padID}
+- [x] PAD1 missiles won't respond to PAD2 commands
 
 ### [ ] Safety Systems
 

@@ -20,10 +20,12 @@ Centralized boot controller for the Unity Missile System. Uses Per-PB CustomData
 8. [LCD Allocation](#lcd-allocation)
 9. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)
 10. [CustomData Ownership](#customdata-ownership)
-11. [Error Handling](#error-handling)
-12. [Critical Rules](#critical-rules-always-enforced)
-13. [Character Budget](#character-budget)
-14. [Quick Reference](#quick-reference)
+11. [Multi-Pad Discovery](#multi-pad-discovery)
+12. [Multi-Pad Setup Commands](#multi-pad-setup-commands)
+13. [Error Handling](#error-handling)
+14. [Critical Rules](#critical-rules-always-enforced)
+15. [Character Budget](#character-budget)
+16. [Quick Reference](#quick-reference)
 
 ---
 
@@ -31,14 +33,15 @@ Centralized boot controller for the Unity Missile System. Uses Per-PB CustomData
 
 Unity Boot is a dedicated boot controller that:
 1. **Wipes Me.CustomData on compile** and writes fresh [SYSTEM], [QUOTAS], [BLACKBOX]
-2. **Finds sibling PBs by name pattern** using FindSiblingPBs()
-3. **Reads ready flags from sibling PBs** (not button panel)
-4. Takes control of ALL 11 LCDs during startup
-5. Runs 26 unified system checks with real IGC handshaking
-6. Sets up **GPS section on button panel** for missile targeting
-7. Detects miner fleet via MINER_BEACON broadcasts (check 20)
-8. Signals `boot_complete=true` in its own CustomData when ready
-9. Self-disables after boot, releasing LCDs to operational scripts
+2. **Finds sibling PBs using IsSameConstructAs(Me)** via DiscoverSiblingPads() - works across CON1/CON2 connectors, not just same CubeGrid
+3. **Discovers both UNITY PAD and UNITY BOOT PBs** for pad ID detection and multi-pad awareness
+4. **Reads ready flags from sibling PBs** (not button panel)
+5. Takes control of ALL 11 LCDs during startup
+6. Runs 26 unified system checks with real IGC handshaking
+7. Sets up **GPS section on button panel** for missile targeting
+8. Detects miner fleet via MINER_BEACON broadcasts (check 20)
+9. Signals `boot_complete=true` in its own CustomData when ready
+10. Self-disables after boot, releasing LCDs to operational scripts
 
 ---
 
@@ -76,7 +79,7 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\scr
 
 ## IN-GAME SCRIPT COMPILE ORDER
 
-**COMPILE ORDER: BEACON → MISSILE → PAD → INVENTORY → SIGNAL → BOOT**
+**COMPILE ORDER: BEACON -> MISSILE -> PAD -> INVENTORY -> SIGNAL -> BOOT**
 
 | Order | Script | PB Name Pattern | What Happens |
 |-------|--------|-----------------|--------------|
@@ -84,15 +87,18 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\scr
 | 2 | **UnityMissile** | `[PAD1] Missile #1 Program` | Optional - missile guidance |
 | 3 | **UnityPad** | `[PAD1] Unity Pad` | Wipes Me.CustomData, writes `pad_ready=true` |
 | 4 | **UnityInventory** | `[PAD1] Unity Inventory` | Wipes Me.CustomData, writes `inv_ready=true` |
-| 5 | **Unity Boot** | `[PAD1] UNITY BOOT` | Finds sibling PBs, reads ready flags, runs 26 checks |
+| 5 | **UnitySignal** | `[PAD1] UNITY SIGNAL` | Wipes Me.CustomData, writes `signal_ready=true` |
+| 6 | **Unity Boot** | `[PAD1] UNITY BOOT` | Finds sibling PBs, reads ready flags, runs 26 checks |
 
-**NOTE:** BEACON and MISSILE are on different PBs, so can compile any time. The 3 pad scripts are on SEPARATE PBs but Unity Boot finds them by name pattern.
+**NOTE:** BEACON and MISSILE are on different PBs, so can compile any time. The 4 pad scripts are on SEPARATE PBs but Unity Boot finds them using IsSameConstructAs(Me) which works across connector boundaries.
 
 **HOW IT WORKS:**
 - **Each script wipes its OWN Me.CustomData on compile** - no shared CustomData
-- Unity Boot uses FindSiblingPBs() to locate padPB and invPB by name pattern
+- Unity Boot uses DiscoverSiblingPads() with IsSameConstructAs(Me) to locate padPB, invPB, and signalPB across CON1/CON2 connectors
+- Also discovers other UNITY BOOT PBs for pad ID detection in multi-pad setups
 - Unity Boot reads `pad_ready=true` from padPB.CustomData
 - Unity Boot reads `inv_ready=true` from invPB.CustomData
+- Unity Boot reads `signal_ready=true` from signalPB.CustomData
 - Boot then runs 26 checks and sets `boot_complete=true` in its own CustomData
 
 ---
@@ -104,21 +110,27 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\scr
 | Unity Boot | `[PAD1] UNITY BOOT` | Me.CustomData | Yes (auto) |
 | UnityPad | `[PAD1] Unity Pad` | padPB.CustomData | Yes |
 | UnityInventory | `[PAD1] Unity Inventory` | invPB.CustomData | Yes |
+| UnitySignal | `[PAD1] UNITY SIGNAL` | signalPB.CustomData | Yes |
 | UnityBeacon | `[BEACON] Unity Beacon` | (detected via MINER_BEACON) | No (optional) |
 
-**FindSiblingPBs() - How Boot Finds Other Scripts:**
+**DiscoverSiblingPads() - How Boot Finds Other Scripts:**
 ```csharp
-// Extracts pad ID from own name: "[PAD1] UNITY BOOT" → "PAD1"
+// Uses IsSameConstructAs(Me) instead of CubeGrid==Me.CubeGrid
+// This finds PBs across CON1/CON2 connector boundaries - not just same grid!
+// Extracts pad ID from own name: "[PAD1] UNITY BOOT" -> "PAD1"
 // Then searches for:
 //   padPB: Contains "[PAD1]" AND "Unity Pad"
 //   invPB: Contains "[PAD1]" AND "Unity Inventory"
+//   signalPB: Contains "[PAD1]" AND "UNITY SIGNAL"
+//   Other UNITY BOOT PBs: for multi-pad awareness
 ```
 
 **CheckReadyFlags() - How Boot Reads Ready State:**
 ```csharp
 // Reads padPB.CustomData for "pad_ready=true"
 // Reads invPB.CustomData for "inv_ready=true"
-// Both must be true before starting 23 checks
+// Reads signalPB.CustomData for "signal_ready=true"
+// All must be true before starting checks
 ```
 
 When waiting, shows "WAITING FOR SCRIPTS" screen on all 11 LCDs.
@@ -133,9 +145,19 @@ Unlike simple block scanning, Unity Boot uses actual PB-to-PB communication via 
 
 | Channel | Direction | Purpose |
 |---------|-----------|---------|
-| `UNITY_BOOT_REQ` | Boot → Pad/Inv | Request system status |
-| `UNITY_BOOT_RSP` | Pad/Inv → Boot | Respond with block counts |
-| `MINER_BEACON` | Beacon → Boot | Fleet status broadcasts |
+| `UNITY_BOOT_REQ` | Boot -> Pad/Inv/Signal | Request system status (includes padID) |
+| `UNITY_BOOT_RSP` | Pad/Inv/Signal -> Boot | Respond with block counts |
+| `UNITY_SETUP_CMD` | External -> Boot | Setup commands (filtered by padID) |
+| `MINER_BEACON` | Beacon -> Boot | Fleet status broadcasts |
+
+### Request Format
+
+Boot now sends padID with every request so sibling scripts know which pad is asking:
+```
+PAD_CHECK:{padID}
+INV_CHECK:{padID}
+SIGNAL_CHECK:{padID}
+```
 
 ### Response Format
 
@@ -181,22 +203,23 @@ Unity Boot sets up the GPS section on button panel `[PAD1] Controls` for missile
 
 ### Boot Flow
 
-1. **UnityPad compiles** → Wipes Me.CustomData, writes `pad_ready=true` to own PB
-2. **UnityInventory compiles** → Wipes Me.CustomData, writes `inv_ready=true` to own PB
-3. **Unity Boot compiles** → Wipes Me.CustomData, writes [SYSTEM], [QUOTAS], [BLACKBOX]
-4. **FindSiblingPBs()** → Locates padPB and invPB by name pattern
-5. **CheckReadyFlags()** → Reads padPB.CustomData and invPB.CustomData for ready flags
-6. **SetupBtnGPS()** → Wipes button panel CustomData, writes [GPS] section
-7. **Checks 1-4** → Local block scan (grid, panel, LCDs, IGC)
-8. **Checks 5-10** → Pad handshake and validation (merge, power, fuel)
-9. **Checks 11-16** → Inventory handshake and validation (cargo, ref, asm, gas)
-10. **Checks 17-19** → Cross-validate, module sync, write config
-11. **Check 20** → Beacon detection - listens for MINER_BEACON, stores miner names
-12. **Check 21** → System ready
-13. **If success** → Sets `boot_complete=true` in Me.CustomData
-14. **Unity Boot disables itself** → `UpdateFrequency.None`
-15. **UnityPad sees boot_complete=true** → Takes LCDs 1,2,3,7,8
-16. **UnityInventory sees boot_complete=true** → Takes LCDs 4,5,6,9,10,11
+1. **UnityPad compiles** -> Wipes Me.CustomData, writes `pad_ready=true` to own PB
+2. **UnityInventory compiles** -> Wipes Me.CustomData, writes `inv_ready=true` to own PB
+3. **UnitySignal compiles** -> Wipes Me.CustomData, writes `signal_ready=true` to own PB
+4. **Unity Boot compiles** -> Wipes Me.CustomData, writes [SYSTEM], [QUOTAS], [BLACKBOX]
+5. **DiscoverSiblingPads()** -> Uses IsSameConstructAs(Me) to locate padPB, invPB, signalPB across connectors
+6. **CheckReadyFlags()** -> Reads padPB.CustomData, invPB.CustomData, signalPB.CustomData for ready flags
+7. **SetupBtnGPS()** -> Wipes button panel CustomData, writes [GPS] section
+8. **Checks 1-4** -> Local block scan (grid, panel, LCDs, IGC)
+9. **Checks 5-10** -> Pad handshake and validation (merge, power, fuel)
+10. **Checks 11-16** -> Inventory handshake and validation (cargo, ref, asm, gas)
+11. **Checks 16-19** -> Signal handshake, cross-validate, module sync, write config
+12. **Check 20** -> Beacon detection - listens for MINER_BEACON, stores miner names
+13. **Checks 21-25** -> Controller modules, system ready
+14. **If success** -> Sets `boot_complete=true` in Me.CustomData
+15. **Unity Boot disables itself** -> `UpdateFrequency.None`
+16. **UnityPad sees boot_complete=true** -> Takes LCDs 1,2,3,7,8
+17. **UnityInventory sees boot_complete=true** -> Takes LCDs 4,5,6,9,10,11
 
 ---
 
@@ -209,24 +232,27 @@ Unity Boot sets up the GPS section on button panel `[PAD1] Controls` for missile
 | 2 | Button Panel | Control panel found |
 | 3 | Detecting LCDs | Min 1 LCD tagged |
 | 4 | IGC Channels | Channels registered |
-| 5 | Request Pad Status | Send PAD_CHECK via IGC |
+| 5 | Request Pad Status | Send PAD_CHECK:{padID} via IGC |
 | 6 | Await Pad Response | Wait up to 90 ticks |
 | 7 | Missile Merge Block | Validate merge count |
 | 8 | Validate Pad Power | Validate battery count |
 | 9 | Validate Pad Fuel | Validate H2/O2 tanks |
-| 10 | Request Inv Status | Send INV_CHECK via IGC |
+| 10 | Request Inv Status | Send INV_CHECK:{padID} via IGC |
 | 11 | Await Inv Response | Wait up to 90 ticks |
 | 12 | Validate Inv Cargo | Validate cargo containers |
 | 13 | Validate Inv Refinery | Validate refineries |
 | 14 | Validate Inv Assembler | Validate assemblers |
 | 15 | Validate Inv Gas | Validate generators |
-| 16 | Cross-Validate | Both systems responded |
-| 17 | Module Sync | Check sibling pads |
-| 18 | Write Config | EnsureQuotas + SetupBtnGPS |
-| 19 | Beacon Detection | Count miners (optional) |
-| 20 | Controller Modules | Report connected pads |
-| 21 | System Ready | Mark boot complete |
-| 22 | All Systems Operational | Final status |
+| 16 | Request Signal Status | Send SIGNAL_CHECK:{padID} via IGC |
+| 17 | Await Signal Response | Wait up to 90 ticks |
+| 18 | Validate Signal | Validate cameras and LCDs |
+| 19 | Cross-Validate | All systems responded |
+| 20 | Module Sync | Check sibling pads |
+| 21 | Write Config | EnsureQuotas + SetupBtnGPS |
+| 22 | Beacon Detection | Count miners (optional) |
+| 23 | Controller Modules | Report connected pads |
+| 24 | System Ready | Mark boot complete |
+| 25 | All Systems Operational | Final status |
 
 ---
 
@@ -240,8 +266,8 @@ During boot, Unity Boot controls ALL LCDs:
 | 4,5,6,9,10,11 | INVENTORY MODULE boot screen |
 
 After boot completes:
-- LCDs 1,2,3,7,8 → Released to UnityPad
-- LCDs 4,5,6,9,10,11 → Released to UnityInventory
+- LCDs 1,2,3,7,8 -> Released to UnityPad
+- LCDs 4,5,6,9,10,11 -> Released to UnityInventory
 
 ---
 
@@ -254,6 +280,7 @@ After boot completes:
 | `[PAD1] UNITY BOOT` | Unity Boot | [SYSTEM], [QUOTAS], [BLACKBOX] |
 | `[PAD1] Unity Pad` | UnityPad | [PAD_CFG], [PAD_STATUS], [PAD_DATA], pad_ready=true |
 | `[PAD1] Unity Inventory` | UnityInventory | [MISSILE], [CONFIG], [WAYPOINTS], [STATUS], [ORE], [INGOTS], [COMPONENTS], [TURRET_AMMO], [BOTTLES], [TOOLS_WEAPONS], [PERSONAL_AMMO], inv_ready=true |
+| `[PAD1] UNITY SIGNAL` | UnitySignal | [SIGNAL], signal_ready=true |
 | Missile PB | UnityMissile | Own config only |
 | `[BEACON] Unity Beacon` | UnityBeacon | Own config only |
 
@@ -277,13 +304,16 @@ GPS:Target:1000:500:200:#FF00FF00:
 
 ### How Scripts Find Each Other
 
-Unity Boot uses FindSiblingPBs() to locate sibling PBs:
+Unity Boot uses DiscoverSiblingPads() with IsSameConstructAs(Me) to locate sibling PBs:
 ```csharp
 // Boot PB name: "[PAD1] UNITY BOOT"
 // Extracts "PAD1" from the name
-// Searches grid for:
+// Uses IsSameConstructAs(Me) - finds PBs across CON1/CON2 connectors!
+// Searches for:
 //   padPB: Contains "[PAD1]" AND "Unity Pad"
 //   invPB: Contains "[PAD1]" AND "Unity Inventory"
+//   signalPB: Contains "[PAD1]" AND "UNITY SIGNAL"
+//   Other UNITY BOOT PBs: for multi-pad ID detection
 ```
 
 UnityPad and UnityInventory use similar patterns to find Unity Boot's PB when checking `boot_complete`.
@@ -296,9 +326,10 @@ UnityPad and UnityInventory use similar patterns to find Unity Boot's PB when ch
 
 | Script | Writes To | Reads From |
 |--------|-----------|------------|
-| Unity Boot | Me.CustomData (Boot PB) | padPB.CustomData, invPB.CustomData |
+| Unity Boot | Me.CustomData (Boot PB) | padPB.CustomData, invPB.CustomData, signalPB.CustomData |
 | UnityPad | Me.CustomData (Pad PB) | bootPB.CustomData (for boot_complete) |
 | UnityInventory | Me.CustomData (Inv PB) | bootPB.CustomData (for boot_complete, QUOTAS) |
+| UnitySignal | Me.CustomData (Signal PB) | bootPB.CustomData (for boot_complete) |
 
 **Unity Boot writes to TWO places:**
 1. **Me.CustomData** - [SYSTEM], [QUOTAS], [BLACKBOX]
@@ -307,6 +338,61 @@ UnityPad and UnityInventory use similar patterns to find Unity Boot's PB when ch
 **Unity Boot does NOT write system data to button panel.** The button panel is ONLY for GPS coordinates.
 
 **After boot_complete=true, Unity Boot self-disables and stops running entirely.**
+
+---
+
+## MULTI-PAD DISCOVERY
+
+I use `IsSameConstructAs(Me)` instead of the old `CubeGrid==Me.CubeGrid` check. This is a big deal for multi-pad setups because it finds PBs across mechanical connections (connectors, rotors, pistons) - not just blocks welded to the same grid.
+
+### Why IsSameConstructAs?
+
+In a multi-pad base, pads connect via CON1/CON2 connectors. With the old `CubeGrid` check, I'd only see blocks on my own physical grid. With `IsSameConstructAs`, I see the entire construct - every grid connected through connectors. That means I can:
+
+- Find my own pad's scripts (padPB, invPB, signalPB) by matching `[PAD1]` tag
+- Discover OTHER boot PBs (e.g., `[PAD2] UNITY BOOT`) for multi-pad awareness
+- Detect sibling pads for controller mode aggregation
+
+### What Gets Discovered
+
+| Discovery | Name Pattern | Purpose |
+|-----------|-------------|---------|
+| Own padPB | `[PAD1] Unity Pad` | Handshake target |
+| Own invPB | `[PAD1] Unity Inventory` | Handshake target |
+| Own signalPB | `[PAD1] UNITY SIGNAL` | Handshake target |
+| Other BOOT PBs | `[PAD2] UNITY BOOT`, etc. | Pad ID detection |
+
+---
+
+## MULTI-PAD SETUP COMMANDS
+
+When you're setting up a new pad or re-tagging blocks, Boot handles these setup commands via UNITY_SETUP_CMD:
+
+### SETUPMOD Command
+
+Received via IGC as `SETUPMOD|{padID}`. Boot checks if the padID matches its own - only the matching boot instance runs the setup. This re-tags blocks with old `[PAD]` tags, stripping the old tag and applying the correct padID.
+
+### Order of Operations (Multi-Pad Setup)
+
+1. Build and deploy all scripts
+2. Compile UnityPad on each pad's PB (sets pad_ready)
+3. Compile UnityInventory on each pad's PB (sets inv_ready)
+4. Compile UnitySignal on each pad's PB (sets signal_ready)
+5. Compile Unity Boot on each pad's PB LAST (runs 26 checks)
+6. If blocks need re-tagging, send SETUPMOD via IGC - only the matching boot runs it
+
+### Available Setup Commands
+
+| Command | Action |
+|---------|--------|
+| `SETUPMOD` | Re-tag blocks: strips old [PAD] tags, applies correct padID |
+| `SETUPFORCE` | Force re-tag even if blocks already have correct tags |
+| `NAMEPAD` | Rename the pad's PB with correct [PAD#] prefix |
+| `NAMEMSL` | Rename the missile's PB with correct [PAD#] prefix |
+
+### PadID Filtering
+
+All UNITY_SETUP_CMD messages include the padID: `data==$"SETUPMOD|{padID}"`. Boot checks if the padID in the message matches its own before executing. This prevents PAD1's boot from running PAD2's setup commands.
 
 ---
 
@@ -342,7 +428,7 @@ Timeout handling:
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| Unity Boot | ~320 | ~20,000 | 100,000 | OK (80% margin) |
+| Unity Boot | ~450 | 30,372 | 100,000 | OK (69.6% margin) |
 
 ---
 

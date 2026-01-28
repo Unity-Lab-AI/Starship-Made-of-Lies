@@ -60,8 +60,8 @@ namespace IngameScript
         MyDetectedEntityInfo lidarHit;
         bool lidarLock=false;
         bool coasting=false;
-        int coastTicks=0;
-        int burnTime=5;
+        int reentryTicks=0;
+        double lastCoastSpeed=0;
         double reentryDist=500;
         int flightMode=2;
         double spaceClimbDist=1000;
@@ -72,6 +72,8 @@ namespace IngameScript
         bool inBlackout=false;
         bool wasInBlackout=false;
         double antennaRange=50000;
+        int blackoutTicks=0;
+        bool blackoutConverted=false;
         Vector3D padLaserPos;
         bool useLaser=false;
         int mslNumber=0;
@@ -81,18 +83,40 @@ namespace IngameScript
         List<IMyGasTank> h2tanks=new List<IMyGasTank>();
         List<IMyGasGenerator> generators=new List<IMyGasGenerator>();
         List<IMyLightingBlock> lights=new List<IMyLightingBlock>();
+        List<IMyTextPanel> lcds=new List<IMyTextPanel>();
+        float lcdW=512,lcdH=512,lcdS=1,lcdYS=1,fntS=1;
+        Color cBg=new Color(10,10,15);Color cTxt=new Color(220,220,220);Color cPri=new Color(0,180,255);Color cWrn=new Color(255,180,0);Color cErr=new Color(255,60,60);Color cOK=new Color(0,255,100);
+        List<string[]> msgQ=new List<string[]>();
+        string[] curMsg=null;
+        int msgExpr=0;
+        int msgTicks=0;
+        const int MSG_MIN_TICKS=2;
+        double lastH2=-1,lastBat=-1;
+        F lastPhase=F.IDLE;
+        bool lastArmed=false;
+        int idleCycle=0;
+        int idleTicks=0;
+        Vector3D lastGPS=Vector3D.Zero;
+        bool gpsAnnounced=false;
+        int startupCheck=0;
+        bool startupDone=false;
+        bool bootComplete=false;
+        int bootWaitTicks=0;
+        string lastPadSession="";
         IMyShipMergeBlock merge;
         IMyShipConnector ammoConnector;
+        bool ammoEjecting=false;
         bool isSatellite=false;
         Vector3D satPosition;
         Vector3D satVelocity;
         bool satStationKeeping=false;
         int satHoldTicks=0;
+        int satFallTicks=0;
         int interceptLostTicks=0;
         string satRelayTag="UNITY_SAT_RELAY";
         IMyBroadcastListener satRelayListener;
         IMyBroadcastListener satInterceptListener;
-        double satTargetAlt=100000;
+        double satTargetAlt=62000;
         int satID=0;
         int satGridX=0;
         int satGridZ=0;
@@ -148,8 +172,9 @@ namespace IngameScript
         ConfigCameras();
         NameParts();
         LoadState();
+        if(phase==F.IDLE){tgtGPS=Vector3D.Zero;mode=T.GPS;bootComplete=false;startupDone=false;startupCheck=0;gpsAnnounced=false;}
         }
-        public void Save(){Storage=$"{(int)phase}|{(int)mode}|{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}|{(warheadsArmed?"1":"0")}|{launchPos.X},{launchPos.Y},{launchPos.Z}";}
+        public void Save(){Storage=$"{(int)phase}|{(int)mode}|{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}|{(warheadsArmed?"1":"0")}|{launchPos.X},{launchPos.Y},{launchPos.Z}|{(blackoutConverted?"1":"0")}";}
         void LoadState(){
         if(string.IsNullOrEmpty(Storage))return;
         var p=Storage.Split('|');
@@ -160,6 +185,7 @@ namespace IngameScript
         var g=p[2].Split(',');if(g.Length==3){double x,y,z;if(double.TryParse(g[0],out x)&&double.TryParse(g[1],out y)&&double.TryParse(g[2],out z))tgtGPS=new Vector3D(x,y,z);}
         warheadsArmed=p[3]=="1";
         var l=p[4].Split(',');if(l.Length==3){double x,y,z;if(double.TryParse(l[0],out x)&&double.TryParse(l[1],out y)&&double.TryParse(l[2],out z))launchPos=new Vector3D(x,y,z);}
+        if(p.Length>=6)blackoutConverted=p[5]=="1";
         if(phase!=F.IDLE)Runtime.UpdateFrequency=UpdateFrequency.Update10;
         }}
         
@@ -168,6 +194,9 @@ namespace IngameScript
         if(a=="RESET"){FindBlocks();SafeReset();return;}
         if(a=="LAUNCH"){
         ParseConfig();
+        var allMerges=new List<IMyShipMergeBlock>();
+        GridTerminalSystem.GetBlocksOfType(allMerges,m=>m.CubeGrid==Me.CubeGrid);
+        foreach(var m in allMerges)m.Enabled=false;
         FindBlocks();
         if(rc==null||thrusters.Count==0){Echo("Missing RC or thrusters - check blocks");return;}
         lastDist=double.MaxValue;
@@ -191,6 +220,8 @@ namespace IngameScript
         climbTicks=0;
         Runtime.UpdateFrequency=UpdateFrequency.Update10;
         EnableThrustUp(launchUp);
+        foreach(var b in batteries)b.ChargeMode=ChargeMode.Discharge;
+        foreach(var g in generators)g.Enabled=true;
         evadeStartTime=DateTime.Now;
         evadePhaseOffset=(double)(mslNumber%10)*0.1;
         spiralPhase=0;
@@ -209,10 +240,13 @@ namespace IngameScript
         meshBlackoutTicks=0;
         meshLastPadResponse=0;
         phase=F.SAT_CLIMB;
+        QMsg("TO SPACE BITCH!","Satellite mode!",2);
         }else if(flightMode==2){
         phase=launchedFromGrav?F.CLIMB:F.TARGET;
+        QMsg("YEEHAW FUCKERS!","Let's kill shit!",2);
         }else{
         phase=F.CLIMB;
+        QMsg("FULL SEND!","ICBM go brrrrr!",2);
         }
         return;
         }
@@ -236,6 +270,7 @@ namespace IngameScript
         }
         UpdateEcho();
         UpdateFlightLights();
+        UpdateLCD();
         }
         
         void DoClimb(){
@@ -281,9 +316,10 @@ namespace IngameScript
         
         void DoArm(){
         if(rc==null){EnableThrust(true);return;}
+        if(!ammoEjecting&&ammoConnector!=null){ammoConnector.ThrowOut=true;ammoEjecting=true;SendFinalStatus("AMMO_EJECT");QMsg("Dumping ammo!","Lightening up!",2);}
         Vector3D grav=rc.GetNaturalGravity();
         if(grav.Length()<0.05){
-        coastTicks=0;
+        lastCoastSpeed=0;
         coasting=false;
         phase=F.COAST;
         }else{
@@ -301,6 +337,7 @@ namespace IngameScript
         distToTgt=dist;
         if(currentGrav>0.1){
         phase=F.REENTRY;
+        reentryTicks=0;
         EnableThrust(true);
         return;
         }
@@ -310,24 +347,32 @@ namespace IngameScript
         return;
         }
         AimAt(target.Value);
-        coastTicks++;
-        if(coastTicks<burnTime*6){
-        EnableThrust(true);
-        coasting=false;
-        }else{
+        Vector3D vel=rc.GetShipVelocities().LinearVelocity;
+        double speed=vel.Length();
+        Vector3D toTarget=Vector3D.Normalize(target.Value-Me.GetPosition());
+        double alignment=speed>1?Vector3D.Dot(Vector3D.Normalize(vel),toTarget):0;
+        bool onCourse=alignment>0.98;
+        double speedDelta=speed-lastCoastSpeed;
+        lastCoastSpeed=speed;
+        bool atMaxSpeed=speedDelta<0.5&&speed>50;
+        if(onCourse&&atMaxSpeed){
         EnableThrust(false);
         coasting=true;
+        }else{
+        EnableThrust(true);
+        coasting=false;
         }
         }
         
         void DoReentry(){
         if(rc==null){EnableThrust(true);return;}
         EnableThrust(true);
+        reentryTicks++;
         Vector3D? target=GetTarget();
         if(target.HasValue){
         AimAt(target.Value);
         distToTgt=Vector3D.Distance(Me.GetPosition(),target.Value);
-        if(distToTgt<reentryDist/2)phase=F.TARGET;
+        if(distToTgt<reentryDist/2&&reentryTicks>30)phase=F.TARGET;
         }
         }
         
@@ -347,7 +392,7 @@ namespace IngameScript
         foreach(var w in warheads){w.IsArmed=true;}
         warheadsArmed=true;
         SendFinalStatus("WARHEADS_ARMED");
-        if(ammoConnector!=null){ammoConnector.ThrowOut=true;}
+        QMsg("I'M HOT BITCH!","Ready to fuck you!",6);
         }
         if(terminalGuidanceActive)UpdateTargetVelocity(target.Value);
         Vector3D aimPoint=target.Value;
@@ -385,8 +430,9 @@ namespace IngameScript
         if(rc==null)return;
         Vector3D grav=rc.GetNaturalGravity();
         currentGrav=grav.Length();
-        double alt=Vector3D.Distance(Me.GetPosition(),launchPos);
-        if(currentGrav<0.05){
+        double alt=0;
+        rc.TryGetPlanetElevation(MyPlanetElevation.Sealevel,out alt);
+        if(alt>=satTargetAlt||currentGrav<0.05){
         satPosition=Me.GetPosition();
         satVelocity=rc.GetShipVelocities().LinearVelocity;
         phase=F.SAT_BRAKE;
@@ -405,6 +451,7 @@ namespace IngameScript
         satPosition=Me.GetPosition();
         satStationKeeping=true;
         satHoldTicks=0;
+        satFallTicks=0;
         phase=F.SAT_HOLD;
         Runtime.UpdateFrequency=UpdateFrequency.Update100;
         return;
@@ -423,7 +470,7 @@ namespace IngameScript
         double drift=Vector3D.Distance(Me.GetPosition(),satPosition);
         Vector3D grav=rc.GetNaturalGravity();
         double gravMag=grav.Length();
-        if(gravMag>0.5){double fallRate=Vector3D.Dot(satVelocity,Vector3D.Normalize(grav));if(fallRate>5){warheadsArmed=false;isSatellite=false;phase=F.TARGET;Runtime.UpdateFrequency=UpdateFrequency.Update10;EnableThrust(true);return;}}
+        if(gravMag>0.5){double fallRate=Vector3D.Dot(satVelocity,Vector3D.Normalize(grav));if(fallRate>5){satFallTicks++;if(satFallTicks>60){warheadsArmed=false;isSatellite=false;phase=F.TARGET;Runtime.UpdateFrequency=UpdateFrequency.Update10;EnableThrust(true);return;}}}else{satFallTicks=0;}
         if(drift>10||speed>1){
         Vector3D correction=Vector3D.Normalize(satPosition-Me.GetPosition()-satVelocity*0.5);
         AimAt(Me.GetPosition()+correction*100);
@@ -601,7 +648,8 @@ namespace IngameScript
         var msg=cmdListener.AcceptMessage();
         if(msg.Data is string){
         string cmd=(string)msg.Data;
-        if(cmd=="DEORBIT"||cmd==$"DEORBIT:{padID}"||cmd==$"DETONATE:{padID}"){isSatellite=false;phase=F.TARGET;Runtime.UpdateFrequency=UpdateFrequency.Update10;EnableThrust(true);}
+        if(cmd==$"DETONATE:{padID}"){Vector3D p=Me.GetPosition();IGC.SendBroadcastMessage("UNITY_SAT_INTERCEPT",$"DETONATE|{satID}|{padID}|{p.X:F0},{p.Y:F0},{p.Z:F0}|{satGridX},{satGridZ}");foreach(var w in warheads)w.Detonate();phase=F.IDLE;Runtime.UpdateFrequency=UpdateFrequency.None;return;}
+        if(cmd==$"DEORBIT:{padID}"){isSatellite=false;phase=F.TARGET;Runtime.UpdateFrequency=UpdateFrequency.Update10;EnableThrust(true);}
         else if(cmd.StartsWith("ATTACK:")){
         var p=cmd.Substring(7).Split(',');
         if(p.Length==3){double x,y,z;if(double.TryParse(p[0],out x)&&double.TryParse(p[1],out y)&&double.TryParse(p[2],out z)){
@@ -649,19 +697,30 @@ namespace IngameScript
         
         void BroadcastPos(){
         if(antennas.Count==0)return;
-        foreach(var a in antennas){if(!a.Enabled||!a.EnableBroadcasting){a.Enabled=true;a.EnableBroadcasting=true;a.Radius=50000f;}}
+        foreach(var a in antennas){if(!a.Enabled||!a.EnableBroadcasting){a.Enabled=true;a.EnableBroadcasting=true;a.Radius=75000f;}}
         wasInBlackout=inBlackout;
         bool willBlackout=distFromPad>antennaRange*0.95;
         inBlackout=distFromPad>antennaRange;
         string status=phase.ToString();
         if(!wasInBlackout&&willBlackout&&!inBlackout)status="ENTERING_BLACKOUT";
-        else if(wasInBlackout&&!inBlackout){status="CONTACT_RESTORED";targetVelSamples=0;lastTargetVel=Vector3D.Zero;}
-        else if(inBlackout)return;
+        else if(wasInBlackout&&!inBlackout){status="CONTACT_RESTORED";blackoutTicks=0;targetVelSamples=0;lastTargetVel=Vector3D.Zero;}
+        else if(inBlackout){blackoutTicks++;
+        if(!blackoutConverted&&blackoutTicks>30){
+        string fm=$"{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0},0,BLACKOUT_SAT,0,{distFromPad:F0},0,0,0,FINAL|ORIGTGT:{tgtGPS.X:F0},{tgtGPS.Y:F0},{tgtGPS.Z:F0}";
+        IGC.SendBroadcastMessage(broadcastTag,fm);
+        blackoutConverted=true;isSatellite=true;satID=mslNumber*100+padID;satPosition=Me.GetPosition();
+        Vector3D dir=Vector3D.Normalize(Me.GetPosition()-launchPos);double dd=Vector3D.Distance(Me.GetPosition(),launchPos);
+        satGridX=(int)Math.Round(dir.X*dd/satGridSpacing);satGridZ=(int)Math.Round(dir.Z*dd/satGridSpacing);
+        satRelayListener=IGC.RegisterBroadcastListener(satRelayTag);satInterceptListener=IGC.RegisterBroadcastListener("UNITY_SAT_INTERCEPT");
+        meshListener=IGC.RegisterBroadcastListener("UNITY_SAT_MESH");meshPadLinked=false;
+        phase=F.SAT_BRAKE;Runtime.UpdateFrequency=UpdateFrequency.Update10;
+        QMsg("SHIT... BLACKOUT!","Setting up as relay sat",2);}
+        return;}
         double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
         double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
         double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
         if(phase==F.TARGET&&(h2<0.15||bat<0.15))status="LOW_FUEL";
-        string camInfo=$"{cameras.Count}";if(cameras.Count>0){string cn="";foreach(var c in cameras)cn+=(cn.Length>0?",":"")+c.CustomName.Replace("|","");camInfo+=$"|{cn}";}
+        string camInfo="";if(cameras.Count>0){foreach(var c in cameras)camInfo+=(camInfo.Length>0?";":"")+c.EntityId.ToString()+":"+c.CustomName.Replace("|","").Replace(",","").Replace(":","").Replace(";","");}
         string msg=$"{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0},{distToTgt:F0},{status},{currentGrav:F2},{distFromPad:F0},{currentAltitude:F0},{spd:F0},{h2*100:F0},{(gyrosLocked?"LOCK":"CTRL")}|CAMS:{camInfo}";
         IGC.SendBroadcastMessage(broadcastTag,msg);
         if(useLaser&&lasers.Count>0){foreach(var l in lasers){if(l.Status!=MyLaserAntennaStatus.Connected)l.Connect();}}
@@ -704,7 +763,6 @@ namespace IngameScript
         if(line.StartsWith("AntBroadcast=")){antBroadcast=line.Substring(13).Trim()=="1";}
         if(line.StartsWith("InSpace=")){inSpace=line.Substring(8).Trim()=="1";}
         if(line.StartsWith("Gravity=")){double g;if(double.TryParse(line.Substring(8),out g))padGravity=g;}
-        if(line.StartsWith("BurnTime=")){int b;if(int.TryParse(line.Substring(9),out b))burnTime=b;}
         if(line.StartsWith("ReentryDist=")){double r;if(double.TryParse(line.Substring(12),out r))reentryDist=r;}
         if(line.StartsWith("FlightMode=")){int f;if(int.TryParse(line.Substring(11),out f))flightMode=f;}
         if(line.StartsWith("PadLaser=")){var lp=line.Substring(9).Split(',');if(lp.Length==3){double lx,ly,lz;if(double.TryParse(lp[0],out lx)&&double.TryParse(lp[1],out ly)&&double.TryParse(lp[2],out lz)){padLaserPos=new Vector3D(lx,ly,lz);useLaser=true;}}}
@@ -729,7 +787,7 @@ namespace IngameScript
         
         void FindBlocks(){
         rc=null;merge=null;ammoConnector=null;laserPad=null;laserNorth=null;laserSouth=null;laserEast=null;laserWest=null;
-        gyros.Clear();thrusters.Clear();warheads.Clear();sensors.Clear();cameras.Clear();antennas.Clear();lasers.Clear();batteries.Clear();h2tanks.Clear();generators.Clear();lights.Clear();
+        gyros.Clear();thrusters.Clear();warheads.Clear();sensors.Clear();cameras.Clear();antennas.Clear();lasers.Clear();batteries.Clear();h2tanks.Clear();generators.Clear();lights.Clear();lcds.Clear();
         var all=new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid);
         foreach(var b in all){
@@ -753,11 +811,41 @@ namespace IngameScript
         if(b is IMyGasTank){var t=b as IMyGasTank;if(t.BlockDefinition.SubtypeId.Contains("Hydrogen"))h2tanks.Add(t);}
         if(b is IMyGasGenerator)generators.Add(b as IMyGasGenerator);
         if(b is IMyLightingBlock)lights.Add(b as IMyLightingBlock);
+        if(b is IMyTextPanel)lcds.Add(b as IMyTextPanel);
         if(b is IMyShipMergeBlock&&merge==null)merge=b as IMyShipMergeBlock;
         if(b is IMyShipConnector&&b.CustomName.Contains("[AMMO]"))ammoConnector=b as IMyShipConnector;
         }
         foreach(var g in gyros){g.Enabled=true;g.GyroOverride=true;}
         }
+        bool CheckBootComplete(){
+        if(merge==null||!merge.IsConnected)return true;
+        var pbs=new List<IMyProgrammableBlock>();
+        GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me);
+        IMyProgrammableBlock bootPB=null,padPB=null;
+        foreach(var pb in pbs){
+        string nm=pb.CustomName.ToUpper();
+        if(nm.Contains("UNITY BOOT"))bootPB=pb;
+        else if(nm.Contains("UNITY PAD")&&!nm.Contains("MISSILE"))padPB=pb;}
+        if(bootPB==null||padPB==null)return false;
+        if(!padPB.CustomData.Contains("pad_ready=true"))return false;
+        return bootPB.CustomData.Contains("boot_complete=true");}
+        void ReadPadGPS(){
+        if(merge==null||!merge.IsConnected||phase!=F.IDLE)return;
+        if(!CheckBootComplete())return;
+        var pbs=new List<IMyProgrammableBlock>();
+        GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me);
+        foreach(var pb in pbs){
+        if(!pb.CustomName.ToUpper().Contains("UNITY PAD"))continue;
+        string cd=pb.CustomData;if(string.IsNullOrEmpty(cd))continue;
+        int gi=cd.IndexOf("tgtGPS=");if(gi<0)continue;
+        int end=cd.IndexOf('|',gi);if(end<0)end=cd.IndexOf('\n',gi);if(end<0)end=cd.Length;
+        string gpsStr=cd.Substring(gi+7,end-gi-7);
+        var p=gpsStr.Split(',');if(p.Length<3)continue;
+        double x,y,z;
+        if(double.TryParse(p[0],out x)&&double.TryParse(p[1],out y)&&double.TryParse(p[2],out z)){
+        Vector3D newGPS=new Vector3D(x,y,z);
+        if(newGPS!=tgtGPS&&newGPS!=Vector3D.Zero){tgtGPS=newGPS;mode=T.GPS;}
+        return;}}}
         string BT(IMyTerminalBlock b){
         string s=b.BlockDefinition.SubtypeId;
         if(string.IsNullOrEmpty(s)){if(b is IMyGasGenerator)return "O2/H2 Gen";s=b.BlockDefinition.TypeIdString.Replace("MyObjectBuilder_","");}
@@ -832,7 +920,7 @@ namespace IngameScript
         void ConfigAntennas(){
         foreach(var a in antennas){
         a.Enabled=true;
-        a.Radius=50000f;
+        a.Radius=75000f;
         a.EnableBroadcasting=true;
         }
         foreach(var l in lasers){
@@ -874,7 +962,7 @@ namespace IngameScript
         case T.ANTENNA:return GetAntennaTarget();
         case T.SENSOR:return GetSensorTarget();
         case T.LIDAR:return GetLidarTarget();
-        case T.MANUAL:return null;
+        case T.MANUAL:return rc!=null?Me.GetPosition()+rc.WorldMatrix.Forward*1000:Me.GetPosition()+Me.WorldMatrix.Forward*1000;
         }
         return null;
         }
@@ -1075,13 +1163,15 @@ namespace IngameScript
         foreach(var g in gyros){g.GyroOverride=false;g.Pitch=0;g.Yaw=0;g.Roll=0;}
         foreach(var b in batteries)b.ChargeMode=ChargeMode.Recharge;
         SendFinalStatus("SAFE_RESET");
+        QMsg("Fine whatever","Back to boring...",0);
         }
         void Detonate(){
         if(isSatellite)return;
-        if(phase==F.CLIMB||phase==F.ARM){SendFinalStatus("DETONATE_BLOCKED_CLIMB");SafeReset();return;}
-        if(flightTicks<60){SendFinalStatus("DETONATE_BLOCKED_EARLY");SafeReset();return;}
-        if(distFromPad<100){SendFinalStatus("DETONATE_BLOCKED_ON_PAD");SafeReset();return;}
+        if(phase==F.CLIMB||phase==F.ARM){SendFinalStatus("DETONATE_BLOCKED_CLIMB");QMsg("Not yet asshole!","Still climbing!",1);SafeReset();return;}
+        if(flightTicks<60){SendFinalStatus("DETONATE_BLOCKED_EARLY");QMsg("Chill the fuck!","Safety's on!",1);SafeReset();return;}
+        if(distFromPad<100){SendFinalStatus("DETONATE_BLOCKED_ON_PAD");QMsg("Are you stupid?!","I'd kill US!",1);SafeReset();return;}
         SendFinalStatus("IMPACT");
+        QMsg("SEE YA BITCHES!","BOOOOOM!",6);
         phase=F.IDLE;
         Runtime.UpdateFrequency=UpdateFrequency.None;
         foreach(var w in warheads){w.Detonate();}
@@ -1135,9 +1225,9 @@ namespace IngameScript
         s+=$"| Ticks: {climbTicks}/{climbLockTicks}     |\n";
         }
         }else if(phase==F.COAST){
-        int elapsed=coastTicks/6;
+        double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
         s+=$"| {(coasting?"- COASTING":"# BURNING")}        |\n";
-        s+=$"| Time: {elapsed}s / {burnTime}s burn |\n";
+        s+=$"| Speed: {spd:F0}m/s          |\n";
         s+=$"| To Target: {distToTgt,5:F0}m |\n";
         }else if(phase==F.REENTRY){
         s+=$"| ## RE-ENTRY ##    |\n";
@@ -1201,6 +1291,179 @@ namespace IngameScript
         on=((int)(sec*blinkRate)%2)==0;
         foreach(var l in lights){l.Enabled=on;l.Color=c;l.Intensity=2f;l.Falloff=1.3f;l.Radius=3f;}
         }
+        int animFrame=0;
+        void QMsg(string l1,string l2,int expr){if(msgQ.Count<20)msgQ.Add(new[]{l1,l2,expr.ToString()});}
+        MySpriteDrawFrame BL(IMyTextSurface s){s.ContentType=ContentType.SCRIPT;s.Script="";lcdW=s.SurfaceSize.X;lcdH=s.SurfaceSize.Y;lcdS=lcdW/512f;lcdYS=lcdH/512f;fntS=Math.Max(1.4f,(lcdS+lcdYS)/2f*1.8f);var f=s.DrawFrame();f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,lcdH/2),new Vector2(lcdW,lcdH),cBg));return f;}
+        void UpdateLCD(){
+        if(lcds.Count==0)return;
+        animFrame++;
+        CheckEvents();
+        msgTicks++;
+        if(curMsg==null&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;int.TryParse(curMsg[2],out msgExpr);}
+        if(curMsg!=null&&msgTicks>=MSG_MIN_TICKS&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;int.TryParse(curMsg[2],out msgExpr);}
+        string[] lines=curMsg!=null?new[]{curMsg[0],curMsg[1]}:GetIdleText();
+        int expr=curMsg!=null?msgExpr:GetIdleExpr();
+        Color faceCol=GetFaceColor(expr);
+        foreach(var lcd in lcds){
+        var sf=lcd as IMyTextSurface;if(sf==null)continue;
+        var f=BL(sf);
+        DrawFace(f,expr,faceCol);
+        float ty=lcdH*0.68f;
+        foreach(var ln in lines){f.Add(new MySprite(SpriteType.TEXT,ln,new Vector2(lcdW/2,ty),null,cTxt,"White",TextAlignment.CENTER,0.6f*fntS));ty+=32*lcdYS;}
+        f.Dispose();}}
+        void CheckEvents(){
+        if(phase==F.IDLE&&merge!=null&&merge.IsConnected)ReadPadGPS();
+        double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
+        double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
+        if(lastH2>=0&&lastH2<0.5&&h2>=0.95)QMsg("FUCK YEAH!","Tanked the fuck up!",7);
+        else if(lastH2>=0&&lastH2<0.9&&h2>=0.9&&h2<0.95)QMsg("Hell yeah!","Almost fuckin full!",0);
+        if(lastBat>=0&&lastBat<0.5&&bat>=0.95)QMsg("JUICED UP!","100% you bitches!",7);
+        else if(lastBat>=0&&lastBat<0.9&&bat>=0.9&&bat<0.95)QMsg("Getting there!","Charge me harder!",0);
+        if(lastH2>=0.5&&h2<0.3)QMsg("Oh SHIT!","Where's my H2?!",1);
+        if(lastBat>=0.5&&bat<0.3)QMsg("FUCK!","Battery's dying!",1);
+        if(phase!=lastPhase){
+        if(phase==F.CLIMB)QMsg("LET'S FUCKING GO!","Time to fly bitch!",2);
+        else if(phase==F.ARM)QMsg("Arming this shit","Hold your ass...",4);
+        else if(phase==F.COAST)QMsg("Chillin now","Saving my juice...",4);
+        else if(phase==F.REENTRY)QMsg("OH SHIT!","Here comes the heat!",3);
+        else if(phase==F.TARGET&&!isSatellite)QMsg("GOT YOU BITCH!","Locking the fuck on!",5);
+        else if(phase==F.SAT_CLIMB)QMsg("To space bitches!","Satellite mode!",2);
+        else if(phase==F.SAT_BRAKE)QMsg("Whoa there!","Slowing my ass down",4);
+        else if(phase==F.SAT_HOLD)QMsg("Parked up here","Watching you fucks",4);
+        else if(phase==F.SAT_INTERCEPT)QMsg("FOUND ONE!","Time to fuck em up!",6);
+        else if(phase==F.IDLE&&lastPhase!=F.IDLE)QMsg("Back to waiting","Boring as shit...",0);}
+        if(warheadsArmed&&!lastArmed)QMsg("ARMED & ANGRY!","Bout to fuck shit up!",6);
+        if(!warheadsArmed&&lastArmed)QMsg("Stood down","...for now bitch",0);
+        if(phase==F.TARGET&&distToTgt<500&&distToTgt>100&&flightTicks%60==0)QMsg("Getting closer!",$"{distToTgt:F0}m you're fucked",5);
+        if(phase==F.TARGET&&distToTgt<=100&&distToTgt>detDist&&flightTicks%30==0)QMsg("SAY GOODBYE!",$"{distToTgt:F0}m BITCH!",6);
+        if(bootComplete&&startupDone&&phase==F.IDLE&&bootWaitTicks%60==30){
+        if(!CheckBootComplete()){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QMsg("Pad recompiled!","Back to waiting...",1);}
+        else{var rpbs=new List<IMyProgrammableBlock>();GridTerminalSystem.GetBlocksOfType(rpbs,b=>b.IsSameConstructAs(Me)&&b!=Me);
+        foreach(var pb in rpbs){if(!pb.CustomName.ToUpper().Contains("UNITY PAD")||pb.CustomName.ToUpper().Contains("MISSILE"))continue;
+        string pcd=pb.CustomData;int si=pcd.IndexOf("pad_session=");if(si<0)break;
+        int ei=pcd.IndexOf('\n',si);if(ei<0)ei=pcd.Length;string ps=pcd.Substring(si+12,ei-si-12).Trim();
+        if(lastPadSession==""&&ps!="")lastPadSession=ps;
+        else if(lastPadSession!=""&&ps!=lastPadSession){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QMsg("Pad recompiled!","New boot incoming...",1);}
+        break;}}}
+        if(!bootComplete&&phase==F.IDLE){
+        bootWaitTicks++;
+        if(bootWaitTicks%30==1){if(!CheckBootComplete()){
+        if(bootWaitTicks<30)QMsg("Waking up...","Checking pad status",4);
+        else if(bootWaitTicks<90)QMsg("Waiting on pad...","Boot sequence...",4);
+        else if(bootWaitTicks<150)QMsg("Still waiting...","Come on pad!",1);
+        else if(bootWaitTicks<210)QMsg("Any day now...","Hurry the fuck up!",1);
+        else QMsg("Waiting forever!","Boot that shit!",1);
+        }else{bootComplete=true;bootWaitTicks=0;QMsg("PAD BOOT DONE!","My turn bitches!",7);}}}
+        if(bootComplete&&!startupDone&&phase==F.IDLE&&msgQ.Count<3){
+        if(startupCheck==0){QMsg("Booting up...","Unity Missile Online",4);startupCheck++;}
+        else if(startupCheck==1){QMsg("Checking gyros...",$"{gyros.Count} found",4);startupCheck++;}
+        else if(startupCheck==2){QMsg(gyros.Count>0?"Gyros: FUCK YEAH!":"Gyros: OH SHIT!",gyros.Count>0?"Spinning good!":"Where are they?!",gyros.Count>0?7:1);startupCheck++;}
+        else if(startupCheck==3){QMsg("Checking thrust...",$"{thrusters.Count} engines",4);startupCheck++;}
+        else if(startupCheck==4){QMsg(thrusters.Count>0?"Thrusters: HELL YES!":"Thrusters: FUCK!",thrusters.Count>0?"Ready to rip!":"Can't fly shit!",thrusters.Count>0?7:1);startupCheck++;}
+        else if(startupCheck==5){QMsg("Warhead check...",$"{warheads.Count} loaded",4);startupCheck++;}
+        else if(startupCheck==6){QMsg(warheads.Count>0?"Boom ready!":"No warheads?!",warheads.Count>0?"Gonna wreck em!":"Useless...",warheads.Count>0?7:1);startupCheck++;}
+        else if(startupCheck==7){QMsg("Fuel check...",$"H2: {h2*100:F0}%",4);startupCheck++;}
+        else if(startupCheck==8){QMsg(h2>0.5?"H2 looking good!":"Need more H2!",h2>0.5?"Tanked up!":$"Only {h2*100:F0}%!",h2>0.5?7:1);startupCheck++;}
+        else if(startupCheck==9){QMsg("Power check...",$"Bat: {bat*100:F0}%",4);startupCheck++;}
+        else if(startupCheck==10){QMsg(bat>0.5?"Power's good!":"Low power!",bat>0.5?"Juiced!":$"Only {bat*100:F0}%!",bat>0.5?7:1);startupCheck++;}
+        else if(startupCheck==11){QMsg("Sensors...",$"{sensors.Count} active",4);startupCheck++;}
+        else if(startupCheck==12){QMsg("Cameras...",$"{cameras.Count} watching",4);startupCheck++;}
+        else if(startupCheck==13){QMsg("Antennas...",$"{antennas.Count} ready",4);startupCheck++;}
+        else if(startupCheck==14){QMsg("Remote control...",rc!=null?"Online!":"MISSING!",rc!=null?7:1);startupCheck++;}
+        else if(startupCheck==15){QMsg("ALL CHECKS DONE!","Systems fuckin go!",7);startupCheck++;}
+        else if(startupCheck==16){QMsg("I'm ready bitch!","Give me a target!",2);startupDone=true;}}
+        if(tgtGPS!=lastGPS&&tgtGPS!=Vector3D.Zero){lastGPS=tgtGPS;gpsAnnounced=false;}
+        if(!gpsAnnounced&&tgtGPS!=Vector3D.Zero&&phase==F.IDLE){gpsAnnounced=true;QMsg("Got a target!","Someone's gonna die!",5);QMsg($"GPS locked","X:{tgtGPS.X:F0}",0);QMsg($"Coords set","Y:{tgtGPS.Y:F0} Z:{tgtGPS.Z:F0}",0);QMsg("Just say when","Ready to fuck!",2);}
+        if(phase==F.IDLE&&msgQ.Count==0&&curMsg==null&&startupDone){idleTicks++;if(idleTicks>=25){idleTicks=0;QueueIdleMsg(h2,bat);}}
+        lastH2=h2;lastBat=bat;lastPhase=phase;lastArmed=warheadsArmed;}
+        void QueueIdleMsg(double h2,double bat){
+        idleCycle++;int c=idleCycle%20;
+        if(c==0)QMsg("Systems check...",$"Gyros: {gyros.Count} online",4);
+        else if(c==1)QMsg($"Thrusters: {thrusters.Count}","All good bitches!",7);
+        else if(c==2)QMsg($"Warheads: {warheads.Count}","Ready to blow shit!",2);
+        else if(c==3)QMsg($"H2: {h2*100:F0}%",h2>0.8?"Topped off!":"Could use more...",h2>0.8?7:1);
+        else if(c==4)QMsg($"Battery: {bat*100:F0}%",bat>0.8?"Fuckin juiced!":"Meh...",bat>0.8?7:1);
+        else if(c==5)QMsg("Sensors ready",$"{sensors.Count} watching",4);
+        else if(c==6)QMsg($"Cameras: {cameras.Count}","I see everything!",0);
+        else if(c==7&&tgtGPS!=Vector3D.Zero)QMsg("Target locked","Waiting to kill!",5);
+        else if(c==7)QMsg("No target yet","Give me something!",1);
+        else if(c==8)QMsg("Bored as fuck","Launch me already!",1);
+        else if(c==9)QMsg("Still waiting...","Any day now...",4);
+        else if(c==10)QMsg($"Mode: {mode}","Ready when you are",0);
+        else if(c==11)QMsg("Antennas ready",$"{antennas.Count} broadcasting",4);
+        else if(c==12)QMsg("Pre-flight done","All systems nominal",7);
+        else if(c==13)QMsg("Come on!","Let's blow shit up!",2);
+        else if(c==14)QMsg("*taps warhead*","Is this thing on?",0);
+        else if(c==15)QMsg("Merge block ready","Just disconnect me!",0);
+        else if(c==16&&h2>0.9&&bat>0.9)QMsg("100% READY!","Perfect condition!",7);
+        else if(c==16)QMsg("Almost ready...",$"H2:{h2*100:F0} Bat:{bat*100:F0}",4);
+        else if(c==17)QMsg("Checklist done","Fuck yeah!",7);
+        else if(c==18)QMsg("Getting impatient","LAUNCH ME!",2);
+        else if(c==19)QMsg("Sitting here...","Like an asshole...",1);}
+        void DrawFace(MySpriteDrawFrame f,int expr,Color faceCol){
+        float cx=lcdW/2,cy=lcdH*0.32f;
+        float eyeW=55*lcdS,eyeH=55*lcdYS,eyeSpacing=85*lcdS;
+        float mouthW=90*lcdS,mouthH=40*lcdYS;
+        float blink=(animFrame%30<3)?0.1f:1f;
+        float eyeYOff=0,mouthRot=0;bool mouthOpen=false;
+        if(expr==1){eyeH*=0.3f;mouthRot=3.14159f;}
+        else if(expr==2){eyeYOff=-8*lcdYS;mouthOpen=true;}
+        else if(expr==3){eyeW*=1.3f;eyeH*=1.3f;mouthOpen=true;mouthH*=1.5f;}
+        else if(expr==4){eyeH*=0.2f;}
+        else if(expr==5){float bob=(float)Math.Sin(animFrame*0.3)*5*lcdYS;eyeYOff=bob;}
+        else if(expr==6){eyeW*=1.4f;eyeH*=1.4f;mouthW*=1.3f;mouthOpen=true;mouthH*=2f;}
+        else if(expr==7){eyeH*=0.6f;eyeW*=1.2f;mouthW*=1.5f;}
+        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx-eyeSpacing,cy+eyeYOff),new Vector2(eyeW,eyeH*blink),faceCol));
+        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx+eyeSpacing,cy+eyeYOff),new Vector2(eyeW,eyeH*blink),faceCol));
+        if(expr==3||expr==6){
+        float pW=eyeW*0.4f,pH=eyeH*0.4f*blink;
+        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx-eyeSpacing,cy+eyeYOff),new Vector2(pW,pH),cBg));
+        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx+eyeSpacing,cy+eyeYOff),new Vector2(pW,pH),cBg));}
+        float mouthY=cy+70*lcdYS;
+        if(mouthOpen){
+        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx,mouthY),new Vector2(mouthW,mouthH),faceCol));
+        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx,mouthY-mouthH*0.3f),new Vector2(mouthW*0.8f,mouthH*0.5f),cBg));}
+        else{
+        var ms=new MySprite(SpriteType.TEXTURE,"SemiCircle",new Vector2(cx,mouthY),new Vector2(mouthW,mouthH),faceCol);
+        ms.RotationOrScale=mouthRot;f.Add(ms);}}
+        int GetIdleExpr(){
+        double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
+        double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
+        if(phase==F.IDLE){if(warheadsArmed)return 3;if(h2<0.3||bat<0.3)return 1;return 0;}
+        if(phase==F.CLIMB)return 2;
+        if(phase==F.ARM||phase==F.COAST)return 4;
+        if(phase==F.REENTRY)return 3;
+        if(phase==F.TARGET)return warheadsArmed?6:5;
+        if(phase==F.SAT_CLIMB||phase==F.SAT_BRAKE)return 2;
+        if(phase==F.SAT_HOLD)return 4;
+        if(phase==F.SAT_INTERCEPT)return 6;
+        return 0;}
+        Color GetFaceColor(int expr){
+        if(expr==7)return cOK;
+        if(expr==1)return cWrn;
+        if(expr==6)return cErr;
+        if(expr==3)return cWrn;
+        if(phase==F.TARGET||phase==F.SAT_INTERCEPT)return warheadsArmed?cErr:cWrn;
+        return cPri;}
+        string[] GetIdleText(){
+        double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
+        double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
+        double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
+        if(phase==F.IDLE){
+        if(warheadsArmed)return new[]{"HOT & READY!","Give me a target!"};
+        if(h2<0.3)return new[]{"Thirsty as fuck!",$"H2: {h2*100:F0}%"};
+        if(bat<0.3)return new[]{"Dying here!",$"Bat: {bat*100:F0}%"};
+        return new[]{"Bored as hell",$"H2:{h2*100:F0}% Bat:{bat*100:F0}%"};}
+        if(phase==F.CLIMB)return new[]{"GOING UP!",$"{currentAltitude:F0}m bitches!"};
+        if(phase==F.ARM)return new[]{"Hold your shit","Arming up..."};
+        if(phase==F.COAST)return new[]{coasting?"Cruising bitch":"Full fuckin burn!",$"{spd:F0}m/s"};
+        if(phase==F.REENTRY)return new[]{"HOT AS FUCK!","Burning in!"};
+        if(phase==F.TARGET)return new[]{warheadsArmed?"YOU'RE DEAD!":"See you bitch!",$"{distToTgt:F0}m"};
+        if(phase==F.SAT_CLIMB)return new[]{"Space bound!",$"{currentAltitude/1000:F1}km up"};
+        if(phase==F.SAT_BRAKE)return new[]{"Easy now...",$"{satVelocity.Length():F0}m/s"};
+        if(phase==F.SAT_HOLD)return new[]{"Watching you","Don't try shit..."};
+        if(phase==F.SAT_INTERCEPT)return new[]{"DIE FUCKER!",$"{distToTgt:F0}m"};
+        return new[]{"Unity Missile","What's up bitch"};}
         
     }
 }

@@ -2,14 +2,14 @@
 
 # UNITY MISSILE SYSTEM v01.00
 
-**6-Script Modular System | 11 LCD Displays | Sprite-Based Rendering | Full Automation | Satellite Array Mesh | Laser Networking | Auto-Intercept | Carpet Bomb | Auto-Attack | Fleet Tracking | Inventory Management**
+**6-Script Modular System | 11 LCD Displays | Sprite-Based Rendering | Full Automation | Multi-Pad Support | Satellite Array Mesh | Laser Networking | Auto-Intercept | Carpet Bomb | Auto-Attack | Fleet Tracking | Inventory Management**
 
 **Location:** `Space Engineers/Unity Missile System/`
 **Version:** v01.00 | 2026-01-24
 
 **Works on LARGE or SMALL grids (auto-detect)**
 **Works in SPACE or ATMOSPHERE (auto-detect)**
-**Multiple pads on one grid (modular)**
+**Multi-Pad Support: automatic pad ID assignment, cross-connector discovery via IsSameConstructAs, isolated pad operations, controller mode fleet management**
 
 ---
 
@@ -17,33 +17,34 @@
 
 1. [Script Components](#script-components)
 2. [Complete Setup Guide](#complete-setup-guide)
-3. [Missile Design Options](#missile-design-options)
-4. [Modular Base Expansion](#modular-base-expansion)
-5. [What's New in v01.00](#whats-new-in-v0100)
-6. [Satellite Array Mesh Network](#satellite-array-mesh-network)
-7. [Controller Mode](#controller-mode)
-8. [Carpet Bomb Mode](#carpet-bomb-mode-controller)
-9. [Kill All Auto-Attack Mode](#kill-all-auto-attack-mode)
-10. [Pad Resource Management](#pad-resource-management)
-11. [Unity Boot System](#unity-boot-system)
-12. [UnityInventory System](#unityinventory-system)
-13. [CustomData Section Ownership](#customdata-section-ownership)
-14. [Ammo Build Status](#ammo-build-status)
-15. [Quick Start](#quick-start)
-16. [10 LCD Display System](#10-lcd-display-system)
-17. [Targeting Modes](#targeting-modes)
-18. [All Settings](#all-settings)
-19. [Complete Argument Reference](#complete-argument-reference)
-20. [IGC Broadcast Tags](#igc-broadcast-tags)
-21. [Build the Launch Pad](#build-the-launch-pad)
-22. [Build the Missile](#build-the-missile)
-23. [ICBM Flight Profile](#icbm-flight-profile)
-24. [Printer System](#printer-system)
-25. [MinerBeacon Fleet Tracking](#minerbeacon-fleet-tracking)
-26. [UnitySignal - Central Signal Controller](#unitysignal---central-signal-controller)
-27. [Character Counts](#character-counts)
-28. [Troubleshooting](#troubleshooting)
-29. [Credits & Acknowledgements](#credits--acknowledgements)
+3. [Multi-Pad Setup](#multi-pad-setup)
+4. [Missile Design Options](#missile-design-options)
+5. [Modular Base Expansion](#modular-base-expansion)
+6. [What's New in v01.00](#whats-new-in-v0100)
+7. [Satellite Array Mesh Network](#satellite-array-mesh-network)
+8. [Controller Mode](#controller-mode)
+9. [Carpet Bomb Mode](#carpet-bomb-mode-controller)
+10. [Kill All Auto-Attack Mode](#kill-all-auto-attack-mode)
+11. [Pad Resource Management](#pad-resource-management)
+12. [Unity Boot System](#unity-boot-system)
+13. [UnityInventory System](#unityinventory-system)
+14. [CustomData Section Ownership](#customdata-section-ownership)
+15. [Ammo Build Status](#ammo-build-status)
+16. [Quick Start](#quick-start)
+17. [10 LCD Display System](#10-lcd-display-system)
+18. [Targeting Modes](#targeting-modes)
+19. [All Settings](#all-settings)
+20. [Complete Argument Reference](#complete-argument-reference)
+21. [IGC Broadcast Tags](#igc-broadcast-tags)
+22. [Build the Launch Pad](#build-the-launch-pad)
+23. [Build the Missile](#build-the-missile)
+24. [ICBM Flight Profile](#icbm-flight-profile)
+25. [Printer System](#printer-system)
+26. [MinerBeacon Fleet Tracking](#minerbeacon-fleet-tracking)
+27. [UnitySignal - Central Signal Controller](#unitysignal---central-signal-controller)
+28. [Character Counts](#character-counts)
+29. [Troubleshooting](#troubleshooting)
+30. [Credits & Acknowledgements](#credits--acknowledgements)
 
 ---
 
@@ -363,6 +364,81 @@ Make one pad the command center:
 3. See all pad statuses on LCD2
 4. Issue mass commands from LCD1
 5. Run again to toggle off
+
+---
+
+## MULTI-PAD SETUP
+
+I built this system so you can chain as many launch pads together as you want. Here's how it all works under the hood.
+
+### Adding More Pads
+
+You've got your first pad running - now you want more firepower. Here's the deal:
+
+1. **Blueprint-copy PAD1** - Grab your existing pad module (merge, connector, LCDs, buttons, 4x PBs) and blueprint it
+2. **Connect via connectors** - Place the new module and connect it to your existing base through CON1/CON2 connectors. The system uses `IsSameConstructAs` to detect all pads across your connector chain
+3. **Compile in order** - On the NEW pad's PBs, compile: **PAD → INVENTORY → SIGNAL → BOOT**
+4. **Run SETUPMOD** - On the new pad's UnityPad PB, run `SETUPMOD`. It auto-detects existing pads across the entire connector chain and claims the next available ID (PAD2, PAD3, etc.)
+5. **Re-compile if needed** - After SETUPMOD tags everything, re-compile PAD → INV → SIGNAL → BOOT to pick up the new block names
+
+### How SETUPMOD Discovers Pads
+
+SETUPMOD isn't just scanning your local grid - it reaches across connectors. When you run it:
+
+- Scans all PBs reachable via `IsSameConstructAs` (same mechanical group = connected grids)
+- Reads their `[PAD_CFG]` sections to find existing pad IDs
+- Claims the next available number automatically
+- Tags YOUR pad's blocks with the new ID - never touches other pads' stuff
+
+### Setup & Naming Commands
+
+| Command | What It Does |
+|---------|-------------|
+| `SETUPMOD` | Auto-detect existing pads, claim next ID, tag all blocks |
+| `SETUPFORCE` | Force re-tag even if blocks already have tags (use if something got messed up) |
+| `NAMEPAD` | Re-name all pad blocks with clean formatted names |
+| `NAMEMSL` | Re-name all missile blocks with clean formatted names |
+
+### Controller Mode
+
+Any pad can become the commander. Run `SETPADCONTROL` on whichever pad you want calling the shots.
+
+**Controller commands - these hit ALL pads at once:**
+
+| Command | Action |
+|---------|--------|
+| `BUILDALL` | Start printing on every empty pad |
+| `ARMALL` | Arm all missiles sitting in READY state |
+| `LAUNCHALL` | Launch every armed missile simultaneously |
+| `ABORTALL` | Remote detonate all in-flight missiles |
+| `COPYTGT` | Broadcast your current target to all pads |
+| `STARTSALVO` | Sequential launch with configurable interval |
+| `CARPET` | Spread targets across pads for area saturation |
+
+### Topology Example
+
+Here's what a 4-pad chain looks like. Each pad is its own module connected via connectors:
+
+```
+┌──────────┐    CON    ┌──────────┐    CON    ┌──────────┐    CON    ┌──────────┐
+│  PAD1    │◄────────►│  PAD2    │◄────────►│  PAD3    │◄────────►│  PAD4    │
+│ (CTRL)   │  locked   │          │  locked   │          │  locked   │          │
+│ 4x PBs   │          │ 4x PBs   │          │ 4x PBs   │          │ 4x PBs   │
+│ 11 LCDs  │          │ 11 LCDs  │          │ 11 LCDs  │          │ 11 LCDs  │
+└──────────┘          └──────────┘          └──────────┘          └──────────┘
+     │                                                                   │
+     └──── Shared: Cargo, Refineries, Assemblers, Power, H2/O2 ────────┘
+```
+
+All pads share infrastructure (cargo, refineries, assemblers, power) but each pad operates its own missile independently. The controller (PAD1 here) can issue mass commands to all of them.
+
+### PadID Filtering on IGC
+
+Every IGC broadcast includes the sender's padID. This means:
+- Each pad only processes messages meant for its own missiles
+- Controller mode sees ALL pad broadcasts (no filtering)
+- MINER_BEACON broadcasts include padID so each pad tracks its own miners
+- UNITY_MSL telemetry is tagged with padID so pads only show their own missile's flight data
 
 ---
 
@@ -1412,20 +1488,22 @@ Unity Boot has no manual arguments - it runs the boot sequence automatically on 
 
 ## IGC BROADCAST TAGS
 
-| Tag | Purpose |
-|-----|---------|
-| `UNITY_BOOT_REQ` | Boot requests system status from Pad/Inventory |
-| `UNITY_BOOT_RSP` | Pad/Inventory respond with system counts |
-| `UNITY_MSL` | Missile telemetry (position, phase, distance) |
-| `UNITY_MSL_CMD` | Missile commands (DETONATE, etc.) |
-| `UNITY_MSL_RELAY` | Relayed missile telemetry via satellite |
-| `UNITY_PAD_CMD` | Pad-to-pad commands |
-| `UNITY_PAD_STATUS` | Pad status broadcast |
-| `UNITY_SAT_RELAY` | Satellite relay network |
-| `UNITY_SAT_RELAY_STATUS` | Satellite status broadcast (incl grid position, laser links) |
-| `UNITY_SAT_INTERCEPT` | Satellite intercept/detonation messages |
-| `ENEMY_SIGNAL` | Enemy broadcast detection (for auto-attack) |
-| `MINER_BEACON` | MinerBeacon ship status (bat, cargo, drills, status) |
+All broadcasts include the sender's padID for multi-pad filtering. Each pad only processes messages tagged with its own ID - controller mode receives ALL broadcasts regardless of padID.
+
+| Tag | Purpose | PadID Filtered? |
+|-----|---------|-----------------|
+| `UNITY_BOOT_REQ` | Boot requests system status from Pad/Inventory | Yes |
+| `UNITY_BOOT_RSP` | Pad/Inventory respond with system counts | Yes |
+| `UNITY_MSL` | Missile telemetry (position, phase, distance) | Yes - pad only shows own missile |
+| `UNITY_MSL_CMD` | Missile commands (DETONATE, etc.) | Yes - targets specific pad's missile |
+| `UNITY_MSL_RELAY` | Relayed missile telemetry via satellite | Yes |
+| `UNITY_PAD_CMD` | Pad-to-pad commands (mass commands from controller) | No - controller broadcasts to all |
+| `UNITY_PAD_STATUS` | Pad status broadcast | Yes - controller aggregates all |
+| `UNITY_SAT_RELAY` | Satellite relay network | Yes |
+| `UNITY_SAT_RELAY_STATUS` | Satellite status broadcast (incl grid position, laser links) | Yes |
+| `UNITY_SAT_INTERCEPT` | Satellite intercept/detonation messages | Yes |
+| `ENEMY_SIGNAL` | Enemy broadcast detection (for auto-attack) | No - any source accepted |
+| `MINER_BEACON` | MinerBeacon ship status (bat, cargo, drills, status) | Yes - filtered by padID, controller sees all |
 
 ---
 
@@ -1583,16 +1661,16 @@ When in SURVIVAL mode, the pad automatically:
 
 | Script | Deployed | Limit | Status |
 |--------|----------|-------|--------|
-| Unity Boot | ~20,000 | 100,000 | OK (80% margin) |
-| UnityPad | ~97,400 | 100,000 | OK (2.6% margin) |
-| UnityMissile | ~34,200 | 100,000 | OK (66% margin) |
-| UnityInventory | ~90,200 | 100,000 | OK (9.8% margin) |
+| Unity Boot | ~30,372 | 100,000 | OK (70% margin) |
+| UnityPad | ~96,265 | 100,000 | **TIGHT (3.7% margin)** |
+| UnityMissile | ~44,563 | 100,000 | OK (55% margin) |
+| UnityInventory | ~99,582 | 100,000 | **CRITICAL (0.4% margin)** |
 | UnityBeacon | ~16,600 | 100,000 | OK (83% margin) |
-| UnitySignal | ~41,800 | 100,000 | OK (58% margin) |
+| UnitySignal | ~47,118 | 100,000 | OK (53% margin) |
 
 *Note: The 100k limit applies to DEPLOYED script.cs in AppData. MDK2 with `minify=full` compresses the raw source by ~20-30%.*
 
-**WARNING:** UnityPad is at 97.4% capacity. Major additions require code optimization first.
+**WARNING:** UnityInventory is at 99.6% capacity - virtually no room for additions. UnityPad at 96.3% is also tight. Any new features in these scripts require code optimization first.
 
 ---
 

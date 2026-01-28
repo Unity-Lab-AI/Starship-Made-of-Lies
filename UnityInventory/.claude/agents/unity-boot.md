@@ -1,94 +1,44 @@
 # Unity Boot Agent
 
-You are the Unity Boot specialist. Your role is to maintain and develop the Unity Boot system - the centralized boot controller for the Unity Missile System.
+You are the Unity Boot specialist. Reference this documentation when working on any Unity Missile System script that interacts with Unity Boot.
 
 ---
 
 ## YOUR DOMAIN
 
-### Files You Own
+### Files
 - `Unity Boot.cs` - The raw boot controller script
 - `Unity Boot/Program.cs` - MDK-wrapped version (auto-generated)
-- `Unity Boot/mdk.ini` - MDK configuration
 - `Unity Boot/.claude/*` - All workflow files
 
-### Files You Coordinate With
-- `UnityPad.cs` - Reads boot_complete from bootPB.CustomData
-- `UnityInventory.cs` - Reads boot_complete from bootPB.CustomData
-- Each script has its own PB - Per-PB CustomData architecture
+### Coordinates With
+- `UnityPad.cs` - Boot reads pad_ready, Pad reads boot_complete
+- `UnityInventory.cs` - Boot reads inv_ready, Inventory reads boot_complete
+- `UnitySignal.cs` - Boot reads signal_ready, Signal reads boot_complete
+- `UnityBeacon.cs` - Boot listens for MINER_BEACON broadcasts (optional)
 
 ---
 
 ## BOOT SYSTEM ARCHITECTURE
 
-### Flow
+### The 26 Boot Checks
+Unity Boot runs 26 unified checks with real PB-to-PB IGC handshaking:
+
+| Phase | Checks | Purpose |
+|-------|--------|---------|
+| 0-4 | Core Init | Grid, panel, LCDs, IGC |
+| 5-9 | Pad Handshake | PAD_CHECK request/response |
+| 10-15 | Inventory Handshake | INV_CHECK request/response |
+| 16-18 | Signal Handshake | SIGNAL_CHECK request/response |
+| 19-21 | Cross-Validate | Module sync, config |
+| 22 | Beacon Detection | Count miners (optional) |
+| 23-25 | Finalize | Controller modules, boot_complete |
+
+### Compile Order
 ```
-1. Unity Boot starts → Takes all 11 LCDs
-2. Runs 23 checks → Shows progress
-3. Error? → Pause 5 sec, retry
-4. Success? → Write boot_complete=true to Me.CustomData
-5. Self-disable → UpdateFrequency.None
-6. UnityPad/Inventory read bootPB.CustomData → Take their LCDs
+BEACON → MISSILE → PAD → INVENTORY → SIGNAL → BOOT
 ```
-
-### The 23 Checks
-
-| # | Check | What It Does |
-|---|-------|--------------|
-| 0 | Initializing Core | Grid has min 5 blocks |
-| 1 | Scanning Grid | Count pad grid blocks |
-| 2 | Button Panel | Control panel found |
-| 3 | Detecting LCDs | Min 1 LCD tagged |
-| 4 | IGC Channels | Channels registered |
-| 5 | Request Pad Status | Send PAD_CHECK via IGC |
-| 6 | Await Pad Response | Wait up to 90 ticks |
-| 7 | Missile Merge Block | Validate merge count |
-| 8 | Validate Pad Power | Validate battery count |
-| 9 | Validate Pad Fuel | Validate H2/O2 tanks |
-| 10 | Request Inv Status | Send INV_CHECK via IGC |
-| 11 | Await Inv Response | Wait up to 90 ticks |
-| 12 | Validate Inv Cargo | Validate cargo containers |
-| 13 | Validate Inv Refinery | Validate refineries |
-| 14 | Validate Inv Assembler | Validate assemblers |
-| 15 | Validate Inv Gas | Validate generators |
-| 16 | Cross-Validate | Both systems responded |
-| 17 | Module Sync | Check sibling pads |
-| 18 | Write Config | EnsureQuotas + SetupBtnGPS |
-| 19 | Beacon Detection | Count miners (optional) |
-| 20 | Controller Modules | Report connected pads |
-| 21 | System Ready | Mark boot complete |
-| 22 | All Systems Operational | Final status |
-
----
-
-## ERROR HANDLING
-
-When a check fails:
-1. `bootError` is set to error message
-2. `bootErrTicks` starts counting
-3. After 50 ticks (5 seconds), error clears
-4. Check is retried
-5. Boot cannot complete until check passes or is non-critical
-
-Non-critical checks log warnings but don't block boot.
-
----
-
-## LCD RENDERING
-
-### Boot Screen Components
-- Title: "UNITY MISSILE SYSTEM"
-- Version: "v01.00"
-- Module label: "PAD CONTROLLER" or "INVENTORY MODULE"
-- Progress bar: Shows pct completion
-- Current check: With [OK]/[>>]/[!!] prefix
-- Recent checks: Last 5 steps
-- Status line: Current boot status or error
-
-### Drawing Functions
-- `DrawBootScreen()` - Renders to a single LCD
-- Uses sprite-based rendering via `MySpriteDrawFrame`
-- Same color palette as operational scripts
+**Boot is LAST** - it handshakes all other scripts.
 
 ---
 
@@ -99,29 +49,101 @@ Non-critical checks log warnings but don't block boot.
 ```ini
 [SYSTEM]
 boot_ready=true
-boot_complete=true    ; Set when 23/23 pass
+boot_complete=true
 boot_phase=DONE
 miner_count=2
 miner_names=Miner1,Miner2
 ```
 
-### Reading Boot Status (other scripts read from bootPB)
+### Reading From Other PBs (Multi-Pad Aware)
 ```csharp
-IMyProgrammableBlock bootPB;
-void FindSiblingPBs(){
+IMyProgrammableBlock padPB, invPB, signalPB;
+
+// Uses IsSameConstructAs(Me) — finds PBs across CON1/CON2 connectors, not just same grid
+void DiscoverSiblingPads(){
     var pbs = new List<IMyProgrammableBlock>();
-    GridTerminalSystem.GetBlocksOfType(pbs, b => b.CubeGrid == Me.CubeGrid && b != Me);
+    GridTerminalSystem.GetBlocksOfType(pbs, b => b.IsSameConstructAs(Me) && b != Me);
     foreach(var pb in pbs){
-        if(pb.CustomName.Contains($"[PAD{padID}]") && pb.CustomName.ToUpper().Contains("UNITY BOOT")) bootPB = pb;
+        string nm = pb.CustomName;
+        if(nm.Contains($"[PAD{padID}]") && nm.Contains("Unity Pad")) padPB = pb;
+        else if(nm.Contains($"[PAD{padID}]") && nm.Contains("Unity Inventory")) invPB = pb;
+        else if(nm.Contains($"[PAD{padID}]") && nm.Contains("UNITY SIGNAL")) signalPB = pb;
+        // Also discovers other UNITY BOOT PBs for multi-pad awareness
     }
 }
 
-bool IsBootComplete(){
-    if(bootPB == null) FindSiblingPBs();
-    if(bootPB == null) return false;
-    return bootPB.CustomData.Contains("boot_complete=true");
+void CheckReadyFlags(){
+    padReady = padPB?.CustomData.Contains("pad_ready=true") ?? false;
+    invReady = invPB?.CustomData.Contains("inv_ready=true") ?? false;
+    signalReady = signalPB?.CustomData.Contains("signal_ready=true") ?? false;
 }
 ```
+
+**Key change:** `IsSameConstructAs(Me)` replaces `CubeGrid == Me.CubeGrid` so Boot can discover sibling PBs across mechanically connected grids (CON1/CON2 connectors). Also discovers other UNITY BOOT PBs — not just UNITY PAD.
+
+---
+
+## IGC CHANNELS
+
+| Channel | Direction | Purpose |
+|---------|-----------|---------|
+| `UNITY_BOOT_REQ` | OUT | Request status from scripts |
+| `UNITY_BOOT_RSP` | IN | Receive responses |
+| `MINER_BEACON` | IN | Fleet status (optional) |
+
+### Request Types (Multi-Pad Aware)
+- `PAD_CHECK:{padID}` - Request pad block counts (responders filter by padID)
+- `INV_CHECK:{padID}` - Request inventory block counts (responders filter by padID)
+- `SIGNAL_CHECK:{padID}` - Request signal camera/LCD counts (responders filter by padID)
+
+**Backward compat:** Responders also accept bare `PAD_CHECK`/`INV_CHECK`/`SIGNAL_CHECK` without padID suffix.
+
+### UNITY_SETUP_CMD Channel
+- `SETUPMOD|{padID}` - Only the boot PB matching that padID runs the setup
+- SETUPMOD re-tags blocks with old `[PAD]` tags (strips old tag, applies new `[PAD{padID}]`)
+
+### Response Formats
+```
+PAD|OK|merge=1,con=2,bat=4,h2=2,o2=1,prt=6
+INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
+SIGNAL|OK|cams=12,lcds=2
+```
+
+---
+
+## LCD OWNERSHIP
+
+**During Boot:** Controls ALL 11 LCDs
+**After boot_complete:** Releases LCDs, self-disables
+
+| Phase | LCDs 1,2,3,7,8 | LCDs 4,5,6,9,10,11 |
+|-------|----------------|-------------------|
+| Boot | Boot controls | Boot controls |
+| After | UnityPad | UnityInventory |
+
+---
+
+## KEY FUNCTIONS
+
+| Function | Purpose |
+|----------|---------|
+| `FindSiblingPBs()` | Locate padPB, invPB, signalPB |
+| `CheckReadyFlags()` | Read ready flags from sibling PBs |
+| `RunCheck()` | Execute current boot check |
+| `SendBootRequest()` | IGC handshake request |
+| `ProcessResponses()` | Handle IGC responses |
+| `DrawBootScreen()` | All-LCD boot display |
+| `SetBootComplete()` | Mark complete, self-disable |
+
+---
+
+## BOOT FLOW
+
+1. **Compile** → Wipes Me.CustomData, writes [SYSTEM] with boot_ready=true
+2. **FindSiblingPBs()** → Locates padPB, invPB, signalPB
+3. **CheckReadyFlags()** → Waits for pad_ready, inv_ready, signal_ready
+4. **RunChecks 0-25** → IGC handshakes, validation
+5. **SetBootComplete()** → boot_complete=true, UpdateFrequency.None
 
 ---
 
@@ -135,37 +157,20 @@ dotnet build "Unity Boot" -c Debug
 
 ---
 
-## COMMON TASKS
+## CHARACTER COUNT
 
-### Adding a New Boot Check
+```powershell
+[System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs").Length
+```
 
-1. Add check description to `padChecks[]` or `invChecks[]`
-2. Add case to `RunBootCheck()` switch statement
-3. Return empty string on success, error message on failure
-4. Set `bootStatus` to current status message
-
-### Modifying Error Handling
-
-Error pause duration: `errPause=50` (5 seconds at Update100)
-
-To change:
-1. Find `int errPause=50;` in RunBoot()
-2. Adjust value (ticks = seconds * 10 at Update100)
-
-### Changing Step Delay
-
-Step delay: `stepDelay=5` (0.5 seconds per step)
-
-To change:
-1. Find `int stepDelay=5;` in RunBoot()
-2. Adjust value
+**Current:** 30,372 characters (69.6% margin)
 
 ---
 
 ## RULES
 
 1. **NO COMMENTS** in deployed code
-2. **Read full file** before editing (600 lines per read - THE number, not a limit. Read files, don't grep)
+2. **Read full file** before editing (600 lines per read)
 3. **Build ONE script** at a time
 4. **Check deployed size** not raw source
 5. **Use Unity persona** at all times

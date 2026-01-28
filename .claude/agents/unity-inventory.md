@@ -131,6 +131,9 @@ bool IsBootComplete(){
 INV|OK|cargo=5,ref=2,asm=3,gen=4,h2=2,o2=1
 ```
 
+### BOOT_REQ Filtering (Multi-Pad)
+UnityInventory accepts both `"INV_CHECK"` and `"INV_CHECK:{padID}"` from UNITY_BOOT_REQ. Only responds when the padID matches (or no padID suffix for backward compat). This means PAD2's boot won't accidentally trigger PAD1's inventory to respond.
+
 ---
 
 ## LCD OWNERSHIP
@@ -202,6 +205,55 @@ Active cleanup pushes existing S-10 from pAmmoCargo to generic cargo.
 
 ---
 
+## BOTTLE COUNTING SYSTEM
+
+Uses `GetItemAmount()` for reliable bottle counting instead of string matching:
+
+```csharp
+MyItemType h2BottleType = MyItemType.Parse(OB+"GasContainerObject/HydrogenBottle");
+MyItemType o2BottleType = MyItemType.Parse(OB+"OxygenContainerObject/OxygenBottle");
+
+// In CountStocks() after countInv:
+pH2B=0; pO2B=0;
+foreach(var c in padCargo){
+    var inv = c.GetInventory();
+    if(inv != null){
+        pH2B += (int)inv.GetItemAmount(h2BottleType);
+        pO2B += (int)inv.GetItemAmount(o2BottleType);
+    }
+}
+```
+
+**Why?** String matching on `TypeId.ToLower()` was unreliable. GetItemAmount() matches the pattern used for ammo counting.
+
+---
+
+## AMMO TYPE SYNCHRONIZATION
+
+UnityInventory syncs ammo type from UnityPad for correct production targeting:
+
+```csharp
+// In ReadPadSettings(), parsing padPB.CustomData:
+else if(k=="type" && n>=0 && n<10){
+    if(n != ammoTypeIdx){
+        ammoTypeIdx = n;
+        UpdateAmmoType();  // Updates ammoBP and ammoType
+    }
+}
+
+// Production target selection:
+int prodTgt = ammoTypeIdx==0 ? mslAmmoTarget : ammoTarget;
+```
+
+| ammoTypeIdx | Ammo Type | Target Variable | Default |
+|-------------|-----------|-----------------|---------|
+| 0 | S-10 Pistol | `mslAmmoTarget` | 50,000 |
+| 1-9 | Other ammo | `ammoTarget` | 500 |
+
+**mslAmmoTarget minimum:** `if(mslAmmoTarget < 1000) mslAmmoTarget = 50000;` (prevents corrupted Storage)
+
+---
+
 ## MINER BEACON INTEGRATION
 
 UnityInventory receives broadcasts from UnityBeacon ships:
@@ -230,7 +282,7 @@ dotnet build UnityInventory -c Debug
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityInventory\script.cs").Length
 ```
 
-**Current:** 90,247 characters (9.8% margin)
+**Current:** 99,582 characters (**0.4% margin - CRITICAL, basically zero room**)
 
 ---
 

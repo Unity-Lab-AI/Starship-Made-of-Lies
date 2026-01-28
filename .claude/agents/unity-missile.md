@@ -90,9 +90,12 @@ FlightMode=2
 Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 ```
 
-### Commands (IN)
-- `DETONATE` - Trigger warheads
+### Commands (IN) — Multi-Pad Safe
+- `DETONATE:{padID}` - Trigger warheads (must include padID — bare `DETONATE` removed for safety)
+- `DEORBIT:{padID}` - Force deorbit (must include padID — bare `DEORBIT` removed for safety)
 - `ABORT` - Abort mission
+
+**Multi-pad isolation:** PAD1's missiles won't respond to PAD2's DETONATE or DEORBIT commands. The padID suffix is mandatory — missiles ignore commands without their matching padID.
 
 ---
 
@@ -153,7 +156,7 @@ dotnet build UnityMissile -c Debug
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityMissile\script.cs").Length
 ```
 
-**Current:** 24,321 characters (76% margin)
+**Current:** 44,563 characters (55.4% margin)
 
 ---
 

@@ -55,18 +55,20 @@ miner_count=2
 miner_names=Miner1,Miner2
 ```
 
-### Reading From Other PBs
+### Reading From Other PBs (Multi-Pad Aware)
 ```csharp
 IMyProgrammableBlock padPB, invPB, signalPB;
 
-void FindSiblingPBs(){
+// Uses IsSameConstructAs(Me) — finds PBs across CON1/CON2 connectors, not just same grid
+void DiscoverSiblingPads(){
     var pbs = new List<IMyProgrammableBlock>();
-    GridTerminalSystem.GetBlocksOfType(pbs, b => b.CubeGrid == Me.CubeGrid && b != Me);
+    GridTerminalSystem.GetBlocksOfType(pbs, b => b.IsSameConstructAs(Me) && b != Me);
     foreach(var pb in pbs){
         string nm = pb.CustomName;
         if(nm.Contains($"[PAD{padID}]") && nm.Contains("Unity Pad")) padPB = pb;
         else if(nm.Contains($"[PAD{padID}]") && nm.Contains("Unity Inventory")) invPB = pb;
         else if(nm.Contains($"[PAD{padID}]") && nm.Contains("UNITY SIGNAL")) signalPB = pb;
+        // Also discovers other UNITY BOOT PBs for multi-pad awareness
     }
 }
 
@@ -76,6 +78,8 @@ void CheckReadyFlags(){
     signalReady = signalPB?.CustomData.Contains("signal_ready=true") ?? false;
 }
 ```
+
+**Key change:** `IsSameConstructAs(Me)` replaces `CubeGrid == Me.CubeGrid` so Boot can discover sibling PBs across mechanically connected grids (CON1/CON2 connectors). Also discovers other UNITY BOOT PBs — not just UNITY PAD.
 
 ---
 
@@ -87,10 +91,16 @@ void CheckReadyFlags(){
 | `UNITY_BOOT_RSP` | IN | Receive responses |
 | `MINER_BEACON` | IN | Fleet status (optional) |
 
-### Request Types
-- `PAD_CHECK` - Request pad block counts
-- `INV_CHECK` - Request inventory block counts
-- `SIGNAL_CHECK` - Request signal camera/LCD counts
+### Request Types (Multi-Pad Aware)
+- `PAD_CHECK:{padID}` - Request pad block counts (responders filter by padID)
+- `INV_CHECK:{padID}` - Request inventory block counts (responders filter by padID)
+- `SIGNAL_CHECK:{padID}` - Request signal camera/LCD counts (responders filter by padID)
+
+**Backward compat:** Responders also accept bare `PAD_CHECK`/`INV_CHECK`/`SIGNAL_CHECK` without padID suffix.
+
+### UNITY_SETUP_CMD Channel
+- `SETUPMOD|{padID}` - Only the boot PB matching that padID runs the setup
+- SETUPMOD re-tags blocks with old `[PAD]` tags (strips old tag, applies new `[PAD{padID}]`)
 
 ### Response Formats
 ```
@@ -153,7 +163,7 @@ dotnet build "Unity Boot" -c Debug
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs").Length
 ```
 
-**Current:** ~15,050 characters (85% margin)
+**Current:** 30,372 characters (69.6% margin)
 
 ---
 

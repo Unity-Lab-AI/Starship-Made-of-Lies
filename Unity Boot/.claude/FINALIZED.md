@@ -5,6 +5,39 @@
 
 ---
 
+## COMPLETED: 2026-01-28 - Multi-Pad Isolation
+
+### IsSameConstructAs Discovery
+
+**Task:** Make Unity Boot work across connector boundaries in multi-pad setups.
+
+**Implementation:**
+
+1. **DiscoverSiblingPads() now uses IsSameConstructAs(Me)** instead of CubeGrid==Me.CubeGrid
+   - Finds PBs across CON1/CON2 connector boundaries
+   - Discovers both UNITY PAD and UNITY BOOT PBs for pad ID detection
+   - Multi-pad aware: can see [PAD2] UNITY BOOT from [PAD1]'s construct
+
+2. **padID in BOOT_REQ messages**
+   - UNITY_BOOT_REQ now sends `PAD_CHECK:{padID}`, `INV_CHECK:{padID}`, `SIGNAL_CHECK:{padID}`
+   - Sibling scripts know which pad is asking
+
+3. **UNITY_SETUP_CMD padID filtering**
+   - Setup commands filtered: `data==$"SETUPMOD|{padID}"`
+   - Only the matching boot instance runs the setup
+   - Prevents PAD1's boot from executing PAD2's commands
+
+4. **SETUPMOD re-tagging**
+   - Strips old [PAD] tags from blocks
+   - Applies correct padID prefix
+   - Works for SETUPMOD, SETUPFORCE, NAMEPAD, NAMEMSL commands
+
+**Deployed:** 30,372 chars (69.6% margin - plenty of room)
+
+**Reason:** Multi-pad bases connect via connectors, so the old CubeGrid check couldn't see across mechanical connections. IsSameConstructAs sees the entire construct.
+
+---
+
 ## COMPLETED: 2026-01-18 - Full Implementation
 
 ### Created Unity Boot System
@@ -108,15 +141,19 @@ Unity Boot sets `UpdateFrequency.None` after boot completes:
 - No interference with LCD rendering
 - Clean separation of concerns
 
+### Why IsSameConstructAs?
+
+Multi-pad bases connect pads via CON1/CON2 connectors. The old `CubeGrid==Me.CubeGrid` only saw blocks on the same physical grid. `IsSameConstructAs(Me)` sees the entire mechanical construct - every grid connected through connectors, rotors, and pistons. This lets Boot discover sibling pads and their scripts for multi-pad awareness.
+
 ---
 
 ## CHARACTER BUDGET
 
-| Script | Before | After | Change |
-|--------|--------|-------|--------|
-| Unity Boot | N/A | 12,697 | NEW |
-| UnityPad | ~92,000 | 89,239 | -2,761 |
-| UnityInventory | ~82,000 | 78,680 | -3,320 |
+| Script | Before | After | Current |
+|--------|--------|-------|---------|
+| Unity Boot | N/A | 12,697 (initial) | 30,372 (multi-pad) |
+| UnityPad | ~92,000 | 89,239 | -- |
+| UnityInventory | ~82,000 | 78,680 | -- |
 
 ---
 
