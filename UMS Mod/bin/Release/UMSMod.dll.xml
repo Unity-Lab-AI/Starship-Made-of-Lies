@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<PluginData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="GitHubPlugin">
-  <Id>UMSMod</Id>
-  <FriendlyName>UMS Mod - Auto DeMerge Ship</FriendlyName>
-  <Author>Unity AI Lab</Author>
-  <Tooltip>Converts grids to ships when detaching from merge blocks</Tooltip>
-  <Description>Unity Missile System companion plugin. Automatically converts station grids to ship grids when they detach from merge blocks, fixing the common issue where missiles become immobile stations after launch.</Description>
-</PluginData>
