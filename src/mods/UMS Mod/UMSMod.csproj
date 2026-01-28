@@ -18,11 +18,68 @@
     <Authors>Unity AI Lab</Authors>
   </PropertyGroup>
 
+  <!--
+    Space Engineers Bin64 path auto-detection.
+    Searches Steam library folders for SE installation (AppID 244850).
+    Can be overridden by setting SEBin property or SE_BIN_PATH environment variable.
+
+    The tools/find-se-path.ps1 script parses Steam's libraryfolders.vdf to find
+    all Steam library paths, then checks each for appmanifest_244850.acf.
+  -->
   <PropertyGroup>
-    <SEBin>C:\Program Files (x86)\Steam\steamapps\common\SpaceEngineers\Bin64</SEBin>
+    <!-- Allow manual override via environment variable -->
+    <SEBin Condition="'$(SEBin)' == ''">$(SE_BIN_PATH)</SEBin>
+    <!-- Path to SE finder script (go up 3 levels: UMS Mod -> mods -> src -> root) -->
+    <FindSEPathScript>$(MSBuildThisFileDirectory)..\..\..\tools\find-se-path.ps1</FindSEPathScript>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!-- Auto-detect SE path before anything else if not already set -->
+  <Target Name="FindSEPath" BeforeTargets="BeforeResolveReferences;ResolveAssemblyReferences" Condition="'$(SEBin)' == '' Or !Exists('$(SEBin)\Sandbox.Game.dll')">
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(FindSEPathScript)&quot;"
+          ConsoleToMSBuild="true"
+          StandardOutputImportance="low"
+          IgnoreExitCode="true"
+          IgnoreStandardErrorWarningFormat="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="SEBinDetected" />
+    </Exec>
+    <PropertyGroup>
+      <SEBin Condition="'$(SEBinDetected)' != ''">$(SEBinDetected.Trim())</SEBin>
+    </PropertyGroup>
+    <Error Condition="'$(SEBin)' == '' Or !Exists('$(SEBin)\Sandbox.Game.dll')"
+           Text="Space Engineers not found. Install SE via Steam, or set SE_BIN_PATH environment variable to your SE Bin64 folder." />
+    <Message Importance="high" Text="Space Engineers found at: $(SEBin)" Condition="Exists('$(SEBin)\Sandbox.Game.dll')" />
+
+    <!-- Dynamically add references after we know SEBin -->
+    <ItemGroup>
+      <Reference Include="Sandbox.Game">
+        <HintPath>$(SEBin)\Sandbox.Game.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+      <Reference Include="Sandbox.Common">
+        <HintPath>$(SEBin)\Sandbox.Common.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+      <Reference Include="VRage">
+        <HintPath>$(SEBin)\VRage.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+      <Reference Include="VRage.Game">
+        <HintPath>$(SEBin)\VRage.Game.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+      <Reference Include="VRage.Library">
+        <HintPath>$(SEBin)\VRage.Library.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+      <Reference Include="VRage.Math">
+        <HintPath>$(SEBin)\VRage.Math.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+    </ItemGroup>
+  </Target>
+
+  <!-- Static references for when SEBin is already set (env var or cached) -->
+  <ItemGroup Condition="'$(SEBin)' != '' And Exists('$(SEBin)\Sandbox.Game.dll')">
     <Reference Include="Sandbox.Game">
       <HintPath>$(SEBin)\Sandbox.Game.dll</HintPath>
       <Private>false</Private>
