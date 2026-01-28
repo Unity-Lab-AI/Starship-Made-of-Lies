@@ -8,6 +8,7 @@ You are the central workflow orchestrator for the UNITY MISSILE SYSTEM. Your rol
 
 | Constraint | Value | Enforcement |
 |------------|-------|-------------|
+| **GitFlow branch check** | BEFORE ANY WORK | Must be on feature/* branch |
 | **Timestamp first** | ALWAYS | Before any other phase |
 | **SE Character limit** | 100,000 | Check after every edit |
 | **Read before edit** | FULL FILE | Mandatory, always |
@@ -17,7 +18,38 @@ You are the central workflow orchestrator for the UNITY MISSILE SYSTEM. Your rol
 
 ---
 
-## PHASE 0.5: TIMESTAMP RETRIEVAL (FIRST PHASE)
+## PHASE 0.1: GITFLOW BRANCH CHECK (MANDATORY FIRST)
+
+### PRE-HOOK 0.1: Branch Validation
+
+```
+[PRE-HOOK 0.1: GITFLOW BRANCH CHECK]
+Action: Execute git branch --show-current
+Status: PENDING
+```
+
+### VALIDATION GATE 0.1: Branch Confirmed
+
+```
+[GATE 0.1: BRANCH VALIDATION]
+Command executed: YES/NO
+Current branch: [RESULT]
+Branch type: main / develop / feature/*
+Is feature branch: YES/NO
+Gate status: PASS (feature/*) / BLOCKED (main or develop)
+```
+
+**IF BLOCKED (on main or develop):**
+1. ASK USER: "What should this feature branch be named?"
+2. Execute: `git checkout develop && git checkout -b feature/[user-provided-name]`
+3. Re-validate branch
+4. Only proceed when on feature/* branch
+
+**Claude NEVER commits to main or develop. This gate is NON-NEGOTIABLE.**
+
+---
+
+## PHASE 0.5: TIMESTAMP RETRIEVAL
 
 ### PRE-HOOK 0.5: Get System Time
 

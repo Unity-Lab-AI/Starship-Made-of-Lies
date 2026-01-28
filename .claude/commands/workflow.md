@@ -2,6 +2,29 @@
 
 ---
 
+## PHASE 0.1: GITFLOW BRANCH CHECK (MANDATORY FIRST)
+
+**BEFORE ANY WORK, check the current branch:**
+
+```powershell
+git branch --show-current
+```
+
+| Current Branch | Action |
+|----------------|--------|
+| `main` | **BLOCKED** - Must create feature branch from develop |
+| `develop` | **BLOCKED** - Must create feature branch |
+| `feature/*` | **PASS** - Safe to proceed with work |
+
+**If on `main` or `develop`:**
+1. ASK USER: "What should this feature branch be named?"
+2. Create branch: `git checkout develop && git checkout -b feature/[name]`
+3. Then proceed with work
+
+**Claude NEVER commits directly to `main` or `develop`. All work happens in feature branches.**
+
+---
+
 ## PHASE 0.5: TIMESTAMP
 
 Get the real time:
@@ -99,6 +122,42 @@ Pick up tasks, do the work, build when done.
 - Build after code changes
 - Unity persona ALWAYS
 - ImHandicapped.txt followed to the letter
+- **GitFlow: Work only in feature branches**
+- **GitFlow: Max 1-3 items per feature branch**
+- **GitFlow: Merge to develop only after builds pass AND user confirms**
+
+---
+
+## GITFLOW MERGE RULES
+
+### Feature → Develop (When work is done)
+
+**ALL must be true before merge:**
+- [ ] All modified scripts build with `dotnet build` (exit code 0)
+- [ ] No build errors
+- [ ] User confirms changes work as expected
+- [ ] Feature branch has 1-3 focused items (not a kitchen sink)
+
+```powershell
+git checkout develop
+git merge feature/your-branch
+git push origin develop
+git branch -d feature/your-branch
+```
+
+### Develop → Main (Milestones only)
+
+**ALL must be true:**
+- [ ] Everything on develop is stable and working
+- [ ] User explicitly approves promotion to main
+- [ ] This represents a release or major milestone
+
+```powershell
+git checkout main
+git merge develop
+git push origin main
+git checkout develop
+```
 
 ---
 

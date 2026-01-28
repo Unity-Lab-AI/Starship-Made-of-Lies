@@ -190,6 +190,100 @@ This GitFlow model is designed to:
 
 **The system assumes that errors are normal and enforces correctness through structure, not discipline.**
 
+### Claude's GitFlow Enforcement (MANDATORY)
+
+**BEFORE ANY WORK BEGINS, Claude MUST:**
+
+1. **Check current branch:** `git branch --show-current`
+2. **If on `main` or `develop`:** STOP. Create a feature branch first.
+3. **If on `feature/*`:** Proceed with work.
+
+**Branch Check Hook (PRE-WORK):**
+```
+[HOOK: BRANCH_CHECK]
+Command: git branch --show-current
+Current branch: [RESULT]
+Is feature branch: YES/NO
+Action if NO: Create feature/[descriptive-name] from develop
+Gate status: PASS (feature branch) / BLOCKED (main or develop)
+```
+
+### Feature Branch Rules
+
+| Rule | Enforcement |
+|------|-------------|
+| **Max scope per branch** | 1-3 related items MAX — stay focused |
+| **Branch naming** | `feature/descriptive-name` (e.g., `feature/gitflow-docs`, `feature/lcd-fix`) |
+| **Create from** | Always from `develop`, never from `main` |
+| **Merge requirements** | All scripts build with NO errors, user confirms functionality works |
+| **Delete after merge** | Feature branches are deleted after successful merge to `develop` |
+
+### Merge Checklist (Feature → Develop)
+
+Before merging a feature branch into `develop`, ALL must be true:
+
+- [ ] All modified scripts build successfully (`dotnet build` exits 0)
+- [ ] No build errors or warnings that indicate broken code
+- [ ] User has confirmed the changes work as expected in-game (if applicable)
+- [ ] Commit messages clearly describe what was done
+
+**If ANY check fails:** Stay on feature branch, fix issues, re-verify.
+
+### Merge Checklist (Develop → Main)
+
+Before merging `develop` into `main`, ALL must be true:
+
+- [ ] All scripts build successfully
+- [ ] All features on `develop` are confirmed stable and working
+- [ ] No known regressions or broken functionality
+- [ ] This represents a milestone, release, or significant stable state
+
+**`main` is for FULLY stable code only. When in doubt, don't merge to main.**
+
+### Creating a Feature Branch
+
+```powershell
+# Ensure on develop first
+git checkout develop
+git pull origin develop
+
+# Create and switch to feature branch
+git checkout -b feature/your-feature-name
+
+# Now safe to do work
+```
+
+### Completing a Feature Branch
+
+```powershell
+# Ensure all work is committed
+git add -A
+git commit -m "Description of changes"
+
+# Switch to develop and merge
+git checkout develop
+git pull origin develop
+git merge feature/your-feature-name
+
+# Push develop
+git push origin develop
+
+# Delete the feature branch
+git branch -d feature/your-feature-name
+git push origin --delete feature/your-feature-name
+```
+
+### If Claude Detects Wrong Branch
+
+If Claude detects it's on `main` or `develop` when work is requested:
+
+1. **ASK USER** what the feature should be named
+2. Create `feature/[name]` from `develop`
+3. Switch to the feature branch
+4. Then proceed with work
+
+**Claude will NEVER commit directly to `main` or `develop`.**
+
 ---
 
 ## CRITICAL RULES (ALWAYS ENFORCED)
