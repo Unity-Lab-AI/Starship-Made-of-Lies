@@ -1,9 +1,27 @@
 # Unity Missile System - Script Wrapper for MDK2
+# Usage:
+#   tools/wrap-scripts.ps1           - Wrap only
+#   tools/wrap-scripts.ps1 -Update   - Update packages first, then wrap
+param(
+    [switch]$Update
+)
+
 $ErrorActionPreference = "Stop"
 # Script is in tools/, so go up one level to get project root, then into src/scripts
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $root = Split-Path -Parent $toolsDir
 $scriptsDir = Join-Path $root "src\scripts"
+
+# Update packages if requested
+if ($Update) {
+    $updateScript = Join-Path $toolsDir "update-packages.ps1"
+    if (Test-Path $updateScript) {
+        & $updateScript
+    } else {
+        Write-Host "WARNING: update-packages.ps1 not found" -ForegroundColor Yellow
+    }
+}
+
 $mdkHeader = @"
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI.Ingame;
@@ -77,5 +95,5 @@ Write-Host "  dotnet build `"src/scripts/Unity Boot`" -c Debug" -ForegroundColor
 Write-Host "  dotnet build src/scripts/UnitySignal -c Debug" -ForegroundColor White
 Write-Host "  dotnet build src/scripts/UnityNuke -c Debug" -ForegroundColor White
 Write-Host ""
-Write-Host "DO NOT chain builds. DO NOT build all at once." -ForegroundColor Red
+Write-Host "To update packages before wrapping, use: tools/wrap-scripts.ps1 -Update" -ForegroundColor DarkGray
 Write-Host ""

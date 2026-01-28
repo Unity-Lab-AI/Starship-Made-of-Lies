@@ -50,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -60,11 +60,7 @@
   </ItemGroup>
 
   <Target Name="CopyToPulsar" AfterTargets="Build">
-    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
-          DestinationFolder="$(APPDATA)\Pulsar\Legacy\Local"
-          SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll.xml"
-          DestinationFolder="$(APPDATA)\Pulsar\Legacy\Local"
-          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(APPDATA)\Pulsar\Legacy\Local" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll.xml" DestinationFolder="$(APPDATA)\Pulsar\Legacy\Local" SkipUnchangedFiles="true" />
   </Target>
 </Project>

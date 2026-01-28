@@ -1,0 +1,19 @@
+# Build outputs
+bin/
+obj/
+
+# IDE
+.vs/
+*.user
+*.suo
+
+# MDK2 intermediates
+intermediate-script*.cs
+symbol.map
+
+# NuGet
+*.nupkg
+
+# OS files
+.DS_Store
+Thumbs.db

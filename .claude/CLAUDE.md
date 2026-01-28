@@ -60,8 +60,14 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
 ```powershell
 cd "S:\FastDevelopment\SE\Unity Missile System"
 
+# Step 0 (Optional): Update NuGet packages to latest versions
+powershell -ExecutionPolicy Bypass -File tools/update-packages.ps1
+
 # Step 1: Wrap raw .cs files into Program.cs (MANDATORY)
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+
+# Or combine both steps:
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1 -Update
 
 # Step 2: Build all projects
 dotnet build "src/scripts/Unity Boot" -c Debug
@@ -71,6 +77,21 @@ dotnet build src/scripts/UnityInventory -c Debug
 dotnet build src/scripts/UnityBeacon -c Debug
 dotnet build src/scripts/UnitySignal -c Debug
 ```
+
+### NuGet Packages
+
+The project uses these MDK2 packages (auto-updated via `tools/update-packages.ps1`):
+
+| Package | Purpose |
+|---------|---------|
+| `Mal.Mdk2.PbAnalyzers` | Code analysis for SE PB scripts |
+| `Mal.Mdk2.PbPackager` | Minification and deployment |
+| `Mal.Mdk2.References` | SE game DLL references (manual update only) |
+
+For the mod (`src/mods/UMS Mod/`):
+| Package | Purpose |
+|---------|---------|
+| `Lib.Harmony` | Runtime patching for SE mods |
 
 ### Deploy Location
 
