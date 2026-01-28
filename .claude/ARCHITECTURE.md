@@ -4,6 +4,20 @@
 
 ---
 
+## GitFlow Policy
+
+**All development work occurs in feature branches only.** See `.claude/CLAUDE.md` for full policy.
+
+| Branch | Purpose | Direct Commits |
+|--------|---------|----------------|
+| `main` | Production/stable releases | **NEVER** |
+| `develop` | Integration/pre-release | **NEVER** |
+| `feature/*` | All development work | **YES** |
+
+**Workflow:** `feature/*` → merge to `develop` → promote to `main` at milestones
+
+---
+
 ## System Overview
 
 Six-script guided missile system for Space Engineers:

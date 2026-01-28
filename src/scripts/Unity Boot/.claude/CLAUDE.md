@@ -8,6 +8,18 @@ Centralized boot controller for the Unity Missile System. Uses Per-PB CustomData
 
 ---
 
+## GitFlow Policy
+
+**All development work occurs in feature branches only.** See main `.claude/CLAUDE.md` for full policy.
+
+| Branch | Purpose | Direct Commits |
+|--------|---------|----------------|
+| `main` | Production/stable releases | **NEVER** |
+| `develop` | Integration/pre-release | **NEVER** |
+| `feature/*` | All development work | **YES** |
+
+---
+
 ## Table of Contents
 
 1. [Purpose](#purpose)

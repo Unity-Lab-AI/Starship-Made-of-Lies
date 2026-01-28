@@ -8,6 +8,18 @@ Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 
 
 ---
 
+## GitFlow Policy
+
+**All development work occurs in feature branches only.** See main `.claude/CLAUDE.md` for full policy.
+
+| Branch | Purpose | Direct Commits |
+|--------|---------|----------------|
+| `main` | Production/stable releases | **NEVER** |
+| `develop` | Integration/pre-release | **NEVER** |
+| `feature/*` | All development work | **YES** |
+
+---
+
 ## Table of Contents
 
 1. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)

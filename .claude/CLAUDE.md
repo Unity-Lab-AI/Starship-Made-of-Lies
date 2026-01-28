@@ -10,18 +10,19 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
 
 1. [Project Components](#project-components)
 2. [Build and Deploy](#build-and-deploy)
-3. [Critical Rules](#critical-rules-always-enforced)
-4. [No Partial Implementations](#no-partial-implementations)
-5. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)
-6. [No Tests Policy](#no-tests-policy)
-7. [MDK Project Structure](#mdk-project-structure)
-8. [Character Budgets](#character-budgets)
-9. [IGC Communication Channels](#igc-communication-channels)
-10. [Missile System Architecture](#missile-system-architecture)
-11. [The 600-Line Read Standard](#the-600-line-read-standard)
-12. [Agent Files](#agent-files)
-13. [Quick Reference](#quick-reference)
-14. [Boot Handshake Protocol](#boot-handshake-protocol)
+3. [GitFlow Policy](#gitflow-policy)
+4. [Critical Rules](#critical-rules-always-enforced)
+5. [No Partial Implementations](#no-partial-implementations)
+6. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)
+7. [No Tests Policy](#no-tests-policy)
+8. [MDK Project Structure](#mdk-project-structure)
+9. [Character Budgets](#character-budgets)
+10. [IGC Communication Channels](#igc-communication-channels)
+11. [Missile System Architecture](#missile-system-architecture)
+12. [The 600-Line Read Standard](#the-600-line-read-standard)
+13. [Agent Files](#agent-files)
+14. [Quick Reference](#quick-reference)
+15. [Boot Handshake Protocol](#boot-handshake-protocol)
     - [PB Discovery Pattern](#pb-discovery-pattern)
     - [How Scripts Read From Other PBs](#how-scripts-read-from-other-pbs)
     - [In-Game Script Compile Order](#in-game-script-compile-order)
@@ -34,8 +35,8 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
     - [The 26 Boot Checks](#the-26-boot-checks)
     - [Boot Flow](#boot-flow-per-pb-architecture)
     - [Checking Boot Status](#checking-boot-status-in-operational-scripts)
-15. [Credits & Acknowledgements](#credits--acknowledgements)
-16. [Multi-Pad Setup](#multi-pad-setup)
+16. [Credits & Acknowledgements](#credits--acknowledgements)
+17. [Multi-Pad Setup](#multi-pad-setup)
 
 ---
 
@@ -114,6 +115,80 @@ The `tools/wrap-scripts.ps1` script:
 - Writes to `src/scripts/[Project]/Program.cs`
 
 **WARNING:** MDK builds from `Program.cs`, NOT from the raw `.cs` files! Always run `tools/wrap-scripts.ps1` before building!
+
+---
+
+## GITFLOW POLICY
+
+**Stable, Professional, and Error-Tolerant**
+
+This repository follows a structured GitFlow model designed to strictly separate stable production code, integrated development code, and active feature development. This workflow exists to ensure code stability, traceability, reversibility, and predictable releases.
+
+**This repository does not permit direct development work on long-running branches. All development activity occurs exclusively within short-lived feature branches.**
+
+### Core Branches (Long-Running)
+
+#### `main` — Production / Stable Branch
+
+- Represents production-ready, tested, and stable code
+- Always reflects a known-good state
+- May only be updated via merge from `develop` after a milestone, release, or roadmap goal is complete
+- **No direct commits are ever allowed**
+- Each merge into `main` should correspond to a tagged release or versioned milestone
+- Fixes to released code must be handled via controlled workflows (feature or hotfix branches), never by direct modification
+
+#### `develop` — Integration / Pre-Release Branch
+
+- Represents the next release under active integration
+- Aggregates completed feature work
+- Expected to be mostly functional but not necessarily production-ready at all times
+- **No direct commits are allowed**
+- May only be updated by merging completed feature branches or hotfix branches
+- Serves as the sole source branch for release promotion into `main`
+
+### Feature Branches (Short-Lived)
+
+#### `feature/*` — Active Development Branches
+
+- **The only branches where development work is performed**
+- Must always be created from `develop`
+- Used for implementing new features, refactors, experiments, and fixes
+- May freely contain incomplete, experimental, or breaking changes
+- Are considered disposable and revertible
+- Once complete, feature branches are merged back into `develop` and then deleted
+
+**No work is ever performed directly in `main` or `develop`. All code changes originate in feature branches.**
+
+### Integration and Promotion Rules
+
+| Phase | Actions |
+|-------|---------|
+| **Development** | Create feature branches from `develop`. All commits, experimentation, and iteration happen only in feature branches. |
+| **Integration** | Completed feature branches are merged into `develop`. If a merge introduces regressions or instability, the merge is reverted and corrected in the feature branch. |
+| **Release / Milestone** | When `develop` represents a complete, tested, and functional milestone, it is merged into `main`. This merge is a promotion, not development. The resulting state of `main` must be stable and releasable. |
+| **Post-Release Fixes** | Any fixes required after release must follow the same rules: implemented in feature or hotfix branches, merged into `develop`, promoted back into `main` through controlled merges. |
+
+### Invariants (Non-Negotiable Rules)
+
+| Rule | Description |
+|------|-------------|
+| Protected branches | `main` and `develop` are protected branches |
+| No direct commits | Humans never commit directly to `main` or `develop` |
+| Feature-only writes | Feature branches are the only writable surface |
+| Reversibility | All merges must be reversible |
+| Structural enforcement | Stability is enforced structurally, not socially |
+
+### Intent of This Workflow
+
+This GitFlow model is designed to:
+
+- Prevent accidental trunk-based development
+- Absorb mistakes without blame
+- Maintain continuous access to known-good states
+- Support learning developers without risking stability
+- Enable predictable, milestone-based releases
+
+**The system assumes that errors are normal and enforces correctness through structure, not discipline.**
 
 ---
 
