@@ -307,17 +307,17 @@ Connect a printer/projector/welder setup for auto-rebuilding:
 
 ### Build Commands
 ```powershell
-cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
+cd "S:\FastDevelopment\SE\Unity Missile System"
 
 # CRITICAL: Sync source files first!
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
 
 # Build ONE AT A TIME (any order for build - compile order matters in-game)
-dotnet build UnityPad -c Debug
-dotnet build UnityInventory -c Debug
-dotnet build "Unity Boot" -c Debug
-dotnet build UnityMissile -c Debug
-dotnet build UnityBeacon -c Debug
+dotnet build src/scripts/UnityPad -c Debug
+dotnet build src/scripts/UnityInventory -c Debug
+dotnet build "src/scripts/Unity Boot" -c Debug
+dotnet build src/scripts/UnityMissile -c Debug
+dotnet build src/scripts/UnityBeacon -c Debug
 ```
 
 **IN-GAME COMPILE ORDER:** PAD → INVENTORY → SIGNAL → BOOT
@@ -380,19 +380,25 @@ The 4 scripts on the pad grid MUST compile in order: PAD → INVENTORY → SIGNA
 
 ```
 Unity Missile System/
-├── wrap-scripts.ps1         # Wraps all raw .cs to Program.cs
-├── Unity Boot.cs            # Edit this (boot controller)
-├── UnityPad.cs              # Edit this (pad controller)
-├── UnityMissile.cs          # Edit this (missile guidance)
-├── UnityInventory.cs        # Edit this (inventory manager)
-├── UnityBeacon.cs           # Edit this (fleet beacon)
-├── UnitySignal.cs           # Edit this (signal hub)
-├── Unity Boot/              # MDK project
-├── UnityPad/                # MDK project
-├── UnityMissile/            # MDK project
-├── UnityInventory/          # MDK project
-├── UnityBeacon/             # MDK project
-├── UnitySignal/             # MDK project
+├── tools/
+│   ├── wrap-scripts.ps1     # Wraps all raw .cs to Program.cs
+│   └── check-chars.ps1      # Character count utility
+├── src/
+│   └── scripts/
+│       ├── Unity Boot.cs        # Edit this (boot controller)
+│       ├── UnityPad.cs          # Edit this (pad controller)
+│       ├── UnityMissile.cs      # Edit this (missile guidance)
+│       ├── UnityInventory.cs    # Edit this (inventory manager)
+│       ├── UnityBeacon.cs       # Edit this (fleet beacon)
+│       ├── UnitySignal.cs       # Edit this (signal hub)
+│       ├── Unity Boot/          # MDK project
+│       ├── UnityPad/            # MDK project
+│       ├── UnityMissile/        # MDK project
+│       ├── UnityInventory/      # MDK project
+│       ├── UnityBeacon/         # MDK project
+│       └── UnitySignal/         # MDK project
+├── references/
+│   └── se_blueprints.csv    # Blueprint reference data
 ├── QUICK_SETUP.md           # This file
 ├── README.md                # Full documentation
 ├── SETUP.md                 # Complete setup guide

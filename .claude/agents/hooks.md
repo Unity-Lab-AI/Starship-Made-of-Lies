@@ -130,8 +130,8 @@ Result: PASS/FAIL
 Ensures Space Engineers scripts stay under 100,000 character limit.
 
 ### Trigger Points
-- After every edit to UnityPad.cs
-- After every edit to UnityMissile.cs
+- After every edit to src/scripts/UnityPad.cs
+- After every edit to src/scripts/UnityMissile.cs
 
 ### Validation Criteria
 

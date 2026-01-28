@@ -46,7 +46,7 @@ Status: PASS/FAIL
 
 ## Scan Tasks
 
-### Task 1: UnityPad.cs
+### Task 1: src/scripts/UnityPad.cs
 
 ```
 Read full file (600-line reads)
@@ -60,7 +60,7 @@ Identify:
 - Settings variables
 ```
 
-### Task 2: UnityMissile.cs
+### Task 2: src/scripts/UnityMissile.cs
 
 ```
 Read full file (600-line reads)
@@ -144,12 +144,12 @@ After scanning completes:
 
 ```
 [SCANNER POST-HOOK - ATTEMPT 1]
-UnityPad.cs:
+src/scripts/UnityPad.cs:
   - Exists: YES/NO
   - Chars: [NUMBER]/100,000
   - Under limit: YES/NO
 
-UnityMissile.cs:
+src/scripts/UnityMissile.cs:
   - Exists: YES/NO
   - Chars: [NUMBER]/100,000
   - Under limit: YES/NO
@@ -168,7 +168,7 @@ Status: PASS/FAIL
 
 | Check | Requirement |
 |-------|-------------|
-| Both scripts exist | YES |
+| Both scripts exist (src/scripts/) | YES |
 | LAUNCHER chars < 100,000 | YES |
 | MISSILE chars < 100,000 | YES |
 | Full files read | YES |

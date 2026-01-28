@@ -39,7 +39,7 @@ All documentation files MUST start with a Table of Contents using this format:
 
 Brief one-line description of the script's purpose.
 
-**Location:** `Unity Missile System/ScriptName/`
+**Location:** `Unity Missile System/src/scripts/ScriptName/`
 **PB Name:** `[PAD1] Script Name`
 **Version:** v01.00 | 2026-01-24
 
@@ -189,9 +189,9 @@ key=value
 ### Build Commands
 
 ```powershell
-cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build ScriptName -c Debug
+cd "S:\FastDevelopment\SE\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build src/scripts/ScriptName -c Debug
 ```
 
 ### Deploy Location
@@ -216,9 +216,9 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\ScriptName\scr
 
 ```powershell
 # Build
-cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build ScriptName -c Debug
+cd "S:\FastDevelopment\SE\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build src/scripts/ScriptName -c Debug
 
 # Check size
 [System.IO.File]::ReadAllText("$env:APPDATA\SpaceEngineers\IngameScripts\local\ScriptName\script.cs").Length
@@ -388,6 +388,37 @@ Include in UnityBeacon README.md and SETUP.md:
 | LCD | `[BEACON]` | Optional | Status display |
 
 *Batteries, cargo, drills, H2 tanks are auto-detected - no tags needed.*
+```
+
+---
+
+## FILE STRUCTURE
+
+```
+Unity Missile System/
+├── tools/
+│   ├── wrap-scripts.ps1     # Wraps all raw .cs to Program.cs
+│   └── check-chars.ps1      # Character count utility
+├── src/
+│   └── scripts/
+│       ├── Unity Boot.cs        # Edit this (boot controller)
+│       ├── UnityPad.cs          # Edit this (pad controller)
+│       ├── UnityMissile.cs      # Edit this (missile guidance)
+│       ├── UnityInventory.cs    # Edit this (inventory manager)
+│       ├── UnityBeacon.cs       # Edit this (fleet beacon)
+│       ├── UnitySignal.cs       # Edit this (signal hub)
+│       ├── Unity Boot/          # MDK project
+│       ├── UnityPad/            # MDK project
+│       ├── UnityMissile/        # MDK project
+│       ├── UnityInventory/      # MDK project
+│       ├── UnityBeacon/         # MDK project
+│       └── UnitySignal/         # MDK project
+├── references/
+│   └── se_blueprints.csv    # Blueprint reference data
+├── QUICK_SETUP.md           # Quick setup guide
+├── README.md                # Full documentation
+├── SETUP.md                 # Complete setup guide
+└── .claude/                 # Development workflow
 ```
 
 ---

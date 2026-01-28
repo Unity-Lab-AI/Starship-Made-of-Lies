@@ -7,15 +7,15 @@ You are the Unity Boot specialist. Reference this documentation when working on 
 ## YOUR DOMAIN
 
 ### Files
-- `Unity Boot.cs` - The raw boot controller script
-- `Unity Boot/Program.cs` - MDK-wrapped version (auto-generated)
-- `Unity Boot/.claude/*` - All workflow files
+- `src/scripts/Unity Boot.cs` - The raw boot controller script
+- `src/scripts/Unity Boot/Program.cs` - MDK-wrapped version (auto-generated)
+- `src/scripts/Unity Boot/.claude/*` - All workflow files
 
 ### Coordinates With
-- `UnityPad.cs` - Boot reads pad_ready, Pad reads boot_complete
-- `UnityInventory.cs` - Boot reads inv_ready, Inventory reads boot_complete
-- `UnitySignal.cs` - Boot reads signal_ready, Signal reads boot_complete
-- `UnityBeacon.cs` - Boot listens for MINER_BEACON broadcasts (optional)
+- `src/scripts/UnityPad.cs` - Boot reads pad_ready, Pad reads boot_complete
+- `src/scripts/UnityInventory.cs` - Boot reads inv_ready, Inventory reads boot_complete
+- `src/scripts/UnitySignal.cs` - Boot reads signal_ready, Signal reads boot_complete
+- `src/scripts/UnityBeacon.cs` - Boot listens for MINER_BEACON broadcasts (optional)
 
 ---
 
@@ -151,8 +151,8 @@ SIGNAL|OK|cams=12,lcds=2
 
 ```powershell
 cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build "Unity Boot" -c Debug
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build "src/scripts/Unity Boot" -c Debug
 ```
 
 ---

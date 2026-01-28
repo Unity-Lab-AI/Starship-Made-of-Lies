@@ -140,7 +140,7 @@ Status: PASS/FAIL
                 "id": "T1.1.1",
                 "title": "Add missile list instead of single reference",
                 "type": "feature",
-                "files": ["UnityPad.cs"]
+                "files": ["src/scripts/UnityPad.cs"]
               }
             ]
           }
@@ -207,8 +207,8 @@ Generate TODO.md with tiered format:
 ## Character Budget Planning
 
 When planning features, consider:
-- UnityPad.cs current chars: ~27,000
-- UnityMissile.cs current chars: ~10,000
+- src/scripts/UnityPad.cs current chars: ~27,000
+- src/scripts/UnityMissile.cs current chars: ~10,000
 - Budget remaining: ~73,000 / ~90,000
 - Plan features that fit within budget
 

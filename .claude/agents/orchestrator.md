@@ -91,8 +91,8 @@ Gate status: PASS/FAIL
 ```
 [GATE 1.1: ENVIRONMENT CHECK]
 Working directory: [PATH]
-UnityPad.cs exists: YES/NO
-UnityMissile.cs exists: YES/NO
+src/scripts/UnityPad.cs exists: YES/NO
+src/scripts/UnityMissile.cs exists: YES/NO
 TODO.md exists: YES/NO
 FINALIZED.md exists: YES/NO
 Workflow mode: FIRST_SCAN / WORK_MODE / RESCAN
@@ -121,8 +121,8 @@ Gate status: PASS/FAIL
 
 ```
 [POST-HOOK 2.2: SCAN COMPLETE]
-UnityPad.cs chars: [NUMBER]/100,000
-UnityMissile.cs chars: [NUMBER]/100,000
+src/scripts/UnityPad.cs chars: [NUMBER]/100,000
+src/scripts/UnityMissile.cs chars: [NUMBER]/100,000
 Both under limit: YES/NO
 State machines identified: YES/NO
 Errors encountered: [LIST or NONE]

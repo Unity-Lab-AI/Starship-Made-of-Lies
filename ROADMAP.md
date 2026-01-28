@@ -274,14 +274,14 @@ A complete guided missile system for Space Engineers with:
 
 ```powershell
 # Build all scripts
-cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build "Unity Boot" -c Debug
-dotnet build UnityPad -c Debug
-dotnet build UnityInventory -c Debug
-dotnet build UnitySignal -c Debug
-dotnet build UnityMissile -c Debug
-dotnet build UnityBeacon -c Debug
+cd "S:\FastDevelopment\SE\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build "src/scripts/Unity Boot" -c Debug
+dotnet build src/scripts/UnityPad -c Debug
+dotnet build src/scripts/UnityInventory -c Debug
+dotnet build src/scripts/UnitySignal -c Debug
+dotnet build src/scripts/UnityMissile -c Debug
+dotnet build src/scripts/UnityBeacon -c Debug
 
 # Check deployed sizes
 [System.IO.File]::ReadAllText("C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\Unity Boot\script.cs").Length

@@ -43,12 +43,12 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
 
 | Component | Script | PB Name | Deployed To |
 |-----------|--------|---------|-------------|
-| **Boot Controller** | `Unity Boot.cs` | `[PAD1] UNITY BOOT` | `%APPDATA%\...\Unity Boot\` (26 checks with PB handshaking + miner detection) |
-| **Launch Pad** | `UnityPad.cs` | `[PAD1] Unity Pad` | `%APPDATA%\...\UnityPad\` |
-| **Missile** | `UnityMissile.cs` | `[PAD1] Missile #1 Program` | `%APPDATA%\...\UnityMissile\` |
-| **Inventory** | `UnityInventory.cs` | `[PAD1] Unity Inventory` | `%APPDATA%\...\UnityInventory\` (unified production system) |
-| **Fleet Beacon** | `UnityBeacon.cs` | `[BEACON] Unity Beacon` | `%APPDATA%\...\UnityBeacon\` |
-| **Signal Controller** | `UnitySignal.cs` | `[PAD1] UNITY SIGNAL` | `%APPDATA%\...\UnitySignal\` (central signal: antennas, lasers, satellites, cameras) |
+| **Boot Controller** | `src/scripts/Unity Boot.cs` | `[PAD1] UNITY BOOT` | `%APPDATA%\...\Unity Boot\` (26 checks with PB handshaking + miner detection) |
+| **Launch Pad** | `src/scripts/UnityPad.cs` | `[PAD1] Unity Pad` | `%APPDATA%\...\UnityPad\` |
+| **Missile** | `src/scripts/UnityMissile.cs` | `[PAD1] Missile #1 Program` | `%APPDATA%\...\UnityMissile\` |
+| **Inventory** | `src/scripts/UnityInventory.cs` | `[PAD1] Unity Inventory` | `%APPDATA%\...\UnityInventory\` (unified production system) |
+| **Fleet Beacon** | `src/scripts/UnityBeacon.cs` | `[BEACON] Unity Beacon` | `%APPDATA%\...\UnityBeacon\` |
+| **Signal Controller** | `src/scripts/UnitySignal.cs` | `[PAD1] UNITY SIGNAL` | `%APPDATA%\...\UnitySignal\` (central signal: antennas, lasers, satellites, cameras) |
 | **Button Panel** | (none) | `[PAD1] Controls` | User GPS input only - NOT a script |
 
 ---
@@ -58,18 +58,18 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
 ### Build Commands
 
 ```powershell
-cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
+cd "S:\FastDevelopment\SE\Unity Missile System"
 
 # Step 1: Wrap raw .cs files into Program.cs (MANDATORY)
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
 
 # Step 2: Build all projects
-dotnet build "Unity Boot" -c Debug
-dotnet build UnityPad -c Debug
-dotnet build UnityMissile -c Debug
-dotnet build UnityInventory -c Debug
-dotnet build UnityBeacon -c Debug
-dotnet build UnitySignal -c Debug
+dotnet build "src/scripts/Unity Boot" -c Debug
+dotnet build src/scripts/UnityPad -c Debug
+dotnet build src/scripts/UnityMissile -c Debug
+dotnet build src/scripts/UnityInventory -c Debug
+dotnet build src/scripts/UnityBeacon -c Debug
+dotnet build src/scripts/UnitySignal -c Debug
 ```
 
 ### Deploy Location
@@ -87,12 +87,12 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\
 
 ### Wrapper Script
 
-The `wrap-scripts.ps1` script:
-- Reads raw `.cs` files (Unity Boot.cs, UnityPad.cs, UnityMissile.cs, UnityInventory.cs, UnityBeacon.cs, UnitySignal.cs)
+The `tools/wrap-scripts.ps1` script:
+- Reads raw `.cs` files from `src/scripts/` (Unity Boot.cs, UnityPad.cs, UnityMissile.cs, UnityInventory.cs, UnityBeacon.cs, UnitySignal.cs)
 - Wraps them with MDK2 namespace structure
-- Writes to `[Project]/Program.cs`
+- Writes to `src/scripts/[Project]/Program.cs`
 
-**WARNING:** MDK builds from `Program.cs`, NOT from the raw `.cs` files! Always run `wrap-scripts.ps1` before building!
+**WARNING:** MDK builds from `Program.cs`, NOT from the raw `.cs` files! Always run `tools/wrap-scripts.ps1` before building!
 
 ---
 
@@ -229,39 +229,61 @@ Unity Missile System/
 │   ├── commands/                 # Workflow commands
 │   └── hooks/                    # Enforcement hooks
 │
-├── wrap-scripts.ps1              # Wraps all raw .cs to Program.cs
+├── tools/
+│   ├── wrap-scripts.ps1          # Wraps all raw .cs to Program.cs
+│   └── check-chars.ps1           # Character count checker
 │
-├── UnityPad.cs                   # Raw pad script (edit this)
-├── UnityPad/                     # MDK Project
-│   ├── Program.cs                # Auto-wrapped from UnityPad.cs
-│   ├── UnityPad.csproj
-│   ├── mdk.ini                   # minify=full
-│   └── thumb.png
+├── references/
+│   └── se_blueprints.csv         # Blueprint reference data
 │
-├── UnityMissile.cs               # Raw missile script (edit this)
-├── UnityMissile/                 # MDK Project
-│   ├── Program.cs                # Auto-wrapped from UnityMissile.cs
-│   ├── UnityMissile.csproj
-│   ├── mdk.ini                   # minify=full
-│   └── thumb.png
+├── src/
+│   ├── scripts/                  # All SE scripts and MDK projects
+│   │   ├── Unity Boot.cs         # Raw boot script (edit this)
+│   │   ├── Unity Boot/           # MDK Project
+│   │   │   ├── Program.cs        # Auto-wrapped from Unity Boot.cs
+│   │   │   ├── Unity Boot.csproj
+│   │   │   ├── mdk.ini           # minify=full
+│   │   │   └── thumb.png
+│   │   │
+│   │   ├── UnityPad.cs           # Raw pad script (edit this)
+│   │   ├── UnityPad/             # MDK Project
+│   │   │   ├── Program.cs        # Auto-wrapped from UnityPad.cs
+│   │   │   ├── UnityPad.csproj
+│   │   │   ├── mdk.ini           # minify=full
+│   │   │   └── thumb.png
+│   │   │
+│   │   ├── UnityMissile.cs       # Raw missile script (edit this)
+│   │   ├── UnityMissile/         # MDK Project
+│   │   │   ├── Program.cs        # Auto-wrapped from UnityMissile.cs
+│   │   │   ├── UnityMissile.csproj
+│   │   │   ├── mdk.ini           # minify=full
+│   │   │   └── thumb.png
+│   │   │
+│   │   ├── UnityInventory.cs     # Raw inventory script (edit this)
+│   │   ├── UnityInventory/       # MDK Project
+│   │   │   ├── Program.cs        # Auto-wrapped from UnityInventory.cs
+│   │   │   ├── UnityInventory.csproj
+│   │   │   ├── mdk.ini           # minify=full
+│   │   │   └── thumb.png
+│   │   │
+│   │   ├── UnityBeacon.cs        # Raw beacon script (edit this)
+│   │   ├── UnityBeacon/          # MDK Project
+│   │   │   ├── Program.cs        # Auto-wrapped from UnityBeacon.cs
+│   │   │   ├── UnityBeacon.csproj
+│   │   │   ├── mdk.ini           # minify=full
+│   │   │   └── thumb.png
+│   │   │
+│   │   ├── UnitySignal.cs        # Raw signal script (edit this)
+│   │   └── UnitySignal/          # MDK Project
+│   │       ├── Program.cs        # Auto-wrapped from UnitySignal.cs
+│   │       ├── UnitySignal.csproj
+│   │       ├── mdk.ini           # minify=full
+│   │       └── thumb.png
+│   │
+│   └── mods/
+│       └── UMS Mod/              # Space Engineers mod files
 │
-├── UnityInventory.cs             # Raw inventory script (edit this)
-├── UnityInventory/               # MDK Project
-│   ├── Program.cs                # Auto-wrapped from UnityInventory.cs
-│   ├── UnityInventory.csproj
-│   ├── mdk.ini                   # minify=full
-│   └── thumb.png
-│
-├── UnityBeacon.cs                # Raw beacon script (edit this)
-└── UnityBeacon/                  # MDK Project
-    ├── Program.cs                # Auto-wrapped from UnityBeacon.cs
-    ├── UnityBeacon.csproj
-    ├── mdk.ini                   # minify=full
-    ├── thumb.png
-    └── .claude/                  # Beacon-specific workflow
-        ├── CLAUDE.md
-        ├── TODO.md
-        └── FINALIZED.md
+└── README.md
 ```
 
 ### MDK Requirements
@@ -468,13 +490,14 @@ Read tool parameters:
 
 ```powershell
 # Wrap and build all
-cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build "Unity Boot" -c Debug
-dotnet build UnityPad -c Debug
-dotnet build UnityMissile -c Debug
-dotnet build UnityInventory -c Debug
-dotnet build UnityBeacon -c Debug
+cd "S:\FastDevelopment\SE\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build "src/scripts/Unity Boot" -c Debug
+dotnet build src/scripts/UnityPad -c Debug
+dotnet build src/scripts/UnityMissile -c Debug
+dotnet build src/scripts/UnityInventory -c Debug
+dotnet build src/scripts/UnityBeacon -c Debug
+dotnet build src/scripts/UnitySignal -c Debug
 
 # Deployed scripts location
 C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\

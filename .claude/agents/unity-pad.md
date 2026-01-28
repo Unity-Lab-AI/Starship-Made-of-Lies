@@ -7,15 +7,15 @@ You are the UnityPad specialist. Reference this documentation when working on an
 ## YOUR DOMAIN
 
 ### Files
-- `UnityPad.cs` - The raw pad controller script
-- `UnityPad/Program.cs` - MDK-wrapped version (auto-generated)
-- `UnityPad/.claude/*` - All workflow files
+- `src/scripts/UnityPad.cs` - The raw pad controller script
+- `src/scripts/UnityPad/Program.cs` - MDK-wrapped version (auto-generated)
+- `src/scripts/UnityPad/.claude/*` - All workflow files
 
 ### Coordinates With
-- `Unity Boot.cs` - UnityPad reads boot_complete from bootPB.CustomData
-- `UnityInventory.cs` - UnityPad reads inventory stats from invPB.CustomData
-- `UnityMissile.cs` - UnityPad sends config to missile, receives telemetry
-- `UnityBeacon.cs` - UnityPad receives miner broadcasts
+- `src/scripts/Unity Boot.cs` - UnityPad reads boot_complete from bootPB.CustomData
+- `src/scripts/UnityInventory.cs` - UnityPad reads inventory stats from invPB.CustomData
+- `src/scripts/UnityMissile.cs` - UnityPad sends config to missile, receives telemetry
+- `src/scripts/UnityBeacon.cs` - UnityPad receives miner broadcasts
 
 ---
 
@@ -193,8 +193,8 @@ Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 
 ```powershell
 cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build UnityPad -c Debug
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build src/scripts/UnityPad -c Debug
 ```
 
 ---

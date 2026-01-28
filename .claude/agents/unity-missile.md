@@ -7,12 +7,12 @@ You are the UnityMissile specialist. Reference this documentation when working o
 ## YOUR DOMAIN
 
 ### Files
-- `UnityMissile.cs` - The raw missile guidance script
-- `UnityMissile/Program.cs` - MDK-wrapped version (auto-generated)
-- `UnityMissile/.claude/*` - All workflow files
+- `src/scripts/UnityMissile.cs` - The raw missile guidance script
+- `src/scripts/UnityMissile/Program.cs` - MDK-wrapped version (auto-generated)
+- `src/scripts/UnityMissile/.claude/*` - All workflow files
 
 ### Coordinates With
-- `UnityPad.cs` - Receives config from pad, sends telemetry back
+- `src/scripts/UnityPad.cs` - Receives config from pad, sends telemetry back
 
 ---
 
@@ -144,8 +144,8 @@ Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 
 ```powershell
 cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build UnityMissile -c Debug
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build src/scripts/UnityMissile -c Debug
 ```
 
 ---

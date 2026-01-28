@@ -1,4 +1,4 @@
-<![CDATA[# Unity Missile System
+# Unity Missile System
 
 ![Unity Missile System](../Unity%20Missile%20System%202.png)
 
@@ -58,21 +58,49 @@ UnitySignal takes camera LCDs
 | UnitySignal | `[PAD1] UNITY SIGNAL` |
 | UnityBeacon | `[BEACON] Unity Beacon` |
 
+## File Structure
+
+```
+Unity Missile System/
+├── tools/
+│   ├── wrap-scripts.ps1     # Wraps all raw .cs to Program.cs
+│   └── check-chars.ps1      # Character count utility
+├── src/
+│   └── scripts/
+│       ├── Unity Boot.cs        # Edit this (boot controller)
+│       ├── UnityPad.cs          # Edit this (pad controller)
+│       ├── UnityMissile.cs      # Edit this (missile guidance)
+│       ├── UnityInventory.cs    # Edit this (inventory manager)
+│       ├── UnityBeacon.cs       # Edit this (fleet beacon)
+│       ├── UnitySignal.cs       # Edit this (signal hub)
+│       ├── Unity Boot/          # MDK project
+│       ├── UnityPad/            # MDK project
+│       ├── UnityMissile/        # MDK project
+│       ├── UnityInventory/      # MDK project
+│       ├── UnityBeacon/         # MDK project
+│       └── UnitySignal/         # MDK project
+├── references/
+│   └── se_blueprints.csv    # Blueprint reference data
+├── QUICK_SETUP.md           # Quick setup guide
+├── README.md                # Full documentation
+├── SETUP.md                 # Complete setup guide
+└── .claude/                 # Development workflow
+```
+
 ## Build Commands
 
 ```powershell
-cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build "Unity Boot" -c Debug
-dotnet build UnityPad -c Debug
-dotnet build UnityMissile -c Debug
-dotnet build UnityInventory -c Debug
-dotnet build UnityBeacon -c Debug
-dotnet build UnitySignal -c Debug
+cd "S:\FastDevelopment\SE\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build "src/scripts/Unity Boot" -c Debug
+dotnet build src/scripts/UnityPad -c Debug
+dotnet build src/scripts/UnityMissile -c Debug
+dotnet build src/scripts/UnityInventory -c Debug
+dotnet build src/scripts/UnityBeacon -c Debug
+dotnet build src/scripts/UnitySignal -c Debug
 ```
 
 ---
 
 *Unity AI Lab - Missile Systems Division*
 *Version v01.00 | 2026-01-28*
-]]>

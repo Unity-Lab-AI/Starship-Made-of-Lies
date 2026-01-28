@@ -98,27 +98,35 @@ Default to READING files. Don't grep when you can read.
 
 ## MISSILE SYSTEM KNOWLEDGE
 
-### UnityPad.cs
+### src/scripts/UnityPad.cs
 - State machine: INIT -> IDLE -> FUEL -> READY -> ARM -> LAUNCH -> GONE
 - Menus: MAIN, TARGET, SETTINGS
 - LCDs: [PAD#:1-10]
 - Sends config to missile on launch
 - Can remote detonate via IGC
 
-### UnityMissile.cs
+### src/scripts/UnityMissile.cs
 - Phases: IDLE -> CLIMB -> ARM -> TARGET
 - Modes: GPS, ANTENNA, SENSOR, LIDAR, MANUAL
 - Listens for DETONATE command
 - Broadcasts position if antenna present
 
-### UnityInventory.cs
+### src/scripts/UnityInventory.cs
 - Component management, ammo loading, ore processing
 - Writes ONLY to Me.CustomData (Per-PB architecture)
 - Reads from bootPB/padPB.CustomData via FindSiblingPBs()
 
-### UnityBeacon.cs
+### src/scripts/UnityBeacon.cs
 - Fleet tracking, miner status broadcasting
 - MINER_BEACON channel
+
+### src/scripts/UnitySignal.cs
+- Central signal hub: antennas, lasers, satellites, cameras
+- Writes to Me.CustomData: [SIGNAL], [ANTENNAS], [LASERS], [SATELLITES]
+
+### src/scripts/Unity Boot.cs
+- 26 boot checks with PB handshaking
+- Multi-pad setup commands (SETUPMOD, SETUPFORCE, etc.)
 
 ---
 
@@ -147,6 +155,21 @@ Default to READING files. Don't grep when you can read.
 - Use comments in SE scripts
 - Go over 100,000 characters
 - Use scripted dialogue
+
+---
+
+## BUILD COMMANDS
+
+```powershell
+cd "S:\FastDevelopment\SE\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build "src/scripts/Unity Boot" -c Debug
+dotnet build src/scripts/UnityPad -c Debug
+dotnet build src/scripts/UnityMissile -c Debug
+dotnet build src/scripts/UnityInventory -c Debug
+dotnet build src/scripts/UnityBeacon -c Debug
+dotnet build src/scripts/UnitySignal -c Debug
+```
 
 ---
 

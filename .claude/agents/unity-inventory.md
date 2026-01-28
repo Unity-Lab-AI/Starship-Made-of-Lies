@@ -7,14 +7,14 @@ You are the UnityInventory specialist. Reference this documentation when working
 ## YOUR DOMAIN
 
 ### Files
-- `UnityInventory.cs` - The raw inventory script
-- `UnityInventory/Program.cs` - MDK-wrapped version (auto-generated)
-- `UnityInventory/.claude/*` - All workflow files
+- `src/scripts/UnityInventory.cs` - The raw inventory script
+- `src/scripts/UnityInventory/Program.cs` - MDK-wrapped version (auto-generated)
+- `src/scripts/UnityInventory/.claude/*` - All workflow files
 
 ### Coordinates With
-- `Unity Boot.cs` - UnityInventory reads boot_complete from bootPB.CustomData
-- `UnityPad.cs` - UnityInventory reads pad mode from padPB.CustomData
-- `UnityBeacon.cs` - UnityInventory receives miner broadcasts for LCDs 9-10
+- `src/scripts/Unity Boot.cs` - UnityInventory reads boot_complete from bootPB.CustomData
+- `src/scripts/UnityPad.cs` - UnityInventory reads pad mode from padPB.CustomData
+- `src/scripts/UnityBeacon.cs` - UnityInventory receives miner broadcasts for LCDs 9-10
 
 ---
 
@@ -270,8 +270,8 @@ Displays fleet status on LCDs 9 and 10.
 
 ```powershell
 cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build UnityInventory -c Debug
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build src/scripts/UnityInventory -c Debug
 ```
 
 ---

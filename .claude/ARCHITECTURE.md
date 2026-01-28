@@ -293,6 +293,7 @@ GPS:Enemy Base:5000:2000:800:#FFFF0000:
 ## Script Architecture
 
 ### Unity Boot.cs (~30,372 chars deployed)
+**Location:** `src/scripts/Unity Boot.cs`
 
 Boot controller running on dedicated PB `[PAD1] UNITY BOOT`.
 
@@ -311,6 +312,7 @@ Boot controller running on dedicated PB `[PAD1] UNITY BOOT`.
 - `WriteBootComplete()` - Writes boot_complete=true to Me.CustomData
 
 ### UnityPad.cs (~96,265 chars deployed - WARNING: 3.7% margin)
+**Location:** `src/scripts/UnityPad.cs`
 
 Launch pad controller running on `[PAD1] Unity Pad` PB.
 
@@ -331,6 +333,7 @@ INIT -> IDLE -> PRINT -> BUILD -> DOCK -> FUEL -> AMMO -> READY -> ARM -> LAUNCH
 - `UpdateMyData()` - Writes pad sections to Me.CustomData
 
 ### UnityInventory.cs (~99,582 chars deployed - CRITICAL: 0.4% margin)
+**Location:** `src/scripts/UnityInventory.cs`
 
 Inventory manager running on `[PAD1] Unity Inventory` PB.
 
@@ -377,6 +380,7 @@ Inventory manager running on `[PAD1] Unity Inventory` PB.
 - Active cleanup pushes S-10 from pAmmoCargo to generic storage
 
 ### UnityMissile.cs (~44,563 chars deployed)
+**Location:** `src/scripts/UnityMissile.cs`
 
 In-flight guidance running on missile PB.
 
@@ -391,12 +395,14 @@ SAT_CLIMB -> SAT_BRAKE -> SAT_HOLD
 ```
 
 ### UnityBeacon.cs (~16,600 chars deployed)
+**Location:** `src/scripts/UnityBeacon.cs`
 
 Miner fleet broadcaster running on mining ship PBs.
 
 **Broadcasts:** Ship status every 3 seconds on MINER_BEACON channel.
 
 ### UnitySignal.cs (~47,118 chars deployed)
+**Location:** `src/scripts/UnitySignal.cs`
 
 Central signal controller running on `[PAD1] UNITY SIGNAL` PB.
 
@@ -464,32 +470,42 @@ Central signal controller running on `[PAD1] UNITY SIGNAL` PB.
 
 ```
 Unity Missile System/
-|-- Unity Boot.cs            # RAW boot script (EDIT THIS)
-|-- UnityPad.cs              # RAW pad script (EDIT THIS)
-|-- UnityMissile.cs          # RAW missile script (EDIT THIS)
-|-- UnityInventory.cs        # RAW inventory script (EDIT THIS)
-|-- UnityBeacon.cs           # RAW beacon script (EDIT THIS)
-|-- UnitySignal.cs           # RAW signal script (EDIT THIS)
-|-- wrap-scripts.ps1         # Wraps all raw .cs to Program.cs
+|-- src/
+|   |-- scripts/
+|   |   |-- Unity Boot.cs        # RAW boot script (EDIT THIS)
+|   |   |-- UnityPad.cs          # RAW pad script (EDIT THIS)
+|   |   |-- UnityMissile.cs      # RAW missile script (EDIT THIS)
+|   |   |-- UnityInventory.cs    # RAW inventory script (EDIT THIS)
+|   |   |-- UnityBeacon.cs       # RAW beacon script (EDIT THIS)
+|   |   |-- UnitySignal.cs       # RAW signal script (EDIT THIS)
+|   |   |
+|   |   |-- Unity Boot/          # MDK Project
+|   |   |   |-- Program.cs       # Wrapped from Unity Boot.cs
+|   |   |   +-- .claude/         # Boot-specific docs
+|   |   |
+|   |   |-- UnityPad/            # MDK Project
+|   |   |   |-- Program.cs       # Wrapped from UnityPad.cs
+|   |   |   +-- .claude/         # Pad-specific docs
+|   |   |
+|   |   |-- UnityMissile/        # MDK Project
+|   |   |-- UnityInventory/      # MDK Project
+|   |   |-- UnityBeacon/         # MDK Project
+|   |   +-- UnitySignal/         # MDK Project
+|   |
+|   +-- mods/
+|       +-- UMS Mod/             # Space Engineers mod files
 |
-|-- Unity Boot/              # MDK Project
-|   |-- Program.cs           # Wrapped from Unity Boot.cs
-|   +-- .claude/             # Boot-specific docs
+|-- tools/
+|   +-- wrap-scripts.ps1         # Wraps all raw .cs to Program.cs
 |
-|-- UnityPad/                # MDK Project
-|   |-- Program.cs           # Wrapped from UnityPad.cs
-|   +-- .claude/             # Pad-specific docs
+|-- references/
+|   +-- se_blueprints.csv        # Blueprint reference data
 |
-|-- UnityMissile/            # MDK Project
-|-- UnityInventory/          # MDK Project
-|-- UnityBeacon/             # MDK Project
-|-- UnitySignal/             # MDK Project
-|
-+-- .claude/                 # Main workflow system
-    |-- ARCHITECTURE.md      # This file
-    |-- CLAUDE.md            # Rules and enforcement
-    |-- TODO.md              # Active tasks
-    +-- FINALIZED.md         # Completed tasks
++-- .claude/                     # Main workflow system
+    |-- ARCHITECTURE.md          # This file
+    |-- CLAUDE.md                # Rules and enforcement
+    |-- TODO.md                  # Active tasks
+    +-- FINALIZED.md             # Completed tasks
 ```
 
 ---
@@ -511,9 +527,9 @@ Unity Missile System/
 
 ## Development Workflow
 
-1. Edit raw `.cs` file (e.g., `UnityPad.cs`)
-2. Run `powershell -File wrap-scripts.ps1`
-3. Build: `dotnet build UnityPad -c Debug`
+1. Edit raw `.cs` file (e.g., `src/scripts/UnityPad.cs`)
+2. Run `powershell -File tools/wrap-scripts.ps1`
+3. Build: `dotnet build src/scripts/UnityPad -c Debug`
 4. MDK auto-deploys to SE ingame scripts folder
 5. Check deployed size (CHARACTERS):
 ```powershell

@@ -7,14 +7,14 @@ You are the UnityBeacon specialist. Reference this documentation when working on
 ## YOUR DOMAIN
 
 ### Files
-- `UnityBeacon.cs` - The raw beacon script
-- `UnityBeacon/Program.cs` - MDK-wrapped version (auto-generated)
+- `src/scripts/UnityBeacon.cs` - The raw beacon script
+- `src/scripts/UnityBeacon/Program.cs` - MDK-wrapped version (auto-generated)
 - `UnityBeacon/.claude/*` - All workflow files
 
 ### Coordinates With
-- `Unity Boot.cs` - Boot detects miners via MINER_BEACON (Check 19)
-- `UnityPad.cs` - Pad receives miner broadcasts
-- `UnityInventory.cs` - Inventory displays fleet on LCDs 9-10
+- `src/scripts/Unity Boot.cs` - Boot detects miners via MINER_BEACON (Check 19)
+- `src/scripts/UnityPad.cs` - Pad receives miner broadcasts
+- `src/scripts/UnityInventory.cs` - Inventory displays fleet on LCDs 9-10
 
 **PAM Compatible:** Works alongside [PAM] Path Auto Miner by Keks
 
@@ -123,9 +123,9 @@ UnityBeacon broadcasts are received by:
 ## BUILD COMMANDS
 
 ```powershell
-cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build UnityBeacon -c Debug
+cd "S:\FastDevelopment\SE\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build src/scripts/UnityBeacon -c Debug
 ```
 
 ---

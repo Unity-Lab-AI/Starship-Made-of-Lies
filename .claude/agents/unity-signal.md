@@ -7,15 +7,15 @@ You are the UnitySignal specialist. Reference this documentation when working on
 ## YOUR DOMAIN
 
 ### Files
-- `UnitySignal.cs` - The raw signal controller script
-- `UnitySignal/Program.cs` - MDK-wrapped version (auto-generated)
+- `src/scripts/UnitySignal.cs` - The raw signal controller script
+- `src/scripts/UnitySignal/Program.cs` - MDK-wrapped version (auto-generated)
 - `UnitySignal/.claude/*` - All workflow files
 
 ### Coordinates With
-- `Unity Boot.cs` - Boot checks signal_ready from signalPB.CustomData
-- `UnityPad.cs` - Pad reads satellite/antenna status from signalPB.CustomData
-- `UnityMissile.cs` - Missiles broadcast to UNITY_MSL, Signal assigns lasers
-- `UnityBeacon.cs` - Miners broadcast to MINER_BEACON, Signal tracks cameras
+- `src/scripts/Unity Boot.cs` - Boot checks signal_ready from signalPB.CustomData
+- `src/scripts/UnityPad.cs` - Pad reads satellite/antenna status from signalPB.CustomData
+- `src/scripts/UnityMissile.cs` - Missiles broadcast to UNITY_MSL, Signal assigns lasers
+- `src/scripts/UnityBeacon.cs` - Miners broadcast to MINER_BEACON, Signal tracks cameras
 
 ---
 
@@ -133,9 +133,9 @@ UnitySignal accepts both `"SIGNAL_CHECK"` and `"SIGNAL_CHECK:{padID}"` from UNIT
 ## BUILD COMMANDS
 
 ```powershell
-cd "C:\Users\gfour\Desktop\Space Engineers\Unity Missile System"
-powershell -ExecutionPolicy Bypass -File wrap-scripts.ps1
-dotnet build UnitySignal -c Debug
+cd "S:\FastDevelopment\SE\Unity Missile System"
+powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
+dotnet build src/scripts/UnitySignal -c Debug
 ```
 
 ---
