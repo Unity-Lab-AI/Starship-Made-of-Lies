@@ -60,6 +60,9 @@ namespace IngameScript
         List<IMyCockpit> mslCock=new List<IMyCockpit>();
         List<IMyLightingBlock> mslLights=new List<IMyLightingBlock>();
         List<IMyLightingBlock> padLts=new List<IMyLightingBlock>();
+        List<IMyTextPanel> mslLCDs=new List<IMyTextPanel>();
+        List<IMyFunctionalBlock> mslEmos=new List<IMyFunctionalBlock>();
+        string mslLcdL1="",mslLcdL2="",mslLcdEmo="neutral";
         IMyRemoteControl mslRC;
         DateTime lMnuT;
         float batPct,h2Pct,o2Pct,icePct,ammoPct;
@@ -351,6 +354,7 @@ namespace IngameScript
         if(tick%10==0&&cNd.Count>6){bldScroll=(bldScroll+1)%(cNd.Count-5);}
         if(cS!=S.IDLE&&cS!=S.GONE)UpdateMissileLights();
         else ResetPadLights();
+        if(cS==S.GONE&&hasTlm)UpdateMslLCDs();
         }
         
         void CheckTelemetry(){
@@ -402,6 +406,8 @@ namespace IngameScript
         lTlm=DT;
         hasTlm=true;
         if(mslPhase!=lastBBPhase){string ts=DT.ToString("HH:mm:ss");string detail=mslPhase=="AMMO_EJECT"?$" @{mslDTT:F0}m":mslPhase=="WARHEADS_ARMED"?$" @{mslDTT:F0}m":mslPhase=="IMPACT"?$" DTT:{mslDTT:F0}m":mslPhase=="TARGET"?$" DTT:{mslDTT:F0}m SPD:{mslSpeed:F0}m/s":"";bbLog+=$"{ts}|MSL:{mslPhase}{detail}\n";lastBBPhase=mslPhase;if(bbLog.Length>3000){int nl=bbLog.IndexOf('\n',500);if(nl>0)bbLog=bbLog.Substring(nl+1);}WriteCustomData();}
+        int lcdIdx=tlmRaw.IndexOf("|LCD:");
+        if(lcdIdx>=0){string lcdData=tlmRaw.Substring(lcdIdx+5);var lp=lcdData.Split('~');if(lp.Length>=3){mslLcdL1=lp[0];mslLcdL2=lp[1];mslLcdEmo=lp[2];}}
         if(padLsr.Count>0){
         foreach(var l in padLsr){
         l.Enabled=true;
@@ -779,7 +785,7 @@ namespace IngameScript
         }
         
         void ScanPad(){
-        padBat.Clear();padH2.Clear();padO2.Clear();padCargo.Clear();padCargoL.Clear();padCargoM.Clear();padCargoS.Clear();padRef.Clear();padAsm.Clear();padAnt.Clear();padLsr.Clear();padReact.Clear();padSolar.Clear();padGyr.Clear();padThr.Clear();padGen.Clear();padCam.Clear();padSen.Clear();oreC.Clear();padWind.Clear();padLts.Clear();padMedCount=0;padSurvCount=0;padCryoCount=0;
+        padBat.Clear();padH2.Clear();padO2.Clear();padCargo.Clear();padCargoL.Clear();padCargoM.Clear();padCargoS.Clear();padRef.Clear();padAsm.Clear();padAnt.Clear();padLsr.Clear();padReact.Clear();padSolar.Clear();padGyr.Clear();padThr.Clear();padGen.Clear();padCam.Clear();padSen.Clear();oreC.Clear();padWind.Clear();padLts.Clear();mslLCDs.Clear();mslEmos.Clear();padMedCount=0;padSurvCount=0;padCryoCount=0;
         var blks=new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType(blks,b=>b.CubeGrid==Me.CubeGrid);
         Vector3D padPos=padMerge!=null?padMerge.GetPosition():Me.GetPosition();
@@ -806,6 +812,8 @@ namespace IngameScript
         if(b is IMyMedicalRoom){string st=b.BlockDefinition.SubtypeId;if(st.Contains("Survival")||st.Contains("Kit"))padSurvCount++;else padMedCount++;}
         if(b is IMyCockpit&&b.BlockDefinition.SubtypeId.Contains("Cryo"))padCryoCount++;
         if(b is IMyLightingBlock&&!b.CustomName.Contains("Missile"))padLts.Add(b as IMyLightingBlock);
+        if(b is IMyTextPanel&&b.CustomName.Contains("Missile")&&b.CustomName.Contains("LCD"))mslLCDs.Add(b as IMyTextPanel);
+        if(b.BlockDefinition.SubtypeId.Contains("EmotionController")&&(b.CustomName.Contains("Missile")||b.CustomName.Contains($"[PAD{padID}]")))mslEmos.Add(b as IMyFunctionalBlock);
         }
         var allBlk=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(allBlk);
         foreach(var x in allBlk){if(IsMslBlock(x))continue;if(x is IMyBatteryBlock){var bb=x as IMyBatteryBlock;if(!padBat.Contains(bb))padBat.Add(bb);}else if(x is IMySolarPanel&&x.IsSameConstructAs(Me)){var sp=x as IMySolarPanel;if(!padSolar.Contains(sp))padSolar.Add(sp);}else if(x is IMyReactor){var rr=x as IMyReactor;if(!padReact.Contains(rr))padReact.Add(rr);}else if(x is IMyGasGenerator){var gg=x as IMyGasGenerator;if(!padGen.Contains(gg))padGen.Add(gg);}else if(x is IMyGasTank){var tt=x as IMyGasTank;if(tt.BlockDefinition.SubtypeId.Contains("Hydrogen")){if(!padH2.Contains(tt))padH2.Add(tt);}else{if(!padO2.Contains(tt))padO2.Add(tt);}}else if(x is IMyCargoContainer&&x.IsSameConstructAs(Me)){var cc=x as IMyCargoContainer;if(!padCargo.Contains(cc)){padCargo.Add(cc);string st=cc.BlockDefinition.SubtypeId;if(st.Contains("LargeContainer"))padCargoL.Add(cc);else if(st.Contains("MediumContainer"))padCargoM.Add(cc);else padCargoS.Add(cc);}}else if(x is IMyRefinery){var rf=x as IMyRefinery;if(!padRef.Contains(rf))padRef.Add(rf);}else if(x is IMyAssembler){var am=x as IMyAssembler;if(!padAsm.Contains(am))padAsm.Add(am);}else if(x is IMyPowerProducer){var pp=x as IMyPowerProducer;if(pp.BlockDefinition.SubtypeId.Contains("Wind")&&!padWind.Contains(pp))padWind.Add(pp);}}
@@ -1134,6 +1142,31 @@ namespace IngameScript
         foreach(var l in padLts){l.Enabled=true;l.Color=c;}
         }
         void ResetPadLights(){foreach(var l in mslLights)l.Color=Color.White;foreach(var l in padLts)l.Color=Color.White;mslLights.Clear();}
+        static Dictionary<string,string> mEmoMap=new Dictionary<string,string>{{"angry","Angry"},{"annoyed","Annoyed"},{"confused","Confused"},{"crying","Crying"},{"dead","Dead"},{"evil","Evil"},{"happy","Happy"},{"love","Love"},{"neutral","Neutral"},{"sad","Sad"},{"shocked","Shocked"},{"skeptical","Skeptical"},{"sleepy","Sleepy"},{"suspicious_left","Suspicious_Left"},{"suspicious_right","Suspicious_Right"},{"wink","Wink"}};
+        Color MslEmoColor(string emo){switch(emo){case "happy":case "wink":return new Color(0,255,100);case "love":return new Color(200,0,255);case "confused":case "sleepy":return new Color(0,180,255);case "annoyed":case "skeptical":return new Color(255,200,0);case "suspicious_left":case "suspicious_right":return new Color(255,160,0);case "sad":case "crying":return new Color(255,140,0);case "angry":return new Color(255,60,60);case "evil":return new Color(200,0,0);case "dead":return new Color(255,0,0);case "shocked":return new Color(255,100,0);default:return new Color(220,220,220);}}
+        string[] MslWrap(string t,int w){var r=new List<string>();var words=t.Split(' ');string ln="";foreach(var wd in words){if(ln.Length>0&&ln.Length+1+wd.Length>w){r.Add(ln);ln=wd;}else{ln=ln.Length>0?ln+" "+wd:wd;}}if(ln.Length>0)r.Add(ln);return r.ToArray();}
+        void UpdateMslLCDs(){
+        if(mslLCDs.Count==0&&mslEmos.Count==0)return;
+        if(string.IsNullOrEmpty(mslLcdL1)&&string.IsNullOrEmpty(mslLcdL2))return;
+        Color fc=MslEmoColor(mslLcdEmo);
+        Color bg=new Color(10,10,15);
+        foreach(var lcd in mslLCDs){
+        var sf=lcd as IMyTextSurface;if(sf==null)continue;
+        sf.ContentType=ContentType.SCRIPT;sf.Script="";
+        float sw=sf.SurfaceSize.X,sh=sf.SurfaceSize.Y,sx=sw/512f,sy=sh/512f;
+        var f=sf.DrawFrame();
+        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(sw/2,sh/2),new Vector2(sw,sh),bg));
+        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(sw/2,sh/2),new Vector2(sw-16*sx,sh-16*sy),new Color(20,20,25)));
+        f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(sw/2,sh/2),new Vector2(sw-20*sx,sh-20*sy),bg));
+        string[] w1=MslWrap(mslLcdL1,11);string[] w2=MslWrap(mslLcdL2,11);
+        float fsz=1.8f,lh=55f,ty=80f;
+        for(int i=0;i<w1.Length;i++)f.Add(new MySprite(SpriteType.TEXT,w1[i],new Vector2(256*sx,(ty+i*lh)*sy),null,fc,"White",TextAlignment.CENTER,fsz*sx));
+        float by=ty+w1.Length*lh+20f;
+        for(int i=0;i<w2.Length;i++)f.Add(new MySprite(SpriteType.TEXT,w2[i],new Vector2(256*sx,(by+i*lh)*sy),null,fc,"White",TextAlignment.CENTER,fsz*0.75f*sx));
+        f.Dispose();}
+        string eName;if(!mEmoMap.TryGetValue(mslLcdEmo,out eName))eName="Neutral";
+        string eAct=$"Textures\\Models\\Emotes\\{eName}.dds";
+        foreach(var ec in mslEmos){try{ec.ApplyAction(eAct);}catch{}}}
         
         void AutoNameConnectors(){
         if(mslMerge==null||padMerge==null)return;

@@ -66,6 +66,7 @@ Color cBg=new Color(10,10,15);Color cTxt=new Color(220,220,220);
 List<string[]> msgQ=new List<string[]>();
 string[] curMsg=null;
 string msgEmotion="neutral";
+string curLine1="",curLine2="",curEmo="neutral";
 int msgTicks=0;
 const int MSG_MIN_TICKS=2;
 double lastH2=-1,lastBat=-1;
@@ -699,7 +700,8 @@ double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2
 double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
 if(phase==F.TARGET&&(h2<0.15||bat<0.15))status="LOW_FUEL";
 string camInfo="";if(cameras.Count>0){foreach(var c in cameras)camInfo+=(camInfo.Length>0?";":"")+c.EntityId.ToString()+":"+c.CustomName.Replace("|","").Replace(",","").Replace(":","").Replace(";","");}
-string msg=$"{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0},{distToTgt:F0},{status},{currentGrav:F2},{distFromPad:F0},{currentAltitude:F0},{spd:F0},{h2*100:F0},{(gyrosLocked?"LOCK":"CTRL")}|CAMS:{camInfo}";
+string lcdInfo=curLine1.Replace("|","").Replace("~","")+$"~{curLine2.Replace("|","").Replace("~","")}~{curEmo}";
+string msg=$"{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0},{distToTgt:F0},{status},{currentGrav:F2},{distFromPad:F0},{currentAltitude:F0},{spd:F0},{h2*100:F0},{(gyrosLocked?"LOCK":"CTRL")}|CAMS:{camInfo}|LCD:{lcdInfo}";
 IGC.SendBroadcastMessage(broadcastTag,msg);
 if(useLaser&&lasers.Count>0){foreach(var l in lasers){if(l.Status!=MyLaserAntennaStatus.Connected)l.Connect();}}
 }
@@ -1291,6 +1293,7 @@ if(curMsg==null&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;msgEmo
 if(curMsg!=null&&msgTicks>=MSG_MIN_TICKS&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;msgEmotion=curMsg[2];}
 string[] lines=curMsg!=null?new[]{curMsg[0],curMsg[1]}:GetIdleText();
 string emo=curMsg!=null?msgEmotion:GetIdleEmotion();
+curLine1=lines[0];curLine2=lines[1];curEmo=emo;
 Color fc=GetEmoColor(emo);
 foreach(var lcd in lcds){
 var sf=lcd as IMyTextSurface;if(sf==null)continue;
