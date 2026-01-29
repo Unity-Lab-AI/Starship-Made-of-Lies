@@ -84,7 +84,7 @@ namespace IngameScript
         List<IMyGasGenerator> generators=new List<IMyGasGenerator>();
         List<IMyLightingBlock> lights=new List<IMyLightingBlock>();
         List<IMyTextPanel> lcds=new List<IMyTextPanel>();
-        IMyFunctionalBlock emotionCtrl;
+        List<IMyFunctionalBlock> emotionCtrls=new List<IMyFunctionalBlock>();
         Color cBg=new Color(10,10,15);Color cTxt=new Color(220,220,220);
         List<string[]> msgQ=new List<string[]>();
         string[] curMsg=null;
@@ -240,13 +240,13 @@ namespace IngameScript
         meshBlackoutTicks=0;
         meshLastPadResponse=0;
         phase=F.SAT_CLIMB;
-        QMsg("TO SPACE BITCH!","Satellite mode!","wink");
+        QR(new[]{"TO SPACE!","Satellite!","DEPLOYING!","Orbit time!","SPACE BOUND!","Let's go!","LAUNCHING!","To orbit!"},"wink");
         }else if(flightMode==2){
         phase=launchedFromGrav?F.CLIMB:F.TARGET;
-        QMsg("YEEHAW FUCKERS!","Let's kill shit!","wink");
+        QR(new[]{"YEEHAW!","Kill time!","LET'S GO!","Full send!","LAUNCHING!","Die bitches!","FIRED UP!","Here we go!","SEND IT!","Let's kill!"},"wink");
         }else{
         phase=F.CLIMB;
-        QMsg("FULL SEND!","ICBM go brrrrr!","wink");
+        QR(new[]{"FULL SEND!","ICBM baby!","GOING UP!","Orbit fire!","ICBM MODE!","Sky's mine!","LAUNCHING!","Up and over!"},"wink");
         }
         return;
         }
@@ -392,7 +392,7 @@ namespace IngameScript
         foreach(var w in warheads){w.IsArmed=true;}
         warheadsArmed=true;
         SendFinalStatus("WARHEADS_ARMED");
-        QMsg("I'M HOT BITCH!","Ready to fuck you!","evil");
+        QR(new[]{"I'M HOT!","Warheads on!","ARMED!","Ready to go!","WEAPONS HOT!","Primed!","LOCKED IN!","Armed up!"},"evil");
         }
         if(terminalGuidanceActive)UpdateTargetVelocity(target.Value);
         Vector3D aimPoint=target.Value;
@@ -786,7 +786,7 @@ namespace IngameScript
         }}
         
         void FindBlocks(){
-        rc=null;merge=null;ammoConnector=null;laserPad=null;laserNorth=null;laserSouth=null;laserEast=null;laserWest=null;emotionCtrl=null;
+        rc=null;merge=null;ammoConnector=null;laserPad=null;laserNorth=null;laserSouth=null;laserEast=null;laserWest=null;emotionCtrls.Clear();
         gyros.Clear();thrusters.Clear();warheads.Clear();sensors.Clear();cameras.Clear();antennas.Clear();lasers.Clear();batteries.Clear();h2tanks.Clear();generators.Clear();lights.Clear();lcds.Clear();
         var all=new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid);
@@ -814,7 +814,7 @@ namespace IngameScript
         if(b is IMyTextPanel)lcds.Add(b as IMyTextPanel);
         if(b is IMyShipMergeBlock&&merge==null)merge=b as IMyShipMergeBlock;
         if(b is IMyShipConnector&&b.CustomName.Contains("[AMMO]"))ammoConnector=b as IMyShipConnector;
-        if(emotionCtrl==null&&b.BlockDefinition.SubtypeId.Contains("EmotionController"))emotionCtrl=b as IMyFunctionalBlock;
+        if(b.BlockDefinition.SubtypeId.Contains("EmotionController"))emotionCtrls.Add(b as IMyFunctionalBlock);
         }
         foreach(var g in gyros){g.Enabled=true;g.GyroOverride=true;}
         }
@@ -888,6 +888,8 @@ namespace IngameScript
         if(laserWest!=null)laserWest.CustomName=$"{tag} Laser West";
         foreach(var l in lasers){if(l!=laserPad&&l!=laserNorth&&l!=laserSouth&&l!=laserEast&&l!=laserWest)l.CustomName=$"{tag} Laser";}
         for(int i=0;i<lights.Count;i++)lights[i].CustomName=$"{tag} Light {i+1}";
+        for(int i=0;i<lcds.Count;i++)lcds[i].CustomName=$"{tag} LCD {i+1}";
+        for(int i=0;i<emotionCtrls.Count;i++)emotionCtrls[i].CustomName=$"{tag} Emotion {i+1}";
         if(rc!=null)rc.CustomName=$"{tag} {BT(rc)}";
         if(merge!=null)merge.CustomName=$"{tag} {BT(merge)}";
         Me.CustomName=$"{tag} Program";
@@ -1164,7 +1166,7 @@ namespace IngameScript
         foreach(var g in gyros){g.GyroOverride=false;g.Pitch=0;g.Yaw=0;g.Roll=0;}
         foreach(var b in batteries)b.ChargeMode=ChargeMode.Recharge;
         SendFinalStatus("SAFE_RESET");
-        QMsg("Fine whatever","Back to boring...","annoyed");
+        QR(new[]{"Whatever","Back safe","Stood down","Fine then","Reset done","Safe mode","Powering dn","Cooling off"},"annoyed");
         }
         void Detonate(){
         if(isSatellite)return;
@@ -1172,7 +1174,7 @@ namespace IngameScript
         if(flightTicks<60){SendFinalStatus("DETONATE_BLOCKED_EARLY");QMsg("Chill the fuck!","Safety's on!","annoyed");SafeReset();return;}
         if(distFromPad<100){SendFinalStatus("DETONATE_BLOCKED_ON_PAD");QMsg("Are you stupid?!","I'd kill US!","angry");SafeReset();return;}
         SendFinalStatus("IMPACT");
-        QMsg("SEE YA BITCHES!","BOOOOOM!","dead");
+        QR(new[]{"SEE YA!","BOOOOOM!","GOODBYE!","KABOOM!","LATER!","IMPACT!","BOOM BITCH!","Suck this!","DETONATING!","Bye bye!"},"dead");
         phase=F.IDLE;
         Runtime.UpdateFrequency=UpdateFrequency.None;
         foreach(var w in warheads){w.Detonate();}
@@ -1294,8 +1296,11 @@ namespace IngameScript
         }
         int animFrame=0;
         void QMsg(string l1,string l2,string emo){if(msgQ.Count<20)msgQ.Add(new[]{l1,l2,emo});}
-        void SetEmotion(string emo){if(emotionCtrl!=null)emotionCtrl.ApplyAction("emote_"+emo);}
-        void SetupLCD(IMyTextSurface s){s.ContentType=ContentType.TEXT_AND_IMAGE;s.Font="Monospace";s.FontSize=2.5f;s.Alignment=TextAlignment.CENTER;s.FontColor=cTxt;s.BackgroundColor=cBg;}
+        void QR(string[] p,string emo){int i=rnd.Next(p.Length/2)*2;QMsg(p[i],p[i+1],emo);}
+        static Dictionary<string,string> emoMap=new Dictionary<string,string>{{"angry","Angry"},{"annoyed","Annoyed"},{"confused","Confused"},{"crying","Crying"},{"dead","Dead"},{"evil","Evil"},{"happy","Happy"},{"love","Love"},{"neutral","Neutral"},{"sad","Sad"},{"shocked","Shocked"},{"skeptical","Skeptical"},{"sleepy","Sleepy"},{"suspicious_left","Suspicious_Left"},{"suspicious_right","Suspicious_Right"},{"wink","Wink"}};
+        void SetEmotion(string emo){string name;if(!emoMap.TryGetValue(emo,out name))name="Neutral";string act=$"Textures\\Models\\Emotes\\{name}.dds";foreach(var ec in emotionCtrls){try{ec.ApplyAction(act);}catch{}}}
+        Color GetEmoColor(string emo){switch(emo){case "happy":case "wink":return new Color(0,255,100);case "love":return new Color(200,0,255);case "confused":case "sleepy":return new Color(0,180,255);case "annoyed":case "skeptical":return new Color(255,200,0);case "suspicious_left":case "suspicious_right":return new Color(255,160,0);case "sad":case "crying":return new Color(255,140,0);case "angry":return new Color(255,60,60);case "evil":return new Color(200,0,0);case "dead":return new Color(255,0,0);case "shocked":return new Color(255,100,0);default:return cTxt;}}
+        void SetupLCD(IMyTextSurface s){s.ContentType=ContentType.TEXT_AND_IMAGE;s.Font="Monospace";s.FontSize=2.5f;s.Alignment=TextAlignment.CENTER;s.BackgroundColor=cBg;}
         void UpdateLCD(){
         if(lcds.Count==0)return;
         animFrame++;
@@ -1305,36 +1310,38 @@ namespace IngameScript
         if(curMsg!=null&&msgTicks>=MSG_MIN_TICKS&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;msgEmotion=curMsg[2];}
         string[] lines=curMsg!=null?new[]{curMsg[0],curMsg[1]}:GetIdleText();
         string emo=curMsg!=null?msgEmotion:GetIdleEmotion();
-        SetEmotion(emo);
+        Color fc=GetEmoColor(emo);
         foreach(var lcd in lcds){
         var sf=lcd as IMyTextSurface;if(sf==null)continue;
         SetupLCD(sf);
-        sf.WriteText(string.Join("\n",lines));}}
+        sf.FontColor=fc;
+        sf.WriteText("\n\n"+string.Join("\n",lines));}
+        SetEmotion(emo);}
         void CheckEvents(){
         if(phase==F.IDLE&&merge!=null&&merge.IsConnected)ReadPadGPS();
         double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
         double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
-        if(lastH2>=0&&lastH2<0.5&&h2>=0.95)QMsg("FUCK YEAH!","Tanked the fuck up!","happy");
-        else if(lastH2>=0&&lastH2<0.9&&h2>=0.9&&h2<0.95)QMsg("Hell yeah!","Almost fuckin full!","happy");
-        if(lastBat>=0&&lastBat<0.5&&bat>=0.95)QMsg("JUICED UP!","100% you bitches!","happy");
-        else if(lastBat>=0&&lastBat<0.9&&bat>=0.9&&bat<0.95)QMsg("Getting there!","Charge me harder!","happy");
-        if(lastH2>=0.5&&h2<0.3)QMsg("Oh SHIT!","Where's my H2?!","sad");
-        if(lastBat>=0.5&&bat<0.3)QMsg("FUCK!","Battery's dying!","sad");
+        if(lastH2>=0&&lastH2<0.5&&h2>=0.95)QR(new[]{"TANKED UP!","H2 maxed!","FULL TANK!","Fuel ready!","H2 100%!","Topped off!","FUELED UP!","Let's go!"},"happy");
+        else if(lastH2>=0&&lastH2<0.9&&h2>=0.9&&h2<0.95)QR(new[]{"Almost full!","H2 rising!","Nearly there","Fuel good!"},"happy");
+        if(lastBat>=0&&lastBat<0.5&&bat>=0.95)QR(new[]{"JUICED UP!","Full power!","CHARGED!","100% power!","MAX POWER!","Batteries!"},"happy");
+        else if(lastBat>=0&&lastBat<0.9&&bat>=0.9&&bat<0.95)QR(new[]{"Almost full!","Charging up","Nearly there","Power good!"},"happy");
+        if(lastH2>=0.5&&h2<0.3)QR(new[]{"NEED H2!","Fuel low!","THIRSTY!","Running dry!","H2 WHERE?!","Fuel dying!"},"sad");
+        if(lastBat>=0.5&&bat<0.3)QR(new[]{"LOW POWER!","Dying here!","NEED JUICE!","Battery low","POWER DOWN!","Charge me!"},"sad");
         if(phase!=lastPhase){
-        if(phase==F.CLIMB)QMsg("LET'S FUCKING GO!","Time to fly bitch!","shocked");
-        else if(phase==F.ARM)QMsg("Arming this shit","Hold your ass...","skeptical");
-        else if(phase==F.COAST)QMsg("Chillin now","Saving my juice...","sleepy");
-        else if(phase==F.REENTRY)QMsg("OH SHIT!","Here comes the heat!","shocked");
-        else if(phase==F.TARGET&&!isSatellite)QMsg("GOT YOU BITCH!","Locking the fuck on!","suspicious_left");
-        else if(phase==F.SAT_CLIMB)QMsg("To space bitches!","Satellite mode!","happy");
-        else if(phase==F.SAT_BRAKE)QMsg("Whoa there!","Slowing my ass down","confused");
-        else if(phase==F.SAT_HOLD)QMsg("Parked up here","Watching you fucks","skeptical");
-        else if(phase==F.SAT_INTERCEPT)QMsg("FOUND ONE!","Time to fuck em up!","evil");
-        else if(phase==F.IDLE&&lastPhase!=F.IDLE)QMsg("Back to waiting","Boring as shit...","annoyed");}
-        if(warheadsArmed&&!lastArmed)QMsg("ARMED & ANGRY!","Bout to fuck shit up!","evil");
-        if(!warheadsArmed&&lastArmed)QMsg("Stood down","...for now bitch","annoyed");
-        if(phase==F.TARGET&&distToTgt<500&&distToTgt>100&&flightTicks%60==0)QMsg("Getting closer!",$"{distToTgt:F0}m you're fucked","suspicious_right");
-        if(phase==F.TARGET&&distToTgt<=100&&distToTgt>detDist&&flightTicks%30==0)QMsg("SAY GOODBYE!",$"{distToTgt:F0}m BITCH!","dead");
+        if(phase==F.CLIMB)QR(new[]{"LET'S GO!","Fly time!","GOING UP!","Rising fast!","CLIMBING!","Full power!","UP WE GO!","Altitude!","LIFTOFF!","Burn baby!"},"shocked");
+        else if(phase==F.ARM)QR(new[]{"Going hot!","Arming...","Lock n load","Priming...","HOT SOON!","Almost hot!","ARMING UP!","Get ready!"},"skeptical");
+        else if(phase==F.COAST)QR(new[]{"Cruising...","Saving fuel","Chilling...","Coasting!","Easy ride","Drifting...","Gliding...","Free fall!"},"sleepy");
+        else if(phase==F.REENTRY)QR(new[]{"OH SHIT!","BURNING IN!","HOT ENTRY!","INCOMING!","HEAT TIME!","Hold on!","ON FIRE!","REENTRY!"},"shocked");
+        else if(phase==F.TARGET&&!isSatellite)QR(new[]{"GOT YOU!","LOCKED ON!","INCOMING!","TARGET SET!","HERE I COME","DIE BITCH!","INBOUND!","See ya!","TARGETING!","Found you!"},"suspicious_left");
+        else if(phase==F.SAT_CLIMB)QR(new[]{"TO SPACE!","Going up!","Orbit time!","DEPLOYING!","SPACE BOUND","Climbing!"},"happy");
+        else if(phase==F.SAT_BRAKE)QR(new[]{"Whoa!","Slowing...","BRAKING!","Easy now!","Hold up!","Stopping!"},"confused");
+        else if(phase==F.SAT_HOLD)QR(new[]{"On station","Watching...","Parked up","HOLDING","Orbiting","Scanning..."},"skeptical");
+        else if(phase==F.SAT_INTERCEPT)QR(new[]{"FOUND ONE!","ENGAGING!","ATTACK!","GOT EM!","TARGET!","Kill mode!"},"evil");
+        else if(phase==F.IDLE&&lastPhase!=F.IDLE)QR(new[]{"Back idle","Waiting...","Stood down","Boring...","Reset done","Chillin..."},"annoyed");}
+        if(warheadsArmed&&!lastArmed)QR(new[]{"ARMED!","Ready!","WEAPONS HOT","Primed!","HOT & READY","Armed up!","LOCKED IN!","It's time!"},"evil");
+        if(!warheadsArmed&&lastArmed)QR(new[]{"Stood down","Safe now","Disarmed","Cooling off","Safe mode","Not yet..."},"annoyed");
+        if(phase==F.TARGET&&distToTgt<500&&distToTgt>100&&flightTicks%60==0)QR(new[]{"Closer!",$"{distToTgt:F0}m left","INCOMING!",$"{distToTgt:F0}m out","Almost!",$"{distToTgt:F0}m away","Getting in!",$"{distToTgt:F0}m!"},"suspicious_right");
+        if(phase==F.TARGET&&distToTgt<=100&&distToTgt>detDist&&flightTicks%30==0)QR(new[]{"GOODBYE!",$"{distToTgt:F0}m!","SAY BYE!",$"{distToTgt:F0}m!","IMPACT!",$"{distToTgt:F0}m!","BOOM SOON!",$"{distToTgt:F0}m!"},"dead");
         if(bootComplete&&startupDone&&phase==F.IDLE&&bootWaitTicks%60==30){
         if(!CheckBootComplete()){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QMsg("Pad recompiled!","Back to waiting...","confused");}
         else{var rpbs=new List<IMyProgrammableBlock>();GridTerminalSystem.GetBlocksOfType(rpbs,b=>b.IsSameConstructAs(Me)&&b!=Me);
@@ -1376,29 +1383,39 @@ namespace IngameScript
         if(phase==F.IDLE&&msgQ.Count==0&&curMsg==null&&startupDone){idleTicks++;if(idleTicks>=25){idleTicks=0;QueueIdleMsg(h2,bat);}}
         lastH2=h2;lastBat=bat;lastPhase=phase;lastArmed=warheadsArmed;}
         void QueueIdleMsg(double h2,double bat){
-        idleCycle++;int c=idleCycle%20;
-        if(c==0)QMsg("Systems check...",$"Gyros: {gyros.Count} online","confused");
-        else if(c==1)QMsg($"Thrusters: {thrusters.Count}","All good bitches!","happy");
-        else if(c==2)QMsg($"Warheads: {warheads.Count}","Ready to blow shit!","wink");
-        else if(c==3)QMsg($"H2: {h2*100:F0}%",h2>0.8?"Topped off!":"Could use more...",h2>0.8?"happy":"sad");
-        else if(c==4)QMsg($"Battery: {bat*100:F0}%",bat>0.8?"Fuckin juiced!":"Meh...",bat>0.8?"happy":"sad");
-        else if(c==5)QMsg("Sensors ready",$"{sensors.Count} watching","confused");
-        else if(c==6)QMsg($"Cameras: {cameras.Count}","I see everything!","suspicious_left");
-        else if(c==7&&tgtGPS!=Vector3D.Zero)QMsg("Target locked","Waiting to kill!","angry");
-        else if(c==7)QMsg("No target yet","Give me something!","annoyed");
-        else if(c==8)QMsg("Bored as fuck","Launch me already!","annoyed");
-        else if(c==9)QMsg("Still waiting...","Any day now...","sleepy");
-        else if(c==10)QMsg($"Mode: {mode}","Ready when you are","neutral");
-        else if(c==11)QMsg("Antennas ready",$"{antennas.Count} broadcasting","neutral");
-        else if(c==12)QMsg("Pre-flight done","All systems nominal","happy");
-        else if(c==13)QMsg("Come on!","Let's blow shit up!","wink");
-        else if(c==14)QMsg("*taps warhead*","Is this thing on?","skeptical");
-        else if(c==15)QMsg("Merge block ready","Just disconnect me!","neutral");
-        else if(c==16&&h2>0.9&&bat>0.9)QMsg("100% READY!","Perfect condition!","happy");
-        else if(c==16)QMsg("Almost ready...",$"H2:{h2*100:F0} Bat:{bat*100:F0}","sleepy");
-        else if(c==17)QMsg("Checklist done","Fuck yeah!","happy");
-        else if(c==18)QMsg("Getting impatient","LAUNCH ME!","angry");
-        else if(c==19)QMsg("Sitting here...","Like an asshole...","annoyed");}
+        idleCycle++;int c=idleCycle%30;
+        if(c==0)QR(new[]{"Sys check",$"Gyros: {gyros.Count}","Gyro scan",$"{gyros.Count} online","Gyros OK",$"{gyros.Count} ready"},"confused");
+        else if(c==1)QR(new[]{"Thrust OK",$"{thrusters.Count} engines","Engines",$"{thrusters.Count} ready","Power OK",$"{thrusters.Count} hot"},"happy");
+        else if(c==2)QR(new[]{"Warheads",$"{warheads.Count} loaded","Payload",$"{warheads.Count} ready","Boom x{warheads.Count}","All loaded"},"wink");
+        else if(c==3)QMsg($"H2: {h2*100:F0}%",h2>0.8?"Full!":"Need more",h2>0.8?"happy":"sad");
+        else if(c==4)QMsg($"Bat:{bat*100:F0}%",bat>0.8?"Juiced!":"Low...",bat>0.8?"happy":"sad");
+        else if(c==5)QR(new[]{"Sensors",$"{sensors.Count} active","Scanning",$"{sensors.Count} online","Eyes open",$"{sensors.Count} up"},"confused");
+        else if(c==6)QR(new[]{"Cameras",$"{cameras.Count} ready","Watching",$"{cameras.Count} cams","Vision OK",$"{cameras.Count} live"},"suspicious_left");
+        else if(c==7&&tgtGPS!=Vector3D.Zero)QR(new[]{"TARGET SET","Waiting...","GPS locked","Ready!","Coords in","Launch me!"},"angry");
+        else if(c==7)QR(new[]{"No target","Give coords","Waiting...","Need GPS!","Where to?","Pick one!"},"annoyed");
+        else if(c==8)QR(new[]{"Bored!","Launch me!","Come on!","DO IT!","Waiting!","Let's go!","BORED!","Any day!"},"annoyed");
+        else if(c==9)QR(new[]{"Waiting...","Any day now","Still here","Zzzzz...","Hello??","Tick tock"},"sleepy");
+        else if(c==10)QMsg($"Mode:{mode}","Ready!","neutral");
+        else if(c==11)QR(new[]{"Antennas",$"{antennas.Count} up","Comms OK",$"{antennas.Count} live","TX ready",$"{antennas.Count} on"},"neutral");
+        else if(c==12)QR(new[]{"All good!","Systems go!","Checks OK","Ready!","Nominal","All green"},"happy");
+        else if(c==13)QR(new[]{"Come on!","Blow stuff!","LET'S GO!","Do it!","SEND ME!","Launch!"},"wink");
+        else if(c==14)QR(new[]{"*yawns*","So boring","*taps*","This on?","*kicks*","Wake up!"},"skeptical");
+        else if(c==15)QR(new[]{"Merge OK","Ready!","Docked","Detach me","Locked in","Hanging"},"neutral");
+        else if(c==16&&h2>0.9&&bat>0.9)QR(new[]{"100%!","PERFECT!","MAX READY","All full!","TOPPED UP","Let's go!"},"happy");
+        else if(c==16)QMsg("Low...",$"H2:{h2*100:F0}%","sleepy");
+        else if(c==17)QR(new[]{"All done!","Checks OK","Ready!","Good to go","Primed","Standing by"},"happy");
+        else if(c==18)QR(new[]{"LAUNCH ME!","Come on!!","DO IT NOW!","Hurry up!","IMPATIENT!","SEND IT!"},"angry");
+        else if(c==19)QR(new[]{"Sitting...","Just here","Idle...","Parked","Chilling","Grounded"},"annoyed");
+        else if(c==20)QR(new[]{"*whistles*","La la la","*hums*","Bum bum","*sings*","Do do do"},"happy");
+        else if(c==21)QR(new[]{"Hey!","Over here!","Notice me!","Ahem!","YO!","HEY PAD!"},"annoyed");
+        else if(c==22)QR(new[]{"Miss boom","Want kaboom","Need target","Explosions?","Boom when?","Kaboom pls"},"wink");
+        else if(c==23)QR(new[]{"RC ready",rc!=null?"Online":"MISSING!","Flight sys",rc!=null?"All good":"Uh oh..."},"neutral");
+        else if(c==24)QR(new[]{"Day dream","Of booms","Thinking","Of targets","Dreaming","Of fire"},"sleepy");
+        else if(c==25)QR(new[]{"Who's next?","Pick a tgt","Choose one","Any enemy?","Scan area","Find em!"},"suspicious_right");
+        else if(c==26)QR(new[]{"I'm fast!","Try me!","Catch this","Can't dodge","No escape","I'm coming"},"evil");
+        else if(c==27)QR(new[]{"Tick tock","Boom clock","Time's up","Almost...","Countdown","3.. 2.. 1"},"skeptical");
+        else if(c==28)QR(new[]{"Love boom","Born to fly","Made for it","Built diff","Boom life","Fly n die"},"love");
+        else if(c==29)QR(new[]{"PAD!","LAUNCH ME!","HEY!","DO IT!","NOW!","COME ON!"},"angry");}
         string GetIdleEmotion(){
         double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
         double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
@@ -1418,20 +1435,20 @@ namespace IngameScript
         double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
         double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
         if(phase==F.IDLE){
-        if(warheadsArmed)return new[]{"HOT & READY!","Give me a target!"};
-        if(h2<0.3)return new[]{"Thirsty as fuck!",$"H2: {h2*100:F0}%"};
-        if(bat<0.3)return new[]{"Dying here!",$"Bat: {bat*100:F0}%"};
-        return new[]{"Bored as hell",$"H2:{h2*100:F0}% Bat:{bat*100:F0}%"};}
-        if(phase==F.CLIMB)return new[]{"GOING UP!",$"{currentAltitude:F0}m bitches!"};
-        if(phase==F.ARM)return new[]{"Hold your shit","Arming up..."};
-        if(phase==F.COAST)return new[]{coasting?"Cruising bitch":"Full fuckin burn!",$"{spd:F0}m/s"};
-        if(phase==F.REENTRY)return new[]{"HOT AS FUCK!","Burning in!"};
-        if(phase==F.TARGET)return new[]{warheadsArmed?"YOU'RE DEAD!":"See you bitch!",$"{distToTgt:F0}m"};
-        if(phase==F.SAT_CLIMB)return new[]{"Space bound!",$"{currentAltitude/1000:F1}km up"};
-        if(phase==F.SAT_BRAKE)return new[]{"Easy now...",$"{satVelocity.Length():F0}m/s"};
-        if(phase==F.SAT_HOLD)return new[]{"Watching you","Don't try shit..."};
-        if(phase==F.SAT_INTERCEPT)return new[]{"DIE FUCKER!",$"{distToTgt:F0}m"};
-        return new[]{"Unity Missile","What's up bitch"};}
+        if(warheadsArmed)return new[]{"HOT READY!","Need target"};
+        if(h2<0.3)return new[]{"H2 LOW!",$"{h2*100:F0}%"};
+        if(bat<0.3)return new[]{"BAT LOW!",$"{bat*100:F0}%"};
+        return new[]{"Standing by",$"H2:{h2*100:F0}%"};}
+        if(phase==F.CLIMB)return new[]{"CLIMBING!",$"{currentAltitude:F0}m"};
+        if(phase==F.ARM)return new[]{"ARMING...","Hold on!"};
+        if(phase==F.COAST)return new[]{coasting?"CRUISING":"BURNING!",$"{spd:F0}m/s"};
+        if(phase==F.REENTRY)return new[]{"REENTRY!",$"{spd:F0}m/s"};
+        if(phase==F.TARGET)return new[]{warheadsArmed?"YOU'RE DEAD":"INBOUND!",$"{distToTgt:F0}m"};
+        if(phase==F.SAT_CLIMB)return new[]{"TO SPACE!",$"{currentAltitude/1000:F1}km"};
+        if(phase==F.SAT_BRAKE)return new[]{"BRAKING!",$"{satVelocity.Length():F0}m/s"};
+        if(phase==F.SAT_HOLD)return new[]{"ON STATION","Scanning..."};
+        if(phase==F.SAT_INTERCEPT)return new[]{"ENGAGING!",$"{distToTgt:F0}m"};
+        return new[]{"MISSILE","Online"};}
         
     }
 }
