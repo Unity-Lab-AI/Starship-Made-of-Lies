@@ -79,6 +79,8 @@ bool gpsAnnounced=false;
 int startupCheck=0;
 bool startupDone=false;
 bool bootComplete=false;
+bool waitingForPrint=false;
+int printWaitTicks=0;
 int bootWaitTicks=0;
 string lastPadSession="";
 IMyShipMergeBlock merge;
@@ -146,12 +148,14 @@ Vector3D launchUp=Vector3D.Zero;
 public Program(){
 Runtime.UpdateFrequency=UpdateFrequency.Update100;
 ParseConfig();
-FindBlocks();
-ConfigSensors();
-ConfigCameras();
-NameParts();
 LoadState();
-if(phase==F.IDLE){tgtGPS=Vector3D.Zero;mode=T.GPS;bootComplete=false;startupDone=false;startupCheck=0;gpsAnnounced=false;}
+if(phase!=F.IDLE){FindBlocks();ConfigSensors();ConfigCameras();NameParts();}
+else{
+var allMerge=new List<IMyShipMergeBlock>();GridTerminalSystem.GetBlocksOfType(allMerge,m=>m.CubeGrid==Me.CubeGrid);
+bool docked=false;foreach(var m in allMerge){if(m.IsConnected){docked=true;break;}}
+if(docked&&!CheckPrintComplete()){waitingForPrint=true;}
+else{FindBlocks();ConfigSensors();ConfigCameras();NameParts();}
+tgtGPS=Vector3D.Zero;mode=T.GPS;bootComplete=false;startupDone=false;startupCheck=0;gpsAnnounced=false;}
 }
 public void Save(){Storage=$"{(int)phase}|{(int)mode}|{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}|{(warheadsArmed?"1":"0")}|{launchPos.X},{launchPos.Y},{launchPos.Z}|{(blackoutConverted?"1":"0")}";}
 void LoadState(){
@@ -169,6 +173,21 @@ if(phase!=F.IDLE)Runtime.UpdateFrequency=UpdateFrequency.Update10;
 }}
 
 public void Main(string a,UpdateType u){
+if(waitingForPrint&&phase==F.IDLE){
+printWaitTicks++;
+if(a=="LAUNCH"){waitingForPrint=false;printWaitTicks=0;}
+else if(CheckPrintComplete()){
+waitingForPrint=false;printWaitTicks=0;
+FindBlocks();ConfigSensors();ConfigCameras();NameParts();
+Me.CustomData=(Me.CustomData.Contains("[UNITY_MISSILE]")?Me.CustomData:"")+$"\nmsl_booting=true\nmsl_boot_ts={DateTime.Now.Ticks}";
+}else{
+Echo("WAITING FOR PRINT...");
+if(printWaitTicks%10==1){
+if(printWaitTicks<60)QR(new[]{"Still printing my ass!","Hold on im not done!","Half built over here!","Where are my thrusters?","Not even finished yet!","Patience damn it!"},"sleepy");
+else if(printWaitTicks<150)QR(new[]{"Build me faster moron!","Hurry up with the weld!","Im missing half my body!","This is taking forever!","How long does this take!","Still no damn thrusters!"},"annoyed");
+else QR(new[]{"Oh my god just build me!","Are you even welding?!","I swear to god hurry up!","Worst print job ever!","Did the welder break?!","I will die on this pad!"},"angry");
+}
+UpdateLCD();return;}}
 if(a=="NAME"){FindBlocks();NameParts();return;}
 if(a=="RESET"){FindBlocks();SafeReset();return;}
 if(a=="LAUNCH"){
@@ -798,6 +817,15 @@ if(b.BlockDefinition.SubtypeId.Contains("EmotionController"))emotionCtrls.Add(b 
 }
 foreach(var g in gyros){g.Enabled=true;g.GyroOverride=true;}
 }
+bool CheckPrintComplete(){
+var pbs=new List<IMyProgrammableBlock>();
+GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me);
+foreach(var pb in pbs){
+string nm=pb.CustomName.ToUpper();
+if(nm.Contains("UNITY PAD")&&!nm.Contains("MISSILE")){
+return pb.CustomData.Contains("print_complete=true");
+}}
+return true;}
 bool CheckBootComplete(){
 if(merge==null||!merge.IsConnected)return true;
 var pbs=new List<IMyProgrammableBlock>();
