@@ -359,6 +359,12 @@ if(oi>=0){int oe=tlmRaw.IndexOf('|',oi);if(oe<0)oe=tlmRaw.Length;string og=tlmRa
 var oc=og.Split(',');if(oc.Length==3){double ox,oy,oz;if(double.TryParse(oc[0],out ox)&&double.TryParse(oc[1],out oy)&&double.TryParse(oc[2],out oz)){
 tgtGPS=new Vector3D(ox,oy,oz);tgtSet=true;tgtName="RELAY";}}}
 mslLnch=false;hasTlm=false;mslBO=false;shwOut=false;cS=S.IDLE;return;}
+else if(mslPhase=="IMPACT"){
+fnlDTT=mslDTT;finalPhase=mslPhase;outT=DT;
+mslOutcome=fnlDTT<detDist*2?"TARGET HIT":fnlDTT<500?"PROBABLE HIT":"SIGNAL LOST";
+LogState(mslOutcome);shwOut=true;lKPh=mslPhase;lKDst=mslDTT;
+int li=tlmRaw.IndexOf("|LCD:");if(li>=0){string ld=tlmRaw.Substring(li+5);var lp2=ld.Split('~');if(lp2.Length>=3){mslLcdL1=lp2[0];mslLcdL2=lp2[1];mslLcdEmo=lp2[2];}}
+return;}
 else{lKPh=mslPhase;lKDst=mslDTT;mslBO=false;}
 if(parts.Length>=7){
 double g,fp;
