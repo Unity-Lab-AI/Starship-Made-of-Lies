@@ -192,7 +192,7 @@ if(printWaitTicks<60)QR(new[]{"Still printing my ass!","Hold on im not done!","H
 else if(printWaitTicks<150)QR(new[]{"Build me faster moron!","Hurry up with the weld!","Im missing half my body!","This is taking forever!","How long does this take!","Still no damn thrusters!"},"annoyed");
 else QR(new[]{"Oh my god just build me!","Are you even welding?!","I swear to god hurry up!","Worst print job ever!","Did the welder break?!","I will die on this pad!"},"angry");
 }
-UpdateLCD();return;}}
+return;}}
 if(a=="NAME"){FindBlocks();NameParts();return;}
 if(a=="RESET"){FindBlocks();SafeReset();return;}
 if(a=="LAUNCH"){
@@ -273,7 +273,7 @@ if(antBroadcast)BroadcastPos();
 }
 UpdateEcho();
 UpdateFlightLights();
-UpdateLCD();
+if(phase!=F.IDLE||bootComplete)UpdateLCD();
 }
 
 void DoClimb(){
