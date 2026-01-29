@@ -56,7 +56,7 @@ DateTime armTime;
 IMyBroadcastListener mslL,relL;
 IMyProgrammableBlock bootPB,invPB,signalPB;
 string mslPhase="",lKPh="",mslOutcome="",finalPhase="";
-double mslDTT=0,lKDst=0,mslGrav=0,mslDFP=0,mslVel=0,fnlDTT=0;
+double mslDTT=0,lKDst=0,mslGrav=0,mslDFP=0,fnlDTT=0;
 Vector3D mslPos,lastMslPos;
 DateTime lTlm,lTlmT,abtT,outT;
 bool hasTlm=false,mslLnch=false,mslBO=false,abtQ=false,abtS=false,shwOut=false;
@@ -348,10 +348,6 @@ if(parts.Length>=5){
 double x,y,z,d;
 if(double.TryParse(parts[0],out x)&&double.TryParse(parts[1],out y)&&double.TryParse(parts[2],out z)){
 Vector3D newPos=new Vector3D(x,y,z);
-if(hasTlm&&lastMslPos!=Vector3D.Zero){
-double dt=(DT-lTlmT).TotalSeconds;
-if(dt>0.1){double dist=VD(newPos,lastMslPos);mslVel=dist/dt;}
-}
 mslPos=newPos;lastMslPos=newPos;lTlmT=DT;
 }
 if(double.TryParse(parts[3],out d))mslDTT=d;
@@ -939,10 +935,10 @@ customWP.Clear();gpsData="";
 string d=btn!=null?btn.CustomData:"";if(string.IsNullOrEmpty(d))return;
 var NS=System.Globalization.NumberStyles.Any;var IC=System.Globalization.CultureInfo.InvariantCulture;
 foreach(var ln in d.Split('\n')){string l=ln.Trim();if(l.StartsWith(";"))continue;if(!l.StartsWith("GPS:"))continue;gpsData+=l+"\n";var p=l.Split(':');if(p.Length>=5){double x,y,z;if(double.TryParse(p[2].Replace(',','.'),NS,IC,out x)&&double.TryParse(p[3].Replace(',','.'),NS,IC,out y)&&double.TryParse(p[4].Replace(',','.'),NS,IC,out z))customWP.Add(new MyWaypointInfo(p[1],new Vector3D(x,y,z)));}}}
-void WriteCustomData(){ParseCustomGPS();var d=Me.CustomData;int b=d.IndexOf("[BLACKBOX]");string pre=b>=0?d.Substring(0,b):(d.EndsWith("\n")?d:d+"\n");bool prtDone=bldCmp&&cS!=S.PRINT&&cS!=S.BUILD;string prtSt=prtDone?"true":"false";if(!pre.Contains("[SYSTEM]"))pre=$"[SYSTEM]\npad_ready=true\npad_session={padSession}\nprint_complete={prtSt}\nprint_ts={DateTime.Now.Ticks}\n"+pre;else{if(!pre.Contains("print_complete=")){int si=pre.IndexOf("[SYSTEM]")+8;int ni=pre.IndexOf("\n",si);if(ni<0)ni=pre.Length;pre=pre.Insert(ni,$"\nprint_complete={prtSt}\nprint_ts={DateTime.Now.Ticks}");}else{int pc=pre.IndexOf("print_complete=");int pe=pre.IndexOf("\n",pc);if(pe<0)pe=pre.Length;pre=pre.Remove(pc,pe-pc);pre=pre.Insert(pc,$"print_complete={prtSt}");int pt=pre.IndexOf("print_ts=");if(pt>=0){int te=pre.IndexOf("\n",pt);if(te<0)te=pre.Length;pre=pre.Remove(pt,te-pt);pre=pre.Insert(pt,$"print_ts={DateTime.Now.Ticks}");}else{int pc2=pre.IndexOf("print_complete=");int pe2=pre.IndexOf("\n",pc2);if(pe2<0)pe2=pre.Length;pre=pre.Insert(pe2,$"\nprint_ts={DateTime.Now.Ticks}");}}}Me.CustomData=pre+"[BLACKBOX]\n"+bbLog+"\n[GPS]\n"+gpsData;}
+void WriteCustomData(){ParseCustomGPS();var d=Me.CustomData;int b=d.IndexOf("[BLACKBOX]");string pre=b>=0?d.Substring(0,b):(d.EndsWith("\n")?d:d+"\n");if(!pre.Contains("[SYSTEM]"))pre=$"[SYSTEM]\npad_ready=true\npad_session={padSession}\n"+pre;Me.CustomData=pre+"[BLACKBOX]\n"+bbLog+"\n[GPS]\n"+gpsData;}
 void LogState(string evt){string ts=DT.ToString("HH:mm:ss");bbLog+=$"{ts}|PAD:{evt}\n";if(bbLog.Length>2000){int nl=bbLog.IndexOf('\n',300);if(nl>0)bbLog=bbLog.Substring(nl+1);}WriteCustomData();}
 void CheckStateLog(){if(cS!=lastBBState){lastBBState=cS;string sn=cS==S.BUILD?"BUILD":cS==S.DOCK?"DOCKED":cS==S.FUEL?"FUELING":cS==S.READY?"READY":cS==S.ARM?"ARMED":cS==S.LAUNCH?"LAUNCHING":cS==S.GONE?"AWAY":"";if(sn!="")LogState(sn);}}
-void WriteMslStatus(){string cd=Me.CustomData;string ph=cS==S.GONE?mslPhase:cS==S.ARM?"ARMED":cS==S.READY?"READY":cS==S.FUEL?"FUELING":cS==S.DOCK?"DOCKING":cS==S.BUILD?"BUILD":cS==S.PRINT?"PRINT":mslFound?"DOCKED":"IDLE";int armCnt=cS==S.ARM||warArmed?1:0,rdyCnt=cS==S.READY?1:0,mCnt=cS==S.GONE?1:0;double dAlt=mslAlt,dDist=mslDTT,dFuel=mslFuelPct,dSpd=mslVel;if(cS!=S.GONE&&mslFound){dFuel=h2Pct;dSpd=0;if(mslRC!=null){Vector3D rcPos=mslRC.GetPosition();double seaLvl=0;if(mslRC.TryGetPlanetElevation(MyPlanetElevation.Sealevel,out seaLvl))dAlt=seaLvl;else dAlt=rcPos.Length();}if(tgtSet)dDist=VD(mslRC!=null?mslRC.GetPosition():Me.GetPosition(),tgtGPS);}int ammoNeed=Math.Max(0,ammoLoad-mslAmmo);bool needAmmo=conLocked&&mslConAmmo!=null&&ammoNeed>0&&(cS==S.FUEL||cS==S.DOCK);
+void WriteMslStatus(){string cd=Me.CustomData;string ph=cS==S.GONE?mslPhase:cS==S.ARM?"ARMED":cS==S.READY?"READY":cS==S.FUEL?"FUELING":cS==S.DOCK?"DOCKING":cS==S.BUILD?"BUILD":cS==S.PRINT?"PRINT":mslFound?"DOCKED":"IDLE";int armCnt=cS==S.ARM||warArmed?1:0,rdyCnt=cS==S.READY?1:0,mCnt=cS==S.GONE?1:0;double dAlt=mslAlt,dDist=mslDTT,dFuel=mslFuelPct,dSpd=mslSpeed;if(cS!=S.GONE&&mslFound){dFuel=h2Pct;dSpd=0;if(mslRC!=null){Vector3D rcPos=mslRC.GetPosition();double seaLvl=0;if(mslRC.TryGetPlanetElevation(MyPlanetElevation.Sealevel,out seaLvl))dAlt=seaLvl;else dAlt=rcPos.Length();}if(tgtSet)dDist=VD(mslRC!=null?mslRC.GetPosition():Me.GetPosition(),tgtGPS);}int ammoNeed=Math.Max(0,ammoLoad-mslAmmo);bool needAmmo=conLocked&&mslConAmmo!=null&&ammoNeed>0&&(cS==S.FUEL||cS==S.DOCK);
 string mslLine=$"msl_phase={ph}|target={tgtName}|mslDist={dDist:F0}|mslSpeed={dSpd:F0}|mslAlt={dAlt:F0}|mslFuel={dFuel:F0}|mslBatPct={batPct:F0}|mslH2Pct={h2Pct:F0}|mslO2Pct={o2Pct:F0}|mslCount={mCnt}|mslArmed={armCnt}|mslReady={rdyCnt}|conLocked={(conLocked?1:0)}|warArmed={(warArmed?1:0)}|warCount={mslWar.Count}|mslAmmo={mslAmmo}|mslAmmoLoad={ammoLoad}|mslGenCnt={mslGen.Count}|mslH2Cnt={mslH2.Count}|mslO2Cnt={mslO2.Count}|mslIce={(int)icePct}|mslUran=0|ammoReq={(needAmmo?1:0)}|ammoReqType={ammoTypeIdx}|ammoReqNeed={ammoNeed}";if(!cd.Contains("[PAD_DATA]"))cd+="[PAD_DATA]\n";int pi=cd.IndexOf("msl_phase=");if(pi>=0){int pe=cd.IndexOf("\n",pi);if(pe<0)pe=cd.Length;cd=cd.Remove(pi,pe-pi);cd=cd.Insert(pi,mslLine);}else{int si=cd.IndexOf("[PAD_DATA]")+10;int ni=cd.IndexOf("\n",si);if(ni<0)ni=cd.Length;cd=cd.Insert(ni,"\n"+mslLine);}Me.CustomData=cd;}
 
 void UpdateState(){
@@ -956,7 +952,7 @@ if(printing){cS=S.PRINT;return;}
 if(!mslFound){if(prtProj!=null)prtProj.Enabled=true;bldCmp=false;return;}
 if(prtProj!=null)prtProj.Enabled=false;
 if(!bldCmp){cS=S.BUILD;return;}
-if(merged){if(!pNmd){bldNum++;NameMissileParts();AutoNameConnectors();pNmd=true;}if(padCon!=null)padCon.Enabled=true;cS=S.DOCK;hasTlm=false;}
+if(merged){if(!pNmd){bldNum++;NameMissileParts();AutoNameConnectors();pNmd=true;}if(padCon!=null)padCon.Enabled=true;WriteMslPrintFlag();cS=S.DOCK;hasTlm=false;}
 break;
 case S.BUILD:
 if(prtProj!=null&&prtProj.RemainingBlocks>0&&!prtStopped){bldCmp=false;return;}
@@ -967,7 +963,7 @@ if(mslMerge!=null)mslMerge.Enabled=true;
 if(padMerge!=null)padMerge.Enabled=true;
 if(padCon!=null)padCon.Enabled=true;
 if(prtProj!=null)prtProj.Enabled=false;
-bldCmp=true;cS=S.DOCK;
+bldCmp=true;WriteMslPrintFlag();cS=S.DOCK;
 break;
 case S.DOCK:
 if(!mslFound){cS=S.IDLE;dockTicks=0;return;}
@@ -1043,7 +1039,7 @@ if(cS==S.ARM)cS=S.READY;
 
 void StartLaunch(){
 for(int i=0;i<16;i++){fDist[i]=0;fAlt[i]=0;fSpd[i]=0;}
-fIdx=0;mslVel=0;
+fIdx=0;mslSpeed=0;
 foreach(var w in mslWar){w.IsArmed=false;}
 warArmed=false;
 foreach(var a in padAnt){a.Enabled=true;a.Radius=75000f;a.EnableBroadcasting=true;}
@@ -1070,6 +1066,14 @@ LogState($"LAUNCH>{tgtName} M:{modeStr} G:{tgtGPS.X:F0},{tgtGPS.Y:F0},{tgtGPS.Z:
 cS=S.LAUNCH;
 }
 
+void WriteMslPrintFlag(){
+if(mslPB==null)return;
+string cd=mslPB.CustomData;
+if(cd.Contains("print_complete=true"))return;
+if(cd.Contains("print_complete=")){int pi=cd.IndexOf("print_complete=");int pe=cd.IndexOf("\n",pi);if(pe<0)pe=cd.Length;cd=cd.Remove(pi,pe-pi).Insert(pi,"print_complete=true");}
+else{cd=(cd.Length>0&&!cd.EndsWith("\n")?cd+"\n":cd)+"print_complete=true\n";}
+mslPB.CustomData=cd;
+}
 void RemoteDetonate(bool force=false){
 if(cS!=S.GONE){Echo("DETONATE BLOCKED: Not in flight");return;}
 if(!force&&(DT-lnchT).TotalSeconds<10){Echo("DETONATE BLOCKED: 10s grace period");return;}
@@ -1433,7 +1437,7 @@ var f=BL(sf);float y=5;
 int inFlight=0;foreach(int pid in kPads){if(pStat.ContainsKey(pid)&&pStat[pid]=="GONE")inFlight++;}
 SH(f,y,"FLIGHT STATUS",inFlight>0?cErr:cPri);y+=35;
 ST(f,20,y,$"In Flight: {inFlight} missiles",inFlight>0?cErr:cTxt,0.55f);y+=28;
-if(hasTlm){SBx(f,15,y,482,80,cBg,cErr);y+=10;ST(f,25,y,"THIS PAD",cErr,0.5f);y+=22;ST(f,25,y,$"Phase: {mslPhase}",cPri,0.5f);y+=20;ST(f,25,y,$"Distance: {mslDTT:F0}m",cTxt,0.5f);y+=20;ST(f,25,y,$"Speed: {mslVel:F0}m/s",cTxt,0.5f);}
+if(hasTlm){SBx(f,15,y,482,80,cBg,cErr);y+=10;ST(f,25,y,"THIS PAD",cErr,0.5f);y+=22;ST(f,25,y,$"Phase: {mslPhase}",cPri,0.5f);y+=20;ST(f,25,y,$"Distance: {mslDTT:F0}m",cTxt,0.5f);y+=20;ST(f,25,y,$"Speed: {mslSpeed:F0}m/s",cTxt,0.5f);}
 else if(cS==S.GONE){ST(f,256,y,mslBO?"BLACKOUT":"NO SIGNAL",cWrn,0.6f,TextAlignment.CENTER);}
 else{ST(f,256,y,"No active flight",cSec,0.55f,TextAlignment.CENTER);}
 f.Dispose();}
@@ -1485,9 +1489,9 @@ SMI(f,y,0,"Acknowledge",sel==0);
 f.Dispose();return;}
 if(cS==S.GONE){
 if(abtS){int sd=(int)(DT-abtT).TotalSeconds;SH(f,y,"DETONATED",cErr);y+=40;ST(f,256,y,"TARGET DESTROYED",cErr,0.8f,TextAlignment.CENTER);y+=40;ST(f,256,y,$"+{sd}s ago",cTxt,0.6f,TextAlignment.CENTER);y+=60;ST(f,256,y,"Press APPLY to reset",cTxt,0.5f,TextAlignment.CENTER);f.Dispose();return;}
-int ago=(int)(DT-lnchT).TotalSeconds;int eta1=mslVel>10?(int)(mslDTT/mslVel):0;
+int ago=(int)(DT-lnchT).TotalSeconds;int eta1=mslSpeed>10?(int)(mslDTT/mslSpeed):0;
 SH(f,y,$"FLIGHT {Clk()}",cErr);y+=35;
-ST(f,20,y,$"T+{ago}s   {mslVel:F0} m/s",cTxt);y+=25;
+ST(f,20,y,$"T+{ago}s   {mslSpeed:F0} m/s",cTxt);y+=25;
 if(mslBO){ST(f,256,y,"SIGNAL BLACKOUT",cWrn,0.7f,TextAlignment.CENTER);y+=25;if(abtQ)ST(f,256,y,"ABORT QUEUED",cErr,0.6f,TextAlignment.CENTER);}
 else if(hasTlm){ST(f,20,y,$"Phase: {mslPhase}",cPri);y+=22;ST(f,20,y,$"Distance: {mslDTT:F0}m",cTxt);y+=22;ST(f,20,y,eta1>0?$"ETA: {ClkAtSec(eta1)}":"Calculating...",cTxt);y+=25;float fp=(float)mslFuelPct/100f;SLB(f,20,y,300,12,"Fuel",fp,PctCol(fp),cBdr);}
 else{ST(f,256,y,"NO SIGNAL",cWrn,0.7f,TextAlignment.CENTER);}
@@ -1543,10 +1547,10 @@ if(isCtl){UpdateControllerLCD2();return;}
 var sf=lcd2 as IMyTextSurface;if(sf==null)return;
 var f=BL(sf);float y=5;
 if(cS==S.GONE){
-int ago2=(int)(DT-lnchT).TotalSeconds;int eta2=mslVel>10?(int)(mslDTT/mslVel):0;
+int ago2=(int)(DT-lnchT).TotalSeconds;int eta2=mslSpeed>10?(int)(mslDTT/mslSpeed):0;
 SH(f,y,$"FLIGHT {Clk()}",cErr);y+=35;
 ST(f,20,y,$"T+{ago2}s",cTxt);y+=22;
-if(hasTlm){ST(f,20,y,mslPhase,cPri);y+=20;ST(f,20,y,$"{mslDTT:F0}m  {mslVel:F0}m/s",cTxt);y+=20;ST(f,20,y,eta2>0?$"IMPACT @ {ClkAtSec(eta2)}":"Calculating...",cWrn);}
+if(hasTlm){ST(f,20,y,mslPhase,cPri);y+=20;ST(f,20,y,$"{mslDTT:F0}m  {mslSpeed:F0}m/s",cTxt);y+=20;ST(f,20,y,eta2>0?$"IMPACT @ {ClkAtSec(eta2)}":"Calculating...",cWrn);}
 else if(mslBO){ST(f,256,y,"BLACKOUT",cWrn,0.7f,TextAlignment.CENTER);y+=22;ST(f,20,y,lKPh,cSec);}
 else{ST(f,256,y,"NO SIGNAL",cWrn,0.7f,TextAlignment.CENTER);}
 y+=25;bool lsr=false;foreach(var l in padLsr)if(l.Status==MyLaserAntennaStatus.Connected)lsr=true;
@@ -1591,7 +1595,7 @@ ST(f,20,160,$"Y Position: {mslPos.Y:F0}",cPri,0.6f);
 ST(f,20,210,$"Z Position: {mslPos.Z:F0}",cPri,0.6f);
 SD(f,270);
 ST(f,20,300,$"Distance to Target: {mslDTT:F0} meters",cAcc,0.6f);
-ST(f,20,360,$"Current Velocity: {mslVel:F0} m/s",cTxt,0.55f);}
+ST(f,20,360,$"Current Velocity: {mslSpeed:F0} m/s",cTxt,0.55f);}
 else{ST(f,256,160,"NO SIGNAL",cWrn,0.8f,TextAlignment.CENTER);}
 f.Dispose();return;}
 SH(f,10,"MISSILE SYSTEMS",cPri);
@@ -1654,17 +1658,17 @@ ST(f,20,380,$"Game Mode: {(isCreative?"CREATIVE":"SURVIVAL")}",cTxt,0.55f);
 ST(f,20,430,$"Environment: {(env==E.SPACE?"SPACE":env==E.PLANET?"PLANET":"MOON")}",cTxt,0.55f);
 }else{
 Color hc7=mslBO?cWrn:cErr;
-int ago7=(int)(DT-lnchT).TotalSeconds;int eta7=mslVel>10?(int)(mslDTT/mslVel):0;
+int ago7=(int)(DT-lnchT).TotalSeconds;int eta7=mslSpeed>10?(int)(mslDTT/mslSpeed):0;
 SH(f,10,"TELEMETRY",hc7);
 ST(f,20,60,$"Flight Time: +{ago7} seconds",cTxt,0.6f);
 ST(f,20,100,$"Current Time: {Clk()}",cSec,0.5f);
 if(hasTlm){
 ST(f,20,150,$"Phase: {mslPhase}",cPri,0.65f);
 ST(f,20,200,$"Distance to Target: {mslDTT:F0} meters",cTxt,0.55f);
-ST(f,20,250,$"Velocity: {mslVel:F0} m/s",cTxt,0.55f);
+ST(f,20,250,$"Velocity: {mslSpeed:F0} m/s",cTxt,0.55f);
 ST(f,20,300,eta7>0?$"Impact ETA: {eta7} seconds @ {ClkAtSec(eta7)}":"Calculating arrival...",cAcc,0.55f);
 float dp=1f-(float)(mslDTT/(mslDTT+1000));SLB(f,20,360,380,12,"Distance",dp,cErr,cBdr);
-float sp=(float)Math.Min(mslVel/500,1);SLB(f,20,410,380,12,"Speed",sp,cPri,cBdr);}
+float sp=(float)Math.Min(mslSpeed/500,1);SLB(f,20,410,380,12,"Speed",sp,cPri,cBdr);}
 else if(mslBO){ST(f,256,160,"COMMUNICATIONS BLACKOUT",cWrn,0.7f,TextAlignment.CENTER);ST(f,20,230,$"Last Known Phase: {lKPh}",cSec,0.55f);ST(f,20,280,$"Last Known Distance: {lKDst:F0} meters",cSec,0.55f);}
 else{ST(f,256,160,"NO SIGNAL",cWrn,0.8f,TextAlignment.CENTER);}
 bool lsr=false;foreach(var l in padLsr)if(l.Status==MyLaserAntennaStatus.Connected)lsr=true;
@@ -1684,10 +1688,10 @@ ST(f,20,55,$"Flight Time: +{ago} seconds",cTxt,0.6f);
 ST(f,20,95,$"Phase: {mslPhase}",cPri,0.7f);
 if(hasTlm){
 ST(f,20,145,$"Distance to Target: {mslDTT:F0} meters",cPri,0.55f);
-ST(f,20,185,$"Velocity: {mslVel:F0} m/s",cTxt,0.55f);
+ST(f,20,185,$"Velocity: {mslSpeed:F0} m/s",cTxt,0.55f);
 ST(f,20,225,$"Position: {mslPos.X:F0}, {mslPos.Y:F0}, {mslPos.Z:F0}",cTxt,0.5f);
 float fp=(float)mslFuelPct/100f;SLB(f,20,275,350,15,"Fuel Remaining",fp,PctCol(fp),cBdr);
-int eta=mslVel>10?(int)(mslDTT/mslVel):0;
+int eta=mslSpeed>10?(int)(mslDTT/mslSpeed):0;
 ST(f,20,330,eta>0?$"Estimated Impact: {eta} seconds @ {ClkAtSec(eta)}":"Calculating arrival...",cAcc,0.55f);}
 else if(mslBO){ST(f,256,140,"COMMUNICATIONS BLACKOUT",cWrn,0.7f,TextAlignment.CENTER);ST(f,20,200,$"Last Known Distance: {lKDst:F0} meters",cSec,0.55f);}
 else{ST(f,256,140,"SIGNAL LOST",cErr,0.8f,TextAlignment.CENTER);}
@@ -1785,8 +1789,8 @@ ST(f,20,y,$"Bottles: H2 {pH2B}/{h2Target}   O2 {pO2B}/{o2Target}",cTxt,0.45f);y+
 if(trkM.Count>0){var itemTot=new Dictionary<string,int>();foreach(var kv in trkM)foreach(var ci in kv.Value.cargoItems)AD(itemTot,ci.Key,ci.Value);if(itemTot.Count>0){ST(f,20,y,$"Miner Cargo ({trkM.Count}):",cAcc,0.45f);y+=16;int mc=0;foreach(var it in itemTot){if(mc++>=4)break;ST(f,30,y,$"{GetCargoCategory(it.Key)}: {GetCargoName(it.Key)} x{it.Value}",cTxt,0.38f);y+=14;}}}break;
 case 7:
 if(cS!=S.GONE){ST(f,20,y,$"[{Clk()}] No active flight",cSec,0.5f);y+=25;ST(f,20,y,$"Mode: {tM}   Target: {(tgtSet?tgtName:"NONE")}",cTxt,0.45f);}
-else{int agoV7=(int)(DT-lnchT).TotalSeconds;ST(f,20,y,$"T+{agoV7}s   {mslPhase}   {mslDTT:F0}m   {mslVel:F0}m/s",cErr,0.45f);y+=25;
-float dp=1f-(float)(mslDTT/(mslDTT+1000)),sp=(float)Math.Min(mslVel/500,1);
+else{int agoV7=(int)(DT-lnchT).TotalSeconds;ST(f,20,y,$"T+{agoV7}s   {mslPhase}   {mslDTT:F0}m   {mslSpeed:F0}m/s",cErr,0.45f);y+=25;
+float dp=1f-(float)(mslDTT/(mslDTT+1000)),sp=(float)Math.Min(mslSpeed/500,1);
 SLB(f,20,y,200,8,"Distance",dp,cErr,cBdr);y+=24;SLB(f,20,y,200,8,"Speed",sp,cPri,cBdr);y+=28;
 ST(f,20,y,$"Position: {mslPos.X:F0}, {mslPos.Y:F0}, {mslPos.Z:F0}",cTxt,0.42f);}break;
 case 8:
@@ -1848,7 +1852,7 @@ c.AppendLine($"ammo={mslAmmo}/{ammoLoad}");
 c.AppendLine($"gen={mslGen.Count}|h2t={mslH2.Count}|o2t={mslO2.Count}|react={mslReact.Count}");}
 int pRem=prtProj!=null?prtProj.RemainingBlocks:0,pTot=prtProj!=null?prtProj.TotalBlocks:0,pBld=prtProj!=null?prtProj.BuildableBlocksCount:0;float pPist=prtPist.Count>0?prtPist[0].CurrentPosition:0;
 if(printing||cS==S.PRINT||cS==S.BUILD){string ps=prtState==1?"EXTEND":prtState==2?"WELD":"CHECK";c.AppendLine($"prt={ps}|on={(printing?1:0)}|rem={pRem}/{pTot}|bld={pBld}|pos={pPist:F1}");}
-if(cS==S.GONE||hasTlm){c.AppendLine($"flight={mslPhase}|target={tgtName}|dist={mslDTT:F0}|speed={mslVel:F0}|alt={mslAlt:F0}|fuel={mslFuelPct:F0}%|eta={(mslVel>0?mslDTT/mslVel:0):F0}");}
+if(cS==S.GONE||hasTlm){c.AppendLine($"flight={mslPhase}|target={tgtName}|dist={mslDTT:F0}|speed={mslSpeed:F0}|alt={mslAlt:F0}|fuel={mslFuelPct:F0}%|eta={(mslSpeed>0?mslDTT/mslSpeed:0):F0}");}
 if(isCtl){int ctPads=kPads.Count,ctArm=0,ctRdy=0,ctFly=0;foreach(int pid in kPads){if(pArm.ContainsKey(pid)&&pArm[pid])ctArm++;if(pRdy.ContainsKey(pid)&&pRdy[pid])ctRdy++;if(pStat.ContainsKey(pid)&&pStat[pid]=="GONE")ctFly++;}string ctMd=tM==T.GPS?"GPS":tM==T.ANTENNA?"ANT":tM==T.SENSOR?"SEN":tM==T.LIDAR?"LDR":tM==T.SATELLITE?"SAT":"MAN";
 c.AppendLine($"ctrl={ctPads}|arm={ctArm}|rdy={ctRdy}|fly={ctFly}|md={ctMd}|st={(svAct?"SALVO":"OK")}");}
 c.AppendLine("[PAD_DATA]");
@@ -1861,7 +1865,7 @@ c.AppendLine($"mslIce={mIce}|mslUran={mUrn}|mslAmmo={mslAmmo}|mslAmmoLoad={ammoL
 c.AppendLine($"mslGenCnt={mslGen.Count}|mslH2Cnt={mslH2.Count}|mslO2Cnt={mslO2.Count}|mslReactCnt={mslReact.Count}");
 c.AppendLine($"mslCount=1|mslReady={(cS==S.READY||cS==S.ARM?1:0)}|mslArmed={(cS==S.ARM?1:0)}|mslLsrCnt={mslLsr.Count}|mslLsrLnk={lsLnk}|mslAntCnt={mslAnt.Count}");}
 if(printing||cS==S.PRINT||cS==S.BUILD){c.AppendLine($"prtState={prtState}|printing={(printing?1:0)}|prtRem={pRem}|prtTot={pTot}|prtBld={pBld}|prtPist={pPist:F1}");}
-if(cS==S.GONE||hasTlm){c.AppendLine($"msl_phase={mslPhase}|target={tgtName}|mslDist={mslDTT:F0}|mslSpeed={mslVel:F0}|mslAlt={mslAlt:F0}|mslFuel={mslFuelPct:F0}|mslETA={(mslVel>0?mslDTT/mslVel:0):F0}");}
+if(cS==S.GONE||hasTlm){c.AppendLine($"msl_phase={mslPhase}|target={tgtName}|mslDist={mslDTT:F0}|mslSpeed={mslSpeed:F0}|mslAlt={mslAlt:F0}|mslFuel={mslFuelPct:F0}|mslETA={(mslSpeed>0?mslDTT/mslSpeed:0):F0}");}
 if(isCtl){int ctPads2=kPads.Count,ctArm2=0,ctRdy2=0,ctFly2=0;foreach(int pid in kPads){if(pArm.ContainsKey(pid)&&pArm[pid])ctArm2++;if(pRdy.ContainsKey(pid)&&pRdy[pid])ctRdy2++;if(pStat.ContainsKey(pid)&&pStat[pid]=="GONE")ctFly2++;}string ctMd2=tM==T.GPS?"GPS":tM==T.ANTENNA?"ANTENNA":tM==T.SENSOR?"SENSOR":tM==T.LIDAR?"LIDAR":tM==T.SATELLITE?"SATELLITE":"MANUAL";
 c.AppendLine($"ctrlPads={ctPads2}|ctrlArmed={ctArm2}|ctrlReady={ctRdy2}|mslCount={ctFly2}|ctrlMode={ctMd2}|ctrlTarget={tgtName}|ctrlStatus={(svAct?"SALVO":"ACTIVE")}");}
 if(printing||cS==S.PRINT||cS==S.BUILD){

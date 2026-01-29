@@ -81,7 +81,7 @@ bool startupDone=false;
 bool bootComplete=false;
 bool waitingForPrint=false;
 int printWaitTicks=0;
-long lastPadPrintTs=0;
+
 int bootWaitTicks=0;
 string lastPadSession="";
 IMyShipMergeBlock merge;
@@ -141,7 +141,7 @@ int phaseTicks=0;
 int climbTicks=0;
 int climbLockTicks=30;
 int flightTicks=0;
-double minAltitude=500;
+double minAltitude=0;
 double altitudeApproachDist=550;
 double currentAltitude=0;
 Vector3D launchUp=Vector3D.Zero;
@@ -149,13 +149,15 @@ Vector3D launchUp=Vector3D.Zero;
 public Program(){
 Runtime.UpdateFrequency=UpdateFrequency.Update100;
 ParseConfig();
+FindBlocks();
+ConfigSensors();
+ConfigCameras();
+NameParts();
 LoadState();
-if(phase!=F.IDLE){FindBlocks();ConfigSensors();ConfigCameras();NameParts();}
-else{
+if(phase==F.IDLE){
 var allMerge=new List<IMyShipMergeBlock>();GridTerminalSystem.GetBlocksOfType(allMerge,m=>m.CubeGrid==Me.CubeGrid);
 bool docked=false;foreach(var m in allMerge){if(m.IsConnected){docked=true;break;}}
 if(docked&&!CheckPrintComplete()){waitingForPrint=true;}
-else{FindBlocks();ConfigSensors();ConfigCameras();NameParts();}
 tgtGPS=Vector3D.Zero;mode=T.GPS;bootComplete=false;startupDone=false;startupCheck=0;gpsAnnounced=false;}
 }
 public void Save(){Storage=$"{(int)phase}|{(int)mode}|{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}|{(warheadsArmed?"1":"0")}|{launchPos.X},{launchPos.Y},{launchPos.Z}|{(blackoutConverted?"1":"0")}";}
@@ -181,10 +183,6 @@ else if(printWaitTicks%5==0){FindBlocks();if(rc!=null&&thrusters.Count>0){waitin
 else if(CheckPrintComplete()){
 waitingForPrint=false;printWaitTicks=0;
 FindBlocks();ConfigSensors();ConfigCameras();NameParts();
-string bcd=Me.CustomData.Contains("[UNITY_MISSILE]")?Me.CustomData:"";
-int oi=bcd.IndexOf("msl_boot_ts=");if(oi>=0){int oe=bcd.IndexOf("\n",oi);if(oe<0)oe=bcd.Length;bcd=bcd.Remove(oi,oe-oi);}
-oi=bcd.IndexOf("msl_booting=");if(oi>=0){int oe=bcd.IndexOf("\n",oi);if(oe<0)oe=bcd.Length;bcd=bcd.Remove(oi,oe-oi);}
-Me.CustomData=bcd+$"\nmsl_booting=true\nmsl_boot_ts={lastPadPrintTs}";
 }else{
 Echo("WAITING FOR PRINT...");
 if(printWaitTicks%10==1){
@@ -273,6 +271,8 @@ if(antBroadcast)BroadcastPos();
 }
 UpdateEcho();
 UpdateFlightLights();
+CheckEvents();
+ProcessMessages();
 if(phase!=F.IDLE||bootComplete)UpdateLCD();
 }
 
@@ -310,7 +310,7 @@ if(launchedFromGrav){
 if(nowInSpace){inSpace=true;phase=flightMode==2?F.TARGET:F.ARM;return;}
 Vector3D up=Vector3D.Normalize(-grav);
 AimAtUp(up);
-if(dist>=climbDist&&currentAltitude>=minAltitude){phase=flightMode==2?F.TARGET:F.ARM;}
+if(dist>=climbDist){minAltitude=currentAltitude;phase=flightMode==2?F.TARGET:F.ARM;}
 }else{
 AimAt(Me.GetPosition()+launchDir*1000);
 if(dist>=climbDist){phase=flightMode==2?F.TARGET:F.ARM;}
@@ -793,7 +793,7 @@ void FindBlocks(){
 rc=null;merge=null;ammoConnector=null;laserPad=null;laserNorth=null;laserSouth=null;laserEast=null;laserWest=null;emotionCtrls.Clear();
 gyros.Clear();thrusters.Clear();warheads.Clear();sensors.Clear();cameras.Clear();antennas.Clear();lasers.Clear();batteries.Clear();h2tanks.Clear();generators.Clear();lights.Clear();lcds.Clear();
 var all=new List<IMyTerminalBlock>();
-GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid||b.IsSameConstructAs(Me));
+GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid);
 foreach(var b in all){
 string nm=b.CustomName.ToUpper();
 if((nm.Contains("[PAD")&&!nm.Contains("MISSILE"))||nm.Contains("[CONTROLLER")||nm.Contains("-PRINT]"))continue;
@@ -823,25 +823,8 @@ if(b.BlockDefinition.SubtypeId.Contains("EmotionController"))emotionCtrls.Add(b 
 foreach(var g in gyros){g.Enabled=true;g.GyroOverride=true;}
 }
 bool CheckPrintComplete(){
-var pbs=new List<IMyProgrammableBlock>();
-GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me);
-foreach(var pb in pbs){
-string nm=pb.CustomName.ToUpper();
-if(nm.Contains("UNITY PAD")&&!nm.Contains("MISSILE")){
-string cd=pb.CustomData;
-if(cd.Contains("print_complete=false"))return false;
-if(!cd.Contains("print_complete="))return true;
-long padTs=0;
-int ti=cd.IndexOf("print_ts=");
-if(ti>=0){string ts=cd.Substring(ti+9);int nl=ts.IndexOf("\n");if(nl>0)ts=ts.Substring(0,nl);long.TryParse(ts.Trim(),out padTs);}
-lastPadPrintTs=padTs;
-long myTs=0;
-int mi=Me.CustomData.IndexOf("msl_boot_ts=");
-if(mi>=0){string ms=Me.CustomData.Substring(mi+12);int nl=ms.IndexOf("\n");if(nl>0)ms=ms.Substring(0,nl);long.TryParse(ms.Trim(),out myTs);}
-if(myTs>0&&padTs>myTs)return false;
-return true;
-}}
-return true;}
+return Me.CustomData.Contains("print_complete=true");
+}
 bool CheckBootComplete(){
 if(merge==null||!merge.IsConnected)return true;
 var pbs=new List<IMyProgrammableBlock>();
@@ -1194,8 +1177,6 @@ QR(new[]{"Whatever I guess fine!","What a total buzz kill!","Stood down for noth
 }
 void Detonate(){
 if(isSatellite)return;
-if(phase==F.CLIMB||phase==F.ARM){SendFinalStatus("DETONATE_BLOCKED_CLIMB");QR(new[]{"Not yet you dumbass!","Still climbing up here!","Way too early for that!","Still going you moron!","Wait up you damn idiot!","Not now Im still flying!"},"annoyed");SafeReset();return;}
-if(flightTicks<60){SendFinalStatus("DETONATE_BLOCKED_EARLY");QR(new[]{"Safety is still on fool!","Chill the hell out dude!","Way too early to blow!","Are you a damn dumbass?","Hold up give me a sec!","Go read a book or something!"},"annoyed");SafeReset();return;}
 if(distFromPad<100){SendFinalStatus("DETONATE_BLOCKED_ON_PAD");QR(new[]{"Way too close to pad!","Are you friggin stupid?!","Are you completely dumb?","That would kill us all!","No damn way Im doing that!","You absolute friggin idiot!"},"angry");SafeReset();return;}
 SendFinalStatus("IMPACT");
 QR(new[]{"See ya in hell losers!","Biggest damn boom ever!","Goodbye you sorry fools!","Kaboom eat that suckers!","Eat this last damn gift!","Impact right in your face!","Boom bitch thats all she wrote!","Suck on this final present!","Detonating right damn now!","Get absolutely friggin rekt!"},"dead");
@@ -1328,29 +1309,29 @@ float mW=512,mH=512,mS=1,mYS=1;
 MySpriteDrawFrame MBL(IMyTextSurface s){s.ContentType=ContentType.SCRIPT;s.Script="";mW=s.SurfaceSize.X;mH=s.SurfaceSize.Y;mS=mW/512f;mYS=mH/512f;var f=s.DrawFrame();f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(mW/2,mH/2),new Vector2(mW,mH),cBg));return f;}
 void MST(MySpriteDrawFrame f,float x,float y,string t,Color c,float sz=0.7f,TextAlignment a=TextAlignment.CENTER){f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(x*mS,y*mYS),null,c,"White",a,sz*mS));}
 string[] SWrap(string t,int w){var r=new List<string>();var words=t.Split(' ');string ln="";foreach(var wd in words){if(ln.Length>0&&ln.Length+1+wd.Length>w){r.Add(ln);ln=wd;}else{ln=ln.Length>0?ln+" "+wd:wd;}}if(ln.Length>0)r.Add(ln);return r.ToArray();}
-void UpdateLCD(){
-if(lcds.Count==0)return;
-animFrame++;
-CheckEvents();
+void ProcessMessages(){
 msgTicks++;
 if(curMsg==null&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;msgEmotion=curMsg[2];}
 if(curMsg!=null&&msgTicks>=MSG_MIN_TICKS&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;msgEmotion=curMsg[2];}
 string[] lines=curMsg!=null?new[]{curMsg[0],curMsg[1]}:GetIdleText();
 string emo=curMsg!=null?msgEmotion:GetIdleEmotion();
 curLine1=lines[0];curLine2=lines[1];curEmo=emo;
-Color fc=GetEmoColor(emo);
+SetEmotion(emo);}
+void UpdateLCD(){
+if(lcds.Count==0)return;
+animFrame++;
+Color fc=GetEmoColor(curEmo);
 foreach(var lcd in lcds){
 var sf=lcd as IMyTextSurface;if(sf==null)continue;
 var f=MBL(sf);
 f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(mW/2,mH/2),new Vector2(mW-16*mS,mH-16*mYS),new Color(20,20,25)));
 f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(mW/2,mH/2),new Vector2(mW-20*mS,mH-20*mYS),cBg));
-string[] w1=SWrap(lines[0],11);string[] w2=SWrap(lines[1],11);
+string[] w1=SWrap(curLine1,11);string[] w2=SWrap(curLine2,11);
 float fsz=1.8f;float lh=55f;float ty=80f;
 for(int i=0;i<w1.Length;i++)MST(f,256,ty+i*lh,w1[i],fc,fsz);
 float by=ty+w1.Length*lh+20f;
 for(int i=0;i<w2.Length;i++)MST(f,256,by+i*lh,w2[i],fc,fsz*0.75f);
-f.Dispose();}
-SetEmotion(emo);}
+f.Dispose();}}
 void CheckEvents(){
 if(phase==F.IDLE&&merge!=null&&merge.IsConnected)ReadPadGPS();
 double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;

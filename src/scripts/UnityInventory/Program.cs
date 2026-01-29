@@ -1130,19 +1130,20 @@ namespace IngameScript
         var msg=bcnL.AcceptMessage();
         if(!(msg.Data is string))continue;
         var p=((string)msg.Data).Split('|');
-        if(p.Length<16||p[0]!="MB")continue;
-        long eid;if(!long.TryParse(p[1],out eid))continue;
+        if(p.Length<17||p[0]!="MB")continue;
+        int bcnPad;if(!int.TryParse(p[1],out bcnPad))continue;
+        long eid;if(!long.TryParse(p[2],out eid))continue;
         MinerData m;
         if(!trkM.TryGetValue(eid,out m)){m=new MinerData();trkM[eid]=m;}
-        m.name=p[2];
-        float.TryParse(p[3],out m.bat);float.TryParse(p[4],out m.crg);float.TryParse(p[5],out m.h2);
-        var pos=p[6].Split(',');if(pos.Length>=3){double x,y,z;if(double.TryParse(pos[0],out x)&&double.TryParse(pos[1],out y)&&double.TryParse(pos[2],out z))m.pos=new Vector3D(x,y,z);}
-        double.TryParse(p[7],out m.spd);double.TryParse(p[8],out m.alt);double.TryParse(p[9],out m.dist);
-        m.status=p[10];int.TryParse(p[11],out m.drills);int.TryParse(p[12],out m.drillsOn);int.TryParse(p[13],out m.grinders);int.TryParse(p[14],out m.grindersOn);
-        m.docked=p[15]=="1";m.lastSeen=DT;
-        if(p.Length>=21){double.TryParse(p[16],out m.outboundSecs);double.TryParse(p[17],out m.returnSecs);int.TryParse(p[18],out m.cycles);double.TryParse(p[19],out m.etaSecs);m.outbound=p[20]=="1";}
-        if(p.Length>=22&&p[21].StartsWith("FUEL:")){var fl=p[21].Substring(5).Split(',');if(fl.Length>=6){float.TryParse(fl[0],out m.o2);int.TryParse(fl[1],out m.ice);int.TryParse(fl[2],out m.uranium);int.TryParse(fl[3],out m.o2Tanks);int.TryParse(fl[4],out m.genCount);int.TryParse(fl[5],out m.reactCount);}}
-        if(p.Length>=23&&p[22].StartsWith("CARGO:")){m.cargoRaw=p[22].Substring(6);ParseMinerCargo(m);}}
+        m.name=p[3];
+        float.TryParse(p[4],out m.bat);float.TryParse(p[5],out m.crg);float.TryParse(p[6],out m.h2);
+        var pos=p[7].Split(',');if(pos.Length>=3){double x,y,z;if(double.TryParse(pos[0],out x)&&double.TryParse(pos[1],out y)&&double.TryParse(pos[2],out z))m.pos=new Vector3D(x,y,z);}
+        double.TryParse(p[8],out m.spd);double.TryParse(p[9],out m.alt);double.TryParse(p[10],out m.dist);
+        m.status=p[11];int.TryParse(p[12],out m.drills);int.TryParse(p[13],out m.drillsOn);int.TryParse(p[14],out m.grinders);int.TryParse(p[15],out m.grindersOn);
+        m.docked=p[16]=="1";m.lastSeen=DT;
+        if(p.Length>=22){double.TryParse(p[17],out m.outboundSecs);double.TryParse(p[18],out m.returnSecs);int.TryParse(p[19],out m.cycles);double.TryParse(p[20],out m.etaSecs);m.outbound=p[21]=="1";}
+        if(p.Length>=23&&p[22].StartsWith("FUEL:")){var fl=p[22].Substring(5).Split(',');if(fl.Length>=6){float.TryParse(fl[0],out m.o2);int.TryParse(fl[1],out m.ice);int.TryParse(fl[2],out m.uranium);int.TryParse(fl[3],out m.o2Tanks);int.TryParse(fl[4],out m.genCount);int.TryParse(fl[5],out m.reactCount);}}
+        if(p.Length>=24&&p[23].StartsWith("CARGO:")){m.cargoRaw=p[23].Substring(6);ParseMinerCargo(m);}}
         CorrelateDockedMiners();
         CleanStaleMiners();
         }
