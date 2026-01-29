@@ -1277,7 +1277,19 @@ void QR(string[] p,string emo){int i=rnd.Next(p.Length/2)*2;QMsg(p[i],p[i+1],emo
 static Dictionary<string,string> emoMap=new Dictionary<string,string>{{"angry","Angry"},{"annoyed","Annoyed"},{"confused","Confused"},{"crying","Crying"},{"dead","Dead"},{"evil","Evil"},{"happy","Happy"},{"love","Love"},{"neutral","Neutral"},{"sad","Sad"},{"shocked","Shocked"},{"skeptical","Skeptical"},{"sleepy","Sleepy"},{"suspicious_left","Suspicious_Left"},{"suspicious_right","Suspicious_Right"},{"wink","Wink"}};
 void SetEmotion(string emo){string name;if(!emoMap.TryGetValue(emo,out name))name="Neutral";string act=$"Textures\\Models\\Emotes\\{name}.dds";foreach(var ec in emotionCtrls){try{ec.ApplyAction(act);}catch{}}}
 Color GetEmoColor(string emo){switch(emo){case "happy":case "wink":return new Color(0,255,100);case "love":return new Color(200,0,255);case "confused":case "sleepy":return new Color(0,180,255);case "annoyed":case "skeptical":return new Color(255,200,0);case "suspicious_left":case "suspicious_right":return new Color(255,160,0);case "sad":case "crying":return new Color(255,140,0);case "angry":return new Color(255,60,60);case "evil":return new Color(200,0,0);case "dead":return new Color(255,0,0);case "shocked":return new Color(255,100,0);default:return cTxt;}}
-void SetupLCD(IMyTextSurface s){s.ContentType=ContentType.TEXT_AND_IMAGE;s.Font="Monospace";s.FontSize=2.5f;s.Alignment=TextAlignment.CENTER;s.BackgroundColor=cBg;}
+void SetupLCD(IMyTextSurface s){s.ContentType=ContentType.TEXT_AND_IMAGE;s.Font="Monospace";s.FontSize=2.5f;s.Alignment=TextAlignment.LEFT;s.BackgroundColor=cBg;}
+const int LCD_W=11;
+string WrapText(string txt){
+if(txt.Length<=LCD_W)return txt;
+string r="";int pos=0;
+while(pos<txt.Length){
+int left=txt.Length-pos;
+if(left<=LCD_W){r+=txt.Substring(pos);break;}
+int brk=txt.LastIndexOf(' ',pos+LCD_W-1,LCD_W);
+if(brk<=pos)brk=pos+LCD_W;
+r+=txt.Substring(pos,brk-pos)+"\n";
+pos=brk;if(pos<txt.Length&&txt[pos]==' ')pos++;}
+return r;}
 void UpdateLCD(){
 if(lcds.Count==0)return;
 animFrame++;
@@ -1292,7 +1304,7 @@ foreach(var lcd in lcds){
 var sf=lcd as IMyTextSurface;if(sf==null)continue;
 SetupLCD(sf);
 sf.FontColor=fc;
-sf.WriteText("\n\n"+string.Join("\n",lines));}
+sf.WriteText(WrapText(lines[0])+"\n"+WrapText(lines[1]));}
 SetEmotion(emo);}
 void CheckEvents(){
 if(phase==F.IDLE&&merge!=null&&merge.IsConnected)ReadPadGPS();
