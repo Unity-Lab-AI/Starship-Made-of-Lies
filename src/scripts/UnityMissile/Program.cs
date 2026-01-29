@@ -816,7 +816,7 @@ namespace IngameScript
         rc=null;merge=null;ammoConnector=null;laserPad=null;laserNorth=null;laserSouth=null;laserEast=null;laserWest=null;emotionCtrls.Clear();
         gyros.Clear();thrusters.Clear();warheads.Clear();sensors.Clear();cameras.Clear();antennas.Clear();lasers.Clear();batteries.Clear();h2tanks.Clear();generators.Clear();lights.Clear();lcds.Clear();
         var all=new List<IMyTerminalBlock>();
-        GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid);
+        GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid||b.IsSameConstructAs(Me));
         foreach(var b in all){
         string nm=b.CustomName.ToUpper();
         if((nm.Contains("[PAD")&&!nm.Contains("MISSILE"))||nm.Contains("[CONTROLLER")||nm.Contains("-PRINT]"))continue;
