@@ -166,7 +166,7 @@ namespace IngameScript
         else if(nm.Contains(":8")&&lcd8==null)lcd8=ts;
         else if(nm.Contains(":9")&&lcd9==null)lcd9=ts;
         }}
-        var mslPnl=new List<IMyTextPanel>();GridTerminalSystem.GetBlocksOfType(mslPnl,b=>b.IsSameConstructAs(Me)&&b.CubeGrid!=Me.CubeGrid&&b.CustomName.Contains("Missile")&&b.CustomName.Contains("LCD"));foreach(var p in mslPnl)mslLCDs.Add(p);
+        var mslPnl=new List<IMyTextPanel>();GridTerminalSystem.GetBlocksOfType(mslPnl,b=>b.IsSameConstructAs(Me)&&b.CustomName.Contains("Missile")&&b.CustomName.Contains("LCD"));foreach(var p in mslPnl)mslLCDs.Add(p);
         if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn,b=>b.CubeGrid==Me.CubeGrid);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
         if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
         foreach(var a in bootAnt){a.Enabled=true;a.EnableBroadcasting=true;}
