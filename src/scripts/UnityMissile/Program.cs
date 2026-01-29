@@ -104,6 +104,7 @@ namespace IngameScript
         bool bootComplete=false;
         bool waitingForPrint=false;
         int printWaitTicks=0;
+        long lastPadPrintTs=0;
         int bootWaitTicks=0;
         string lastPadSession="";
         IMyShipMergeBlock merge;
@@ -199,10 +200,14 @@ namespace IngameScript
         if(waitingForPrint&&phase==F.IDLE){
         printWaitTicks++;
         if(a=="LAUNCH"){waitingForPrint=false;printWaitTicks=0;}
+        else if(printWaitTicks%5==0){FindBlocks();if(rc!=null&&thrusters.Count>0){waitingForPrint=false;printWaitTicks=0;ConfigSensors();ConfigCameras();NameParts();}}
         else if(CheckPrintComplete()){
         waitingForPrint=false;printWaitTicks=0;
         FindBlocks();ConfigSensors();ConfigCameras();NameParts();
-        Me.CustomData=(Me.CustomData.Contains("[UNITY_MISSILE]")?Me.CustomData:"")+$"\nmsl_booting=true\nmsl_boot_ts={DateTime.Now.Ticks}";
+        string bcd=Me.CustomData.Contains("[UNITY_MISSILE]")?Me.CustomData:"";
+        int oi=bcd.IndexOf("msl_boot_ts=");if(oi>=0){int oe=bcd.IndexOf("\n",oi);if(oe<0)oe=bcd.Length;bcd=bcd.Remove(oi,oe-oi);}
+        oi=bcd.IndexOf("msl_booting=");if(oi>=0){int oe=bcd.IndexOf("\n",oi);if(oe<0)oe=bcd.Length;bcd=bcd.Remove(oi,oe-oi);}
+        Me.CustomData=bcd+$"\nmsl_booting=true\nmsl_boot_ts={lastPadPrintTs}";
         }else{
         Echo("WAITING FOR PRINT...");
         if(printWaitTicks%10==1){
@@ -846,7 +851,18 @@ namespace IngameScript
         foreach(var pb in pbs){
         string nm=pb.CustomName.ToUpper();
         if(nm.Contains("UNITY PAD")&&!nm.Contains("MISSILE")){
-        return pb.CustomData.Contains("print_complete=true");
+        string cd=pb.CustomData;
+        if(cd.Contains("print_complete=false"))return false;
+        if(!cd.Contains("print_complete="))return true;
+        long padTs=0;
+        int ti=cd.IndexOf("print_ts=");
+        if(ti>=0){string ts=cd.Substring(ti+9);int nl=ts.IndexOf("\n");if(nl>0)ts=ts.Substring(0,nl);long.TryParse(ts.Trim(),out padTs);}
+        lastPadPrintTs=padTs;
+        long myTs=0;
+        int mi=Me.CustomData.IndexOf("msl_boot_ts=");
+        if(mi>=0){string ms=Me.CustomData.Substring(mi+12);int nl=ms.IndexOf("\n");if(nl>0)ms=ms.Substring(0,nl);long.TryParse(ms.Trim(),out myTs);}
+        if(myTs>0&&padTs>myTs)return false;
+        return true;
         }}
         return true;}
         bool CheckBootComplete(){

@@ -41,6 +41,7 @@ namespace IngameScript
         IMyTextSurface lcd1,lcd2,lcd3,lcd4,lcd5,lcd6,lcd7,lcd8,lcd9,lcd10,lcd11;
         List<IMyTextSurface> camLCDs=new List<IMyTextSurface>();
         List<IMyTextSurface> signalLCDs=new List<IMyTextSurface>();
+        List<IMyTextSurface> mslLCDs=new List<IMyTextSurface>();
         IMyBroadcastListener bootRspL;
         Color cPri=new Color(0,180,255);Color cSec=new Color(100,100,100);Color cAcc=new Color(255,200,0);
         Color cOK=new Color(0,255,100);Color cWrn=new Color(255,180,0);Color cErr=new Color(255,60,60);
@@ -140,7 +141,7 @@ namespace IngameScript
         }
         
         void ScanBlocks(){
-        lcd1=lcd2=lcd3=lcd4=lcd5=lcd6=lcd7=lcd8=lcd9=lcd10=lcd11=null;btn=null;con1=con2=null;bootAnt.Clear();camLCDs.Clear();signalLCDs.Clear();airVents.Clear();
+        lcd1=lcd2=lcd3=lcd4=lcd5=lcd6=lcd7=lcd8=lcd9=lcd10=lcd11=null;btn=null;con1=con2=null;bootAnt.Clear();camLCDs.Clear();signalLCDs.Clear();airVents.Clear();mslLCDs.Clear();
         var blks=new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType(blks,b=>b.CustomName.Contains(padTag)||b.CubeGrid==Me.CubeGrid);
         string sigTag=$"[PAD{padID}SIGNAL]",defTag=$"[PAD{padID}DEFENSE]",satTag=$"[PAD{padID}SATS]",prsTag=$"[PAD{padID}PRESSURE]";
@@ -165,6 +166,7 @@ namespace IngameScript
         else if(nm.Contains(":8")&&lcd8==null)lcd8=ts;
         else if(nm.Contains(":9")&&lcd9==null)lcd9=ts;
         }}
+        var mslPnl=new List<IMyTextPanel>();GridTerminalSystem.GetBlocksOfType(mslPnl,b=>b.IsSameConstructAs(Me)&&b.CubeGrid!=Me.CubeGrid&&b.CustomName.Contains("Missile")&&b.CustomName.Contains("LCD"));foreach(var p in mslPnl)mslLCDs.Add(p);
         if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn,b=>b.CubeGrid==Me.CubeGrid);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
         if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
         foreach(var a in bootAnt){a.Enabled=true;a.EnableBroadcasting=true;}
@@ -295,6 +297,7 @@ namespace IngameScript
         foreach(var lcd in iL){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,false);}
         foreach(var lcd in camLCDs){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,true);}
         foreach(var lcd in signalLCDs){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,true);}
+        foreach(var lcd in mslLCDs){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,true);}
         Echo("UNITY MISSILE SYSTEM");
         Echo("ALL SYSTEMS OPERATIONAL");
         Echo($"[{totalSteps}/{totalSteps}] Success!");
@@ -321,6 +324,7 @@ namespace IngameScript
         foreach(var lcd in invLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,false);}
         foreach(var lcd in camLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,true);}
         foreach(var lcd in signalLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,true);}
+        foreach(var lcd in mslLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,true);}
         Echo("UNITY MISSILE SYSTEM");
         Echo("Boot Controller Active");
         Echo($"[{Math.Min(bootStep+1,totalSteps)}/{totalSteps}] {curCheck}");
@@ -431,6 +435,7 @@ namespace IngameScript
         foreach(var lcd in all){if(lcd==null)continue;lcd.ContentType=ContentType.TEXT_AND_IMAGE;lcd.Script="";lcd.WriteText("");}
         foreach(var lcd in camLCDs){if(lcd==null)continue;lcd.ContentType=ContentType.TEXT_AND_IMAGE;lcd.Script="";lcd.WriteText("");}
         foreach(var lcd in signalLCDs){if(lcd==null)continue;lcd.ContentType=ContentType.TEXT_AND_IMAGE;lcd.Script="";lcd.WriteText("");}
+        foreach(var lcd in mslLCDs){if(lcd==null)continue;lcd.ContentType=ContentType.TEXT_AND_IMAGE;lcd.Script="";lcd.WriteText("");}
         }
         void CheckAcks(){
         if(ackL==null)return;
