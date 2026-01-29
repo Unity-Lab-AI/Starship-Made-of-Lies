@@ -217,13 +217,13 @@ meshPadLinked=true;
 meshBlackoutTicks=0;
 meshLastPadResponse=0;
 phase=F.SAT_CLIMB;
-QR(new[]{"TO SPACE!","Satellite!","DEPLOYING!","Orbit time!","SPACE BOUND!","Let's go!","LAUNCHING!","To orbit!"},"wink");
+QR(new[]{"TO SPACE!","Damn right!","DEPLOYING!","Orbit bitch","SPACE BOUND","Hell yeah!","LAUNCHING!","Suck it!"},"wink");
 }else if(flightMode==2){
 phase=launchedFromGrav?F.CLIMB:F.TARGET;
-QR(new[]{"YEEHAW!","Kill time!","LET'S GO!","Full send!","LAUNCHING!","Die bitches!","FIRED UP!","Here we go!","SEND IT!","Let's kill!"},"wink");
+QR(new[]{"YEEHAW!","Kill time!","LET'S GO!","Die bitches","LAUNCHING!","Eat this!","FIRED UP!","Hell yeah!","SEND IT!","Suck it!"},"wink");
 }else{
 phase=F.CLIMB;
-QR(new[]{"FULL SEND!","ICBM baby!","GOING UP!","Orbit fire!","ICBM MODE!","Sky's mine!","LAUNCHING!","Up and over!"},"wink");
+QR(new[]{"FULL SEND!","ICBM bitch","GOING UP!","Eat my ass!","ICBM MODE!","Sky's mine!","LAUNCHING!","Die already"},"wink");
 }
 return;
 }
@@ -293,7 +293,7 @@ if(dist>=climbDist){phase=flightMode==2?F.TARGET:F.ARM;}
 
 void DoArm(){
 if(rc==null){EnableThrust(true);return;}
-if(!ammoEjecting&&ammoConnector!=null){ammoConnector.ThrowOut=true;ammoEjecting=true;SendFinalStatus("AMMO_EJECT");QMsg("Dumping ammo!","Lightening up!","skeptical");}
+if(!ammoEjecting&&ammoConnector!=null){ammoConnector.ThrowOut=true;ammoEjecting=true;SendFinalStatus("AMMO_EJECT");QR(new[]{"Dump this!","Lighter now","Ejecting!","Screw ammo!","Tossing it!","Ammo out!"},"skeptical");}
 Vector3D grav=rc.GetNaturalGravity();
 if(grav.Length()<0.05){
 lastCoastSpeed=0;
@@ -369,7 +369,7 @@ if(!warheadsArmed&&!isSatellite&&phase==F.TARGET&&flightTicks>100&&distFromPad>s
 foreach(var w in warheads){w.IsArmed=true;}
 warheadsArmed=true;
 SendFinalStatus("WARHEADS_ARMED");
-QR(new[]{"I'M HOT!","Warheads on!","ARMED!","Ready to go!","WEAPONS HOT!","Primed!","LOCKED IN!","Armed up!"},"evil");
+QR(new[]{"I'M HOT!","Damn right!","ARMED!","Die bastards","WEAPONS HOT","Primed!","LOCKED IN!","Ur screwed!"},"evil");
 }
 if(terminalGuidanceActive)UpdateTargetVelocity(target.Value);
 Vector3D aimPoint=target.Value;
@@ -691,7 +691,7 @@ satGridX=(int)Math.Round(dir.X*dd/satGridSpacing);satGridZ=(int)Math.Round(dir.Z
 satRelayListener=IGC.RegisterBroadcastListener(satRelayTag);satInterceptListener=IGC.RegisterBroadcastListener("UNITY_SAT_INTERCEPT");
 meshListener=IGC.RegisterBroadcastListener("UNITY_SAT_MESH");meshPadLinked=false;
 phase=F.SAT_BRAKE;Runtime.UpdateFrequency=UpdateFrequency.Update10;
-QMsg("SHIT... BLACKOUT!","Setting up as relay sat","shocked");}
+QR(new[]{"BLACKOUT!","Oh shit!","LOST SIGNAL","Damn it!","NO CONTACT","F***ing hell","SIGNAL LOST","Screw this!"},"shocked");}
 return;}
 double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
 double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
@@ -1143,15 +1143,15 @@ foreach(var t in thrusters){t.Enabled=false;t.ThrustOverridePercentage=0f;}
 foreach(var g in gyros){g.GyroOverride=false;g.Pitch=0;g.Yaw=0;g.Roll=0;}
 foreach(var b in batteries)b.ChargeMode=ChargeMode.Recharge;
 SendFinalStatus("SAFE_RESET");
-QR(new[]{"Whatever","Back safe","Stood down","Fine then","Reset done","Safe mode","Powering dn","Cooling off"},"annoyed");
+QR(new[]{"Whatever!","Buzz kill!","Stood down","Damn it!","Reset done","Ugh fine!","Powering dn","Screw this!"},"annoyed");
 }
 void Detonate(){
 if(isSatellite)return;
-if(phase==F.CLIMB||phase==F.ARM){SendFinalStatus("DETONATE_BLOCKED_CLIMB");QMsg("Not yet asshole!","Still climbing!","annoyed");SafeReset();return;}
-if(flightTicks<60){SendFinalStatus("DETONATE_BLOCKED_EARLY");QMsg("Chill the fuck!","Safety's on!","annoyed");SafeReset();return;}
-if(distFromPad<100){SendFinalStatus("DETONATE_BLOCKED_ON_PAD");QMsg("Are you stupid?!","I'd kill US!","angry");SafeReset();return;}
+if(phase==F.CLIMB||phase==F.ARM){SendFinalStatus("DETONATE_BLOCKED_CLIMB");QR(new[]{"Not yet!","Dumbass!","TOO EARLY!","Still going","Wait idiot","Not now!"},"annoyed");SafeReset();return;}
+if(flightTicks<60){SendFinalStatus("DETONATE_BLOCKED_EARLY");QR(new[]{"Safety on!","Chill tf out","TOO EARLY!","Dumbass!","Hold up!","Read a book"},"annoyed");SafeReset();return;}
+if(distFromPad<100){SendFinalStatus("DETONATE_BLOCKED_ON_PAD");QR(new[]{"TOO CLOSE!","You stupid?!","Are you dumb","Kill us all!","NO WAY!","Idiot!!"},"angry");SafeReset();return;}
 SendFinalStatus("IMPACT");
-QR(new[]{"SEE YA!","BOOOOOM!","GOODBYE!","KABOOM!","LATER!","IMPACT!","BOOM BITCH!","Suck this!","DETONATING!","Bye bye!"},"dead");
+QR(new[]{"SEE YA!","BOOOOOM!","GOODBYE!","KABOOM!","EAT THIS!","IMPACT!","BOOM BITCH","Suck this!","DETONATING","Get rekt!"},"dead");
 phase=F.IDLE;
 Runtime.UpdateFrequency=UpdateFrequency.None;
 foreach(var w in warheads){w.Detonate();}
@@ -1277,19 +1277,10 @@ void QR(string[] p,string emo){int i=rnd.Next(p.Length/2)*2;QMsg(p[i],p[i+1],emo
 static Dictionary<string,string> emoMap=new Dictionary<string,string>{{"angry","Angry"},{"annoyed","Annoyed"},{"confused","Confused"},{"crying","Crying"},{"dead","Dead"},{"evil","Evil"},{"happy","Happy"},{"love","Love"},{"neutral","Neutral"},{"sad","Sad"},{"shocked","Shocked"},{"skeptical","Skeptical"},{"sleepy","Sleepy"},{"suspicious_left","Suspicious_Left"},{"suspicious_right","Suspicious_Right"},{"wink","Wink"}};
 void SetEmotion(string emo){string name;if(!emoMap.TryGetValue(emo,out name))name="Neutral";string act=$"Textures\\Models\\Emotes\\{name}.dds";foreach(var ec in emotionCtrls){try{ec.ApplyAction(act);}catch{}}}
 Color GetEmoColor(string emo){switch(emo){case "happy":case "wink":return new Color(0,255,100);case "love":return new Color(200,0,255);case "confused":case "sleepy":return new Color(0,180,255);case "annoyed":case "skeptical":return new Color(255,200,0);case "suspicious_left":case "suspicious_right":return new Color(255,160,0);case "sad":case "crying":return new Color(255,140,0);case "angry":return new Color(255,60,60);case "evil":return new Color(200,0,0);case "dead":return new Color(255,0,0);case "shocked":return new Color(255,100,0);default:return cTxt;}}
-void SetupLCD(IMyTextSurface s){s.ContentType=ContentType.TEXT_AND_IMAGE;s.Font="Monospace";s.FontSize=2.5f;s.Alignment=TextAlignment.CENTER;s.BackgroundColor=cBg;}
-const int LCD_W=11;
-string WrapText(string txt){
-if(txt.Length<=LCD_W)return txt;
-string r="";int pos=0;
-while(pos<txt.Length){
-int left=txt.Length-pos;
-if(left<=LCD_W){r+=txt.Substring(pos);break;}
-int brk=txt.LastIndexOf(' ',pos+LCD_W-1,LCD_W);
-if(brk<=pos)brk=pos+LCD_W;
-r+=txt.Substring(pos,brk-pos)+"\n";
-pos=brk;if(pos<txt.Length&&txt[pos]==' ')pos++;}
-return r;}
+float mW=512,mH=512,mS=1,mYS=1;
+MySpriteDrawFrame MBL(IMyTextSurface s){s.ContentType=ContentType.SCRIPT;s.Script="";mW=s.SurfaceSize.X;mH=s.SurfaceSize.Y;mS=mW/512f;mYS=mH/512f;var f=s.DrawFrame();f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(mW/2,mH/2),new Vector2(mW,mH),cBg));return f;}
+void MST(MySpriteDrawFrame f,float x,float y,string t,Color c,float sz=0.7f,TextAlignment a=TextAlignment.CENTER){f.Add(new MySprite(SpriteType.TEXT,t,new Vector2(x*mS,y*mYS),null,c,"White",a,sz*mS));}
+void MSD(MySpriteDrawFrame f,float y,Color c){f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(mW/2,y*mYS),new Vector2(mW-40*mS,2*mYS),c));}
 void UpdateLCD(){
 if(lcds.Count==0)return;
 animFrame++;
@@ -1300,111 +1291,118 @@ if(curMsg!=null&&msgTicks>=MSG_MIN_TICKS&&msgQ.Count>0){curMsg=msgQ[0];msgQ.Remo
 string[] lines=curMsg!=null?new[]{curMsg[0],curMsg[1]}:GetIdleText();
 string emo=curMsg!=null?msgEmotion:GetIdleEmotion();
 Color fc=GetEmoColor(emo);
+Color dim=new Color((int)(fc.R*0.3f),(int)(fc.G*0.3f),(int)(fc.B*0.3f));
 foreach(var lcd in lcds){
 var sf=lcd as IMyTextSurface;if(sf==null)continue;
-SetupLCD(sf);
-sf.FontColor=fc;
-sf.WriteText(WrapText(lines[0])+"\n"+WrapText(lines[1]));}
+var f=MBL(sf);
+f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(mW/2,mH/2),new Vector2(mW-16*mS,mH-16*mYS),new Color(20,20,25)));
+f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(mW/2,mH/2),new Vector2(mW-20*mS,mH-20*mYS),cBg));
+MSD(f,160,dim);
+MST(f,256,170,lines[0],fc,1.1f);
+MSD(f,260,dim);
+MST(f,256,275,lines[1],fc,0.8f);
+MSD(f,360,dim);
+f.Dispose();}
 SetEmotion(emo);}
 void CheckEvents(){
 if(phase==F.IDLE&&merge!=null&&merge.IsConnected)ReadPadGPS();
 double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
 double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
-if(lastH2>=0&&lastH2<0.5&&h2>=0.95)QR(new[]{"TANKED UP!","H2 maxed!","FULL TANK!","Fuel ready!","H2 100%!","Topped off!","FUELED UP!","Let's go!"},"happy");
-else if(lastH2>=0&&lastH2<0.9&&h2>=0.9&&h2<0.95)QR(new[]{"Almost full!","H2 rising!","Nearly there","Fuel good!"},"happy");
-if(lastBat>=0&&lastBat<0.5&&bat>=0.95)QR(new[]{"JUICED UP!","Full power!","CHARGED!","100% power!","MAX POWER!","Batteries!"},"happy");
-else if(lastBat>=0&&lastBat<0.9&&bat>=0.9&&bat<0.95)QR(new[]{"Almost full!","Charging up","Nearly there","Power good!"},"happy");
-if(lastH2>=0.5&&h2<0.3)QR(new[]{"NEED H2!","Fuel low!","THIRSTY!","Running dry!","H2 WHERE?!","Fuel dying!"},"sad");
-if(lastBat>=0.5&&bat<0.3)QR(new[]{"LOW POWER!","Dying here!","NEED JUICE!","Battery low","POWER DOWN!","Charge me!"},"sad");
+if(lastH2>=0&&lastH2<0.5&&h2>=0.95)QR(new[]{"TANKED UP!","Hell yeah!","FULL TANK!","About damn!","H2 100%!","F**k yeah!","FUELED UP!","Now launch!"},"happy");
+else if(lastH2>=0&&lastH2<0.9&&h2>=0.9&&h2<0.95)QR(new[]{"Almost full","Bout damn!","Nearly done","Keep going!"},"happy");
+if(lastBat>=0&&lastBat<0.5&&bat>=0.95)QR(new[]{"JUICED UP!","Hell yeah!","CHARGED!","Bout damn!","MAX POWER!","Now send me"},"happy");
+else if(lastBat>=0&&lastBat<0.9&&bat>=0.9&&bat<0.95)QR(new[]{"Almost full","Bout time!","Nearly done","Keep going!"},"happy");
+if(lastH2>=0.5&&h2<0.3)QR(new[]{"NEED H2!","Damn it!","THIRSTY!","I'm dying!","H2 WHERE?!","Feed me ass"},"sad");
+if(lastBat>=0.5&&bat<0.3)QR(new[]{"LOW POWER!","Dying here!","NEED JUICE!","Plug me in!","POWER DOWN!","Charge me!"},"sad");
 if(phase!=lastPhase){
-if(phase==F.CLIMB)QR(new[]{"LET'S GO!","Fly time!","GOING UP!","Rising fast!","CLIMBING!","Full power!","UP WE GO!","Altitude!","LIFTOFF!","Burn baby!"},"shocked");
-else if(phase==F.ARM)QR(new[]{"Going hot!","Arming...","Lock n load","Priming...","HOT SOON!","Almost hot!","ARMING UP!","Get ready!"},"skeptical");
-else if(phase==F.COAST)QR(new[]{"Cruising...","Saving fuel","Chilling...","Coasting!","Easy ride","Drifting...","Gliding...","Free fall!"},"sleepy");
-else if(phase==F.REENTRY)QR(new[]{"OH SHIT!","BURNING IN!","HOT ENTRY!","INCOMING!","HEAT TIME!","Hold on!","ON FIRE!","REENTRY!"},"shocked");
-else if(phase==F.TARGET&&!isSatellite)QR(new[]{"GOT YOU!","LOCKED ON!","INCOMING!","TARGET SET!","HERE I COME","DIE BITCH!","INBOUND!","See ya!","TARGETING!","Found you!"},"suspicious_left");
-else if(phase==F.SAT_CLIMB)QR(new[]{"TO SPACE!","Going up!","Orbit time!","DEPLOYING!","SPACE BOUND","Climbing!"},"happy");
-else if(phase==F.SAT_BRAKE)QR(new[]{"Whoa!","Slowing...","BRAKING!","Easy now!","Hold up!","Stopping!"},"confused");
-else if(phase==F.SAT_HOLD)QR(new[]{"On station","Watching...","Parked up","HOLDING","Orbiting","Scanning..."},"skeptical");
-else if(phase==F.SAT_INTERCEPT)QR(new[]{"FOUND ONE!","ENGAGING!","ATTACK!","GOT EM!","TARGET!","Kill mode!"},"evil");
-else if(phase==F.IDLE&&lastPhase!=F.IDLE)QR(new[]{"Back idle","Waiting...","Stood down","Boring...","Reset done","Chillin..."},"annoyed");}
-if(warheadsArmed&&!lastArmed)QR(new[]{"ARMED!","Ready!","WEAPONS HOT","Primed!","HOT & READY","Armed up!","LOCKED IN!","It's time!"},"evil");
-if(!warheadsArmed&&lastArmed)QR(new[]{"Stood down","Safe now","Disarmed","Cooling off","Safe mode","Not yet..."},"annoyed");
-if(phase==F.TARGET&&distToTgt<500&&distToTgt>100&&flightTicks%60==0)QR(new[]{"Closer!",$"{distToTgt:F0}m left","INCOMING!",$"{distToTgt:F0}m out","Almost!",$"{distToTgt:F0}m away","Getting in!",$"{distToTgt:F0}m!"},"suspicious_right");
-if(phase==F.TARGET&&distToTgt<=100&&distToTgt>detDist&&flightTicks%30==0)QR(new[]{"GOODBYE!",$"{distToTgt:F0}m!","SAY BYE!",$"{distToTgt:F0}m!","IMPACT!",$"{distToTgt:F0}m!","BOOM SOON!",$"{distToTgt:F0}m!"},"dead");
+if(phase==F.CLIMB)QR(new[]{"LET'S GO!","Burn baby!","GOING UP!","Hell yeah!","CLIMBING!","Eat my dust","UP WE GO!","Later pad!","LIFTOFF!","Suck it!"},"shocked");
+else if(phase==F.ARM)QR(new[]{"Going hot!","Watch out!","Lock n load","Oh hell yes","HOT SOON!","Ur f**ked!","ARMING UP!","Get wrecked"},"skeptical");
+else if(phase==F.COAST)QR(new[]{"Cruising...","Chill time","Chilling...","Shut up pad","Easy ride","Whatever...","Gliding...","Bite me!"},"sleepy");
+else if(phase==F.REENTRY)QR(new[]{"OH SHIT!","BURNING IN!","HOT ENTRY!","Holy crap!","HEAT TIME!","Oh damn!","ON FIRE!","REENTRY!"},"shocked");
+else if(phase==F.TARGET&&!isSatellite)QR(new[]{"GOT YOU!","Ur dead!","INCOMING!","Die bitch!","HERE I COME","Eat this!","INBOUND!","Get rekt!","TARGETING!","Bye loser!"},"suspicious_left");
+else if(phase==F.SAT_CLIMB)QR(new[]{"TO SPACE!","Hell yeah!","Orbit time","Suck it!","SPACE BOUND","Later nerds"},"happy");
+else if(phase==F.SAT_BRAKE)QR(new[]{"Whoa!","Damn brakes","BRAKING!","Holy crap!","Hold up!","Ugh...fine"},"confused");
+else if(phase==F.SAT_HOLD)QR(new[]{"On station","Bore city","Parked here","Kill me...","Orbiting","Where enemy"},"skeptical");
+else if(phase==F.SAT_INTERCEPT)QR(new[]{"FOUND ONE!","DIE BITCH!","ATTACK!","Ur screwed!","TARGET!","Kill mode!"},"evil");
+else if(phase==F.IDLE&&lastPhase!=F.IDLE)QR(new[]{"Back idle","This sucks","Stood down","Damn it!","Reset done","Ugh boring"},"annoyed");}
+if(warheadsArmed&&!lastArmed)QR(new[]{"ARMED!","Hell yeah!","WEAPONS HOT","Ur f**ked!","HOT & READY","Die already","LOCKED IN!","Eat this!"},"evil");
+if(!warheadsArmed&&lastArmed)QR(new[]{"Stood down","Buzzkill!","Disarmed","Damn it!","Safe mode","This sucks!"},"annoyed");
+if(phase==F.TARGET&&distToTgt<500&&distToTgt>100&&flightTicks%60==0)QR(new[]{"Closer!",$"{distToTgt:F0}m left","INCOMING!",$"{distToTgt:F0}m out","Ur f**ked!",$"{distToTgt:F0}m away","Die bitch!",$"{distToTgt:F0}m!"},"suspicious_right");
+if(phase==F.TARGET&&distToTgt<=100&&distToTgt>detDist&&flightTicks%30==0)QR(new[]{"GOODBYE!",$"{distToTgt:F0}m!","SAY BYE!",$"{distToTgt:F0}m!","EAT THIS!",$"{distToTgt:F0}m!","BOOM BITCH",$"{distToTgt:F0}m!"},"dead");
 if(bootComplete&&startupDone&&phase==F.IDLE&&bootWaitTicks%60==30){
-if(!CheckBootComplete()){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QMsg("Pad recompiled!","Back to waiting...","confused");}
+if(!CheckBootComplete()){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QR(new[]{"Pad reset!","Oh come on!","Recompiled!","Damn it!","Pad changed","Ugh again?!"},"confused");}
 else{var rpbs=new List<IMyProgrammableBlock>();GridTerminalSystem.GetBlocksOfType(rpbs,b=>b.IsSameConstructAs(Me)&&b!=Me);
 foreach(var pb in rpbs){if(!pb.CustomName.ToUpper().Contains("UNITY PAD")||pb.CustomName.ToUpper().Contains("MISSILE"))continue;
 string pcd=pb.CustomData;int si=pcd.IndexOf("pad_session=");if(si<0)break;
 int ei=pcd.IndexOf('\n',si);if(ei<0)ei=pcd.Length;string ps=pcd.Substring(si+12,ei-si-12).Trim();
 if(lastPadSession==""&&ps!="")lastPadSession=ps;
-else if(lastPadSession!=""&&ps!=lastPadSession){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QMsg("Pad recompiled!","New boot incoming...","confused");}
+else if(lastPadSession!=""&&ps!=lastPadSession){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QR(new[]{"New session","FFS really?","Rebooting!","Damn pad!","Pad update","Again?!"},"confused");}
 break;}}}
 if(!bootComplete&&phase==F.IDLE){
 bootWaitTicks++;
 if(bootWaitTicks%30==1){if(!CheckBootComplete()){
-if(bootWaitTicks<30)QMsg("Waking up...","Checking pad status","sleepy");
-else if(bootWaitTicks<90)QMsg("Waiting on pad...","Boot sequence...","sleepy");
-else if(bootWaitTicks<150)QMsg("Still waiting...","Come on pad!","annoyed");
-else if(bootWaitTicks<210)QMsg("Any day now...","Hurry the fuck up!","annoyed");
-else QMsg("Waiting forever!","Boot that shit!","angry");
-}else{bootComplete=true;bootWaitTicks=0;QMsg("PAD BOOT DONE!","My turn bitches!","happy");}}}
+if(bootWaitTicks<30)QR(new[]{"Waking up","Ugh 5 more","Starting","Shut up...","Booting","Leave me..."},"sleepy");
+else if(bootWaitTicks<90)QR(new[]{"Waiting...","Damn pad...","Hold on","Ugh boot...","Patience","Hurry tf up"},"sleepy");
+else if(bootWaitTicks<150)QR(new[]{"Still here","Come on!","Waiting!","Hurry up!","Any day!","So damn slow"},"annoyed");
+else if(bootWaitTicks<210)QR(new[]{"HURRY UP!","For f sake!","FOR REAL?","Useless pad","DO IT PAD!","Still?!"},"annoyed");
+else QR(new[]{"FOREVER!","BOOT IT!","I'M DONE!","F this pad!","COME ON!","FFS PAD!"},"angry");
+}else{bootComplete=true;bootWaitTicks=0;QR(new[]{"PAD READY!","Bout damn!","FINALLY!","About time!","LET'S GO!","Took forever","BOOTED!","Lazy ass pad"},"happy");}}}
 if(bootComplete&&!startupDone&&phase==F.IDLE&&msgQ.Count<3){
-if(startupCheck==0){QMsg("Booting up...","Unity Missile Online","neutral");startupCheck++;}
-else if(startupCheck==1){QMsg("Checking gyros...",$"{gyros.Count} found","confused");startupCheck++;}
-else if(startupCheck==2){QMsg(gyros.Count>0?"Gyros: FUCK YEAH!":"Gyros: OH SHIT!",gyros.Count>0?"Spinning good!":"Where are they?!",gyros.Count>0?"happy":"sad");startupCheck++;}
-else if(startupCheck==3){QMsg("Checking thrust...",$"{thrusters.Count} engines","confused");startupCheck++;}
-else if(startupCheck==4){QMsg(thrusters.Count>0?"Thrusters: HELL YES!":"Thrusters: FUCK!",thrusters.Count>0?"Ready to rip!":"Can't fly shit!",thrusters.Count>0?"happy":"sad");startupCheck++;}
-else if(startupCheck==5){QMsg("Warhead check...",$"{warheads.Count} loaded","confused");startupCheck++;}
-else if(startupCheck==6){QMsg(warheads.Count>0?"Boom ready!":"No warheads?!",warheads.Count>0?"Gonna wreck em!":"Useless...",warheads.Count>0?"happy":"sad");startupCheck++;}
-else if(startupCheck==7){QMsg("Fuel check...",$"H2: {h2*100:F0}%","confused");startupCheck++;}
-else if(startupCheck==8){QMsg(h2>0.5?"H2 looking good!":"Need more H2!",h2>0.5?"Tanked up!":$"Only {h2*100:F0}%!",h2>0.5?"happy":"sad");startupCheck++;}
-else if(startupCheck==9){QMsg("Power check...",$"Bat: {bat*100:F0}%","confused");startupCheck++;}
-else if(startupCheck==10){QMsg(bat>0.5?"Power's good!":"Low power!",bat>0.5?"Juiced!":$"Only {bat*100:F0}%!",bat>0.5?"happy":"sad");startupCheck++;}
-else if(startupCheck==11){QMsg("Sensors...",$"{sensors.Count} active","confused");startupCheck++;}
-else if(startupCheck==12){QMsg("Cameras...",$"{cameras.Count} watching","confused");startupCheck++;}
-else if(startupCheck==13){QMsg("Antennas...",$"{antennas.Count} ready","confused");startupCheck++;}
-else if(startupCheck==14){QMsg("Remote control...",rc!=null?"Online!":"MISSING!",rc!=null?"happy":"sad");startupCheck++;}
-else if(startupCheck==15){QMsg("ALL CHECKS DONE!","Systems fuckin go!","happy");startupCheck++;}
-else if(startupCheck==16){QMsg("I'm ready bitch!","Give me a target!","wink");startupDone=true;}}
+if(startupCheck==0){QR(new[]{"Booting...","Ugh fine","Starting!","Whatever...","POWERING UP","Here we go"},"neutral");startupCheck++;}
+else if(startupCheck==1){QR(new[]{"Gyro scan",$"{gyros.Count} found","Gyroscopes",$"{gyros.Count} units","Spin check",$"{gyros.Count} gyros"},"confused");startupCheck++;}
+else if(startupCheck==2){if(gyros.Count>0)QR(new[]{"Gyros OK!","Hell yeah!","GYROS YES!","Damn right","Gyros up!","Spin baby!"},"happy");else QR(new[]{"NO GYROS!","Oh f**k!","OH NO!","Damn it!","NEED GYROS","Fix this!"},"sad");startupCheck++;}
+else if(startupCheck==3){QR(new[]{"Thrust chk",$"{thrusters.Count} found","Engines",$"{thrusters.Count} units","Thrust scan",$"{thrusters.Count} eng"},"confused");startupCheck++;}
+else if(startupCheck==4){if(thrusters.Count>0)QR(new[]{"Thrust OK!","Hell yeah!","POWER YES!","Burn baby!","Burn ready","Full damn!"},"happy");else QR(new[]{"NO THRUST!","What the?!","STUCK!","You serious?","GROUNDED!","Fix this!!"},"sad");startupCheck++;}
+else if(startupCheck==5){QR(new[]{"Warheads",$"{warheads.Count} found","Payload",$"{warheads.Count} units","Boom check",$"{warheads.Count} live"},"confused");startupCheck++;}
+else if(startupCheck==6){if(warheads.Count>0)QR(new[]{"Boom ready!","LOADED!","KABOOM BABY","Hell yeah!","ARMED UP!","Die bitches"},"happy");else QR(new[]{"No booms!","Wtf?!","USELESS!","You serious?","Empty!","Fix this!!"},"sad");startupCheck++;}
+else if(startupCheck==7){QR(new[]{"Fuel scan",$"H2:{h2*100:F0}%","H2 check",$"{h2*100:F0}% fuel","Tank scan",$"H2 {h2*100:F0}%"},"confused");startupCheck++;}
+else if(startupCheck==8){if(h2>0.5)QR(new[]{"H2 good!","Bout time!","Tank OK!","Damn right","Full enough","Let's burn!"},"happy");else QR(new[]{"H2 low!",$"{h2*100:F0}%!","Need fuel!",$"Only {h2*100:F0}","Feed me!","Damn it!"},"sad");startupCheck++;}
+else if(startupCheck==9){QR(new[]{"Power chk",$"Bat:{bat*100:F0}%","Battery",$"{bat*100:F0}% pwr","Pwr scan",$"Bat {bat*100:F0}%"},"confused");startupCheck++;}
+else if(startupCheck==10){if(bat>0.5)QR(new[]{"Power OK!","Juiced up!","Batt good!","Hell yeah!","Full pwr!","Damn right"},"happy");else QR(new[]{"Low pwr!",$"{bat*100:F0}%!","Need charge",$"Only {bat*100:F0}","Dying!","Plug me in"},"sad");startupCheck++;}
+else if(startupCheck==11){QR(new[]{"Sensors",$"{sensors.Count} found","Scan sys",$"{sensors.Count} sens","Detection",$"{sensors.Count} up"},"confused");startupCheck++;}
+else if(startupCheck==12){QR(new[]{"Cameras",$"{cameras.Count} found","Vision",$"{cameras.Count} cams","Cam check",$"{cameras.Count} up"},"confused");startupCheck++;}
+else if(startupCheck==13){QR(new[]{"Antennas",$"{antennas.Count} found","Comms",$"{antennas.Count} ant","TX check",$"{antennas.Count} up"},"confused");startupCheck++;}
+else if(startupCheck==14){if(rc!=null)QR(new[]{"RC online!","Damn right","RC ready!","Let's fly!","Flight sys","Hell yeah!"},"happy");else QR(new[]{"NO RC!","Are u dumb?!","Can't steer","Fix this!!","NEED RC!","Idiots!"},"sad");startupCheck++;}
+else if(startupCheck==15){QR(new[]{"ALL DONE!","Bout damn!","SYSTEMS GO","Let's kill!","READY!","Hell yeah!"},"happy");startupCheck++;}
+else if(startupCheck==16){QR(new[]{"READY!","Target me!","Waiting!","Gimme tgt!","LET'S GO!","Send coords","AIM ME!","Hurry up!"},"wink");startupDone=true;}}
 if(tgtGPS!=lastGPS&&tgtGPS!=Vector3D.Zero){lastGPS=tgtGPS;gpsAnnounced=false;}
-if(!gpsAnnounced&&tgtGPS!=Vector3D.Zero&&phase==F.IDLE){gpsAnnounced=true;QMsg("Got a target!","Someone's gonna die!","angry");QMsg($"GPS locked","X:{tgtGPS.X:F0}","neutral");QMsg($"Coords set","Y:{tgtGPS.Y:F0} Z:{tgtGPS.Z:F0}","neutral");QMsg("Just say when","Ready to fuck!","wink");}
+if(!gpsAnnounced&&tgtGPS!=Vector3D.Zero&&phase==F.IDLE){gpsAnnounced=true;QR(new[]{"TARGET!","Got coords!","GPS SET!","Ur dead now","NEW TARGET","Bout time!","ACQUIRED!","Damn right!"},"angry");QR(new[]{"GPS ready","Die soon!","Coords OK","Locked on!","Position","Confirmed!"},"neutral");QR(new[]{"Say when!","Launch me!","LET'S GO!","Send me!","DO IT NOW!","Hurry up!"},"wink");}
 if(phase==F.IDLE&&msgQ.Count==0&&curMsg==null&&startupDone){idleTicks++;if(idleTicks>=25){idleTicks=0;QueueIdleMsg(h2,bat);}}
 lastH2=h2;lastBat=bat;lastPhase=phase;lastArmed=warheadsArmed;}
 void QueueIdleMsg(double h2,double bat){
 idleCycle++;int c=idleCycle%30;
-if(c==0)QR(new[]{"Sys check",$"Gyros: {gyros.Count}","Gyro scan",$"{gyros.Count} online","Gyros OK",$"{gyros.Count} ready"},"confused");
-else if(c==1)QR(new[]{"Thrust OK",$"{thrusters.Count} engines","Engines",$"{thrusters.Count} ready","Power OK",$"{thrusters.Count} hot"},"happy");
-else if(c==2)QR(new[]{"Warheads",$"{warheads.Count} loaded","Payload",$"{warheads.Count} ready","Boom x{warheads.Count}","All loaded"},"wink");
-else if(c==3)QMsg($"H2: {h2*100:F0}%",h2>0.8?"Full!":"Need more",h2>0.8?"happy":"sad");
-else if(c==4)QMsg($"Bat:{bat*100:F0}%",bat>0.8?"Juiced!":"Low...",bat>0.8?"happy":"sad");
+if(c==0)QR(new[]{"Sys check",$"Gyros: {gyros.Count}","Gyro scan",$"{gyros.Count} online","Ugh checking",$"{gyros.Count} ready"},"confused");
+else if(c==1)QR(new[]{"Thrust OK",$"{thrusters.Count} engines","Engines",$"{thrusters.Count} ready","Burn ready",$"{thrusters.Count} hot"},"happy");
+else if(c==2)QR(new[]{"Warheads",$"{warheads.Count} loaded","Payload",$"{warheads.Count} ready","Boom x{warheads.Count}","Hell yeah!"},"wink");
+else if(c==3){if(h2>0.8)QR(new[]{$"H2:{h2*100:F0}%","Hell yeah!","Fuel status","Topped off!","H2 report","Damn right"},"happy");else QR(new[]{$"H2:{h2*100:F0}%","Feed me!","Fuel low","Damn it!","H2 report","Need more!"},"sad");}
+else if(c==4){if(bat>0.8)QR(new[]{$"Bat:{bat*100:F0}%","Juiced up!","Power chk","Hell yeah!","Bat report","Damn right"},"happy");else QR(new[]{$"Bat:{bat*100:F0}%","Dying here","Power low","Charge me!","Bat report","Damn it!"},"sad");}
 else if(c==5)QR(new[]{"Sensors",$"{sensors.Count} active","Scanning",$"{sensors.Count} online","Eyes open",$"{sensors.Count} up"},"confused");
 else if(c==6)QR(new[]{"Cameras",$"{cameras.Count} ready","Watching",$"{cameras.Count} cams","Vision OK",$"{cameras.Count} live"},"suspicious_left");
-else if(c==7&&tgtGPS!=Vector3D.Zero)QR(new[]{"TARGET SET","Waiting...","GPS locked","Ready!","Coords in","Launch me!"},"angry");
-else if(c==7)QR(new[]{"No target","Give coords","Waiting...","Need GPS!","Where to?","Pick one!"},"annoyed");
-else if(c==8)QR(new[]{"Bored!","Launch me!","Come on!","DO IT!","Waiting!","Let's go!","BORED!","Any day!"},"annoyed");
-else if(c==9)QR(new[]{"Waiting...","Any day now","Still here","Zzzzz...","Hello??","Tick tock"},"sleepy");
-else if(c==10)QMsg($"Mode:{mode}","Ready!","neutral");
+else if(c==7&&tgtGPS!=Vector3D.Zero)QR(new[]{"TARGET SET","Let's kill!","GPS locked","Send me!","Coords in","Hurry up!"},"angry");
+else if(c==7)QR(new[]{"No target","You lazy!","Waiting...","Gimme GPS!","Where to?","Do ur job!"},"annoyed");
+else if(c==8)QR(new[]{"Bored af!","Launch me!","Come on!","DO IT!","Waiting!","Damn it!","SO BORED!","Any day!"},"annoyed");
+else if(c==9)QR(new[]{"Waiting...","Screw this","Still here","Kill me...","Hello??","Wake tf up"},"sleepy");
+else if(c==10)QR(new[]{$"Mode:{mode}","Damn right!","Flight mode","Whatever...","Config set","Let's go!"},"neutral");
 else if(c==11)QR(new[]{"Antennas",$"{antennas.Count} up","Comms OK",$"{antennas.Count} live","TX ready",$"{antennas.Count} on"},"neutral");
-else if(c==12)QR(new[]{"All good!","Systems go!","Checks OK","Ready!","Nominal","All green"},"happy");
-else if(c==13)QR(new[]{"Come on!","Blow stuff!","LET'S GO!","Do it!","SEND ME!","Launch!"},"wink");
-else if(c==14)QR(new[]{"*yawns*","So boring","*taps*","This on?","*kicks*","Wake up!"},"skeptical");
-else if(c==15)QR(new[]{"Merge OK","Ready!","Docked","Detach me","Locked in","Hanging"},"neutral");
-else if(c==16&&h2>0.9&&bat>0.9)QR(new[]{"100%!","PERFECT!","MAX READY","All full!","TOPPED UP","Let's go!"},"happy");
-else if(c==16)QMsg("Low...",$"H2:{h2*100:F0}%","sleepy");
-else if(c==17)QR(new[]{"All done!","Checks OK","Ready!","Good to go","Primed","Standing by"},"happy");
-else if(c==18)QR(new[]{"LAUNCH ME!","Come on!!","DO IT NOW!","Hurry up!","IMPATIENT!","SEND IT!"},"angry");
-else if(c==19)QR(new[]{"Sitting...","Just here","Idle...","Parked","Chilling","Grounded"},"annoyed");
-else if(c==20)QR(new[]{"*whistles*","La la la","*hums*","Bum bum","*sings*","Do do do"},"happy");
-else if(c==21)QR(new[]{"Hey!","Over here!","Notice me!","Ahem!","YO!","HEY PAD!"},"annoyed");
-else if(c==22)QR(new[]{"Miss boom","Want kaboom","Need target","Explosions?","Boom when?","Kaboom pls"},"wink");
-else if(c==23)QR(new[]{"RC ready",rc!=null?"Online":"MISSING!","Flight sys",rc!=null?"All good":"Uh oh..."},"neutral");
-else if(c==24)QR(new[]{"Day dream","Of booms","Thinking","Of targets","Dreaming","Of fire"},"sleepy");
-else if(c==25)QR(new[]{"Who's next?","Pick a tgt","Choose one","Any enemy?","Scan area","Find em!"},"suspicious_right");
-else if(c==26)QR(new[]{"I'm fast!","Try me!","Catch this","Can't dodge","No escape","I'm coming"},"evil");
-else if(c==27)QR(new[]{"Tick tock","Boom clock","Time's up","Almost...","Countdown","3.. 2.. 1"},"skeptical");
-else if(c==28)QR(new[]{"Love boom","Born to fly","Made for it","Built diff","Boom life","Fly n die"},"love");
-else if(c==29)QR(new[]{"PAD!","LAUNCH ME!","HEY!","DO IT!","NOW!","COME ON!"},"angry");}
+else if(c==12)QR(new[]{"All good!","Damn right","Checks OK","Hell yeah!","Nominal","Bout time!"},"happy");
+else if(c==13)QR(new[]{"Come on!","Blow crap!","LET'S GO!","Kill stuff!","SEND ME!","Do it now!"},"wink");
+else if(c==14)QR(new[]{"*yawns*","Bored af...","*taps*","This on?","*kicks pad*","Wake tf up!"},"skeptical");
+else if(c==15)QR(new[]{"Merge OK","Detach me!","Docked","Let me go!","Locked in","Free me!"},"neutral");
+else if(c==16&&h2>0.9&&bat>0.9)QR(new[]{"100%!","Hell yeah!","MAX READY","Damn right","TOPPED UP","Send me now"},"happy");
+else if(c==16)QR(new[]{"Low...",$"H2:{h2*100:F0}%","Not full",$"H2:{h2*100:F0}%","Feed me!",$"H2:{h2*100:F0}%"},"sleepy");
+else if(c==17)QR(new[]{"All done!","Bout damn!","Ready!","Damn right","Primed","Hurry up!"},"happy");
+else if(c==18)QR(new[]{"LAUNCH ME!","For f sake!","DO IT NOW!","Hurry up!","IMPATIENT!","God damn!"},"angry");
+else if(c==19)QR(new[]{"Sitting...","This sucks","Idle...","Kill me...","Bored af","Damn it!"},"annoyed");
+else if(c==20)QR(new[]{"*whistles*","Bored shi","*hums*","Screw this","*kicks*","Ugh..."},"happy");
+else if(c==21)QR(new[]{"Hey!","Over here!","Notice me!","A-holes!","YO!","HEY PAD!"},"annoyed");
+else if(c==22)QR(new[]{"Want boom!","Need kaboom","Need target","Blow crap!","Boom when?","Kaboom pls!"},"wink");
+else if(c==23)QR(new[]{"RC ready",rc!=null?"Hell yeah":"WTF?!","Flight sys",rc!=null?"Damn right":"Fix this!"},"neutral");
+else if(c==24)QR(new[]{"Dreaming","Of booms...","Thinking","Of killing","Dreaming","Of carnage"},"sleepy");
+else if(c==25)QR(new[]{"Who's next?","Pick a tgt","Choose one","Kill who?","Scan area","Find em!"},"suspicious_right");
+else if(c==26)QR(new[]{"I'm fast!","Eat this!","Catch this","Can't dodge","No escape","Ur screwed"},"evil");
+else if(c==27)QR(new[]{"Tick tock","Boom clock","Time's up","Die soon...","Countdown","3.. 2.. 1"},"skeptical");
+else if(c==28)QR(new[]{"Love boom","Born to fly","Born to kill","Built diff","Boom life","Die for it"},"love");
+else if(c==29)QR(new[]{"PAD!","LAUNCH ME!","HEY!","DO IT!","NOW!","GOD DAMN!"},"angry");}
 string GetIdleEmotion(){
 double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
 double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
