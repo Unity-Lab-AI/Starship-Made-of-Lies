@@ -1,7 +1,7 @@
 # UNITY MISSILE SYSTEM - Active Tasks
 
-**Last Updated:** 2026-01-28
-**Status:** Multi-pad isolation deployed, full doc refresh **COMPLETE**
+**Last Updated:** 2026-01-29
+**Status:** Ammo recycling fixes, PB ABORT, missile session detection deployed to develop
 
 ---
 

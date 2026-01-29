@@ -4,7 +4,7 @@ Centralized boot controller for the Unity Missile System. Uses Per-PB CustomData
 
 **Location:** `Unity Missile System/src/scripts/Unity Boot/`
 **PB Name:** `[PAD1] UNITY BOOT`
-**Version:** v01.00 | 2026-01-24
+**Version:** v01.00 | 2026-01-29
 
 ---
 

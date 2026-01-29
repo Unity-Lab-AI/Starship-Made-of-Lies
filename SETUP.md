@@ -1,7 +1,7 @@
 # Unity Missile System - Complete Setup Guide
 
 **Location:** `Space Engineers/Unity Missile System/`
-**Version:** v01.00 | 2026-01-24
+**Version:** v01.00 | 2026-01-29
 
 ---
 
@@ -179,7 +179,7 @@ UnityBeacon automatically names cameras with `[PAD{padID}] {shipName} Cam` forma
 | 1 | **UnityPad** | Wipes Me.CustomData, writes `pad_ready=true` |
 | 2 | **UnityInventory** | Wipes Me.CustomData, writes `inv_ready=true` |
 | 3 | **UnitySignal** | Wipes Me.CustomData, writes `signal_ready=true` |
-| 4 | **Unity Boot** | Reads ready flags, runs 23 checks, sets `boot_complete=true` |
+| 4 | **Unity Boot** | Reads ready flags, runs 26 checks, sets `boot_complete=true` |
 
 **Note:** UnityBeacon (miners) and UnityMissile (missiles) are on separate grids - compile anytime.
 
@@ -187,7 +187,7 @@ UnityBeacon automatically names cameras with `[PAD{padID}] {shipName} Cam` forma
 
 ## Part 5: Boot Sequence Checks
 
-Unity Boot performs 23 checks:
+Unity Boot performs 26 checks:
 
 | # | Check | What It Does |
 |---|-------|--------------|

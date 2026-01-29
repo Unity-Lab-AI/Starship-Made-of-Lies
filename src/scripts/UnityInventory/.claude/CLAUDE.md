@@ -4,7 +4,7 @@ Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 
 
 **Location:** `Unity Missile System/src/scripts/UnityInventory/`
 **PB Name:** `[PAD1] Unity Inventory`
-**Version:** v01.00 | 2026-01-24
+**Version:** v01.00 | 2026-01-29
 
 ---
 
@@ -395,8 +395,28 @@ void RecycleExcess(){
         a.UseConveyorSystem = false;  // Prevent auto-pull!
     }
 
-    // Transfer and queue
+    // Transfer and queue — ONLY if actual excess exists
+    // Each item type check requires excess > 0 before setting bp
     XferAndQueue(src, slot, type, amt, blueprint);
+}
+```
+
+### S-10 Double-Recycle Prevention
+`paEx` (personal ammo excess) skips the `mslAmmoKey` to avoid double-counting:
+```csharp
+for(int i=0;i<pAmmoIT.Length;i++){
+    string key=pAmmoIT[i];
+    if(key==mslAmmoKey)continue;  // Skip missile ammo from personal excess
+    // ... calculate excess
+}
+```
+
+### FeedAssemblers Disassembly Guard
+`FeedAssemblers()` skips assemblers in disassembly mode to prevent fighting:
+```csharp
+foreach(var a in padAsm){
+    if(a.Mode!=MyAssemblerMode.Assembly){continue;}  // Skip recyclers
+    // ... feed ingots
 }
 ```
 
@@ -633,6 +653,7 @@ S-10 pistol ammo is the default missile loading ammo, hence the higher target.
 *2026-01-22: Added recycling system, S-10 routing fix.*
 *2026-01-26: Added bottle counting via GetItemAmount(), ammoTypeIdx sync, mslAmmoTarget minimum enforcement.*
 *2026-01-28: Personal ammo counting via GetItemAmount(), FUEL connector detection, code compression, BOOT_REQ padID filtering.*
+*2026-01-29: Fixed S-10 double-recycling (paEx skips mslAmmoKey), disassembler output excess guards, FeedAssemblers skips disassembly-mode assemblers, ammo LCD sign display fix, config key .ToLower() fix.*
 
 **WARNING:** At 99,582 chars deployed, we have basically ZERO room. Any additions need equal or greater removals. This script is at the wall.
 

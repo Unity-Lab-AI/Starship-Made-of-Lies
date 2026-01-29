@@ -1,6 +1,6 @@
 # UNITY MISSILE SYSTEM - Skill Tree
 
-*Last Updated: 2026-01-24*
+*Last Updated: 2026-01-29*
 *Unity AI Lab - Missile Systems Division*
 
 ---
@@ -112,6 +112,9 @@ Complete capability map for the Unity Missile System (6 scripts). Organized by d
 | Multi-Assembler Recycling | UnityInventory | COMPLETE | Expert |
 | S-10 Ammo Special Routing | UnityInventory | COMPLETE | Advanced |
 | Production Quota Management | UnityInventory | COMPLETE | Advanced |
+| Recycling Excess Guards | UnityInventory | COMPLETE | Advanced |
+| FeedAssemblers Mode Check | UnityInventory | COMPLETE | Intermediate |
+| Ammo LCD Sign Display | UnityInventory | COMPLETE | Intermediate |
 
 ### Missile Construction
 
@@ -164,6 +167,9 @@ Complete capability map for the Unity Missile System (6 scripts). Organized by d
 | Proximity Detonation | UnityMissile | COMPLETE | Basic |
 | Satellite No-Explode | UnityMissile | COMPLETE | Basic |
 | Countdown Safety | UnityPad | COMPLETE | Basic |
+| PB ABORT Command | UnityPad | COMPLETE | Intermediate |
+| Boot Session Verification | UnityMissile | COMPLETE | Advanced |
+| Auto Fire Mode | UnityPad | COMPLETE | Intermediate |
 
 ---
 
@@ -322,12 +328,12 @@ System integration and automation.
 | Display & UI | 10 | 10 | 0 |
 | Block Detection | 7 | 7 | 0 |
 | Signal Controller | 7 | 7 | 0 |
-| Inventory | 13 | 13 | 0 |
+| Inventory | 16 | 16 | 0 |
 | Construction | 8 | 8 | 0 |
 | Launch Operations | 9 | 9 | 0 |
 | Mass Operations | 9 | 9 | 0 |
-| Safety Systems | 6 | 6 | 0 |
-| **TOTAL** | **95** | **95** | **0** |
+| Safety Systems | 9 | 9 | 0 |
+| **TOTAL** | **101** | **101** | **0** |
 
 ---
 

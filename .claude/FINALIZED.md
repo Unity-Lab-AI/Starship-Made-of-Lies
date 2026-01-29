@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-01-29: Ammo Recycling Fixes, PB ABORT, Missile Session Detection
+
+### UnityInventory Fixes
+- [x] Fixed S-10 ammo double-recycling: `paEx` now skips `mslAmmoKey` to avoid counting missile ammo as personal ammo excess
+- [x] Fixed disassembler output re-queuing: all item type checks now require `excess > 0` before setting blueprint
+- [x] Fixed `FeedAssemblers()`: skips assemblers in disassembly mode (`Mode!=Assembly`) to prevent fighting between production and recycling
+- [x] Fixed ammo LCD display: shows `stock±diff/target` with correct sign (e.g., `91301-41301/50000`)
+- [x] Fixed config key case-sensitivity: added `.ToLower()` to key parsing in `ReadOwnSettings()`
+
+### UnityPad Fixes
+- [x] Added `ABORT` case to `HandleArg()`: sends `RemoteDetonate(true)` when `cS==S.GONE`, queues if in blackout
+- [x] Fixed `maxSel` for MAIN menu: changed from 5 to 6 to allow Auto Fire selection at sel==6
+
+### UnityMissile Fixes
+- [x] Fixed `bootWaitTicks` session detection: moved increment to run unconditionally, changed modulo from `%60==30` to `%10==0`
+- [x] Enhanced `CheckBootComplete()`: verifies `boot_for_session` matches `pad_session` to prevent stale boot detection
+- [x] Added `FindBlocks(); ConfigSensors(); ConfigCameras();` call when `bootComplete` transitions to true
+
+---
+
 ## 2026-01-28: Multi-Pad Isolation & Safety
 
 ### SETUPMOD Multi-Pad Fix

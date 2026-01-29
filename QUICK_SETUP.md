@@ -1,7 +1,7 @@
 # UNITY MISSILE SYSTEM - Quick Setup Guide
 
 **Location:** `Space Engineers/Unity Missile System/`
-**Version:** v01.00 | 2026-01-24
+**Version:** v01.00 | 2026-01-29
 
 ---
 

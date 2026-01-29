@@ -4,7 +4,7 @@ Launch pad controller for the Unity Missile System. Manages missile printing, fu
 
 **Location:** `Unity Missile System/src/scripts/UnityPad/` (part of Unity Missile System)
 **PB Name:** `[PAD1] Unity Pad`
-**Version:** v01.00 | 2026-01-24
+**Version:** v01.00 | 2026-01-29
 
 ---
 
@@ -102,7 +102,7 @@ void FindSiblingPBs(){
 
 **UnityPad waits for boot_complete=true before taking LCD control.**
 
-Unity Boot runs first with 23 unified checks using real PB-to-PB IGC handshaking.
+Unity Boot runs first with 26 unified checks using real PB-to-PB IGC handshaking.
 
 ### Pre-Boot Ready Flag
 
@@ -362,6 +362,9 @@ Printing stops when:
 - **Satellite Array Management:** Grid position tracking, spiral expansion, intercept handling
 - **Setup Commands:** SETUPMOD, SETUPFORCE, NAMEPAD, NAMEMSL sent via UNITY_SETUP_CMD to Boot
 - **Controller Commands:** BUILDALL, ARMALL, LAUNCHALL, ABORTALL for mass operations
+- **PB ABORT Command:** `ABORT` argument in HandleArg sends `DETONATE:{padID}` via IGC to in-flight missile; queues abort if in blackout (mslBO); bypasses 10s grace period
+- **Auto Fire:** Menu sel==6 on MAIN menu (maxSel=6), toggles automatic fire mode
+- **RemoteDetonate:** Sends `DETONATE:{padID}` on `UNITY_MSL_CMD` channel; enables antennas first for range
 
 ### Satellite Array Management
 

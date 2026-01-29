@@ -548,7 +548,7 @@ namespaces=IngameScript
 | Channel | Sender | Receiver | Purpose | PadID Filtering |
 |---------|--------|----------|---------|-----------------|
 | `UNITY_MSL` | Missile | Signal, Pad | Telemetry broadcast + camera info | No |
-| `UNITY_MSL_CMD` | Pad | Missile | Commands (DETONATE, ABORT) | Yes — `DETONATE:{padID}` only (bare DETONATE removed) |
+| `UNITY_MSL_CMD` | Pad | Missile | Commands (DETONATE:{padID}, RESET:{padID}, MERGE) | Yes — padID-qualified only (bare DETONATE removed) |
 | `UNITY_PAD_CMD` | Controller | Slaves | Mass commands | Yes — `fromPad==padID` filtering |
 | `UNITY_PAD_STATUS` | All Pads | Controller | Status updates | No |
 | `UNITY_SAT_RELAY` | Satellite | Satellite | Inter-satellite mesh | No |
@@ -577,6 +577,7 @@ namespaces=IngameScript
 - **IGC Channels:** UNITY_BOOT_REQ (request), UNITY_BOOT_RSP (response), MINER_BEACON (fleet)
 - **Handshake:** Sets `boot_complete=true` in Me.CustomData [SYSTEM] section
 - **LCDs:** Controls all 11 during boot, releases after completion
+- **Session Tracking:** Writes `boot_for_session={padSess}` to CustomData for missile session verification
 - **Self-Disables:** Sets UpdateFrequency.None after boot
 
 ### UnityPad.cs (Launch Pad Controller)
@@ -586,7 +587,9 @@ namespaces=IngameScript
 - **GPS Input:** Reads GPS from button panel `[PAD1] Controls` CustomData (user pastes there)
 - **LCDs:** 1,2,3,7,8 (after boot_complete)
 - **Block Tags:** `[PAD#]` for merge/connector/buttons, `[PAD#:1-11]` for LCDs
-- **Features:** Multi-pad controller mode, salvo/carpet bombing, printer integration, miner fleet tracking
+- **Features:** Multi-pad controller mode, salvo/carpet bombing, printer integration, miner fleet tracking, Auto Fire mode
+- **PB Commands:** UP, DOWN, APPLY, LAUNCH, ARM, DISARM, ABORT, REFUEL, PRINT, STOP, SETUP, SETUPMOD, SETUPFORCE, RESCAN, NAMEPAD, NAMEMSL, RESET, SETPADCONTROL, ABORTALL, etc.
+- **ABORT Command:** Direct PB argument sends DETONATE:{padID} via IGC to in-flight missile; queues if in blackout
 - **Satellite Array Management:** Grid position tracking, spiral expansion, intercept handling, auto-replacement
 - **Ready Flag:** Writes `pad_ready=true` to Me.CustomData on compile
 - **Boot Check:** Reads `boot_complete=true` from bootPB.CustomData
@@ -600,6 +603,11 @@ namespaces=IngameScript
 - **Bottle Counting:** Uses `GetItemAmount(h2BottleType/o2BottleType)` for reliable counting (not string matching)
 - **Ammo Type Sync:** Reads `type` key from padPB.CustomData, calls UpdateAmmoType() to sync ammoTypeIdx
 - **Production Target:** `prodTgt = ammoTypeIdx==0 ? mslAmmoTarget : ammoTarget` (S-10 uses 50k default)
+- **Recycling System:** RecycleExcess() with excess guards — only disassembles items with actual excess > 0
+- **FeedAssemblers:** Skips assemblers in disassembly mode — prevents fighting between production and recycling
+- **Ammo LCD Display:** Shows `stock±diff/target` with correct sign (e.g., `91301-41301/50000`)
+- **Config Key Parsing:** Uses `.ToLower()` for case-insensitive key matching in ReadOwnSettings()
+- **S-10 Double-Recycle Fix:** paEx calculation skips `mslAmmoKey` to avoid double-counting missile ammo as personal ammo excess
 - **Ready Flag:** Writes `inv_ready=true` to Me.CustomData on compile
 - **Boot Check:** Reads `boot_complete=true` from bootPB.CustomData
 
@@ -608,6 +616,10 @@ namespaces=IngameScript
 - **Satellite Branch:** SAT_CLIMB → SAT_BRAKE → SAT_HOLD → (enemy detected) → SAT_INTERCEPT → DETONATE
 - **Targeting Modes:** GPS, ANTENNA, SENSOR, LIDAR, MANUAL, SATELLITE
 - **Satellite Features:** 5-laser mesh networking, grid formation tracking, auto-intercept enemy detection
+- **Session Detection:** `bootWaitTicks` increments unconditionally; checks `%10==0` to detect pad recompiles
+- **CheckBootComplete:** Verifies `boot_for_session` matches `pad_session` to prevent stale boot detection
+- **FindBlocks on Boot:** Calls `FindBlocks(); ConfigSensors(); ConfigCameras();` when bootComplete transitions true
+- **CMD Listener:** Handles `DETONATE:{padID}`, `RESET:{padID}`, `MERGE` on `UNITY_MSL_CMD` channel
 
 ### UnityBeacon.cs (Fleet Tracker)
 - **PB Name:** `[PAD1] [BEACON] Unity Beacon` (includes pad ID for multi-pad filtering)
@@ -814,6 +826,7 @@ MB|PadID|EntityId|ShipName|Bat%|Cargo%|H2%|X,Y,Z|Speed|...  (miner beacon - PadI
 boot_ready=true
 boot_complete=true
 boot_phase=DONE
+boot_for_session=abc123
 miner_count=2
 miner_names=Miner1,Miner2
 ```

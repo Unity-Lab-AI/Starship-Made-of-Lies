@@ -5,7 +5,7 @@
 **6-Script Modular System | 11 LCD Displays | Sprite-Based Rendering | Full Automation | Multi-Pad Support | Satellite Array Mesh | Laser Networking | Auto-Intercept | Carpet Bomb | Auto-Attack | Fleet Tracking | Inventory Management**
 
 **Location:** `Space Engineers/Unity Missile System/`
-**Version:** v01.00 | 2026-01-24
+**Version:** v01.00 | 2026-01-29
 
 **Works on LARGE or SMALL grids (auto-detect)**
 **Works in SPACE or ATMOSPHERE (auto-detect)**
@@ -68,7 +68,7 @@
 | 1 | UnityPad | Clears CustomData, writes `pad_ready=true` |
 | 2 | UnityInventory | Clears CustomData, writes `inv_ready=true` |
 | 3 | UnitySignal | Clears CustomData, writes `signal_ready=true` |
-| 4 | Unity Boot | Reads ready flags, runs 23 checks, sets `boot_complete=true` |
+| 4 | Unity Boot | Reads ready flags, runs 26 checks, sets `boot_complete=true` |
 
 *Note: UnityBeacon (miners) and UnityMissile (missiles) are on separate grids - compile anytime.*
 
@@ -148,7 +148,7 @@ Button 4 → Run PB with argument: LAUNCH
 | 2 | UnityMissile | `[PAD1] Missile #1 Program` | Compile on missile PB |
 | 3 | **UnityPad** | `[PAD1] Unity Pad` | **CLEARS CustomData - must be first of main 4** |
 | 4 | UnityInventory | `[PAD1] Unity Inventory` | Adds inv_ready flag |
-| 5 | Unity Boot | `[PAD1] UNITY BOOT` | Runs 23/23 checks, signals boot_complete |
+| 5 | Unity Boot | `[PAD1] UNITY BOOT` | Runs 23/26 checks, signals boot_complete |
 | 6 | UnitySignal | `[PAD1] UNITY SIGNAL` | Camera display, waits for boot_complete |
 
 **WHY THIS ORDER:**
@@ -1013,7 +1013,8 @@ Centralized boot controller with real PB-to-PB handshaking. Runs 26 unified chec
 7. **On error** → Pauses 5 seconds, shows error message, retries
 8. **On success** → Sets `boot_complete=true` in [SYSTEM] CustomData
 9. **Self-disables** → UpdateFrequency.None (stops running)
-10. **Handoff** → UnityPad, UnityInventory, UnitySignal detect boot_complete and take their LCDs
+10. **Session tracking** → Writes `boot_for_session={padSess}` so missiles can verify boot is current
+11. **Handoff** → UnityPad, UnityInventory, UnitySignal detect boot_complete and take their LCDs
 
 ### Real Handshaking Protocol
 
@@ -1078,7 +1079,7 @@ Dedicated inventory management running on a separate PB from UnityPad.
 1. Add SECOND Programmable Block on pad grid
 2. Load `UnityInventory` script
 3. Name PB: `[PAD1] Unity Inventory`
-4. Both PBs share data via button panel CustomData
+4. Each PB writes ONLY to Me.CustomData; reads sibling PBs' CustomData when needed
 
 ---
 
@@ -1393,6 +1394,7 @@ All programmable block arguments for every script in the Unity Missile System.
 | `LAUNCH` | Launch armed missile / Remote detonate in-flight missile |
 | `ARM` | Arm missile when state is READY |
 | `DISARM` | Disarm armed missile |
+| `ABORT` | Remote detonate in-flight missile (queues if in blackout) |
 | `REFUEL` | Start refuel cycle when IDLE |
 
 **Printer Operations:**
@@ -1463,8 +1465,8 @@ All programmable block arguments for every script in the Unity Missile System.
 | `NAME` | Find and auto-name all missile blocks |
 
 **Note:** UnityMissile also receives IGC commands from the pad:
-- `DETONATE` - Detonate all warheads
-- `DETONATE:{padID}` - Detonate specific pad's missile
+- `DETONATE:{padID}` - Detonate specific pad's missile (bare DETONATE removed)
+- `RESET:{padID}` - Safe reset missile
 - `MERGE` - Re-enable merge block
 
 ---
@@ -1482,7 +1484,14 @@ All programmable block arguments for every script in the Unity Missile System.
 
 ### Unity Boot Arguments
 
-Unity Boot has no manual arguments - it runs the boot sequence automatically on compile/recompile and self-disables after completion.
+Unity Boot runs the boot sequence automatically on compile/recompile and self-disables after completion. It also handles setup commands forwarded from UnityPad:
+
+| Argument | Action |
+|----------|--------|
+| `SETUPMOD` | Auto-setup pad module (claim ID, tag all blocks) |
+| `SETUPFORCE` | Force re-setup even if blocks already tagged |
+| `NAMEPAD` | Rename all pad blocks with formatted names |
+| `NAMEMSL` | Rename all missile blocks with formatted names |
 
 ---
 

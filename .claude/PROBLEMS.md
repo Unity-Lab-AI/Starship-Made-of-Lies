@@ -1,6 +1,7 @@
 # UNITY MISSILE SYSTEM - PROBLEMS PLAN
 
 **Generated:** 2026-01-18 04:20
+**Updated:** 2026-01-29
 **Status:** Active Problems Requiring Attention
 
 ---
@@ -25,13 +26,43 @@
 **Source:** 10-Agent Deep Scan
 **These were marked "deferred" not "fixed":**
 
-| Issue | Location | Why It Matters |
-|-------|----------|----------------|
-| Blackout/abort race condition | UnityPad Line 300 | Can lose abort commands during comm blackout |
-| Grid scan consolidation | UnityPad Lines 659-672 | 10+ redundant scans = performance death |
-| bbLog unbounded concatenation | UnityPad Line 321 | Memory leak during long sessions |
+| Issue | Location | Why It Matters | Status |
+|-------|----------|----------------|--------|
+| Blackout/abort race condition | UnityPad HandleArg | Can lose abort commands during comm blackout | **FIXED 2026-01-29** — ABORT command queues via `abtQ=true` when in blackout (`mslBO`) |
+| Grid scan consolidation | UnityPad Lines 659-672 | 10+ redundant scans = performance death | DEFERRED |
+| bbLog unbounded concatenation | UnityPad Line 321 | Memory leak during long sessions | DEFERRED |
 
-**Status:** STILL BROKEN - marked deferred, never fixed
+**Status:** Blackout/abort FIXED. Others still deferred.
+
+---
+
+### 2b. Ammo Recycling Bugs (FIXED 2026-01-29)
+
+**Source:** User reported S-10 ammo dismantling all 91,000+ instead of excess above 50,000
+**Root Causes (all fixed):**
+- `paEx` double-counted S-10 as both personal ammo excess and missile ammo excess → Fixed: skip `mslAmmoKey` in paEx loop
+- Disassembler output scan set `bp` without checking excess > 0 → Fixed: added excess guards to all item type checks
+- `FeedAssemblers()` pushed ingots into disassembly-mode assemblers → Fixed: skip assemblers where `Mode!=Assembly`
+- Config key case-sensitivity: `mslAmmo` vs `"mslammo"` mismatch → Fixed: added `.ToLower()` to key parsing
+- LCD display showed `+0/0` instead of `-41301/50000` → Fixed: `aDf=aT-ammoStock` with conditional sign
+
+**Status:** ALL FIXED in `feature/bugfixes-ammo-abort` branch, merged to develop
+
+### 2c. Missile Session Detection (FIXED 2026-01-29)
+
+**Source:** Missile LCDs fighting with pad/boot during recompile
+**Root Cause:** `bootWaitTicks` only incremented inside `!bootComplete` block, never reaching the session check modulo
+**Fix:** `bootWaitTicks++` runs unconditionally; `CheckBootComplete()` verifies `boot_for_session` matches `pad_session`
+
+**Status:** FIXED
+
+### 2d. PB ABORT Command Missing (FIXED 2026-01-29)
+
+**Source:** User reported running ABORT on pad PB did nothing — only menu-based abort worked
+**Root Cause:** No `case "ABORT"` in `HandleArg()` — only `ABORTALL` existed (controller-only)
+**Fix:** Added `case "ABORT"` that sends `RemoteDetonate(true)` when `cS==S.GONE`, queues if blackout
+
+**Status:** FIXED
 
 ---
 

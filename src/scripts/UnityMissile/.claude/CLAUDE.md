@@ -4,7 +4,7 @@ Guided missile flight controller for the Unity Missile System. Handles all fligh
 
 **Location:** `Unity Missile System/src/scripts/UnityMissile/` (part of Unity Missile System)
 **PB Name:** `[PAD1] Missile #1 Program`
-**Version:** v01.00 | 2026-01-24
+**Version:** v01.00 | 2026-01-29
 
 ---
 
@@ -185,7 +185,7 @@ This prevents PAD1's missiles from responding to PAD2's commands in multi-pad se
 | Channel | Direction | Purpose |
 |---------|-----------|---------|
 | `UNITY_MSL` | OUT | Telemetry to pad |
-| `UNITY_MSL_CMD` | IN | Commands from pad (DETONATE:{padID}, DEORBIT:{padID}, ABORT) |
+| `UNITY_MSL_CMD` | IN | Commands from pad (DETONATE:{padID}, RESET:{padID}, MERGE) |
 
 ### Telemetry Format
 ```
@@ -216,6 +216,23 @@ Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 | UnityMissile | ~1,165 | ~44,563 | 100,000 | OK (55.4% margin) |
 
 *Note: Character count increased with satellite laser mesh networking, grid tracking, and SAT_INTERCEPT phase.*
+
+---
+
+## Session Detection & Boot Verification
+
+### bootWaitTicks Session Detection
+After boot completes, the missile monitors for pad recompiles:
+- `bootWaitTicks` increments unconditionally every tick
+- Every `%10==0` ticks, checks if boot is still valid for current session
+- If pad recompiles, the missile detects stale boot and re-enters boot wait mode
+
+### CheckBootComplete() Session Matching
+Enhanced to verify boot ran for the CURRENT pad session:
+- Reads `pad_session` from padPB.CustomData
+- Reads `boot_for_session` from bootPB.CustomData
+- Returns false if sessions don't match (stale boot)
+- Calls `FindBlocks(); ConfigSensors(); ConfigCameras();` when bootComplete transitions to true
 
 ---
 
