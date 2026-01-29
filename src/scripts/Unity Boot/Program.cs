@@ -27,6 +27,7 @@ namespace IngameScript
         bool waitingForAck=false;bool padAck=false,invAck=false;int ackWaitTicks=0;
         IMyBroadcastListener ackL;
         IMyBroadcastListener setupL;
+        IMyBroadcastListener nameCmdL;
         int minerCount=0;string minerNames="";bool beaconOptional=true;
         IMyBroadcastListener beaconL;
         Dictionary<long,string> bootMiners=new Dictionary<long,string>();
@@ -64,6 +65,7 @@ namespace IngameScript
         beaconL=IGC.RegisterBroadcastListener("MINER_BEACON");
         ackL=IGC.RegisterBroadcastListener("UNITY_BOOT_ACK");
         setupL=IGC.RegisterBroadcastListener("UNITY_SETUP_CMD");
+        nameCmdL=IGC.RegisterBroadcastListener("UNITY_NAME_CMD");
         ScanBlocks();
         FindSiblingPBs();
         InitBootCustomData();
@@ -108,10 +110,11 @@ namespace IngameScript
         tick++;
         if(CheckSetupCommands())return;
         if(bootDone){
-        Runtime.UpdateFrequency=UpdateFrequency.None;
-        Echo("UNITY BOOT COMPLETE");
-        Echo("Boot controller shutting down.");
-        Echo("LCDs released to operational scripts.");
+        Runtime.UpdateFrequency=UpdateFrequency.Update100;
+        CheckSetupCommands();
+        CheckNameCommands();
+        Echo("UNITY BOOT ACTIVE");
+        Echo($"PAD{padID} - Name services ready.");
         return;
         }
         if(waitingForAck){
@@ -304,6 +307,7 @@ namespace IngameScript
         return;
         }
         WriteBootComplete();
+        WriteBlockData();
         waitingForAck=true;
         ackWaitTicks=0;
         Echo("UNITY MISSILE SYSTEM");
@@ -529,6 +533,24 @@ namespace IngameScript
         else{int si=cd.IndexOf("setup_status=");int ei=cd.IndexOf("\n",si);if(ei<0)ei=cd.Length;cd=cd.Remove(si,ei-si);cd=cd.Insert(si,$"setup_status={cmd}@{ts}");}
         Me.CustomData=cd;
         }
+        void WriteBlockData(){
+        string cd=Me.CustomData;
+        string bd=$"[BLOCK_DATA]\npadID={padID}\nblockTag=[PAD{padID}]\nmslTag=[MSL{padID}]\ngridName={Me.CubeGrid.CustomName}\n";
+        int si=cd.IndexOf("[BLOCK_DATA]");
+        if(si>=0){int ei=cd.IndexOf("\n[",si+12);if(ei<0)ei=cd.Length;cd=cd.Remove(si,ei-si).Insert(si,bd);}
+        else cd+=bd;
+        Me.CustomData=cd;
+        }
+        void CheckNameCommands(){
+        if(nameCmdL==null)return;
+        while(nameCmdL.HasPendingMessage){
+        var msg=nameCmdL.AcceptMessage();
+        string data=msg.Data.ToString();
+        if(data==$"NAMEMSL|{padID}"){IncrementBldNum();NameMissileParts();AutoNameConnectors();WriteSetupStatus("NAMEMSL_IGC");}
+        else if(data==$"NAMEPAD|{padID}"){NamePadParts();WriteSetupStatus("NAMEPAD_IGC");}
+        else if(data==$"NAMEBEACON|{padID}"){WriteSetupStatus("NAMEBEACON_IGC");}
+        }
+        }
         void IncrementBldNum(){
         if(padPB==null)FindSiblingPBs();
         if(padPB==null)return;
@@ -629,21 +651,28 @@ namespace IngameScript
         foreach(var b in pB){
         if(b is IMyBatteryBlock||b is IMyGasTank||b is IMyCargoContainer||b is IMyRefinery||b is IMyAssembler||b is IMyRadioAntenna||b is IMyLaserAntenna||b is IMyReactor||b is IMySolarPanel||b is IMyGasGenerator||b is IMyGyro||b is IMyThrust||b is IMySensorBlock||b is IMyCameraBlock)N(b);}}
         void NameMissileParts(){
-        var mslBlocks=new List<IMyTerminalBlock>();
-        IMyShipMergeBlock padMerge=null;
+        IMyShipMergeBlock padMrg=null,mslMrg=null;
         var merges=new List<IMyShipMergeBlock>();
         GridTerminalSystem.GetBlocksOfType(merges,m=>m.CubeGrid==Me.CubeGrid&&m.CustomName.Contains($"[PAD{padID}]"));
-        if(merges.Count>0)padMerge=merges[0];
-        if(padMerge==null||!padMerge.IsConnected)return;
-        long mslGrid=0;
+        if(merges.Count>0)padMrg=merges[0];
+        if(padMrg==null||!padMrg.IsConnected)return;
         var allMerges=new List<IMyShipMergeBlock>();
-        GridTerminalSystem.GetBlocksOfType(allMerges,m=>m.IsConnected&&m!=padMerge);
-        foreach(var m in allMerges){if(VD(m.GetPosition(),padMerge.GetPosition())<3){mslGrid=m.CubeGrid.EntityId;break;}}
-        if(mslGrid==0)return;
+        GridTerminalSystem.GetBlocksOfType(allMerges,m=>m.IsConnected&&m!=padMrg);
+        foreach(var m in allMerges){if(VD(m.GetPosition(),padMrg.GetPosition())<3){mslMrg=m;break;}}
+        if(mslMrg==null)return;
+        Vector3D padPos=padMrg.GetPosition();
+        Vector3D mslDir=VN(mslMrg.GetPosition()-padPos);
         int bldNum=GetMslBuildNum();
         string t=$"[PAD{padID}] Missile #{bldNum}";
-        GridTerminalSystem.GetBlocksOfType(mslBlocks,b=>b.CubeGrid.EntityId==mslGrid);
-        foreach(var b in mslBlocks){
+        var allBlks=new List<IMyTerminalBlock>();
+        GridTerminalSystem.GetBlocksOfType(allBlks);
+        foreach(var b in allBlks){
+        string nm=b.CustomName;
+        if(nm.Contains("-PRINT")||b==Me)continue;
+        if(nm.Contains($"[PAD{padID}]")&&!nm.Contains("Missile"))continue;
+        if(nm.Contains("[PAD")&&!nm.Contains("Missile"))continue;
+        Vector3D toB=b.GetPosition()-padPos;
+        if(Vector3D.Dot(toB,mslDir)<=0)continue;
         if(b is IMyProgrammableBlock)b.CustomName=$"{t} Program";
         else b.CustomName=$"{t} {BT(b)}";}}
         int GetMslBuildNum(){

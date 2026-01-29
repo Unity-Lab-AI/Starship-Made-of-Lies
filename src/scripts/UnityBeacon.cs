@@ -34,12 +34,7 @@ public Program(){
 Runtime.UpdateFrequency=UpdateFrequency.Update100;
 ParseConfig();
 Scan();
-NameCameras();
 if(homePos==Vector3D.Zero&&rc!=null)homePos=rc.GetPosition();
-}
-void NameCameras(){
-string camTag=$"[PAD{padID}]";
-foreach(var c in cams){if(!c.CustomName.Contains(camTag))c.CustomName=$"{camTag} {shipName} Cam";}
 }
 
 void ParseConfig(){
@@ -97,7 +92,7 @@ elapsedSecs+=Runtime.TimeSinceLastRun.TotalSeconds;
 if(!string.IsNullOrEmpty(arg)){
 string a=arg.ToUpper();
 if(a=="SETHOME"&&rc!=null){homePos=rc.GetPosition();SaveConfig();Echo($"Home set: {homePos.X:F0},{homePos.Y:F0},{homePos.Z:F0}");}
-else if(a=="SETUP")AutoName();
+else if(a=="SETUP"){Scan();Echo("SETUP: Blocks scanned");}
 else if(a=="RESCAN")Scan();
 else if(a=="RESET"){Reset();return;}}
 Echo("Unity Missile System");
@@ -133,21 +128,6 @@ ParseConfig();
 Scan();
 Echo("RESET COMPLETE\nConfig cleared\nLCD cleared\nRun SETUP to reconfigure");}
 
-void AutoName(){
-var blks=new List<IMyTerminalBlock>();
-GridTerminalSystem.GetBlocksOfType(blks,b=>b.CubeGrid==Me.CubeGrid);
-int named=0;int camNamed=0;
-string camTag=$"[PAD{padID}]";
-foreach(var b in blks){
-if(b is IMyCameraBlock){if(!b.CustomName.Contains(camTag)){b.CustomName=$"{camTag} {shipName} Cam";camNamed++;}continue;}
-if(b.CustomName.Contains(blockTag))continue;
-if(b is IMyRemoteControl&&rc==null){b.CustomName=$"{blockTag} {b.CustomName}";rc=b as IMyRemoteControl;named++;}
-else if(b is IMyShipConnector&&con==null&&!b.CustomName.ToUpper().Contains("EJECTOR")){b.CustomName=$"{blockTag} {b.CustomName}";con=b as IMyShipConnector;named++;}
-else if(b is IMyRadioAntenna&&ant==null){b.CustomName=$"{blockTag} {b.CustomName}";ant=b as IMyRadioAntenna;named++;}
-else if(b is IMyTextPanel&&lcd==null){b.CustomName=$"{blockTag} {b.CustomName}";lcd=b as IMyTextPanel;named++;}}
-Scan();
-Echo($"Auto-named {named} blocks with {blockTag}");
-if(camNamed>0)Echo($"Tagged {camNamed} cameras with {camTag}");}
 
 void SaveConfig(){
 Me.CustomData=$"[MINER_BEACON]\nShipName={shipName}\nChannel={bcTag}\nBlockTag={blockTag}\nPadID={padID}\nHomeGPS={homePos.X:F0},{homePos.Y:F0},{homePos.Z:F0}\n\n=== SETUP ===\nTag these blocks with {blockTag}:\n- 1x Remote Control (required)\n- 1x Connector (for docking)\n- 1x Antenna (for broadcast)\n- 1x LCD (optional status display)\n\nCameras will be auto-named [PAD{padID}] {shipName} Cam\n\nCommands: SETUP, RESCAN, SETHOME, RESET";}

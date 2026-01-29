@@ -389,7 +389,7 @@ namespace IngameScript
         var turEx=new Dictionary<string,int>();foreach(var kv in turStk){int tgt=taNd.ContainsKey(kv.Key)?taNd[kv.Key]:taTarget;if(kv.Value>tgt)turEx[kv.Key]=kv.Value-tgt;}
         var cEx=new Dictionary<string,int>();foreach(var kv in cStk){int tgt=cNd.ContainsKey(kv.Key)?cNd[kv.Key]:0;if(kv.Value>tgt)cEx[kv.Key]=kv.Value-tgt;}
         var tEx=new Dictionary<string,int>();foreach(var kv in tStk){int tgt=tNd.ContainsKey(kv.Key)?tNd[kv.Key]:toolTarget;if(kv.Value>tgt)tEx[kv.Key]=kv.Value-tgt;}
-        var paEx=new Dictionary<string,int>();for(int i=0;i<pAmmoIT.Length;i++){string key=pAmmoIT[i];if(taBPx.ContainsKey(key))continue;int have=pAmmoStk.ContainsKey(key)?pAmmoStk[key]:0;int tgt=paNd.ContainsKey(key)?paNd[key]:500;if(have>tgt)paEx[key]=have-tgt;}
+        var paEx=new Dictionary<string,int>();string mslAmmoKey=ammoITNames[ammoTypeIdx];for(int i=0;i<pAmmoIT.Length;i++){string key=pAmmoIT[i];if(taBPx.ContainsKey(key))continue;if(key==mslAmmoKey)continue;int have=pAmmoStk.ContainsKey(key)?pAmmoStk[key]:0;int tgt=paNd.ContainsKey(key)?paNd[key]:500;if(have>tgt)paEx[key]=have-tgt;}
         int h2Ex=pH2B>h2Target?pH2B-h2Target:0;
         int o2Ex=pO2B>o2Target?pO2B-o2Target:0;
         int tAmmoEx=ammoStock>mslAmmoTarget?ammoStock-mslAmmoTarget:0;
@@ -404,13 +404,13 @@ namespace IngameScript
         if(a.Mode!=MyAssemblerMode.Disassembly){a.Mode=MyAssemblerMode.Disassembly;var q=new List<MyProductionItem>();a.GetQueue(q);for(int qi=q.Count-1;qi>=0;qi--)a.RemoveQueueItem(qi,q[qi].Amount);}
         recyclers.Add(a);}
         foreach(var a in padAsm){if(a.Mode!=MyAssemblerMode.Disassembly)continue;var aO=a.GetInventory(1);if(aO==null||aO.ItemCount==0)continue;var qB=new Dictionary<MyDefinitionId,int>();var q=new List<MyProductionItem>();a.GetQueue(q);foreach(var qi in q)AD2(qB,qi.BlueprintId,(int)qi.Amount);var L=GL(aO);foreach(var it in L){string tp=it.Type.TypeId.ToLower(),sub=it.Type.SubtypeId;int amt=(int)it.Amount;MyDefinitionId bp=default(MyDefinitionId);
-        if(tp.Contains("component")&&compBP.ContainsKey(sub)){bp=compBP[sub];if(cEx.ContainsKey(sub))cEx[sub]=Math.Max(0,cEx[sub]-amt);}
-        else if(tp.Contains("physicalgunobject")){string ns=NT(sub);if(tBPx.ContainsKey(ns)){bp=tBPx[ns];if(tEx.ContainsKey(ns))tEx[ns]=Math.Max(0,tEx[ns]-amt);}}
-        else if(tp.Contains("ammomagazine")&&paBPx.ContainsKey(sub)){bp=paBPx[sub];if(paEx.ContainsKey(sub))paEx[sub]=Math.Max(0,paEx[sub]-amt);}
-        else if(tp.Contains("ammomagazine")&&turBP.ContainsKey(sub)){bp=turBP[sub];if(turEx.ContainsKey(sub))turEx[sub]=Math.Max(0,turEx[sub]-amt);}
+        if(tp.Contains("component")&&compBP.ContainsKey(sub)&&cEx.ContainsKey(sub)&&cEx[sub]>0){bp=compBP[sub];cEx[sub]=Math.Max(0,cEx[sub]-amt);}
+        else if(tp.Contains("physicalgunobject")){string ns=NT(sub);if(tBPx.ContainsKey(ns)&&tEx.ContainsKey(ns)&&tEx[ns]>0){bp=tBPx[ns];tEx[ns]=Math.Max(0,tEx[ns]-amt);}}
+        else if(tp.Contains("ammomagazine")&&paBPx.ContainsKey(sub)&&paEx.ContainsKey(sub)&&paEx[sub]>0){bp=paBPx[sub];paEx[sub]=Math.Max(0,paEx[sub]-amt);}
+        else if(tp.Contains("ammomagazine")&&turBP.ContainsKey(sub)&&turEx.ContainsKey(sub)&&turEx[sub]>0){bp=turBP[sub];turEx[sub]=Math.Max(0,turEx[sub]-amt);}
         else if(tp.Contains("gascontainer")&&sub.Contains("Hydrogen")&&bBPx.ContainsKey("HydrogenBottle")){bp=bBPx["HydrogenBottle"];h2Ex=Math.Max(0,h2Ex-amt);}
         else if(tp.Contains("oxygencontainer")&&sub.Contains("Oxygen")&&bBPx.ContainsKey("OxygenBottle")){bp=bBPx["OxygenBottle"];o2Ex=Math.Max(0,o2Ex-amt);}
-        else if(it.Type==ammoType){bp=ammoBP;tAmmoEx=Math.Max(0,tAmmoEx-amt);}
+        else if(it.Type==ammoType&&tAmmoEx>0){bp=ammoBP;tAmmoEx=Math.Max(0,tAmmoEx-amt);}
         if(bp!=default(MyDefinitionId)){int alreadyQ=qB.ContainsKey(bp)?qB[bp]:0;if(alreadyQ<amt)a.AddQueueItem(bp,(MyFixedPoint)(amt-alreadyQ));}}}
         Func<IMyInventory,int,MyItemType,int,MyDefinitionId,int>XferAndQueue=(src,slot,itype,amt,bp)=>{
         foreach(var r in recyclers){
@@ -463,7 +463,7 @@ namespace IngameScript
         
         void FeedRefineries(){if(padRef.Count==0)return;var pull=GetPullable();if(pull.Count==0)return;string[] oreTypes={"Iron","Nickel","Cobalt","Silicon","Magnesium","Silver","Gold","Platinum","Uranium","Stone","Scrap"};foreach(var r in padRef){r.UseConveyorSystem=false;var rO=r.GetInventory(1);if(rO!=null&&(float)rO.CurrentVolume>(float)rO.MaxVolume*.7f)continue;var rI=r.GetInventory(0);if(rI==null)continue;int totOre=0;foreach(var x in GL(rI))if(x.Type.TypeId.EndsWith("Ore"))totOre+=(int)x.Amount;if(totOre>=5000)continue;foreach(string oreN in oreTypes){int haveInRef=0;foreach(var x in GL(rI))if(x.Type.SubtypeId==oreN)haveInRef+=(int)x.Amount;if(haveInRef>=1000)continue;int need=1000-haveInRef;foreach(var c in pull){if(need<=0)break;var cI=c.GetInventory();if(cI==null)continue;var cL=GL(cI);for(int i=cL.Count-1;i>=0&&need>0;i--){var t=cL[i];if(!t.Type.TypeId.EndsWith("Ore")||t.Type.SubtypeId!=oreN)continue;int ad=Math.Min((int)t.Amount,need);cI.TransferItemTo(rI,i,null,true,(MyFixedPoint)ad);need-=ad;}}}}}
         
-        void FeedAssemblers(){if(padAsm.Count==0)return;var pull=GetPullable();int minIngot=1000;int maxIngot=5000;string[] mainIngots={"Iron","Nickel","Silicon","Cobalt"};foreach(var a in padAsm){if(a.Mode==MyAssemblerMode.Assembly&&!a.UseConveyorSystem)a.UseConveyorSystem=true;var aO=a.GetInventory(1);if(aO!=null&&(float)aO.CurrentVolume>(float)aO.MaxVolume*.5f)continue;var aI=a.GetInventory(0);if(aI==null)continue;var ingInAsm=new Dictionary<string,int>();var L=GL(aI);foreach(var x in L)if(x.Type.TypeId.EndsWith("Ingot"))AD(ingInAsm,x.Type.SubtypeId,(int)x.Amount);foreach(string ing in mainIngots){int have=ingInAsm.ContainsKey(ing)?ingInAsm[ing]:0;if(have>=minIngot)continue;int need=minIngot-have;foreach(var r in padRef){if(need<=0)break;var rO=r.GetInventory(1);if(rO==null)continue;var rL=GL(rO);for(int i=rL.Count-1;i>=0&&need>0;i--)if(rL[i].Type.SubtypeId==ing){int xf=Math.Min((int)rL[i].Amount,need);rO.TransferItemTo(aI,i,null,true,(MyFixedPoint)xf);need-=xf;}}foreach(var c in pull){if(need<=0)break;var cI=c.GetInventory();if(cI==null)continue;var cL=GL(cI);for(int i=cL.Count-1;i>=0&&need>0;i--)if(cL[i].Type.SubtypeId==ing){int xf=Math.Min((int)cL[i].Amount,need);cI.TransferItemTo(aI,i,null,true,(MyFixedPoint)xf);need-=xf;}}}if((float)aI.CurrentVolume>(float)aI.MaxVolume*.85f){var dst=ingotCargo??(padCargoL.Count>0?padCargoL[0]:(padCargo.Count>0?padCargo[0]:null));if(dst!=null){var dI=dst.GetInventory();if(dI!=null&&HS(dI,.9f)){var aL=GL(aI);foreach(var x in aL){string s=x.Type.SubtypeId;if(!x.Type.TypeId.EndsWith("Ingot"))continue;int have=ingInAsm.ContainsKey(s)?ingInAsm[s]:0;if(have>maxIngot){int ex=have-maxIngot;for(int i=aL.Count-1;i>=0&&ex>0;i--)if(aL[i].Type.SubtypeId==s){int xf=Math.Min((int)aL[i].Amount,ex);aI.TransferItemTo(dI,i,null,true,(MyFixedPoint)xf);ex-=xf;}}}}}}}}
+        void FeedAssemblers(){if(padAsm.Count==0)return;var pull=GetPullable();int minIngot=1000;int maxIngot=5000;string[] mainIngots={"Iron","Nickel","Silicon","Cobalt"};foreach(var a in padAsm){if(a.Mode!=MyAssemblerMode.Assembly){continue;}if(!a.UseConveyorSystem)a.UseConveyorSystem=true;var aO=a.GetInventory(1);if(aO!=null&&(float)aO.CurrentVolume>(float)aO.MaxVolume*.5f)continue;var aI=a.GetInventory(0);if(aI==null)continue;var ingInAsm=new Dictionary<string,int>();var L=GL(aI);foreach(var x in L)if(x.Type.TypeId.EndsWith("Ingot"))AD(ingInAsm,x.Type.SubtypeId,(int)x.Amount);foreach(string ing in mainIngots){int have=ingInAsm.ContainsKey(ing)?ingInAsm[ing]:0;if(have>=minIngot)continue;int need=minIngot-have;foreach(var r in padRef){if(need<=0)break;var rO=r.GetInventory(1);if(rO==null)continue;var rL=GL(rO);for(int i=rL.Count-1;i>=0&&need>0;i--)if(rL[i].Type.SubtypeId==ing){int xf=Math.Min((int)rL[i].Amount,need);rO.TransferItemTo(aI,i,null,true,(MyFixedPoint)xf);need-=xf;}}foreach(var c in pull){if(need<=0)break;var cI=c.GetInventory();if(cI==null)continue;var cL=GL(cI);for(int i=cL.Count-1;i>=0&&need>0;i--)if(cL[i].Type.SubtypeId==ing){int xf=Math.Min((int)cL[i].Amount,need);cI.TransferItemTo(aI,i,null,true,(MyFixedPoint)xf);need-=xf;}}}if((float)aI.CurrentVolume>(float)aI.MaxVolume*.85f){var dst=ingotCargo??(padCargoL.Count>0?padCargoL[0]:(padCargo.Count>0?padCargo[0]:null));if(dst!=null){var dI=dst.GetInventory();if(dI!=null&&HS(dI,.9f)){var aL=GL(aI);foreach(var x in aL){string s=x.Type.SubtypeId;if(!x.Type.TypeId.EndsWith("Ingot"))continue;int have=ingInAsm.ContainsKey(s)?ingInAsm[s]:0;if(have>maxIngot){int ex=have-maxIngot;for(int i=aL.Count-1;i>=0&&ex>0;i--)if(aL[i].Type.SubtypeId==s){int xf=Math.Min((int)aL[i].Amount,ex);aI.TransferItemTo(dI,i,null,true,(MyFixedPoint)xf);ex-=xf;}}}}}}}}
         
         List<IMyCargoContainer> GetPullable(){var r=new List<IMyCargoContainer>(padCargo);foreach(var c in sharedCargo)if(!r.Contains(c))r.Add(c);return r;}
         
@@ -612,7 +612,7 @@ namespace IngameScript
         string pt=p.Split(';')[0].Trim();
         var kv=pt.Split('=');
         if(kv.Length<2)continue;
-        string k=kv[0].Trim();
+        string k=kv[0].Trim().ToLower();
         string v=kv[1].Split(' ')[0].Split('(')[0].Trim();
         int n;
         if(!int.TryParse(v,out n))continue;
@@ -801,7 +801,7 @@ namespace IngameScript
         foreach(string k in allComp){if(cnt>=compPerCol*2)break;int hv=cStk.ContainsKey(k)?cStk[k]:0;int nd=cNd.ContainsKey(k)?cNd[k]:0;int need=Math.Max(0,nd-hv);Color c=hv>=nd?cOK:cErr;float xp=cnt<compPerCol?15:260;float yp=startY+(cnt%compPerCol)*22;string nm=k.Length>12?k.Substring(0,10)+"..":k;ST(f,xp,yp,$"{nm}:{hv}+{need}/{nd}",c,0.42f);cnt++;}
         y=startY+compPerCol*22+8;SD(f,y);y+=12;
         ST(f,20,y,"FUEL & AMMO",cAcc,0.55f);y+=26;
-        int aT=ammoTypeIdx==0?mslAmmoTarget:ammoTarget;ST(f,15,y,$"Ammo({ammoNames[ammoTypeIdx]}):{ammoStock}+{ammoQueued}/{aT}",ammoStock>=aT?cOK:cWrn,0.42f);y+=22;
+        int aT=ammoTypeIdx==0?mslAmmoTarget:ammoTarget;int aDf=aT-ammoStock;string aDs=aDf>=0?$"+{aDf}":$"-{Math.Abs(aDf)}";ST(f,15,y,$"Ammo({ammoNames[ammoTypeIdx]}):{ammoStock}{aDs}/{aT}",ammoStock>=aT?cOK:cWrn,0.42f);y+=22;
         int h2Nd=Math.Max(0,h2Target-pH2B);ST(f,15,y,$"H2Bot:{pH2B}+{h2Nd}/{h2Target}",pH2B>=h2Target?cOK:cWrn,0.42f);
         int o2Nd=Math.Max(0,o2Target-pO2B);ST(f,260,y,$"O2Bot:{pO2B}+{o2Nd}/{o2Target}",pO2B>=o2Target?cOK:cWrn,0.42f);y+=22;
         int ice=oStk.ContainsKey("Ice")?oStk["Ice"]:0;int urn=iStk.ContainsKey("Uranium")?iStk["Uranium"]:0;
@@ -834,7 +834,7 @@ namespace IngameScript
         SLB(f,20,y,350,16,"Hydrogen",h2p,PctCol(h2p),cBdr);y+=40;
         SLB(f,20,y,350,16,"Oxygen",o2p,PctCol(o2p),cBdr);y+=40;
         SLB(f,20,y,350,16,"Battery",padBatPct/100f,PctCol(padBatPct/100f),cBdr);y+=40;
-        int aT2=ammoTypeIdx==0?mslAmmoTarget:ammoTarget;ST(f,20,y,$"Ammo: {ammoStock}+{ammoQueued}/{aT2}",ammoStock>=aT2?cOK:cWrn,0.5f);y+=30;
+        int aT2=ammoTypeIdx==0?mslAmmoTarget:ammoTarget;int aDf2=aT2-ammoStock;string aDs2=aDf2>=0?$"+{aDf2}":$"-{Math.Abs(aDf2)}";ST(f,20,y,$"Ammo: {ammoStock}{aDs2}/{aT2}",ammoStock>=aT2?cOK:cWrn,0.5f);y+=30;
         ST(f,20,y,$"H2 Bottles: {pH2B}+{h2Queued}/{h2Target}",pH2B>=h2Target?cOK:cWrn,0.5f);y+=30;
         ST(f,20,y,$"O2 Bottles: {pO2B}+{o2Queued}/{o2Target}",pO2B>=o2Target?cOK:cWrn,0.5f);
         }else if(viewIdx==3){

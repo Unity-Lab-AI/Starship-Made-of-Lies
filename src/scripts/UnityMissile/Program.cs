@@ -175,7 +175,6 @@ namespace IngameScript
         FindBlocks();
         ConfigSensors();
         ConfigCameras();
-        NameParts();
         LoadState();
         if(phase==F.IDLE){
         var allMerge=new List<IMyShipMergeBlock>();GridTerminalSystem.GetBlocksOfType(allMerge,m=>m.CubeGrid==Me.CubeGrid);
@@ -202,10 +201,11 @@ namespace IngameScript
         if(waitingForPrint&&phase==F.IDLE){
         printWaitTicks++;
         if(a=="LAUNCH"){waitingForPrint=false;printWaitTicks=0;}
-        else if(printWaitTicks%5==0){FindBlocks();if(rc!=null&&thrusters.Count>0){waitingForPrint=false;printWaitTicks=0;ConfigSensors();ConfigCameras();NameParts();}}
+        else if(printWaitTicks%5==0){FindBlocks();if(rc!=null&&thrusters.Count>0){waitingForPrint=false;printWaitTicks=0;WritePrintComplete();ConfigSensors();ConfigCameras();}}
         else if(CheckPrintComplete()){
         waitingForPrint=false;printWaitTicks=0;
-        FindBlocks();ConfigSensors();ConfigCameras();NameParts();
+        WritePrintComplete();
+        FindBlocks();ConfigSensors();ConfigCameras();
         }else{
         Echo("WAITING FOR PRINT...");
         if(printWaitTicks%10==1){
@@ -214,7 +214,7 @@ namespace IngameScript
         else QR(new[]{"Oh my god just build me!","Are you even welding?!","I swear to god hurry up!","Worst print job ever!","Did the welder break?!","I will die on this pad!"},"angry");
         }
         return;}}
-        if(a=="NAME"){FindBlocks();NameParts();return;}
+        if(a=="NAME"){FindBlocks();return;}
         if(a=="RESET"){FindBlocks();SafeReset();return;}
         if(a=="LAUNCH"){
         ParseConfig();
@@ -227,7 +227,6 @@ namespace IngameScript
         stuckCount=0;
         flightTicks=0;
         if(merge!=null)merge.Enabled=false;
-        NameParts();
         ConfigSensors();
         ConfigCameras();
         ConfigAntennas();
@@ -846,7 +845,17 @@ namespace IngameScript
         foreach(var g in gyros){g.Enabled=true;g.GyroOverride=true;}
         }
         bool CheckPrintComplete(){
-        return Me.CustomData.Contains("print_complete=true");
+        if(Me.CustomData.Contains("print_complete=true"))return true;
+        var pbs=new List<IMyProgrammableBlock>();
+        GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me&&b.CustomName.ToUpper().Contains("UNITY PAD")&&!b.CustomName.Contains("Missile"));
+        foreach(var pb in pbs){if(pb.CustomData.Contains("print_complete=true"))return true;}
+        return false;
+        }
+        void WritePrintComplete(){
+        if(Me.CustomData.Contains("print_complete=true"))return;
+        string cd=Me.CustomData;
+        cd=(cd.Length>0&&!cd.EndsWith("\n")?cd+"\n":cd)+"print_complete=true\n";
+        Me.CustomData=cd;
         }
         bool CheckBootComplete(){
         if(merge==null||!merge.IsConnected)return true;
@@ -859,7 +868,14 @@ namespace IngameScript
         else if(nm.Contains("UNITY PAD")&&!nm.Contains("MISSILE"))padPB=pb;}
         if(bootPB==null||padPB==null)return false;
         if(!padPB.CustomData.Contains("pad_ready=true"))return false;
-        return bootPB.CustomData.Contains("boot_complete=true");}
+        if(!bootPB.CustomData.Contains("boot_complete=true"))return false;
+        string padCD=padPB.CustomData;string bootCD=bootPB.CustomData;
+        int psi=padCD.IndexOf("pad_session=");int bsi=bootCD.IndexOf("boot_for_session=");
+        if(psi>=0&&bsi>=0){int pe=padCD.IndexOf('\n',psi);if(pe<0)pe=padCD.Length;string ps=padCD.Substring(psi+12,pe-psi-12).Trim();
+        int be=bootCD.IndexOf('\n',bsi);if(be<0)be=bootCD.Length;string bs=bootCD.Substring(bsi+17,be-bsi-17).Trim();
+        if(ps!=bs)return false;}
+        else if(psi>=0&&bsi<0)return false;
+        return true;}
         void ReadPadGPS(){
         if(merge==null||!merge.IsConnected||phase!=F.IDLE)return;
         if(!CheckBootComplete())return;
@@ -899,32 +915,6 @@ namespace IngameScript
         if(s=="Connector")return "Connector";
         return s.Replace("LargeBlock","").Replace("SmallBlock","").Replace("_"," ").Trim();
         }
-        void NameParts(){
-        if(mslNumber<=0)return;
-        string tag=$"[PAD{padID}] Missile #{mslNumber}";
-        foreach(var b in batteries)b.CustomName=$"{tag} {BT(b)}";
-        foreach(var t in h2tanks)t.CustomName=$"{tag} {BT(t)}";
-        foreach(var g in generators)g.CustomName=$"{tag} {BT(g)}";
-        foreach(var g in gyros)g.CustomName=$"{tag} {BT(g)}";
-        foreach(var t in thrusters)t.CustomName=$"{tag} {BT(t)}";
-        foreach(var w in warheads)w.CustomName=$"{tag} {BT(w)}";
-        foreach(var s in sensors)s.CustomName=$"{tag} {BT(s)}";
-        foreach(var c in cameras)c.CustomName=$"{tag} Cam";
-        foreach(var a in antennas)a.CustomName=$"{tag} Antenna";
-        if(laserPad!=null)laserPad.CustomName=$"{tag} Laser Pad";
-        if(laserNorth!=null)laserNorth.CustomName=$"{tag} Laser North";
-        if(laserSouth!=null)laserSouth.CustomName=$"{tag} Laser South";
-        if(laserEast!=null)laserEast.CustomName=$"{tag} Laser East";
-        if(laserWest!=null)laserWest.CustomName=$"{tag} Laser West";
-        foreach(var l in lasers){if(l!=laserPad&&l!=laserNorth&&l!=laserSouth&&l!=laserEast&&l!=laserWest)l.CustomName=$"{tag} Laser";}
-        for(int i=0;i<lights.Count;i++)lights[i].CustomName=$"{tag} Light {i+1}";
-        for(int i=0;i<lcds.Count;i++)lcds[i].CustomName=$"{tag} LCD {i+1}";
-        for(int i=0;i<emotionCtrls.Count;i++)emotionCtrls[i].CustomName=$"{tag} Emotion {i+1}";
-        if(rc!=null)rc.CustomName=$"{tag} {BT(rc)}";
-        if(merge!=null)merge.CustomName=$"{tag} {BT(merge)}";
-        Me.CustomName=$"{tag} Program";
-        }
-        
         void ConfigSensors(){
         foreach(var s in sensors){
         s.Enabled=true;
@@ -1381,7 +1371,8 @@ namespace IngameScript
         if(phase==F.TARGET&&distToTgt<500&&distToTgt>100&&flightTicks%60==0)QR(new[]{"Getting closer every sec!",$"{distToTgt:F0}m left to go!","Incoming you sorry ass!",$"{distToTgt:F0}m out and closing!","You are so damn f**ked!",$"{distToTgt:F0}m away from boom!","Die bitch Im almost there!",$"{distToTgt:F0}m and counting down!"},"suspicious_right");
         if(phase==F.TARGET&&distToTgt<=100&&distToTgt>detDist&&flightTicks%30==0)QR(new[]{"Goodbye you sorry loser!",$"{distToTgt:F0}m say your prayers!","Say bye to your dumb ass!",$"{distToTgt:F0}m til you die!","Eat this final damn gift!",$"{distToTgt:F0}m from your doom!","Boom bitch here I come!",$"{distToTgt:F0}m this is the end!"},"dead");
         if(phase!=F.IDLE&&msgQ.Count==0&&phaseTicks>30&&phaseTicks%30==0)QueuePhaseDwell();
-        if(bootComplete&&startupDone&&phase==F.IDLE&&bootWaitTicks%60==30){
+        bootWaitTicks++;
+        if(bootComplete&&startupDone&&phase==F.IDLE&&bootWaitTicks%10==0){
         if(!CheckBootComplete()){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QR(new[]{"Pad just friggin reset!","Oh come on not again!","Got recompiled for nothing!","Damn it the pad changed!","Pad changed on me again!","Ugh are you kidding me?!"},"confused");}
         else{var rpbs=new List<IMyProgrammableBlock>();GridTerminalSystem.GetBlocksOfType(rpbs,b=>b.IsSameConstructAs(Me)&&b!=Me);
         foreach(var pb in rpbs){if(!pb.CustomName.ToUpper().Contains("UNITY PAD")||pb.CustomName.ToUpper().Contains("MISSILE"))continue;
@@ -1391,14 +1382,13 @@ namespace IngameScript
         else if(lastPadSession!=""&&ps!=lastPadSession){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QR(new[]{"New session detected here!","For real are you serious?!","Rebooting the whole system!","Damn pad keeps changing stuff!","Pad update screwed me up!","Again are you kidding me?!"},"confused");}
         break;}}}
         if(!bootComplete&&phase==F.IDLE){
-        bootWaitTicks++;
         if(bootWaitTicks%30==1){if(!CheckBootComplete()){
         if(bootWaitTicks<30)QR(new[]{"Just waking up over here!","Ugh give me five more min!","Starting up hold your ass!","Shut up Im still booting!","Booting systems right now!","Leave me alone Im tired!"},"sleepy");
         else if(bootWaitTicks<90)QR(new[]{"Still waiting on the pad!","Damn pad is taking forever!","Hold on its still loading!","Ugh this boot takes so long!","Patience is not my thing!","Hurry the hell up already!"},"sleepy");
         else if(bootWaitTicks<150)QR(new[]{"Still here waiting on pad!","Come on do something pad!","Still waiting you slow pad!","Hurry up Im losing it!","Any damn day now pad!","So damn slow I could die!"},"annoyed");
         else if(bootWaitTicks<210)QR(new[]{"Hurry the hell up pad!","For f sake just boot it!","For real is this broken?!","This pad is totally useless!","Do it pad Im losing it!","Still waiting are you dead?!"},"annoyed");
         else QR(new[]{"This is taking damn forever!","Just boot it you dumb pad!","Im so done waiting here!","F this pad Im over it!","Come on you piece of crap!","For f sake pad do something!"},"angry");
-        }else{bootComplete=true;bootWaitTicks=0;QR(new[]{"Pad is finally damn ready!","Bout damn time it booted!","Finally about friggin time!","About time you lazy pad!","Lets go Im ready to fly!","That took forever you jerk!","Booted up and ready now!","Lazy ass pad took forever!"},"happy");}}}
+        }else{bootComplete=true;bootWaitTicks=0;FindBlocks();ConfigSensors();ConfigCameras();QR(new[]{"Pad is finally damn ready!","Bout damn time it booted!","Finally about friggin time!","About time you lazy pad!","Lets go Im ready to fly!","That took forever you jerk!","Booted up and ready now!","Lazy ass pad took forever!"},"happy");}}}
         if(bootComplete&&!startupDone&&phase==F.IDLE&&msgQ.Count<3){
         if(startupCheck==0){QR(new[]{"Booting up the systems!","Ugh fine lets do this!","Starting all my crap up!","Whatever lets get going!","Powering up everything now!","Here we go once again!"},"neutral");startupCheck++;}
         else if(startupCheck==1){QR(new[]{"Scanning for gyroscopes now!",$"Found {gyros.Count} gyros on board!","Checking all the gyroscopes!",$"Got {gyros.Count} gyro units here!","Running the spin check now!",$"Detected {gyros.Count} gyros total!"},"confused");startupCheck++;}
