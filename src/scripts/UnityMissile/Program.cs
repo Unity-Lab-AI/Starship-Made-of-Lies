@@ -84,11 +84,11 @@ namespace IngameScript
         List<IMyGasGenerator> generators=new List<IMyGasGenerator>();
         List<IMyLightingBlock> lights=new List<IMyLightingBlock>();
         List<IMyTextPanel> lcds=new List<IMyTextPanel>();
-        float lcdW=512,lcdH=512,lcdS=1,lcdYS=1,fntS=1;
-        Color cBg=new Color(10,10,15);Color cTxt=new Color(220,220,220);Color cPri=new Color(0,180,255);Color cWrn=new Color(255,180,0);Color cErr=new Color(255,60,60);Color cOK=new Color(0,255,100);
+        IMyFunctionalBlock emotionCtrl;
+        Color cBg=new Color(10,10,15);Color cTxt=new Color(220,220,220);
         List<string[]> msgQ=new List<string[]>();
         string[] curMsg=null;
-        int msgExpr=0;
+        string msgEmotion="neutral";
         int msgTicks=0;
         const int MSG_MIN_TICKS=2;
         double lastH2=-1,lastBat=-1;
@@ -240,13 +240,13 @@ namespace IngameScript
         meshBlackoutTicks=0;
         meshLastPadResponse=0;
         phase=F.SAT_CLIMB;
-        QMsg("TO SPACE BITCH!","Satellite mode!",2);
+        QMsg("TO SPACE BITCH!","Satellite mode!","wink");
         }else if(flightMode==2){
         phase=launchedFromGrav?F.CLIMB:F.TARGET;
-        QMsg("YEEHAW FUCKERS!","Let's kill shit!",2);
+        QMsg("YEEHAW FUCKERS!","Let's kill shit!","wink");
         }else{
         phase=F.CLIMB;
-        QMsg("FULL SEND!","ICBM go brrrrr!",2);
+        QMsg("FULL SEND!","ICBM go brrrrr!","wink");
         }
         return;
         }
@@ -316,7 +316,7 @@ namespace IngameScript
         
         void DoArm(){
         if(rc==null){EnableThrust(true);return;}
-        if(!ammoEjecting&&ammoConnector!=null){ammoConnector.ThrowOut=true;ammoEjecting=true;SendFinalStatus("AMMO_EJECT");QMsg("Dumping ammo!","Lightening up!",2);}
+        if(!ammoEjecting&&ammoConnector!=null){ammoConnector.ThrowOut=true;ammoEjecting=true;SendFinalStatus("AMMO_EJECT");QMsg("Dumping ammo!","Lightening up!","skeptical");}
         Vector3D grav=rc.GetNaturalGravity();
         if(grav.Length()<0.05){
         lastCoastSpeed=0;
@@ -392,7 +392,7 @@ namespace IngameScript
         foreach(var w in warheads){w.IsArmed=true;}
         warheadsArmed=true;
         SendFinalStatus("WARHEADS_ARMED");
-        QMsg("I'M HOT BITCH!","Ready to fuck you!",6);
+        QMsg("I'M HOT BITCH!","Ready to fuck you!","evil");
         }
         if(terminalGuidanceActive)UpdateTargetVelocity(target.Value);
         Vector3D aimPoint=target.Value;
@@ -714,7 +714,7 @@ namespace IngameScript
         satRelayListener=IGC.RegisterBroadcastListener(satRelayTag);satInterceptListener=IGC.RegisterBroadcastListener("UNITY_SAT_INTERCEPT");
         meshListener=IGC.RegisterBroadcastListener("UNITY_SAT_MESH");meshPadLinked=false;
         phase=F.SAT_BRAKE;Runtime.UpdateFrequency=UpdateFrequency.Update10;
-        QMsg("SHIT... BLACKOUT!","Setting up as relay sat",2);}
+        QMsg("SHIT... BLACKOUT!","Setting up as relay sat","shocked");}
         return;}
         double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
         double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
@@ -786,7 +786,7 @@ namespace IngameScript
         }}
         
         void FindBlocks(){
-        rc=null;merge=null;ammoConnector=null;laserPad=null;laserNorth=null;laserSouth=null;laserEast=null;laserWest=null;
+        rc=null;merge=null;ammoConnector=null;laserPad=null;laserNorth=null;laserSouth=null;laserEast=null;laserWest=null;emotionCtrl=null;
         gyros.Clear();thrusters.Clear();warheads.Clear();sensors.Clear();cameras.Clear();antennas.Clear();lasers.Clear();batteries.Clear();h2tanks.Clear();generators.Clear();lights.Clear();lcds.Clear();
         var all=new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid);
@@ -814,6 +814,7 @@ namespace IngameScript
         if(b is IMyTextPanel)lcds.Add(b as IMyTextPanel);
         if(b is IMyShipMergeBlock&&merge==null)merge=b as IMyShipMergeBlock;
         if(b is IMyShipConnector&&b.CustomName.Contains("[AMMO]"))ammoConnector=b as IMyShipConnector;
+        if(emotionCtrl==null&&b.BlockDefinition.SubtypeId.Contains("EmotionController"))emotionCtrl=b as IMyFunctionalBlock;
         }
         foreach(var g in gyros){g.Enabled=true;g.GyroOverride=true;}
         }
@@ -1163,15 +1164,15 @@ namespace IngameScript
         foreach(var g in gyros){g.GyroOverride=false;g.Pitch=0;g.Yaw=0;g.Roll=0;}
         foreach(var b in batteries)b.ChargeMode=ChargeMode.Recharge;
         SendFinalStatus("SAFE_RESET");
-        QMsg("Fine whatever","Back to boring...",0);
+        QMsg("Fine whatever","Back to boring...","annoyed");
         }
         void Detonate(){
         if(isSatellite)return;
-        if(phase==F.CLIMB||phase==F.ARM){SendFinalStatus("DETONATE_BLOCKED_CLIMB");QMsg("Not yet asshole!","Still climbing!",1);SafeReset();return;}
-        if(flightTicks<60){SendFinalStatus("DETONATE_BLOCKED_EARLY");QMsg("Chill the fuck!","Safety's on!",1);SafeReset();return;}
-        if(distFromPad<100){SendFinalStatus("DETONATE_BLOCKED_ON_PAD");QMsg("Are you stupid?!","I'd kill US!",1);SafeReset();return;}
+        if(phase==F.CLIMB||phase==F.ARM){SendFinalStatus("DETONATE_BLOCKED_CLIMB");QMsg("Not yet asshole!","Still climbing!","annoyed");SafeReset();return;}
+        if(flightTicks<60){SendFinalStatus("DETONATE_BLOCKED_EARLY");QMsg("Chill the fuck!","Safety's on!","annoyed");SafeReset();return;}
+        if(distFromPad<100){SendFinalStatus("DETONATE_BLOCKED_ON_PAD");QMsg("Are you stupid?!","I'd kill US!","angry");SafeReset();return;}
         SendFinalStatus("IMPACT");
-        QMsg("SEE YA BITCHES!","BOOOOOM!",6);
+        QMsg("SEE YA BITCHES!","BOOOOOM!","dead");
         phase=F.IDLE;
         Runtime.UpdateFrequency=UpdateFrequency.None;
         foreach(var w in warheads){w.Detonate();}
@@ -1292,159 +1293,126 @@ namespace IngameScript
         foreach(var l in lights){l.Enabled=on;l.Color=c;l.Intensity=2f;l.Falloff=1.3f;l.Radius=3f;}
         }
         int animFrame=0;
-        void QMsg(string l1,string l2,int expr){if(msgQ.Count<20)msgQ.Add(new[]{l1,l2,expr.ToString()});}
-        MySpriteDrawFrame BL(IMyTextSurface s){s.ContentType=ContentType.SCRIPT;s.Script="";lcdW=s.SurfaceSize.X;lcdH=s.SurfaceSize.Y;lcdS=lcdW/512f;lcdYS=lcdH/512f;fntS=Math.Max(1.4f,(lcdS+lcdYS)/2f*1.8f);var f=s.DrawFrame();f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(lcdW/2,lcdH/2),new Vector2(lcdW,lcdH),cBg));return f;}
+        void QMsg(string l1,string l2,string emo){if(msgQ.Count<20)msgQ.Add(new[]{l1,l2,emo});}
+        void SetEmotion(string emo){if(emotionCtrl!=null)emotionCtrl.ApplyAction("emote_"+emo);}
+        void SetupLCD(IMyTextSurface s){s.ContentType=ContentType.TEXT_AND_IMAGE;s.Font="Monospace";s.FontSize=2.5f;s.Alignment=TextAlignment.CENTER;s.FontColor=cTxt;s.BackgroundColor=cBg;}
         void UpdateLCD(){
         if(lcds.Count==0)return;
         animFrame++;
         CheckEvents();
         msgTicks++;
-        if(curMsg==null&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;int.TryParse(curMsg[2],out msgExpr);}
-        if(curMsg!=null&&msgTicks>=MSG_MIN_TICKS&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;int.TryParse(curMsg[2],out msgExpr);}
+        if(curMsg==null&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;msgEmotion=curMsg[2];}
+        if(curMsg!=null&&msgTicks>=MSG_MIN_TICKS&&msgQ.Count>0){curMsg=msgQ[0];msgQ.RemoveAt(0);msgTicks=0;msgEmotion=curMsg[2];}
         string[] lines=curMsg!=null?new[]{curMsg[0],curMsg[1]}:GetIdleText();
-        int expr=curMsg!=null?msgExpr:GetIdleExpr();
-        Color faceCol=GetFaceColor(expr);
+        string emo=curMsg!=null?msgEmotion:GetIdleEmotion();
+        SetEmotion(emo);
         foreach(var lcd in lcds){
         var sf=lcd as IMyTextSurface;if(sf==null)continue;
-        var f=BL(sf);
-        DrawFace(f,expr,faceCol);
-        float ty=lcdH*0.68f;
-        foreach(var ln in lines){f.Add(new MySprite(SpriteType.TEXT,ln,new Vector2(lcdW/2,ty),null,cTxt,"White",TextAlignment.CENTER,0.6f*fntS));ty+=32*lcdYS;}
-        f.Dispose();}}
+        SetupLCD(sf);
+        sf.WriteText(string.Join("\n",lines));}}
         void CheckEvents(){
         if(phase==F.IDLE&&merge!=null&&merge.IsConnected)ReadPadGPS();
         double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
         double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
-        if(lastH2>=0&&lastH2<0.5&&h2>=0.95)QMsg("FUCK YEAH!","Tanked the fuck up!",7);
-        else if(lastH2>=0&&lastH2<0.9&&h2>=0.9&&h2<0.95)QMsg("Hell yeah!","Almost fuckin full!",0);
-        if(lastBat>=0&&lastBat<0.5&&bat>=0.95)QMsg("JUICED UP!","100% you bitches!",7);
-        else if(lastBat>=0&&lastBat<0.9&&bat>=0.9&&bat<0.95)QMsg("Getting there!","Charge me harder!",0);
-        if(lastH2>=0.5&&h2<0.3)QMsg("Oh SHIT!","Where's my H2?!",1);
-        if(lastBat>=0.5&&bat<0.3)QMsg("FUCK!","Battery's dying!",1);
+        if(lastH2>=0&&lastH2<0.5&&h2>=0.95)QMsg("FUCK YEAH!","Tanked the fuck up!","happy");
+        else if(lastH2>=0&&lastH2<0.9&&h2>=0.9&&h2<0.95)QMsg("Hell yeah!","Almost fuckin full!","happy");
+        if(lastBat>=0&&lastBat<0.5&&bat>=0.95)QMsg("JUICED UP!","100% you bitches!","happy");
+        else if(lastBat>=0&&lastBat<0.9&&bat>=0.9&&bat<0.95)QMsg("Getting there!","Charge me harder!","happy");
+        if(lastH2>=0.5&&h2<0.3)QMsg("Oh SHIT!","Where's my H2?!","sad");
+        if(lastBat>=0.5&&bat<0.3)QMsg("FUCK!","Battery's dying!","sad");
         if(phase!=lastPhase){
-        if(phase==F.CLIMB)QMsg("LET'S FUCKING GO!","Time to fly bitch!",2);
-        else if(phase==F.ARM)QMsg("Arming this shit","Hold your ass...",4);
-        else if(phase==F.COAST)QMsg("Chillin now","Saving my juice...",4);
-        else if(phase==F.REENTRY)QMsg("OH SHIT!","Here comes the heat!",3);
-        else if(phase==F.TARGET&&!isSatellite)QMsg("GOT YOU BITCH!","Locking the fuck on!",5);
-        else if(phase==F.SAT_CLIMB)QMsg("To space bitches!","Satellite mode!",2);
-        else if(phase==F.SAT_BRAKE)QMsg("Whoa there!","Slowing my ass down",4);
-        else if(phase==F.SAT_HOLD)QMsg("Parked up here","Watching you fucks",4);
-        else if(phase==F.SAT_INTERCEPT)QMsg("FOUND ONE!","Time to fuck em up!",6);
-        else if(phase==F.IDLE&&lastPhase!=F.IDLE)QMsg("Back to waiting","Boring as shit...",0);}
-        if(warheadsArmed&&!lastArmed)QMsg("ARMED & ANGRY!","Bout to fuck shit up!",6);
-        if(!warheadsArmed&&lastArmed)QMsg("Stood down","...for now bitch",0);
-        if(phase==F.TARGET&&distToTgt<500&&distToTgt>100&&flightTicks%60==0)QMsg("Getting closer!",$"{distToTgt:F0}m you're fucked",5);
-        if(phase==F.TARGET&&distToTgt<=100&&distToTgt>detDist&&flightTicks%30==0)QMsg("SAY GOODBYE!",$"{distToTgt:F0}m BITCH!",6);
+        if(phase==F.CLIMB)QMsg("LET'S FUCKING GO!","Time to fly bitch!","shocked");
+        else if(phase==F.ARM)QMsg("Arming this shit","Hold your ass...","skeptical");
+        else if(phase==F.COAST)QMsg("Chillin now","Saving my juice...","sleepy");
+        else if(phase==F.REENTRY)QMsg("OH SHIT!","Here comes the heat!","shocked");
+        else if(phase==F.TARGET&&!isSatellite)QMsg("GOT YOU BITCH!","Locking the fuck on!","suspicious_left");
+        else if(phase==F.SAT_CLIMB)QMsg("To space bitches!","Satellite mode!","happy");
+        else if(phase==F.SAT_BRAKE)QMsg("Whoa there!","Slowing my ass down","confused");
+        else if(phase==F.SAT_HOLD)QMsg("Parked up here","Watching you fucks","skeptical");
+        else if(phase==F.SAT_INTERCEPT)QMsg("FOUND ONE!","Time to fuck em up!","evil");
+        else if(phase==F.IDLE&&lastPhase!=F.IDLE)QMsg("Back to waiting","Boring as shit...","annoyed");}
+        if(warheadsArmed&&!lastArmed)QMsg("ARMED & ANGRY!","Bout to fuck shit up!","evil");
+        if(!warheadsArmed&&lastArmed)QMsg("Stood down","...for now bitch","annoyed");
+        if(phase==F.TARGET&&distToTgt<500&&distToTgt>100&&flightTicks%60==0)QMsg("Getting closer!",$"{distToTgt:F0}m you're fucked","suspicious_right");
+        if(phase==F.TARGET&&distToTgt<=100&&distToTgt>detDist&&flightTicks%30==0)QMsg("SAY GOODBYE!",$"{distToTgt:F0}m BITCH!","dead");
         if(bootComplete&&startupDone&&phase==F.IDLE&&bootWaitTicks%60==30){
-        if(!CheckBootComplete()){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QMsg("Pad recompiled!","Back to waiting...",1);}
+        if(!CheckBootComplete()){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QMsg("Pad recompiled!","Back to waiting...","confused");}
         else{var rpbs=new List<IMyProgrammableBlock>();GridTerminalSystem.GetBlocksOfType(rpbs,b=>b.IsSameConstructAs(Me)&&b!=Me);
         foreach(var pb in rpbs){if(!pb.CustomName.ToUpper().Contains("UNITY PAD")||pb.CustomName.ToUpper().Contains("MISSILE"))continue;
         string pcd=pb.CustomData;int si=pcd.IndexOf("pad_session=");if(si<0)break;
         int ei=pcd.IndexOf('\n',si);if(ei<0)ei=pcd.Length;string ps=pcd.Substring(si+12,ei-si-12).Trim();
         if(lastPadSession==""&&ps!="")lastPadSession=ps;
-        else if(lastPadSession!=""&&ps!=lastPadSession){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QMsg("Pad recompiled!","New boot incoming...",1);}
+        else if(lastPadSession!=""&&ps!=lastPadSession){bootComplete=false;startupDone=false;startupCheck=0;bootWaitTicks=0;lastPadSession="";QMsg("Pad recompiled!","New boot incoming...","confused");}
         break;}}}
         if(!bootComplete&&phase==F.IDLE){
         bootWaitTicks++;
         if(bootWaitTicks%30==1){if(!CheckBootComplete()){
-        if(bootWaitTicks<30)QMsg("Waking up...","Checking pad status",4);
-        else if(bootWaitTicks<90)QMsg("Waiting on pad...","Boot sequence...",4);
-        else if(bootWaitTicks<150)QMsg("Still waiting...","Come on pad!",1);
-        else if(bootWaitTicks<210)QMsg("Any day now...","Hurry the fuck up!",1);
-        else QMsg("Waiting forever!","Boot that shit!",1);
-        }else{bootComplete=true;bootWaitTicks=0;QMsg("PAD BOOT DONE!","My turn bitches!",7);}}}
+        if(bootWaitTicks<30)QMsg("Waking up...","Checking pad status","sleepy");
+        else if(bootWaitTicks<90)QMsg("Waiting on pad...","Boot sequence...","sleepy");
+        else if(bootWaitTicks<150)QMsg("Still waiting...","Come on pad!","annoyed");
+        else if(bootWaitTicks<210)QMsg("Any day now...","Hurry the fuck up!","annoyed");
+        else QMsg("Waiting forever!","Boot that shit!","angry");
+        }else{bootComplete=true;bootWaitTicks=0;QMsg("PAD BOOT DONE!","My turn bitches!","happy");}}}
         if(bootComplete&&!startupDone&&phase==F.IDLE&&msgQ.Count<3){
-        if(startupCheck==0){QMsg("Booting up...","Unity Missile Online",4);startupCheck++;}
-        else if(startupCheck==1){QMsg("Checking gyros...",$"{gyros.Count} found",4);startupCheck++;}
-        else if(startupCheck==2){QMsg(gyros.Count>0?"Gyros: FUCK YEAH!":"Gyros: OH SHIT!",gyros.Count>0?"Spinning good!":"Where are they?!",gyros.Count>0?7:1);startupCheck++;}
-        else if(startupCheck==3){QMsg("Checking thrust...",$"{thrusters.Count} engines",4);startupCheck++;}
-        else if(startupCheck==4){QMsg(thrusters.Count>0?"Thrusters: HELL YES!":"Thrusters: FUCK!",thrusters.Count>0?"Ready to rip!":"Can't fly shit!",thrusters.Count>0?7:1);startupCheck++;}
-        else if(startupCheck==5){QMsg("Warhead check...",$"{warheads.Count} loaded",4);startupCheck++;}
-        else if(startupCheck==6){QMsg(warheads.Count>0?"Boom ready!":"No warheads?!",warheads.Count>0?"Gonna wreck em!":"Useless...",warheads.Count>0?7:1);startupCheck++;}
-        else if(startupCheck==7){QMsg("Fuel check...",$"H2: {h2*100:F0}%",4);startupCheck++;}
-        else if(startupCheck==8){QMsg(h2>0.5?"H2 looking good!":"Need more H2!",h2>0.5?"Tanked up!":$"Only {h2*100:F0}%!",h2>0.5?7:1);startupCheck++;}
-        else if(startupCheck==9){QMsg("Power check...",$"Bat: {bat*100:F0}%",4);startupCheck++;}
-        else if(startupCheck==10){QMsg(bat>0.5?"Power's good!":"Low power!",bat>0.5?"Juiced!":$"Only {bat*100:F0}%!",bat>0.5?7:1);startupCheck++;}
-        else if(startupCheck==11){QMsg("Sensors...",$"{sensors.Count} active",4);startupCheck++;}
-        else if(startupCheck==12){QMsg("Cameras...",$"{cameras.Count} watching",4);startupCheck++;}
-        else if(startupCheck==13){QMsg("Antennas...",$"{antennas.Count} ready",4);startupCheck++;}
-        else if(startupCheck==14){QMsg("Remote control...",rc!=null?"Online!":"MISSING!",rc!=null?7:1);startupCheck++;}
-        else if(startupCheck==15){QMsg("ALL CHECKS DONE!","Systems fuckin go!",7);startupCheck++;}
-        else if(startupCheck==16){QMsg("I'm ready bitch!","Give me a target!",2);startupDone=true;}}
+        if(startupCheck==0){QMsg("Booting up...","Unity Missile Online","neutral");startupCheck++;}
+        else if(startupCheck==1){QMsg("Checking gyros...",$"{gyros.Count} found","confused");startupCheck++;}
+        else if(startupCheck==2){QMsg(gyros.Count>0?"Gyros: FUCK YEAH!":"Gyros: OH SHIT!",gyros.Count>0?"Spinning good!":"Where are they?!",gyros.Count>0?"happy":"sad");startupCheck++;}
+        else if(startupCheck==3){QMsg("Checking thrust...",$"{thrusters.Count} engines","confused");startupCheck++;}
+        else if(startupCheck==4){QMsg(thrusters.Count>0?"Thrusters: HELL YES!":"Thrusters: FUCK!",thrusters.Count>0?"Ready to rip!":"Can't fly shit!",thrusters.Count>0?"happy":"sad");startupCheck++;}
+        else if(startupCheck==5){QMsg("Warhead check...",$"{warheads.Count} loaded","confused");startupCheck++;}
+        else if(startupCheck==6){QMsg(warheads.Count>0?"Boom ready!":"No warheads?!",warheads.Count>0?"Gonna wreck em!":"Useless...",warheads.Count>0?"happy":"sad");startupCheck++;}
+        else if(startupCheck==7){QMsg("Fuel check...",$"H2: {h2*100:F0}%","confused");startupCheck++;}
+        else if(startupCheck==8){QMsg(h2>0.5?"H2 looking good!":"Need more H2!",h2>0.5?"Tanked up!":$"Only {h2*100:F0}%!",h2>0.5?"happy":"sad");startupCheck++;}
+        else if(startupCheck==9){QMsg("Power check...",$"Bat: {bat*100:F0}%","confused");startupCheck++;}
+        else if(startupCheck==10){QMsg(bat>0.5?"Power's good!":"Low power!",bat>0.5?"Juiced!":$"Only {bat*100:F0}%!",bat>0.5?"happy":"sad");startupCheck++;}
+        else if(startupCheck==11){QMsg("Sensors...",$"{sensors.Count} active","confused");startupCheck++;}
+        else if(startupCheck==12){QMsg("Cameras...",$"{cameras.Count} watching","confused");startupCheck++;}
+        else if(startupCheck==13){QMsg("Antennas...",$"{antennas.Count} ready","confused");startupCheck++;}
+        else if(startupCheck==14){QMsg("Remote control...",rc!=null?"Online!":"MISSING!",rc!=null?"happy":"sad");startupCheck++;}
+        else if(startupCheck==15){QMsg("ALL CHECKS DONE!","Systems fuckin go!","happy");startupCheck++;}
+        else if(startupCheck==16){QMsg("I'm ready bitch!","Give me a target!","wink");startupDone=true;}}
         if(tgtGPS!=lastGPS&&tgtGPS!=Vector3D.Zero){lastGPS=tgtGPS;gpsAnnounced=false;}
-        if(!gpsAnnounced&&tgtGPS!=Vector3D.Zero&&phase==F.IDLE){gpsAnnounced=true;QMsg("Got a target!","Someone's gonna die!",5);QMsg($"GPS locked","X:{tgtGPS.X:F0}",0);QMsg($"Coords set","Y:{tgtGPS.Y:F0} Z:{tgtGPS.Z:F0}",0);QMsg("Just say when","Ready to fuck!",2);}
+        if(!gpsAnnounced&&tgtGPS!=Vector3D.Zero&&phase==F.IDLE){gpsAnnounced=true;QMsg("Got a target!","Someone's gonna die!","angry");QMsg($"GPS locked","X:{tgtGPS.X:F0}","neutral");QMsg($"Coords set","Y:{tgtGPS.Y:F0} Z:{tgtGPS.Z:F0}","neutral");QMsg("Just say when","Ready to fuck!","wink");}
         if(phase==F.IDLE&&msgQ.Count==0&&curMsg==null&&startupDone){idleTicks++;if(idleTicks>=25){idleTicks=0;QueueIdleMsg(h2,bat);}}
         lastH2=h2;lastBat=bat;lastPhase=phase;lastArmed=warheadsArmed;}
         void QueueIdleMsg(double h2,double bat){
         idleCycle++;int c=idleCycle%20;
-        if(c==0)QMsg("Systems check...",$"Gyros: {gyros.Count} online",4);
-        else if(c==1)QMsg($"Thrusters: {thrusters.Count}","All good bitches!",7);
-        else if(c==2)QMsg($"Warheads: {warheads.Count}","Ready to blow shit!",2);
-        else if(c==3)QMsg($"H2: {h2*100:F0}%",h2>0.8?"Topped off!":"Could use more...",h2>0.8?7:1);
-        else if(c==4)QMsg($"Battery: {bat*100:F0}%",bat>0.8?"Fuckin juiced!":"Meh...",bat>0.8?7:1);
-        else if(c==5)QMsg("Sensors ready",$"{sensors.Count} watching",4);
-        else if(c==6)QMsg($"Cameras: {cameras.Count}","I see everything!",0);
-        else if(c==7&&tgtGPS!=Vector3D.Zero)QMsg("Target locked","Waiting to kill!",5);
-        else if(c==7)QMsg("No target yet","Give me something!",1);
-        else if(c==8)QMsg("Bored as fuck","Launch me already!",1);
-        else if(c==9)QMsg("Still waiting...","Any day now...",4);
-        else if(c==10)QMsg($"Mode: {mode}","Ready when you are",0);
-        else if(c==11)QMsg("Antennas ready",$"{antennas.Count} broadcasting",4);
-        else if(c==12)QMsg("Pre-flight done","All systems nominal",7);
-        else if(c==13)QMsg("Come on!","Let's blow shit up!",2);
-        else if(c==14)QMsg("*taps warhead*","Is this thing on?",0);
-        else if(c==15)QMsg("Merge block ready","Just disconnect me!",0);
-        else if(c==16&&h2>0.9&&bat>0.9)QMsg("100% READY!","Perfect condition!",7);
-        else if(c==16)QMsg("Almost ready...",$"H2:{h2*100:F0} Bat:{bat*100:F0}",4);
-        else if(c==17)QMsg("Checklist done","Fuck yeah!",7);
-        else if(c==18)QMsg("Getting impatient","LAUNCH ME!",2);
-        else if(c==19)QMsg("Sitting here...","Like an asshole...",1);}
-        void DrawFace(MySpriteDrawFrame f,int expr,Color faceCol){
-        float cx=lcdW/2,cy=lcdH*0.32f;
-        float eyeW=55*lcdS,eyeH=55*lcdYS,eyeSpacing=85*lcdS;
-        float mouthW=90*lcdS,mouthH=40*lcdYS;
-        float blink=(animFrame%30<3)?0.1f:1f;
-        float eyeYOff=0,mouthRot=0;bool mouthOpen=false;
-        if(expr==1){eyeH*=0.3f;mouthRot=3.14159f;}
-        else if(expr==2){eyeYOff=-8*lcdYS;mouthOpen=true;}
-        else if(expr==3){eyeW*=1.3f;eyeH*=1.3f;mouthOpen=true;mouthH*=1.5f;}
-        else if(expr==4){eyeH*=0.2f;}
-        else if(expr==5){float bob=(float)Math.Sin(animFrame*0.3)*5*lcdYS;eyeYOff=bob;}
-        else if(expr==6){eyeW*=1.4f;eyeH*=1.4f;mouthW*=1.3f;mouthOpen=true;mouthH*=2f;}
-        else if(expr==7){eyeH*=0.6f;eyeW*=1.2f;mouthW*=1.5f;}
-        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx-eyeSpacing,cy+eyeYOff),new Vector2(eyeW,eyeH*blink),faceCol));
-        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx+eyeSpacing,cy+eyeYOff),new Vector2(eyeW,eyeH*blink),faceCol));
-        if(expr==3||expr==6){
-        float pW=eyeW*0.4f,pH=eyeH*0.4f*blink;
-        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx-eyeSpacing,cy+eyeYOff),new Vector2(pW,pH),cBg));
-        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx+eyeSpacing,cy+eyeYOff),new Vector2(pW,pH),cBg));}
-        float mouthY=cy+70*lcdYS;
-        if(mouthOpen){
-        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx,mouthY),new Vector2(mouthW,mouthH),faceCol));
-        f.Add(new MySprite(SpriteType.TEXTURE,"Circle",new Vector2(cx,mouthY-mouthH*0.3f),new Vector2(mouthW*0.8f,mouthH*0.5f),cBg));}
-        else{
-        var ms=new MySprite(SpriteType.TEXTURE,"SemiCircle",new Vector2(cx,mouthY),new Vector2(mouthW,mouthH),faceCol);
-        ms.RotationOrScale=mouthRot;f.Add(ms);}}
-        int GetIdleExpr(){
+        if(c==0)QMsg("Systems check...",$"Gyros: {gyros.Count} online","confused");
+        else if(c==1)QMsg($"Thrusters: {thrusters.Count}","All good bitches!","happy");
+        else if(c==2)QMsg($"Warheads: {warheads.Count}","Ready to blow shit!","wink");
+        else if(c==3)QMsg($"H2: {h2*100:F0}%",h2>0.8?"Topped off!":"Could use more...",h2>0.8?"happy":"sad");
+        else if(c==4)QMsg($"Battery: {bat*100:F0}%",bat>0.8?"Fuckin juiced!":"Meh...",bat>0.8?"happy":"sad");
+        else if(c==5)QMsg("Sensors ready",$"{sensors.Count} watching","confused");
+        else if(c==6)QMsg($"Cameras: {cameras.Count}","I see everything!","suspicious_left");
+        else if(c==7&&tgtGPS!=Vector3D.Zero)QMsg("Target locked","Waiting to kill!","angry");
+        else if(c==7)QMsg("No target yet","Give me something!","annoyed");
+        else if(c==8)QMsg("Bored as fuck","Launch me already!","annoyed");
+        else if(c==9)QMsg("Still waiting...","Any day now...","sleepy");
+        else if(c==10)QMsg($"Mode: {mode}","Ready when you are","neutral");
+        else if(c==11)QMsg("Antennas ready",$"{antennas.Count} broadcasting","neutral");
+        else if(c==12)QMsg("Pre-flight done","All systems nominal","happy");
+        else if(c==13)QMsg("Come on!","Let's blow shit up!","wink");
+        else if(c==14)QMsg("*taps warhead*","Is this thing on?","skeptical");
+        else if(c==15)QMsg("Merge block ready","Just disconnect me!","neutral");
+        else if(c==16&&h2>0.9&&bat>0.9)QMsg("100% READY!","Perfect condition!","happy");
+        else if(c==16)QMsg("Almost ready...",$"H2:{h2*100:F0} Bat:{bat*100:F0}","sleepy");
+        else if(c==17)QMsg("Checklist done","Fuck yeah!","happy");
+        else if(c==18)QMsg("Getting impatient","LAUNCH ME!","angry");
+        else if(c==19)QMsg("Sitting here...","Like an asshole...","annoyed");}
+        string GetIdleEmotion(){
         double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;
         double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPower;if(batteries.Count>0)bat/=batteries.Count;
-        if(phase==F.IDLE){if(warheadsArmed)return 3;if(h2<0.3||bat<0.3)return 1;return 0;}
-        if(phase==F.CLIMB)return 2;
-        if(phase==F.ARM||phase==F.COAST)return 4;
-        if(phase==F.REENTRY)return 3;
-        if(phase==F.TARGET)return warheadsArmed?6:5;
-        if(phase==F.SAT_CLIMB||phase==F.SAT_BRAKE)return 2;
-        if(phase==F.SAT_HOLD)return 4;
-        if(phase==F.SAT_INTERCEPT)return 6;
-        return 0;}
-        Color GetFaceColor(int expr){
-        if(expr==7)return cOK;
-        if(expr==1)return cWrn;
-        if(expr==6)return cErr;
-        if(expr==3)return cWrn;
-        if(phase==F.TARGET||phase==F.SAT_INTERCEPT)return warheadsArmed?cErr:cWrn;
-        return cPri;}
+        if(phase==F.IDLE){if(warheadsArmed)return "evil";if(h2<0.3||bat<0.3)return "sad";return "annoyed";}
+        if(phase==F.CLIMB)return "shocked";
+        if(phase==F.ARM)return "skeptical";
+        if(phase==F.COAST)return "sleepy";
+        if(phase==F.REENTRY)return "shocked";
+        if(phase==F.TARGET)return warheadsArmed?(distToTgt<200?"dead":"evil"):"suspicious_left";
+        if(phase==F.SAT_CLIMB)return "happy";
+        if(phase==F.SAT_BRAKE)return "confused";
+        if(phase==F.SAT_HOLD)return "skeptical";
+        if(phase==F.SAT_INTERCEPT)return "evil";
+        return "neutral";}
         string[] GetIdleText(){
         double spd=rc!=null?rc.GetShipVelocities().LinearVelocity.Length():0;
         double h2=0;foreach(var t in h2tanks)h2+=t.FilledRatio;if(h2tanks.Count>0)h2/=h2tanks.Count;

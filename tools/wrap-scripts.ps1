@@ -1,9 +1,12 @@
 # Unity Missile System - Script Wrapper for MDK2
 # Usage:
-#   tools/wrap-scripts.ps1           - Wrap only
-#   tools/wrap-scripts.ps1 -Update   - Update packages first, then wrap
+#   tools/wrap-scripts.ps1                - Wrap only
+#   tools/wrap-scripts.ps1 -Minify        - Wrap with pre-minification
+#   tools/wrap-scripts.ps1 -Update        - Update packages first, then wrap
+#   tools/wrap-scripts.ps1 -Update -Minify - Update + wrap + pre-minify
 param(
-    [switch]$Update
+    [switch]$Update,
+    [switch]$Minify
 )
 
 $ErrorActionPreference = "Stop"
@@ -11,6 +14,18 @@ $ErrorActionPreference = "Stop"
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $root = Split-Path -Parent $toolsDir
 $scriptsDir = Join-Path $root "src\scripts"
+
+# Load the minifier if -Minify flag is set
+if ($Minify) {
+    $minifierPath = Join-Path $toolsDir "minify-cs.ps1"
+    if (Test-Path $minifierPath) {
+        . $minifierPath
+        Write-Host "Pre-minification ENABLED" -ForegroundColor Magenta
+    } else {
+        Write-Host "WARNING: minify-cs.ps1 not found, disabling pre-minification" -ForegroundColor Yellow
+        $Minify = $false
+    }
+}
 
 # Update packages if requested
 if ($Update) {
@@ -52,6 +67,7 @@ $mdkFooter = @"
     }
 }
 "@
+
 function Wrap-Script {
     param ([string]$Name,[string]$RawFile,[string]$ProjectFolder)
     $rawPath = Join-Path $scriptsDir $RawFile
@@ -60,6 +76,16 @@ function Wrap-Script {
     if (-not (Test-Path $rawPath)) {Write-Host "ERROR: $rawPath not found" -ForegroundColor Red;return $false}
     Write-Host "Wrapping $Name..." -ForegroundColor Cyan
     $rawContent = Get-Content $rawPath -Raw
+    $originalSize = $rawContent.Length
+
+    # Apply pre-minification if enabled
+    if ($Minify) {
+        $rawContent = Minify-CSharp -Code $rawContent
+        $minifiedSize = $rawContent.Length
+        $reduction = [math]::Round((1 - $minifiedSize / $originalSize) * 100, 1)
+        Write-Host "  Pre-minified: $originalSize -> $minifiedSize chars ($reduction% reduction)" -ForegroundColor Magenta
+    }
+
     $indentedContent = $rawContent -split "`n" | ForEach-Object { "        $_" }
     $indentedContent = $indentedContent -join "`n"
     $fullScript = $mdkHeader + $indentedContent + "`n" + $mdkFooter
@@ -96,4 +122,5 @@ Write-Host "  dotnet build src/scripts/UnitySignal -c Debug" -ForegroundColor Wh
 Write-Host "  dotnet build src/scripts/UnityNuke -c Debug" -ForegroundColor White
 Write-Host ""
 Write-Host "To update packages before wrapping, use: tools/wrap-scripts.ps1 -Update" -ForegroundColor DarkGray
+Write-Host "To enable pre-minification, use: tools/wrap-scripts.ps1 -Minify" -ForegroundColor DarkGray
 Write-Host ""
