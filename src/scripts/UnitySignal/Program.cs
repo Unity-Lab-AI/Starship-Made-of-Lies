@@ -314,6 +314,7 @@ namespace IngameScript
         
         
         void ScanBlocks(){
+        UpdatePadFromName();
         localCams.Clear();
         lcdsBySlot.Clear();
         signalLCDs.Clear();
@@ -336,21 +337,19 @@ namespace IngameScript
         var lcds=new List<IMyTextPanel>();
         GridTerminalSystem.GetBlocksOfType(lcds,b=>b.CubeGrid==Me.CubeGrid);
         string camsTag=isCtl?"[CTRLCAMS]":$"[PAD{padID}]CAMS";
+        string camsTag2=$"[PAD{padID}] CAMS";
         string altTag=$"[PAD{padID}]CAMS";
         foreach(var lcd in lcds){
-        bool hasTag=lcd.CustomName.Contains(camsTag);
+        bool m1=lcd.CustomName.Contains(camsTag);
+        bool m2=lcd.CustomName.Contains(camsTag2);
         bool hasAlt=!isCtl?false:lcd.CustomName.Contains(altTag);
-        if(!hasTag&&!hasAlt)continue;
-        string useTag=hasTag?camsTag:altTag;
+        if(!m1&&!m2&&!hasAlt)continue;
+        string useTag=m1?camsTag:m2?camsTag2:altTag;
         int idx=lcd.CustomName.IndexOf(useTag);
         int colonIdx=lcd.CustomName.IndexOf(':',idx);
-        if(colonIdx<0)continue;
-        string slotStr="";
-        for(int i=colonIdx+1;i<lcd.CustomName.Length;i++){
-        char c=lcd.CustomName[i];
-        if(char.IsDigit(c))slotStr+=c;
-        else break;}
-        if(string.IsNullOrEmpty(slotStr))continue;
+        string slotStr="0";
+        if(colonIdx>=0){slotStr="";for(int i=colonIdx+1;i<lcd.CustomName.Length;i++){char c=lcd.CustomName[i];if(char.IsDigit(c))slotStr+=c;else break;}
+        if(string.IsNullOrEmpty(slotStr))slotStr="0";}
         var sf=lcd as IMyTextSurface;if(sf==null)continue;
         if(!lcdsBySlot.ContainsKey(slotStr))lcdsBySlot[slotStr]=new List<IMyTextSurface>();
         lcdsBySlot[slotStr].Add(sf);}

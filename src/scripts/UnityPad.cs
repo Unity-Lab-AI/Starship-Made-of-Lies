@@ -788,6 +788,7 @@ if(a.ToUpper().StartsWith("GPS:")){var p=a.Substring(4).Split(',');if(p.Length==
 }
 
 void Scan(){
+UpdatePadTag();
 var blks=new List<IMyTerminalBlock>();
 GridTerminalSystem.GetBlocksOfType(blks,b=>b.CustomName.Contains(padTag));
 padMerge=null;padCon=null;padCon1=null;padCon2=null;
@@ -1238,7 +1239,7 @@ double VD(Vector3D a,Vector3D b)=>Vector3D.Distance(a,b);
 Vector3D VN(Vector3D v)=>Vector3D.Normalize(v);
 void ReadInvStats(){if(invPB==null)FindSiblingPBs();if(invPB==null)return;string d=invPB.CustomData;if(string.IsNullOrEmpty(d))return;
 Action<string,Action<string>>PS=(tag,act)=>{int si=d.IndexOf(tag);if(si<0)return;int ei=d.IndexOf("\n[",si+tag.Length);string sec=ei>0?d.Substring(si,ei-si):d.Substring(si);foreach(var ln in sec.Split('\n')){foreach(var it in ln.Split('|'))act(it);}};
-Func<string,int>PV=s=>{int v=0;if(string.IsNullOrEmpty(s))return 0;string f=s.Split('+')[0].Split('/')[0].Split('%')[0].Split(' ').FirstOrDefault(x=>x.Length>0&&char.IsDigit(x[0]))??"";int.TryParse(f,out v);return v;};
+Func<string,int>PV=s=>{int v=0;if(string.IsNullOrEmpty(s))return 0;string f=s.Split('+')[0].Split('/')[0].Split('%')[0].Split(' ').FirstOrDefault(x=>x.Length>0&&char.IsDigit(x[0]))??"";int di=f.IndexOf('-');if(di>0)f=f.Substring(0,di);int.TryParse(f.Replace(",",""),out v);return v;};
 PS("[QUOTAS]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Length<2)return;string k=kv[0].Trim().ToLower().Replace("_","").Replace(" ","");int v;if(!int.TryParse(kv[1].Trim(),out v))return;if(k=="ammotarget"||k=="tgt")ammoTarget=v;else if(k=="pammotarget")pAmmoTarget=v;else if(k=="mslammotarget"||k=="mslammo"||k=="s10target"||k=="s10")mslAmmoTarget=v;else if(k=="h2target")h2Target=v;else if(k=="o2target")o2Target=v;else if(k=="tooltarget")toolTarget=v;});
 PS("[STATUS]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Length<2)return;string k=kv[0].Trim().ToLower().Replace(" ",""),vs=kv[1].Trim();int vi;if(int.TryParse(vs,out vi)){if(k=="ammostock")ammoStock=vi;else if(k=="ammotype"&&vi!=ammoTypeIdx){ammoTypeIdx=vi;UpdateAmmoType();}else if(k=="ammoqueued")ammoQueued=vi;else if(k=="cargol")invCargoL=vi;else if(k=="cargom")invCargoM=vi;else if(k=="cargos")invCargoS=vi;}if(k=="cargo"){int pi=vs.IndexOf('%');if(pi>0)float.TryParse(vs.Substring(0,pi),out invCargoPct);}invCargoT=invCargoL+invCargoM+invCargoS;});
 PS("[BOTTLES]",it=>{if(!it.Contains("="))return;var kv=it.Split('=');if(kv.Length<2)return;string k=kv[0].Trim().ToLower(),v=kv[1];var vp=v.Split('+');int stk=PV(vp[0]);int q=vp.Length>1?PV(vp[1]):0;if(k.StartsWith("h")){pH2B=stk;h2Queued=q;}else if(k.StartsWith("o")){pO2B=stk;o2Queued=q;}});

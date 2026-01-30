@@ -261,6 +261,7 @@ namespace IngameScript
         void HandleArg(string a){switch(a.ToUpper()){case"SORT":HardSort();break;case"RESCAN":Scan();break;case"AUTOORG":autoOrg=!autoOrg;break;}}
         
         void Scan(){
+        UpdatePadTag();
         padCargo.Clear();padCargoL.Clear();padCargoM.Clear();padCargoS.Clear();padRef.Clear();padAsm.Clear();padReact.Clear();padGen.Clear();oreC.Clear();if(btn!=null&&btn.Closed)btn=null;padCon=null;
         toolCargo=oreCargo=ingotCargo=compCargo=ammoCargo=bottleCargo=pAmmoCargo=foodCargo=dataCargo=miscCargo=null;sharedCargo.Clear();subgridCargo.Clear();
         if(lcd4!=null&&((IMyTerminalBlock)lcd4).Closed)lcd4=null;
@@ -394,7 +395,7 @@ namespace IngameScript
         int o2Ex=pO2B>o2Target?pO2B-o2Target:0;
         int tAmmoEx=ammoStock>mslAmmoTarget?ammoStock-mslAmmoTarget:0;
         int totEx=0;foreach(var kv in cEx)totEx+=kv.Value;foreach(var kv in tEx)totEx+=kv.Value;foreach(var kv in paEx)totEx+=kv.Value;foreach(var kv in turEx)totEx+=kv.Value;totEx+=h2Ex+o2Ex+tAmmoEx;
-        if(totEx==0){foreach(var a in padAsm)if(a.Mode==MyAssemblerMode.Disassembly&&a.IsQueueEmpty){var aIn=a.GetInventory(1);if(aIn!=null&&aIn.ItemCount>0)continue;a.Mode=MyAssemblerMode.Assembly;a.UseConveyorSystem=true;}return;}
+        if(totEx==0){foreach(var a in padAsm)if(a.Mode==MyAssemblerMode.Disassembly&&a.IsQueueEmpty){var aIn=a.GetInventory(1);if(aIn!=null&&aIn.ItemCount>0)continue;a.Repeating=false;a.Mode=MyAssemblerMode.Assembly;a.UseConveyorSystem=true;}return;}
         int recyclerCnt=Math.Min(2,Math.Max(1,totEx/1000+1));
         var recyclers=new List<IMyAssembler>();
         for(int i=padAsm.Count-1;i>=0&&recyclers.Count<recyclerCnt;i--){
@@ -402,7 +403,7 @@ namespace IngameScript
         if(a.Mode==MyAssemblerMode.Assembly&&!a.IsQueueEmpty)continue;
         a.UseConveyorSystem=false;
         if(a.Mode!=MyAssemblerMode.Disassembly){a.Mode=MyAssemblerMode.Disassembly;var q=new List<MyProductionItem>();a.GetQueue(q);for(int qi=q.Count-1;qi>=0;qi--)a.RemoveQueueItem(qi,q[qi].Amount);}
-        recyclers.Add(a);}
+        a.Repeating=true;recyclers.Add(a);}
         foreach(var a in padAsm){if(a.Mode!=MyAssemblerMode.Disassembly)continue;var aO=a.GetInventory(1);if(aO==null||aO.ItemCount==0)continue;var qB=new Dictionary<MyDefinitionId,int>();var q=new List<MyProductionItem>();a.GetQueue(q);foreach(var qi in q)AD2(qB,qi.BlueprintId,(int)qi.Amount);var L=GL(aO);foreach(var it in L){string tp=it.Type.TypeId.ToLower(),sub=it.Type.SubtypeId;int amt=(int)it.Amount;MyDefinitionId bp=default(MyDefinitionId);
         if(tp.Contains("component")&&compBP.ContainsKey(sub)&&cEx.ContainsKey(sub)&&cEx[sub]>0){bp=compBP[sub];cEx[sub]=Math.Max(0,cEx[sub]-amt);}
         else if(tp.Contains("physicalgunobject")){string ns=NT(sub);if(tBPx.ContainsKey(ns)&&tEx.ContainsKey(ns)&&tEx[ns]>0){bp=tBPx[ns];tEx[ns]=Math.Max(0,tEx[ns]-amt);}}
