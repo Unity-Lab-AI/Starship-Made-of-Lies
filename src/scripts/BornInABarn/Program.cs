@@ -37,6 +37,10 @@ namespace IngameScript
         const float LIGHT_SENSOR_BOTTOM_EXTEND = 25f;
         const double BLOCK_REFRESH_INTERVAL = 10.0;
         const double STATE_SAVE_INTERVAL = 30.0;
+        const double GRID_CHECK_INTERVAL = 30.0;
+        const int REF_VENT_STABLE_TICKS = 5;
+        const float REF_VENT_STABLE_EPSILON = 0.03f;
+        const float REF_VENT_DRASTIC_CHANGE = 0.25f;
         #endregion
 
         readonly Dictionary<long, double> _doorTimers = new Dictionary<long, double>();
@@ -55,6 +59,16 @@ namespace IngameScript
         readonly List<IMyDoor> _doors = new List<IMyDoor>();
         readonly List<IMySensorBlock> _sensors = new List<IMySensorBlock>();
         readonly List<IMyAirVent> _vents = new List<IMyAirVent>();
+
+        bool _gridIsStatic = false;
+        bool _gridHasThrusters = false;
+        double _gridCheckTimer = 0;
+        float _refVentLastReading = -1f;
+        int _refVentStableCount = 0;
+        bool _refVentTrusted = false;
+        float _refVentTrustedValue = 0f;
+        bool _refVentWasEnabled = true;
+        bool _refVentWasDepressurize = true;
 
         public Program()
         {
@@ -163,6 +177,7 @@ namespace IngameScript
 
             ProcessAirlocks(dt);
 
+            CheckGridType(dt);
             UpdateOutsidePressureFromReferenceVents();
             UpdateInsidePressureFromBaseVents();
 

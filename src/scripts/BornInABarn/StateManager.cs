@@ -12,6 +12,9 @@ namespace IngameScript
         const string STATE_KEY_OUTSIDE_KNOWN = "OutsidePressureKnown";
         const string STATE_KEY_INSIDE_KNOWN = "InsidePressureKnown";
         const string STATE_KEY_MASTER_LOCK = "MasterLock";
+        const string STATE_KEY_GRID_IS_STATIC = "GridIsStatic";
+        const string STATE_KEY_REF_VENT_TRUSTED = "RefVentTrusted";
+        const string STATE_KEY_REF_VENT_TRUSTED_VALUE = "RefVentTrustedValue";
 
         float _persistedOutsidePressure = 0f;
         float _persistedInsidePressure = 1f;
@@ -44,6 +47,16 @@ namespace IngameScript
                 _persistedInsideKnown = val == "1";
             if (pairs.TryGetValue(STATE_KEY_MASTER_LOCK, out val))
                 _masterLock = val == "1";
+            if (pairs.TryGetValue(STATE_KEY_GRID_IS_STATIC, out val))
+                _gridIsStatic = val == "1";
+            if (pairs.TryGetValue(STATE_KEY_REF_VENT_TRUSTED, out val))
+                _refVentTrusted = val == "1";
+            if (pairs.TryGetValue(STATE_KEY_REF_VENT_TRUSTED_VALUE, out val))
+            {
+                float f;
+                if (float.TryParse(val, out f))
+                    _refVentTrustedValue = f;
+            }
         }
 
         void ApplyPersistedStateToAirlock(Airlock airlock)
@@ -91,7 +104,10 @@ namespace IngameScript
                 + STATE_KEY_INSIDE_PRESSURE + "=" + _persistedInsidePressure.ToString() + "\n"
                 + STATE_KEY_OUTSIDE_KNOWN + "=" + (_persistedOutsideKnown ? "1" : "0") + "\n"
                 + STATE_KEY_INSIDE_KNOWN + "=" + (_persistedInsideKnown ? "1" : "0") + "\n"
-                + STATE_KEY_MASTER_LOCK + "=" + (_masterLock ? "1" : "0");
+                + STATE_KEY_MASTER_LOCK + "=" + (_masterLock ? "1" : "0") + "\n"
+                + STATE_KEY_GRID_IS_STATIC + "=" + (_gridIsStatic ? "1" : "0") + "\n"
+                + STATE_KEY_REF_VENT_TRUSTED + "=" + (_refVentTrusted ? "1" : "0") + "\n"
+                + STATE_KEY_REF_VENT_TRUSTED_VALUE + "=" + _refVentTrustedValue.ToString();
 
             Me.CustomData = output;
         }
