@@ -331,11 +331,11 @@ if(string.IsNullOrEmpty(slotStr))continue;
 var sf=lcd as IMyTextSurface;if(sf==null)continue;
 if(!lcdsBySlot.ContainsKey(slotStr))lcdsBySlot[slotStr]=new List<IMyTextSurface>();
 lcdsBySlot[slotStr].Add(sf);}
-string sigTag=$"[PAD{padID}SIGNAL]";
-string defTag=$"[PAD{padID}DEFENSE]";
-string satTag=$"[PAD{padID}SATS]";
-string prsTag=$"[PAD{padID}PRESSURE]";
-string fltTag=$"[PAD{padID}FLIGHT]";
+string sigTag=$"[PAD{padID}]SIGNAL";
+string defTag=$"[PAD{padID}]DEFENSE";
+string satTag=$"[PAD{padID}]SATS";
+string prsTag=$"[PAD{padID}]PRESSURE";
+string fltTag=$"[PAD{padID}]FLIGHT";
 foreach(var lcd in lcds){
 if(lcd.CustomName.Contains(sigTag)){var sf=lcd as IMyTextSurface;if(sf!=null)signalLCDs.Add(sf);}
 if(lcd.CustomName.Contains(defTag)){var sf=lcd as IMyTextSurface;if(sf!=null)defenseLCDs.Add(sf);}
