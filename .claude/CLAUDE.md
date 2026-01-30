@@ -728,7 +728,7 @@ IMyEntity
 - **CustomData:** Writes to `Me.CustomData` - [SIGNAL], [ANTENNAS], [LASERS], [SATELLITES], [INTERCEPTS], [CONTROLLER], [STATUS]
 - **IGC Listeners:** UNITY_MSL, MINER_BEACON, UNITY_SAT_RELAY_STATUS, UNITY_SAT_INTERCEPT, UNITY_BOOT_REQ, UNITY_SIGNAL_CMD
 - **IGC Senders:** UNITY_BOOT_RSP, UNITY_SIGNAL_RSP
-- **LCD Tags:** `[PAD#CAMS]:slot` for camera display, `[PAD#SIGNAL]` for status display, `[CTRLCAMS]:slot` for controller mode
+- **LCD Tags:** `[PAD#]CAMS:slot` for camera display, `[PAD#SIGNAL]` for status display, `[CTRLCAMS]:slot` for controller mode
 - **Features:**
   - Antenna Management: Tracks radio/laser status
   - Laser Targeting: Auto-assigns lasers to track missiles via UNITY_MSL position data

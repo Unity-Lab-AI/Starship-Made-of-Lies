@@ -312,8 +312,8 @@ foreach(var r in padRadios)if(r.Enabled&&r.EnableBroadcasting)radioEnabled++;
 foreach(var l in padLasers)if(l.Status==MyLaserAntennaStatus.Connected)laserConnected++;
 var lcds=new List<IMyTextPanel>();
 GridTerminalSystem.GetBlocksOfType(lcds,b=>b.CubeGrid==Me.CubeGrid);
-string camsTag=isCtl?"[CTRLCAMS]":$"[PAD{padID}CAMS]";
-string altTag=$"[PAD{padID}CAMS]";
+string camsTag=isCtl?"[CTRLCAMS]":$"[PAD{padID}]CAMS";
+string altTag=$"[PAD{padID}]CAMS";
 foreach(var lcd in lcds){
 bool hasTag=lcd.CustomName.Contains(camsTag);
 bool hasAlt=!isCtl?false:lcd.CustomName.Contains(altTag);
