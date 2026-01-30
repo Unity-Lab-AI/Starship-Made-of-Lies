@@ -738,7 +738,9 @@ string GetCargoName(string key){int idx=key.IndexOf(':');return idx>=0?key.Subst
 
 void HandleArg(string a){
 lMnuT=DT;
-switch(a.ToUpper()){
+string au=a.ToUpper();
+if(au.StartsWith("SETPAD:")){int np;if(int.TryParse(au.Substring(7),out np)&&np>0){IGC.SendBroadcastMessage("UNITY_SETUP_CMD",$"SETPAD|{padID}|{np}");Echo($"Setup: SETPAD:{np} sent to Boot");}return;}
+switch(au){
 case"UP":if(viewLCD>0)lcdScroll[viewLCD]=Math.Max(0,lcdScroll[viewLCD]-1);else if(isCtl)ctrlSel=Math.Max(0,ctrlSel-1);else sel=Math.Max(0,sel-1);break;
 case"DOWN":
 if(viewLCD>0){lcdScroll[viewLCD]++;break;}

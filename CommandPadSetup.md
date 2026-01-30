@@ -35,22 +35,11 @@ In Space Engineers, create a blueprint of your working PAD1 grid (the entire pad
 
 ### Step 2: Place the Blueprint
 
-Paste/place the blueprint as a new grid near your existing construct. At this point, all blocks on the new grid still have `[PAD1]` tags from the original.
+Paste/place the blueprint as a new grid near your existing construct. **DO NOT connect it yet.** At this point, all blocks on the new grid still have `[PAD1]` tags from the original.
 
-### Step 3: Connect Via Connectors
+### Step 3: Compile All Scripts While Disconnected
 
-Dock the new grid to your existing construct using connectors:
-
-- The new pad grid should have connectors that will become `[PAD2-CON1]` and `[PAD2-CON2]`
-- Connect one of them to a connector on your base/existing construct
-- Lock the connector pair
-
-The connector naming convention:
-- **CON1** and **CON2** are the first two connectors found on the pad grid (excluding ore ejectors)
-- These are the pad's "umbilical" connectors for linking to the base construct
-- Additional connectors beyond the first two get named `[PAD#] Con`
-
-### Step 4: Compile All Scripts on the New Grid
+**CRITICAL: The new pad must NOT be connected to your base yet.** If you connect two `[PAD1]` grids, the inventory and signal scripts will see blocks on both pads and cause conflicts (doubled inventory counts, LCD errors, etc.).
 
 Open each PB on the **new grid** (still named `[PAD1]` at this point) and compile in order:
 
@@ -61,23 +50,25 @@ Open each PB on the **new grid** (still named `[PAD1]` at this point) and compil
 
 **Why this order matters:** Each script wipes its own PB's CustomData on compile. Boot reads ready flags from the other PBs, so they must compile first.
 
-### Step 5: Run SETUPMOD
+### Step 4: Run SETPAD:2 While Disconnected
 
-After boot completes on the new grid, run `SETUPMOD` as a **PB argument on the Pad PB** (not the Boot PB):
+After boot completes on the new grid, run `SETPAD:2` as a **PB argument on the Pad PB** (not the Boot PB):
 
 1. Open the terminal for `[PAD1] Unity Pad` on the **new grid**
-2. In the argument field, type: `SETUPMOD`
+2. In the argument field, type: `SETPAD:2`
 3. Click "Run"
 
 **What happens:**
-- The Pad PB sends `SETUPMOD|{padID}` via IGC on the `UNITY_SETUP_CMD` channel
+- The Pad PB sends `SETPAD|1|2` via IGC on the `UNITY_SETUP_CMD` channel
 - The Boot PB on the same grid receives this message
-- Boot calls `GetNextPadID()` which scans ALL connected pads via `IsSameConstructAs` and finds the next unused integer (in this case, 2)
-- Boot calls `SetupModule()` which renames every block on `CubeGrid==Me.CubeGrid` (same physical grid only)
+- Boot sets padID to 2 and calls `SetupModule(true)` (force mode)
+- All blocks on the pad grid, subgrids, and connected ships are renamed from `[PAD1]` to `[PAD2]`
 
-### Step 6: Verify the Rename
+**Why SETPAD instead of SETUPMOD?** SETUPMOD auto-detects the next padID by scanning connected pads, which requires the connector to be linked. But connecting two `[PAD1]` pads causes inventory and LCD conflicts. `SETPAD:N` lets you explicitly choose the padID while disconnected, avoiding all cross-pad contamination.
 
-After SETUPMOD completes, check the terminal. All blocks on the new grid should now have `[PAD2]` tags:
+### Step 5: Verify the Rename
+
+After SETPAD completes, check the terminal. All blocks on the new grid should now have `[PAD2]` tags:
 
 | Before (PAD1 tags) | After (PAD2 tags) |
 |---------------------|-------------------|
@@ -94,16 +85,24 @@ After SETUPMOD completes, check the terminal. All blocks on the new grid should 
 
 **Every single block is renamed** — missiles, printer components, docked ships (miners/beacons on ore connectors), PBs, everything. No exceptions. The Boot PB itself is handled by `RenameSiblingPBs()` which gives all 4 PBs their proper names (e.g., `[PAD2] UNITY BOOT`, `[PAD2] Unity Pad`, etc.).
 
+### Step 6: Connect Via Connectors
+
+Now that all blocks are renamed to `[PAD2]`, it's safe to connect:
+
+- Dock the new pad grid to your existing construct using connectors
+- Lock the connector pair
+- The pads will be on separate physical grids connected mechanically
+
 ### Step 7: Recompile All Scripts
 
-After renaming, recompile all scripts on the newly renamed PAD2 grid in order:
+After connecting and renaming, recompile all scripts on the PAD2 grid in order:
 
 1. `[PAD2] Unity Pad`
 2. `[PAD2] Unity Inventory`
 3. `[PAD2] UNITY SIGNAL`
 4. `[PAD2] UNITY BOOT`
 
-The scripts will now pick up the new `[PAD2]` tags and operate independently from PAD1.
+The scripts will now pick up the `[PAD2]` tags, find their own sibling PBs, and operate independently from PAD1.
 
 ---
 
@@ -111,14 +110,15 @@ The scripts will now pick up the new `[PAD2]` tags and operate independently fro
 
 The process is identical to adding PAD2:
 
-1. Blueprint and place another copy of the pad grid
-2. Connect via connectors to the existing construct
-3. Compile all 4 scripts (PAD -> INV -> SIGNAL -> BOOT)
-4. Run `SETUPMOD` on the new grid's Pad PB
-5. `GetNextPadID()` automatically finds the next available ID (3, 4, etc.)
-6. Recompile all scripts on the new grid
+1. Blueprint and place another copy of the pad grid (**don't connect yet**)
+2. Compile all 4 scripts while disconnected (PAD -> INV -> SIGNAL -> BOOT)
+3. Run `SETPAD:3` on the new grid's Pad PB (or whatever the next number is)
+4. Connect via connectors to the existing construct
+5. Recompile all scripts on the new grid
 
-The system auto-increments padIDs. If you have PAD1 and PAD3 (PAD2 was removed), the next `SETUPMOD` will assign PAD2 to fill the gap.
+You choose the padID yourself with `SETPAD:N`. If you have PAD1 and PAD2, use `SETPAD:3` for the next one. If PAD2 was removed and you want to reuse the number, use `SETPAD:2`.
+
+Alternatively, if the pad is **already connected** and you know what number to assign, you can still use `SETPAD:N` — but connect only AFTER renaming to avoid inventory conflicts from duplicate `[PAD1]` tags.
 
 ---
 
@@ -160,7 +160,8 @@ All setup commands are run as **PB arguments on the Pad PB** (`[PAD#] Unity Pad`
 
 | Command | When to Use | What It Does |
 |---------|-------------|--------------|
-| `SETUPMOD` | After placing and booting a new pad grid | Auto-detects next padID, renames all blocks on this grid from old tags to new `[PAD#]` tags. Skips blocks already tagged with the correct padID. |
+| `SETPAD:N` | **Primary setup command.** Run on new pad BEFORE connecting to base. | Sets padID to N and force-renames all blocks from current padID to `[PAD{N}]`. Works disconnected — no auto-detection needed. Example: `SETPAD:2`, `SETPAD:5`. |
+| `SETUPMOD` | After connecting, if blocks need re-tagging | Auto-detects next padID via connected pads, renames blocks. **Only use when already connected** — requires seeing other pads to pick the right number. Skips blocks already tagged with the correct padID. |
 | `SETUPFORCE` | When blocks have wrong tags or need re-renaming | Same as SETUPMOD but strips ALL existing `[PAD]` tags first, then re-applies. Use when SETUPMOD skipped blocks it shouldn't have. |
 | `NAMEPAD` | After manually adding new blocks to a pad grid | Renames untagged utility blocks (batteries, tanks, cargo, etc.) with `[PAD]` prefix. Does not set padID-specific tags. |
 | `NAMEMSL` | After a new missile is printed and merged | Increments build number and renames missile blocks. Called automatically during print cycle, but can be run manually. Also auto-renames connectors. |
@@ -254,15 +255,15 @@ This shouldn't happen since `GetNextPadID()` scans all connected pads. If it doe
 
 ```
 1. Blueprint PAD1 grid
-2. Place blueprint near base
-3. Connect new grid to base via connectors (lock them)
-4. On NEW grid, compile in order:
+2. Place blueprint near base — DO NOT CONNECT YET
+3. On NEW grid (still [PAD1]), compile in order:
    a. [PAD1] Unity Pad        (argument field empty, just compile)
    b. [PAD1] Unity Inventory
    c. [PAD1] UNITY SIGNAL
    d. [PAD1] UNITY BOOT        (wait for boot to complete)
-5. On NEW grid's Pad PB, run argument: SETUPMOD
+4. On NEW grid's Pad PB, run argument: SETPAD:2
    → All blocks renamed from [PAD1] to [PAD2]
+5. NOW connect the new [PAD2] grid to your base via connectors (lock them)
 6. Recompile all 4 scripts on the now-[PAD2] grid:
    a. [PAD2] Unity Pad
    b. [PAD2] Unity Inventory
@@ -270,7 +271,7 @@ This shouldn't happen since `GetNextPadID()` scans all connected pads. If it doe
    d. [PAD2] UNITY BOOT
 7. (Optional) On your main pad, run: SETPADCONTROL
    → Enables mass commands: BUILDALL, ARMALL, LAUNCHALL, ABORTALL
-8. Repeat steps 1-6 for PAD3, PAD4, etc.
+8. Repeat steps 1-6 for PAD3 (SETPAD:3), PAD4 (SETPAD:4), etc.
 ```
 
 ---

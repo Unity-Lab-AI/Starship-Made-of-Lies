@@ -499,7 +499,8 @@ string data=msg.Data.ToString();
 if(data==$"SETUPMOD|{padID}"){SetupModule(false);WriteSetupStatus("SETUPMOD");handled=true;}
 else if(data==$"SETUPFORCE|{padID}"){SetupModule(true);WriteSetupStatus("SETUPFORCE");handled=true;}
 else if(data==$"NAMEPAD|{padID}"){NamePadParts();WriteSetupStatus("NAMEPAD");handled=true;}
-else if(data==$"NAMEMSL|{padID}"){IncrementBldNum();NameMissileParts();AutoNameConnectors();WriteSetupStatus("NAMEMSL");handled=true;}}
+else if(data==$"NAMEMSL|{padID}"){IncrementBldNum();NameMissileParts();AutoNameConnectors();WriteSetupStatus("NAMEMSL");handled=true;}
+else if(data.StartsWith($"SETPAD|{padID}|")){string[]sp=data.Split('|');if(sp.Length>=3){int np;if(int.TryParse(sp[2],out np)&&np>0){padID=np;UpdatePadTag();Save();SetupModule(true);WriteSetupStatus($"SETPAD:{np}");handled=true;}}}}
 if(handled){Echo("UNITY BOOT - Setup Complete");Echo("Blocks renamed. Please recompile all scripts.");}
 return handled;
 }
@@ -551,6 +552,11 @@ string num=n.Substring(idx+4,end-idx-4);
 int id;if(int.TryParse(num,out id)&&id>0&&!ids.Contains(id))ids.Add(id);}}}
 return ids;
 }
+bool HasPadIDConflict(){
+var pbs=new List<IMyProgrammableBlock>();
+GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me&&b.CubeGrid!=Me.CubeGrid&&b.CustomName.ToUpper().Contains("UNITY BOOT"));
+foreach(var pb in pbs){string n=pb.CustomName;int i=n.IndexOf("[PAD");if(i>=0){int e=n.IndexOf("]",i);if(e>i+4){string num=n.Substring(i+4,e-i-4);int id;if(int.TryParse(num,out id)&&id==padID)return true;}}}
+return false;}
 int GetNextPadID(){
 var taken=DiscoverSiblingPads();
 int next=1;
@@ -558,7 +564,8 @@ while(taken.Contains(next))next++;
 return next;
 }
 void SetupModule(bool force){
-if(padID==0){padID=GetNextPadID();UpdatePadTag();}
+bool conflict=HasPadIDConflict();
+if(padID==0||(conflict&&!bootDone)){padID=GetNextPadID();UpdatePadTag();Save();}
 string tg=$"[PAD{padID}]",pt=$"[PAD{padID}-PRINT]";
 Vector3D mp=Me.GetPosition();
 var aB=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(aB);
