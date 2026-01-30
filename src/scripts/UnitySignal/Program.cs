@@ -165,7 +165,7 @@ namespace IngameScript
         var pbs=new List<IMyProgrammableBlock>();
         GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me);
         foreach(var pb in pbs){
-        if(pb.CustomName.Contains("[PAD")&&pb.CustomName.ToUpper().Contains("UNITY PAD")){padPB=pb;return;}}}
+        if(pb.CustomName.Contains($"[PAD{padID}]")&&pb.CustomName.ToUpper().Contains("UNITY PAD")){padPB=pb;return;}}}
         
         void CheckBootRequest(){
         while(bootReqL.HasPendingMessage){
@@ -305,7 +305,7 @@ namespace IngameScript
         var pbs=new List<IMyProgrammableBlock>();
         GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me);
         foreach(var pb in pbs){
-        if(pb.CustomName.Contains("[PAD")&&pb.CustomName.ToUpper().Contains("UNITY BOOT")){bootPB=pb;return;}}}
+        if(pb.CustomName.Contains($"[PAD{padID}]")&&pb.CustomName.ToUpper().Contains("UNITY BOOT")){bootPB=pb;return;}}}
         
         void CheckControllerMode(){
         var lcds=new List<IMyTextPanel>();
