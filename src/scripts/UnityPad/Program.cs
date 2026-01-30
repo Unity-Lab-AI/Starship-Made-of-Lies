@@ -220,7 +220,7 @@ namespace IngameScript
         GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me);
         foreach(var pb in pbs){
         string nm=pb.CustomName;string nmU=nm.ToUpper();
-        if(nm.Contains($"[PAD{padID}")&&nmU.Contains("UNITY BOOT"))bootPB=pb;
+        if(nm.Contains($"[PAD{padID}]")&&nmU.Contains("UNITY BOOT"))bootPB=pb;
         else if(nm.Contains($"[PAD{padID}]")&&nmU.Contains("UNITY INVENTORY"))invPB=pb;
         else if(nm.Contains($"[PAD{padID}]")&&nmU.Contains("UNITY SIGNAL"))signalPB=pb;
         }
@@ -1364,7 +1364,7 @@ namespace IngameScript
         if(padID==0)padID=1;
         if(padTag=="")padTag=$"[PAD{padID}";
         var allLcds=new List<IMyTextPanel>();
-        GridTerminalSystem.GetBlocksOfType(allLcds,b=>b.CubeGrid==Me.CubeGrid&&b.CustomName.Contains("[PAD"));
+        GridTerminalSystem.GetBlocksOfType(allLcds,b=>b.CubeGrid==Me.CubeGrid&&b.CustomName.Contains($"[PAD{padID}]"));
         if(allLcds.Count==0)return;
         bool mslDocked=padMerge!=null&&padMerge.IsConnected;
         bool invReady=false;bool sigReady=false;
