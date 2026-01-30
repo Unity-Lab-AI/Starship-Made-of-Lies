@@ -901,7 +901,7 @@ void DiscoverSiblingPads(){
 | `UNITY_BOOT_REQ` | Boot → Pad/Inv/Signal | Request system status (includes padID: `PAD_CHECK:{padID}`, `INV_CHECK:{padID}`, `SIGNAL_CHECK:{padID}`) |
 | `UNITY_BOOT_RSP` | Pad/Inv/Signal → Boot | Respond with block counts (responders filter by padID) |
 | `MINER_BEACON` | Beacon → Boot/Pad | Fleet status broadcasts (filtered by PadID) |
-| `UNITY_SETUP_CMD` | Boot → Boot (siblings) | Multi-pad setup commands (SETUPMOD, SETUPFORCE, etc.) |
+| `UNITY_SETUP_CMD` | Pad → Boot | Setup commands (SETUPMOD, SETUPFORCE, NAMEPAD, NAMEMSL) — Pad PB sends, Boot PB executes |
 
 ### Response Formats
 
@@ -1114,10 +1114,10 @@ I'm real proud of this one — the whole multi-pad system lets you run multiple 
 1. **Blueprint-copy PAD1** — place the new pad grid nearby
 2. **Connect via CON1/CON2** — dock the new grid to your existing construct with connectors
 3. **Compile all scripts on the new pad:** PAD → INV → SIGNAL → BOOT (same order as always)
-4. **Run `SETUPMOD` on the new pad's Boot PB** — this renames every block on that grid from `[PAD1]` to `[PAD2]` (or whatever the next available ID is)
+4. **Run `SETUPMOD` on the new pad's Pad PB** (`[PAD1] Unity Pad`) — the Pad PB forwards this via IGC to Boot, which renames every block on that grid from `[PAD1]` to `[PAD2]` (or whatever the next available ID is)
 5. **Re-compile all scripts** on the renamed pad — they'll pick up the new padID tags
 
-### Setup Commands (Run as arguments on Unity Boot PB)
+### Setup Commands (Run as arguments on the Pad PB — forwarded via IGC to Boot)
 
 | Command | What It Does |
 |---------|--------------|
