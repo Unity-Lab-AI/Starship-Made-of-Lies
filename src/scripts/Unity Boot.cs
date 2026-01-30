@@ -573,7 +573,6 @@ Func<string,string>Strip=n=>{int i=n.IndexOf("[PAD");if(i>=0){int e=n.IndexOf("]
 Func<string,string>StripPrint=n=>{int i=n.IndexOf("[PAD");if(i>=0){int e=n.IndexOf("-PRINT]",i);if(e>i)n=n.Remove(i,e-i+7).Trim();}return n;};
 foreach(var b in pB){
 if(b==Me)continue;
-double d=VD(b.GetPosition(),mp);if(d>80)continue;
 string nm=b.CustomName;
 if(nm.Contains("-PRINT]")){nm=StripPrint(nm);b.CustomName=$"{pt} {nm}".Trim();continue;}
 if(nm.Contains("Missile #")){nm=Strip(nm);b.CustomName=$"{tg} {nm}".Trim();continue;}

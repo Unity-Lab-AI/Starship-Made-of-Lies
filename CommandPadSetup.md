@@ -92,7 +92,7 @@ After SETUPMOD completes, check the terminal. All blocks on the new grid should 
 | `[PAD1:2] LCD` | `[PAD2:2] LCD` |
 | ... | ... |
 
-**All blocks are renamed**, including missiles, printer components, and docked ships (miners/beacons on ore connectors). The only block skipped is the Boot PB itself (`Me`), which gets renamed by `RenameSiblingPBs()` afterward. Blocks more than 80m from the Boot PB on the same grid are excluded to prevent accidental renaming of distant blocks.
+**Every single block is renamed** — missiles, printer components, docked ships (miners/beacons on ore connectors), PBs, everything. No exceptions. The Boot PB itself is handled by `RenameSiblingPBs()` which gives all 4 PBs their proper names (e.g., `[PAD2] UNITY BOOT`, `[PAD2] Unity Pad`, etc.).
 
 ### Step 7: Recompile All Scripts
 
