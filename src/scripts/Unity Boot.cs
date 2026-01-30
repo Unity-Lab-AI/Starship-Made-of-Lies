@@ -57,6 +57,8 @@ if(p.Length>=1)int.TryParse(p[0],out padID);
 }
 public void Save(){Storage=$"{padID}";}
 void UpdatePadTag(){
+string nm=Me.CustomName;int idx=nm.IndexOf("[PAD");
+if(idx>=0){int end=nm.IndexOf("]",idx);if(end>idx+4){string num=nm.Substring(idx+4,end-idx-4);int id;if(int.TryParse(num,out id)&&id>0)padID=id;}}
 if(padID==0)padID=1;
 padTag=$"[PAD{padID}";
 Me.CustomName=$"[PAD{padID}] UNITY BOOT";

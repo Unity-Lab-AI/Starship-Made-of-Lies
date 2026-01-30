@@ -80,6 +80,8 @@ namespace IngameScript
         }
         public void Save(){Storage=$"{padID}";}
         void UpdatePadTag(){
+        string nm=Me.CustomName;int idx=nm.IndexOf("[PAD");
+        if(idx>=0){int end=nm.IndexOf("]",idx);if(end>idx+4){string num=nm.Substring(idx+4,end-idx-4);int id;if(int.TryParse(num,out id)&&id>0)padID=id;}}
         if(padID==0)padID=1;
         padTag=$"[PAD{padID}";
         Me.CustomName=$"[PAD{padID}] UNITY BOOT";
@@ -522,7 +524,8 @@ namespace IngameScript
         if(data==$"SETUPMOD|{padID}"){SetupModule(false);WriteSetupStatus("SETUPMOD");handled=true;}
         else if(data==$"SETUPFORCE|{padID}"){SetupModule(true);WriteSetupStatus("SETUPFORCE");handled=true;}
         else if(data==$"NAMEPAD|{padID}"){NamePadParts();WriteSetupStatus("NAMEPAD");handled=true;}
-        else if(data==$"NAMEMSL|{padID}"){IncrementBldNum();NameMissileParts();AutoNameConnectors();WriteSetupStatus("NAMEMSL");handled=true;}}
+        else if(data==$"NAMEMSL|{padID}"){IncrementBldNum();NameMissileParts();AutoNameConnectors();WriteSetupStatus("NAMEMSL");handled=true;}
+        else if(data.StartsWith($"SETPAD|{padID}|")){string[]sp=data.Split('|');if(sp.Length>=3){int np;if(int.TryParse(sp[2],out np)&&np>0){int oldID=padID;padID=np;UpdatePadTag();Save();SwapPadTag(oldID,np);WriteSetupStatus($"SETPAD:{np}");handled=true;}}}}
         if(handled){Echo("UNITY BOOT - Setup Complete");Echo("Blocks renamed. Please recompile all scripts.");}
         return handled;
         }
@@ -574,6 +577,21 @@ namespace IngameScript
         int id;if(int.TryParse(num,out id)&&id>0&&!ids.Contains(id))ids.Add(id);}}}
         return ids;
         }
+        void SwapPadTag(int oldID,int newID){
+        string o1=$"[PAD{oldID}]",n1=$"[PAD{newID}]";
+        string o2=$"[PAD{oldID}-",n2=$"[PAD{newID}-";
+        string o3=$"[PAD{oldID}:",n3=$"[PAD{newID}:";
+        var aB=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(aB,b=>b.IsSameConstructAs(Me));
+        foreach(var b in aB){
+        string nm=b.CustomName;
+        if(nm.Contains(o1))b.CustomName=nm.Replace(o1,n1);
+        else if(nm.Contains(o2))b.CustomName=nm.Replace(o2,n2);
+        else if(nm.Contains(o3))b.CustomName=nm.Replace(o3,n3);}}
+        bool HasPadIDConflict(){
+        var pbs=new List<IMyProgrammableBlock>();
+        GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me&&b.CubeGrid!=Me.CubeGrid&&b.CustomName.ToUpper().Contains("UNITY BOOT"));
+        foreach(var pb in pbs){string n=pb.CustomName;int i=n.IndexOf("[PAD");if(i>=0){int e=n.IndexOf("]",i);if(e>i+4){string num=n.Substring(i+4,e-i-4);int id;if(int.TryParse(num,out id)&&id==padID)return true;}}}
+        return false;}
         int GetNextPadID(){
         var taken=DiscoverSiblingPads();
         int next=1;
@@ -581,27 +599,25 @@ namespace IngameScript
         return next;
         }
         void SetupModule(bool force){
-        if(padID==0){padID=GetNextPadID();UpdatePadTag();}
+        bool conflict=HasPadIDConflict();
+        if(padID==0||(conflict&&!bootDone)){padID=GetNextPadID();UpdatePadTag();Save();}
         string tg=$"[PAD{padID}]",pt=$"[PAD{padID}-PRINT]";
         Vector3D mp=Me.GetPosition();
         var aB=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(aB);
         var pB=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(pB,b=>b.CubeGrid==Me.CubeGrid);
         IMyShipMergeBlock pm=null;double pd=999;
         foreach(var b in pB)if(b is IMyShipMergeBlock){double d=VD(b.GetPosition(),mp);if(d<pd){pm=b as IMyShipMergeBlock;pd=d;}}
-        Vector3D mP=pm!=null?pm.GetPosition():mp;
-        IMyShipMergeBlock om=null;bool iM=pm!=null&&pm.IsConnected;
-        if(iM){var aM=new List<IMyShipMergeBlock>();GridTerminalSystem.GetBlocksOfType(aM,m=>m.IsConnected&&m!=pm);if(aM.Count>0)om=aM[0];}
-        Vector3D mD=Vector3D.Zero;if(iM&&om!=null)mD=VN(om.GetPosition()-mP);
         var sG=new HashSet<long>();
         foreach(var b in pB)if(b is IMyPistonBase){var p=b as IMyPistonBase;if(p.Top!=null&&VD(b.GetPosition(),mp)<50)sG.Add(p.Top.CubeGrid.EntityId);}
         int li=1,vi=1,hi=1,wi=1,ci=1;
         Action<IMyTerminalBlock>T=b=>b.CustomName=$"{tg} {BT(b)}";
         Func<string,string>Strip=n=>{int i=n.IndexOf("[PAD");if(i>=0){int e=n.IndexOf("]",i);if(e>i)n=n.Remove(i,e-i+1).Trim();}return n;};
+        Func<string,string>StripPrint=n=>{int i=n.IndexOf("[PAD");if(i>=0){int e=n.IndexOf("-PRINT]",i);if(e>i)n=n.Remove(i,e-i+7).Trim();}return n;};
         foreach(var b in pB){
-        if(b.CustomName.Contains("Missile #")||b.CustomName.Contains("-PRINT")||b==Me)continue;
-        double d=VD(b.GetPosition(),mp);if(d>80)continue;
-        if(iM&&mD!=Vector3D.Zero&&Vector3D.Dot(b.GetPosition()-mP,mD)>1)continue;
+        if(b==Me)continue;
         string nm=b.CustomName;
+        if(nm.Contains("-PRINT]")){nm=StripPrint(nm);b.CustomName=$"{pt} {nm}".Trim();continue;}
+        if(nm.Contains("Missile #")){nm=Strip(nm);b.CustomName=$"{tg} {nm}".Trim();continue;}
         if(force&&nm.Contains("[PAD")&&!nm.Contains($"[PAD{padID}"))nm=Strip(nm);
         if(nm.Contains("[PRINT]")&&!nm.Contains("-PRINT]")){b.CustomName=nm.Replace("[PRINT]",pt);continue;}
         if(!force&&nm.Contains($"[PAD{padID}]"))continue;
@@ -627,10 +643,31 @@ namespace IngameScript
         else if(b is IMyJumpDrive)b.CustomName=$"{tg} Jmp";
         else{string bt=BT(b);if(!string.IsNullOrEmpty(bt)&&bt.Length<30)b.CustomName=$"{tg} {bt}";}}
         foreach(var b in aB){
-        if(b.CubeGrid==Me.CubeGrid||!sG.Contains(b.CubeGrid.EntityId)||b.CustomName.Contains("[PAD")||b.CustomName.Contains("Missile #")||b.CustomName.Contains("-PRINT"))continue;
+        if(b.CubeGrid==Me.CubeGrid||!sG.Contains(b.CubeGrid.EntityId))continue;
+        string snm=b.CustomName;
+        if(snm.Contains("-PRINT]")){snm=StripPrint(snm);b.CustomName=$"{pt} {snm}".Trim();continue;}
+        if(snm.Contains("Missile #")){snm=Strip(snm);b.CustomName=$"{tg} {snm}".Trim();continue;}
+        if(snm.Contains("[PAD"))snm=Strip(snm);
         if(b is IMyShipWelder){b.CustomName=$"{pt} W{wi}";wi++;}
         else if(b is IMyProjector&&!b.CustomName.Contains("-PRINT]"))b.CustomName=$"{pt} Proj";
-        else if(b is IMyCockpit)T(b);}
+        else if(b is IMyCockpit)T(b);
+        else{string bt=BT(b);if(!string.IsNullOrEmpty(bt)&&bt.Length<30)b.CustomName=$"{tg} {bt}";}}
+        var cG=new HashSet<long>();
+        var padPBs=new HashSet<long>();
+        var pbList=new List<IMyProgrammableBlock>();
+        GridTerminalSystem.GetBlocksOfType(pbList,p=>p.CustomName.ToUpper().Contains("UNITY BOOT")||p.CustomName.ToUpper().Contains("UNITY PAD"));
+        foreach(var p in pbList)if(p.CubeGrid!=Me.CubeGrid)padPBs.Add(p.CubeGrid.EntityId);
+        var padCons=new List<IMyShipConnector>();
+        GridTerminalSystem.GetBlocksOfType(padCons,c=>c.CubeGrid==Me.CubeGrid&&c.Status==MyShipConnectorStatus.Connected);
+        foreach(var c in padCons){var oc=c.OtherConnector;if(oc!=null&&!sG.Contains(oc.CubeGrid.EntityId)&&!padPBs.Contains(oc.CubeGrid.EntityId)&&oc.CubeGrid!=Me.CubeGrid)cG.Add(oc.CubeGrid.EntityId);}
+        foreach(var b in aB){
+        if(!cG.Contains(b.CubeGrid.EntityId))continue;
+        string cnm=b.CustomName;
+        if(cnm.Contains("-PRINT]")){cnm=StripPrint(cnm);b.CustomName=$"{pt} {cnm}".Trim();continue;}
+        if(cnm.Contains("Missile #")){cnm=Strip(cnm);b.CustomName=$"{tg} {cnm}".Trim();continue;}
+        if(cnm.Contains("[PAD"))cnm=Strip(cnm);
+        if(b is IMyProgrammableBlock)b.CustomName=$"{tg} {cnm}".Trim();
+        else{string bt=BT(b);if(!string.IsNullOrEmpty(bt)&&bt.Length<30)b.CustomName=$"{tg} {bt}";else b.CustomName=$"{tg} {cnm}".Trim();}}
         RenameSiblingPBs();
         }
         void RenameSiblingPBs(){
