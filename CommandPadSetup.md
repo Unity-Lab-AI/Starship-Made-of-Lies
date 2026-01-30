@@ -92,12 +92,7 @@ After SETUPMOD completes, check the terminal. All blocks on the new grid should 
 | `[PAD1:2] LCD` | `[PAD2:2] LCD` |
 | ... | ... |
 
-**Blocks that are NOT renamed:**
-- Blocks containing `Missile #` (missile PB and parts)
-- Blocks containing `-PRINT` (printer components already tagged)
-- The Boot PB itself (`Me` is skipped, but `RenameSiblingPBs()` renames it afterward)
-- Blocks more than 80m from the Boot PB
-- Blocks on the missile side of the merge block (dot product check)
+**All blocks are renamed**, including missiles, printer components, and docked ships (miners/beacons on ore connectors). The only block skipped is the Boot PB itself (`Me`), which gets renamed by `RenameSiblingPBs()` afterward. Blocks more than 80m from the Boot PB on the same grid are excluded to prevent accidental renaming of distant blocks.
 
 ### Step 7: Recompile All Scripts
 
@@ -179,24 +174,29 @@ All setup commands are run as **PB arguments on the Pad PB** (`[PAD#] Unity Pad`
 
 ### Block Scope
 
-`SetupModule()` in Unity Boot.cs (line 560) operates on blocks matching `CubeGrid==Me.CubeGrid` - only blocks on the same physical grid as the Boot PB. This is the critical safety mechanism that prevents renaming blocks on other pads across connectors.
+`SetupModule()` in Unity Boot.cs renames blocks across three scopes:
+1. **Pad grid** (`CubeGrid==Me.CubeGrid`) - all blocks on the same physical grid, including missiles, printer parts, and everything else (within 80m)
+2. **Piston subgrids** - blocks on piston head grids (welders, projectors on printer arms)
+3. **Connector-attached grids** - blocks on grids docked via connectors (miners, beacons), excluding grids that belong to other pads (detected by checking for UNITY BOOT/UNITY PAD PBs on those grids)
 
 ### PadID Auto-Detection
 
 `GetNextPadID()` (line 554) calls `DiscoverSiblingPads()` which uses `IsSameConstructAs(Me)` to find ALL PBs named "UNITY PAD" or "UNITY BOOT" across the entire connected construct. It extracts their `[PAD#]` numbers and returns the first unused integer starting from 1.
 
-### Missile-Side Exclusion
+### Missile Renaming
 
-When a missile is merged (connected via merge block), the system:
-1. Finds the closest merge block to the Boot PB
-2. Determines the direction vector from the pad merge block toward the missile merge block
-3. Any block with a dot product > 1 in that direction is excluded from renaming
-
-This prevents SETUPMOD from accidentally renaming missile blocks that are temporarily merged to the pad.
+When a missile is merged, SETUPMOD renames all missile blocks with the new `[PAD#]` tag, preserving the `Missile #N` naming pattern. For example, `[PAD1] Missile #1 Thruster` becomes `[PAD2] Missile #1 Thruster`. This ensures missiles always carry the correct padID for their parent pad.
 
 ### Piston Subgrid Inclusion
 
-Blocks on piston subgrids (the moving heads of pistons) are tracked via a `sG` HashSet of grid EntityIds. These subgrid blocks ARE renamed even though they're on a different `CubeGrid`, because they're part of the pad's printer mechanism.
+Blocks on piston subgrids (the moving heads of pistons) are tracked via a `sG` HashSet of grid EntityIds. These subgrid blocks are renamed even though they're on a different `CubeGrid`, because they're part of the pad's printer mechanism. Printer blocks (with `-PRINT]` tags) get their padID portion updated: `[PAD1-PRINT] V1` becomes `[PAD2-PRINT] V1`.
+
+### Connector-Attached Grid Renaming
+
+SETUPMOD also renames blocks on grids docked via connectors (e.g., miners with beacons on ore connectors). It identifies these grids by finding all locked connectors on the pad grid and collecting their connected grids, excluding:
+- Piston subgrids (already handled separately)
+- Grids belonging to other pads (detected by presence of UNITY BOOT or UNITY PAD PBs)
+- The pad grid itself
 
 ### Connector Naming
 
