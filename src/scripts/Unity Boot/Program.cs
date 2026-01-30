@@ -149,7 +149,7 @@ namespace IngameScript
         lcd1=lcd2=lcd3=lcd4=lcd5=lcd6=lcd7=lcd8=lcd9=lcd10=lcd11=null;btn=null;con1=con2=null;bootAnt.Clear();camLCDs.Clear();signalLCDs.Clear();airVents.Clear();mslLCDs.Clear();
         var blks=new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType(blks,b=>b.CustomName.Contains(padTag)||b.CubeGrid==Me.CubeGrid);
-        string sigTag=$"[PAD{padID}] SIGNAL",defTag=$"[PAD{padID}] DEFENSE",satTag=$"[PAD{padID}] SATS",prsTag=$"[PAD{padID}] PRESSURE";
+        string sigTag=$"[PAD{padID}] SIGNAL",defTag=$"[PAD{padID}] DEFENSE",satTag=$"[PAD{padID}] SATS",prsTag=$"[PAD{padID}] PRESSURE",fltTag=$"[PAD{padID}] FLIGHT";
         foreach(var b in blks){
         if(b is IMyButtonPanel&&b.CustomName.ToLower().Contains("control")&&btn==null)btn=b as IMyButtonPanel;
         if(b is IMyShipConnector){string nm=b.CustomName;if(nm.Contains("-CON1"))con1=b as IMyShipConnector;else if(nm.Contains("-CON2"))con2=b as IMyShipConnector;}
@@ -158,7 +158,7 @@ namespace IngameScript
         if(b is IMyTextSurface||b is IMyTextPanel){string nm=b.CustomName;if(!nm.Contains(padTag)&&!nm.Contains($"[PAD{padID}"))continue;
         IMyTextSurface ts=b is IMyTextSurface?(IMyTextSurface)b:((IMyTextPanel)b);
         if(nm.ToUpper().Contains("CAMS")){if(!camLCDs.Contains(ts))camLCDs.Add(ts);continue;}
-        if(nm.Contains(sigTag)||nm.Contains(defTag)||nm.Contains(satTag)||nm.Contains(prsTag)){if(!signalLCDs.Contains(ts))signalLCDs.Add(ts);continue;}
+        if(nm.Contains(sigTag)||nm.Contains(defTag)||nm.Contains(satTag)||nm.Contains(prsTag)||nm.Contains(fltTag)){if(!signalLCDs.Contains(ts))signalLCDs.Add(ts);continue;}
         if(nm.Contains(":11")&&lcd11==null)lcd11=ts;
         else if(nm.Contains(":10")&&lcd10==null)lcd10=ts;
         else if(nm.Contains(":1")&&!nm.Contains(":10")&&!nm.Contains(":11")&&lcd1==null)lcd1=ts;
