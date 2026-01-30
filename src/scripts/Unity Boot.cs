@@ -555,16 +555,11 @@ int id;if(int.TryParse(num,out id)&&id>0&&!ids.Contains(id))ids.Add(id);}}}
 return ids;
 }
 void SwapPadTag(int oldID,int newID){
-string n1=$"[PAD{newID}]",n2=$"[PAD{newID}-",n3=$"[PAD{newID}:";
 var aB=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(aB,b=>b.IsSameConstructAs(Me));
 foreach(var b in aB){string nm=b.CustomName;int pi=nm.IndexOf("[PAD");if(pi<0)continue;
-int pe=nm.IndexOf("]",pi);if(pe<0)continue;
-string tag=nm.Substring(pi,pe-pi+1);
-if(tag==n1)continue;
-string afterTag=(pe+1<nm.Length)?nm.Substring(pe+1,1):"";
-if(afterTag=="-")b.CustomName=nm.Substring(0,pi)+$"[PAD{newID}-"+nm.Substring(pe+2);
-else if(afterTag==":")b.CustomName=nm.Substring(0,pi)+$"[PAD{newID}:"+nm.Substring(pe+2);
-else b.CustomName=nm.Substring(0,pi)+n1+nm.Substring(pe+1);}}
+int ns=pi+4;string num="";for(int i=ns;i<nm.Length&&char.IsDigit(nm[i]);i++)num+=nm[i];
+if(num.Length==0)continue;int id;if(!int.TryParse(num,out id)||id==newID)continue;
+b.CustomName=nm.Substring(0,pi+4)+newID+nm.Substring(ns+num.Length);}}
 bool HasPadIDConflict(){
 var pbs=new List<IMyProgrammableBlock>();
 GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me&&b.CubeGrid!=Me.CubeGrid&&b.CustomName.ToUpper().Contains("UNITY BOOT"));
