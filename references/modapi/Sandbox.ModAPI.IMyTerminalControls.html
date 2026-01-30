@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.IMyTerminalControls - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.IMyTerminalControls" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:51Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI</div>
+                <h1>IMyTerminalControls</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Common.dll</p>
+<pre><code class="language-csharp">public interface IMyTerminalControls
+</code></pre>
+<p>This interface allows you to query, add or remove terminal controls for a block. The terminal controls are the controls that appear in the terminal screen when you select a block. You may add new controls, remove existing controls, or modify existing controls.</p>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@CustomActionGetter.html">CustomActionGetter</a></td>
+<td>This event allows you to modify the list of actions available when a user wants to select an action for a block in the toolbar. Modifying the list in this event modifies the list displayed to the user so that you can customize it in specific situations (like blocks with different subtypes, or even on specific blocks by entityId)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@CustomControlGetter.html">CustomControlGetter</a></td>
+<td>This event allows you to modify the list of controls that the game displays when a user selects a block. Each time terminal controls are enumerated for a block, this delegate is called, which allows you to modify the control list directly, and remove/add as you see fit before the controls are displayed. This is to allow fine grain control of the controls being displayed, so you can display only controls you want to in specific situations (like blocks with different subtypes, or even on specific blocks by entityId)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@AddAction%7BTBlock%7D.html">AddAction<TBlock>(IMyTerminalAction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@AddControl%7BTBlock%7D.html">AddControl<TBlock>(IMyTerminalControl)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@CreateAction%7BTBlock%7D.html">CreateAction<TBlock>(string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@CreateControl%7BTControl,TBlock%7D.html">CreateControl&lt;TControl, TBlock&gt;(string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@CreateProperty%7BTValue,TBlock%7D.html">CreateProperty&lt;TValue, TBlock&gt;(string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@GetActions%7BTBlock%7D.html">GetActions<TBlock>(out List<IMyTerminalAction>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@GetControls%7BTBlock%7D.html">GetControls<TBlock>(out List<IMyTerminalControl>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@RemoveAction%7BTBlock%7D.html">RemoveAction<TBlock>(IMyTerminalAction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalControls@RemoveControl%7BTBlock%7D.html">RemoveControl<TBlock>(IMyTerminalControl)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

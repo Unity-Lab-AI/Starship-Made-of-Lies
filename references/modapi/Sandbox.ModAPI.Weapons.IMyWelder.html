@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.Weapons.IMyWelder - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.Weapons.IMyWelder" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:51Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI.Weapons</div>
+                <h1>IMyWelder</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public interface IMyWelder: IMyEntity, IMyEntity, IMyEngineerToolBase, IMyHandheldGunObject&lt;MyToolBase&gt;, IMyGunObject&lt;MyToolBase&gt;
+</code></pre>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> is called. Order 1) <a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a> 2) <a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a> 3) <a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a> .<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> is called. Order 1) <a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a> 2) <a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a> 3) <a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a> .<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> is called. Order 1) <a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a> 2) <a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a> 3) <a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a> .<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnPhysicsChanged.html">OnPhysicsChanged</a></td>
+<td>Called when havok rigid body physics are changed: inited, closed, modified.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@CastShadows.html">CastShadows</a></td>
+<td>Gets or sets flag <a href="VRage.ObjectBuilders.MyPersistentEntityFlags2@CastShadows.html">CastShadows</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Closed.html">Closed</a></td>
+<td>True if the block has been removed from the world.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Components.html">Components</a></td>
+<td>Gets blocks component logic container<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DebugAsyncLoading.html">DebugAsyncLoading</a></td>
+<td>Used for internal usage. Modders should not use it. Will be eventually removed<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@DisplayName.html">DisplayName</a></td>
+<td>Gets user friendly name of entity. May be null For block terminal name use <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DisplayNameText.html">DisplayNameText</a><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DisplayName.html">DisplayName</a></td>
+<td>Gets or sets user friendly name of entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@EntityId.html">EntityId</a></td>
+<td>Id of entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@EntityId.html">EntityId</a></td>
+<td>Uniq id of entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@FastCastShadowResolve.html">FastCastShadowResolve</a></td>
+<td>Gets or sets flag <a href="VRage.ObjectBuilders.MyPersistentEntityFlags2@CastShadows.html">CastShadows</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Flags.html">Flags</a></td>
+<td>Gets or set some behavior of entity. <a href="VRage.ModAPI.EntityFlags.html">EntityFlags</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GameLogic.html">GameLogic</a></td>
+<td>Gets or sets game logic for object. If there is more than 1 game logic attached it should be wrapped into.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@HasInventory.html">HasInventory</a></td>
+<td>Returns true if this entity has got at least one inventory. Note that one aggregate inventory can contain zero simple inventories =&gt; zero will be returned even if GetInventory() != null.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Hierarchy.html">Hierarchy</a></td>
+<td>Gets or sets Hierarchy component<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@InScene.html">InScene</a></td>
+<td>Gets or set if grid is InScene. Objects that are not in scene are not updated and drawn.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@InvalidateOnMove.html">InvalidateOnMove</a></td>
+<td>Gets if entity is invalidated on move When visual look of entity depends on position - then InvalidateOnMove should be true<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@InventoryCount.html">InventoryCount</a></td>
+<td>Returns the count of the number of inventories this entity has.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@IsVolumetric.html">IsVolumetric</a></td>
+<td>Always returns false<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalAABB.html">LocalAABB</a></td>
+<td>Gets or sets local axis aligned bounding box. Same as <a href="VRage.ModAPI.IMyEntity@LocalAABBHr.html">LocalAABBHr</a> , <a href="VRage.Game.Components.MyPositionComponentBase@LocalAABB.html">LocalAABB</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalAABBHr.html">LocalAABBHr</a></td>
+<td>Gets local axis aligned bounding box. Same as <a href="VRage.ModAPI.IMyEntity@LocalAABB.html">LocalAABB</a> , <a href="VRage.Game.Components.MyPositionComponentBase@LocalAABB.html">LocalAABB</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalMatrix.html">LocalMatrix</a></td>
+<td>Gets or sets local matrix. When entity, has parent, it's world coordinates are calculated from localMatrix and parent world matrix<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalVolume.html">LocalVolume</a></td>
+<td>Gets or sets local volume. Same as <a href="VRage.Game.Components.MyPositionComponentBase@LocalVolume.html">LocalVolume</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalVolumeOffset.html">LocalVolumeOffset</a></td>
+<td>Gets or sets local volume offset. Same as <a href="VRage.Game.Components.MyPositionComponentBase@LocalVolumeOffset.html">LocalVolumeOffset</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@MarkedForClose.html">MarkedForClose</a></td>
+<td>Checked if <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> was called<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@MaxGlassDistSq.html">MaxGlassDistSq</a></td>
+<td>Not used in game anymore<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Model.html">Model</a></td>
+<td>Gets model of block<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@ModelCollision.html">ModelCollision</a></td>
+<td>Gets collision model of block<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Name.html">Name</a></td>
+<td>Some entities can have uniq name, and game can find them by name <a href="VRage.ModAPI.IMyEntities@TryGetEntityByName.html">TryGetEntityByName(string, out IMyEntity)</a><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Name.html">Name</a></td>
+<td>Uniq name of entity. Can be used to find entity by name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NearFlag.html">NearFlag</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@Near.html">Near</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsDraw.html">NeedsDraw</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@NeedsDraw.html">NeedsDraw</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsDrawFromParent.html">NeedsDrawFromParent</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@NeedsDrawFromParent.html">NeedsDrawFromParent</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsResolveCastShadow.html">NeedsResolveCastShadow</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@NeedsResolveCastShadow.html">NeedsResolveCastShadow</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsUpdate.html">NeedsUpdate</a></td>
+<td>Gets or sets how often the entity should be updated.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsWorldMatrix.html">NeedsWorldMatrix</a></td>
+<td>Gets or sets if <a href="VRage.ModAPI.IMyEntity@WorldMatrix.html">WorldMatrix</a> should be calculated when parent WorldMatrix is changed.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Parent.html">Parent</a></td>
+<td>Gets parent of entity or null, if this entity doesn't have parent. Ex: character sitting in cockpit, has parent - cockpit, cockpit has parent - cube grid, connected grids also has main grid, which would be parent for other grids.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@PersistentFlags.html">PersistentFlags</a></td>
+<td>Gets or sets persistent flags that are used in rendering.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Physics.html">Physics</a></td>
+<td>Gets or sets physics for object<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@PositionComp.html">PositionComp</a></td>
+<td>Gets or sets position provider logic<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Render.html">Render</a></td>
+<td>Gets or sets render logic<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Save.html">Save</a></td>
+<td>Gets or sets <a href="VRage.ModAPI.EntityFlags@Save.html">Save</a> . Entity won't be saved if <a href="VRage.ModAPI.IMyEntity@Save.html">Save</a> is false<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@ShadowBoxLod.html">ShadowBoxLod</a></td>
+<td>Gets or sets flag <a href="VRage.Game.Components.MyRenderComponentBase@ShadowBoxLod.html">ShadowBoxLod</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SkipIfTooSmall.html">SkipIfTooSmall</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@SkipIfTooSmall.html">SkipIfTooSmall</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@StopPhysicsActivation.html">StopPhysicsActivation</a></td>
+<td><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Storage.html">Storage</a></td>
+<td>Custom storage for mods. Shared with all mods.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Synchronized.html">Synchronized</a></td>
+<td>Gets or sets if the entity should be synced.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SyncObject.html">SyncObject</a></td>
+<td>Gets SyncObject used for synchronizing data over network with<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Transparent.html">Transparent</a></td>
+<td>Gets or sets <a href="VRage.Game.Components.MyRenderComponentBase@Transparency.html">Transparency</a> . When setting true entity would be 25% transparent<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Visible.html">Visible</a></td>
+<td>Gets or sets flag <a href="VRage.Game.Components.MyRenderComponentBase@Visible.html">Visible</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldAABB.html">WorldAABB</a></td>
+<td>Gets world axis-aligned bounding box<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldAABBHr.html">WorldAABBHr</a></td>
+<td>Gets world axis-aligned bounding box<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldMatrix.html">WorldMatrix</a></td>
+<td>Gets world matrix of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@WorldMatrix.html">WorldMatrix</a></td>
+<td>Gets or sets world matrix.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@WorldMatrixInvScaled.html">WorldMatrixInvScaled</a></td>
+<td>Get scaled, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a> , <a href="VRage.ModAPI.IMyEntity@GetWorldMatrixNormalizedInv.html">GetWorldMatrixNormalizedInv()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a> , but not normalized<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a></td>
+<td>Get normalized, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldVolume.html">WorldVolume</a></td>
+<td>Gets bounding sphere of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldVolumeHr.html">WorldVolumeHr</a></td>
+<td>Gets bounding sphere of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@IsCCDForProjectiles.html">IsCCDForProjectiles</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocationForHudMarker.html">LocationForHudMarker</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@BeforeSave.html">BeforeSave()</a></td>
+<td>Called before method GetObjectBuilder, when saving sector<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a></td>
+<td>This method marks this entity for close which means, that Close will be called after all entities are updated<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DebugDraw.html">DebugDraw()</a></td>
+<td>Calls debug draw of entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DebugDrawInvalidTriangles.html">DebugDrawInvalidTriangles()</a></td>
+<td>Calls special debug draw, that highlighting invalid triangles in model<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Delete.html">Delete()</a></td>
+<td>Performs real cleaning of entity. Should be called by game. Modders should prefer <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> method.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DoOverlapSphereTest.html">DoOverlapSphereTest(float, Vector3D)</a></td>
+<td>Checks if intersects Works only with <a href="VRage.ModAPI.IMyVoxelBase.html">IMyVoxelBase</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@EnableColorMaskForSubparts.html">EnableColorMaskForSubparts(bool)</a></td>
+<td>Allows subparts have different color than their parent<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetChildren.html">GetChildren(List<IMyEntity>, Func&lt;IMyEntity, bool&gt;)</a></td>
+<td>Gets children of entity. Child - entity, who's <a href="VRage.ModAPI.IMyEntity@Parent.html">Parent</a> is this entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetDiffuseColor.html">GetDiffuseColor()</a></td>
+<td>Gets render diffuse color<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetDistanceBetweenCameraAndBoundingSphere.html">GetDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td>Distance from camera to bounding sphere of this phys object. Result is always positive, even if camera is inside the sphere. (in meters)<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetDistanceBetweenCameraAndPosition.html">GetDistanceBetweenCameraAndPosition()</a></td>
+<td>Distance from camera to position of entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetFriendlyName.html">GetFriendlyName()</a></td>
+<td>Not used. Actually not a friendly name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithAABB.html">GetIntersectionWithAABB(ref BoundingBoxD)</a></td>
+<td>Return true if object intersects specified bounding box.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithLine.html">GetIntersectionWithLine(ref LineD, out MyIntersectionResultLineTriangleEx?, IntersectionFlags)</a></td>
+<td>Get intersection of model with provided line<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithLineAndBoundingSphere.html">GetIntersectionWithLineAndBoundingSphere(ref LineD, float)</a></td>
+<td>Calculates intersection of line with any bounding sphere in this model instance. Center of the bounding sphere will be returned. It takes boundingSphereRadiusMultiplier argument which serves for extending the influence (radius) for interaction with line.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithSphere.html">GetIntersectionWithSphere(ref BoundingSphereD)</a></td>
+<td>Return true if object intersects specified sphere.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetInventory.html">GetInventory()</a></td>
+<td>Simply get the MyInventoryBase component stored in this entity.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetInventory.html">GetInventory(int)</a></td>
+<td>Search for inventory component with maching index.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetInventory.html">GetInventory()</a></td>
+<td>Simply get the MyInventoryBase component stored in this entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetInventory.html">GetInventory(int)</a></td>
+<td>Search for inventory component with matching index.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetLargestDistanceBetweenCameraAndBoundingSphere.html">GetLargestDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td>Largest distance from camera to bounding sphere of this phys object. Result is always positive, even if camera is inside the sphere. It's actually distance between camera and opposite side of the sphere<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetObjectBuilder.html">GetObjectBuilder(bool)</a></td>
+<td>Returns object builder - object representing block state, and allows restore it. Used in game save, or syncing over network.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetPosition.html">GetPosition()</a></td>
+<td>Gets position in world coordinates<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetSmallestDistanceBetweenCameraAndBoundingSphere.html">GetSmallestDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td>Smallest distance between camera and bounding sphere of this phys object. Result is always positive, even if camera is inside the sphere.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetSubpart.html">GetSubpart(string)</a></td>
+<td>Gets subpart by subpart name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetTopMostParent.html">GetTopMostParent(Type)</a></td>
+<td>Gets top most <a href="VRage.ModAPI.IMyEntity@Parent.html">Parent</a> of specified type. Top most is entity that doesn't have parent (of specified type)<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetTrianglesIntersectingSphere.html">GetTrianglesIntersectingSphere(ref BoundingSphere, Vector3?, float?, List&lt;MyTriangle_Vertex_Normals&gt;, int)</a></td>
+<td>Return list of triangles intersecting specified sphere. Angle between every triangleVertexes normal vector and 'referenceNormalVector' is calculated, and if more than 'maxAngle', we ignore such triangleVertexes. Triangles are returned in 'retTriangles', and this list must be preallocated! IMPORTANT: Sphere must be in model space, so don't transform it!<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a></td>
+<td>Get normalized, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetWorldMatrixNormalizedInv.html">GetWorldMatrixNormalizedInv()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetWorldMatrixNormalizedInv.html">GetWorldMatrixNormalizedInv()</a></td>
+<td>Get normalized, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@IsVisible.html">IsVisible()</a></td>
+<td>Gets or result of function <a href="VRage.Game.Components.MyRenderComponentBase@IsVisible.html">IsVisible()</a> . Function inside check for <a href="VRage.ModAPI.IMyEntities@IsVisible.html">IsVisible(IMyEntity)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnAddedToScene.html">OnAddedToScene(object)</a></td>
+<td>Adds entity to scene: init updates, render physics<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnRemovedFromScene.html">OnRemovedFromScene(object)</a></td>
+<td>Remove entity and it's children from scene: stops updates and render, deactivates physics. Usually called when entity deleted<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetColorMaskForSubparts.html">SetColorMaskForSubparts(Vector3)</a></td>
+<td>Sets subparts custom col<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetEmissiveParts.html">SetEmissiveParts(string, Color, float)</a></td>
+<td>Sets the emissive value of a specific emissive material on entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetEmissivePartsForSubparts.html">SetEmissivePartsForSubparts(string, Color, float)</a></td>
+<td>Sets the emissive value of a specific emissive material on all entity subparts.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetLocalMatrix.html">SetLocalMatrix(Matrix, object)</a></td>
+<td>Sets local matrix. When entity, has parent, it's world coordinates are calculated from localMatrix and parent world matrix<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetPosition.html">SetPosition(Vector3D)</a></td>
+<td>Set WorldMatrix's <a href="VRageMath.MatrixD@Translation.html">Translation</a> . Moves entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetTextureChangesForSubparts.html">SetTextureChangesForSubparts(Dictionary&lt;MyStringId, MyTextureChange&gt;)</a></td>
+<td>Sets subparts custom skinning. Copy values from <a href="VRage.Game.Components.MyRenderComponentBase@TextureChanges.html">TextureChanges</a> , then change needed keys. You can retrieve values for exact skin with following code:<code>csharp&lt;br /&gt;MyDefinitionManager.Static.GetAssetModifierDefinitionForRender(skinId);&lt;br /&gt;&lt;br /&gt;</code><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetWorldMatrix.html">SetWorldMatrix(MatrixD, object)</a></td>
+<td>Sets world matrix of entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Teleport.html">Teleport(MatrixD, object, bool)</a></td>
+<td>When moving entity over large distances or when entity has children, using this method preferred over <a href="VRage.ModAPI.IMyEntity@SetPosition.html">SetPosition(Vector3D)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@TryGetSubpart.html">TryGetSubpart(string, out MyEntitySubpart)</a></td>
+<td>Gets subpart by subpart name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@UpdateGamePruningStructure.html">UpdateGamePruningStructure()</a></td>
+<td>Update position of entity in MyGamePruningStructure. Calls:<code>csharp&lt;br /&gt;MyGamePruningStructure.Move(this)&lt;br /&gt;&lt;br /&gt;</code><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@AddToGamePruningStructure.html">AddToGamePruningStructure()</a></td>
+<td><em><strong>Obsolete:</strong> Only used during Sandbox removal.</em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@RemoveFromGamePruningStructure.html">RemoveFromGamePruningStructure()</a></td>
+<td><em><strong>Obsolete:</strong> Only used during Sandbox removal.</em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetTextureChangesForSubparts.html">SetTextureChangesForSubparts(Dictionary&lt;string, MyTextureChange&gt;)</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />This calling is obsolete, use another version.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="Sandbox.ModAPI.Weapons.IMyEngineerToolBase.html">IMyEngineerToolBase</a></li>
+<li><a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></li>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></li>
+<li><a href="VRage.Game.ModAPI.IMyGunObject%7BMyToolBase%7D.html">IMyGunObject<MyToolBase></a></li>
+<li><a href="Sandbox.Game.Entities.IMyHandheldGunObject%7BMyToolBase%7D.html">IMyHandheldGunObject<MyToolBase></a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

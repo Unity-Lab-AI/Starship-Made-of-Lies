@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.MyAPIGateway - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.MyAPIGateway" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:51Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI</div>
+                <h1>MyAPIGateway</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Common.dll</p>
+<pre><code class="language-csharp">public abstract sealed class MyAPIGateway
+</code></pre>
+<p>This is entry point for entire scripting possibilities in game</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@ContractSystem.html">static ContractSystem</a></td>
+<td>IMyContractSystem allows you add or edit contracts</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@CubeBuilder.html">static CubeBuilder</a></td>
+<td>IMyCubeBuilder represents building hand</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@DLC.html">static DLC</a></td>
+<td>Provides access for checking installation state of DLCs, and if DLC required by a definition is present.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@GravityProviderSystem.html">static GravityProviderSystem</a></td>
+<td>Provides access to gravity control</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@GridGroups.html">static GridGroups</a></td>
+<td>Provides access to the Grid Group system</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Gui.html">static Gui</a></td>
+<td>IMyGui exposes some useful values from the GUI systems</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@IngameScripting.html">static IngameScripting</a></td>
+<td>Provides mod access to control compilation of ingame scripts</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Input.html">static Input</a></td>
+<td>IMyInput allows accessing direct input device states</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Missiles.html">static Missiles</a></td>
+<td>Interface for controlling missiles</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Multiplayer.html">static Multiplayer</a></td>
+<td>IMyMultiplayer contains multiplayer related things</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Parallel.html">static Parallel</a></td>
+<td>IMyParallelTask allows to run tasks on background threads</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Physics.html">static Physics</a></td>
+<td>IMyPhysics contains physics related things (CastRay, etc.)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Players.html">static Players</a></td>
+<td>IMyPlayerCollection contains all players that are in world</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@PrefabManager.html">static PrefabManager</a></td>
+<td>Allows you spawn prefabs</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Projectiles.html">static Projectiles</a></td>
+<td>Interface for controlling projectile behavior</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Reflection.html">static Reflection</a></td>
+<td>Allows you to use some reflection tools</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@SpectatorTools.html">static SpectatorTools</a></td>
+<td>Gives you access to spectator tools.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@TerminalActionsHelper.html">static TerminalActionsHelper</a></td>
+<td>IMyTerminalActionsHelper is helper for terminal actions and allows to access terminal</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@TerminalControls.html">static TerminalControls</a></td>
+<td>IMyTerminalControls allows access to adding and removing controls from a block's terminal screen</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Utilities.html">static Utilities</a></td>
+<td>IMyUtilities contains mainly I/O, serialization, mod interaction functions</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@GuiControlCreated.html">static GuiControlCreated</a></td>
+<td><em><strong>Obsolete:</strong> Use IMyGui.GuiControlCreated</em><br /><br />Obsolete</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Entities.html">static Entities</a></td>
+<td>IMyEntities represents all objects that currently in world</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Session.html">static Session</a></td>
+<td>IMySession represents session object e.g. current world and its settings</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@Clean.html">static Clean()</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />Obsolete</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@DoorBase.html">static DoorBase(string)</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />Obsolete</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIGateway@GetMessageBoxPointer.html">static GetMessageBoxPointer(ref IntPtr)</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />Obsolete</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

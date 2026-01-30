@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.ModAPI.IMyCamera - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.ModAPI.IMyCamera" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:57Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.ModAPI</div>
+                <h1>IMyCamera</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMyCamera
+</code></pre>
+<p>Describes camera (mods interface)</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@FarPlaneDistance.html">FarPlaneDistance</a></td>
+<td>Gets farplane is set by MyObjectBuilder_SessionSettings.ViewDistance</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@FieldOfViewAngle.html">FieldOfViewAngle</a></td>
+<td>Gets field of view angle in degrees</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@FovWithZoom.html">FovWithZoom</a></td>
+<td>Gets field of view with zoom</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@NearPlaneDistance.html">NearPlaneDistance</a></td>
+<td>Gets near plane distance</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@Position.html">Position</a></td>
+<td>Gets camera position</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@PreviousPosition.html">PreviousPosition</a></td>
+<td>Gets camera previous position</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@ProjectionMatrix.html">ProjectionMatrix</a></td>
+<td>Gets projection matrix</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@ViewMatrix.html">ViewMatrix</a></td>
+<td>Gets view matrix when camera in real position</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@ViewportOffset.html">ViewportOffset</a></td>
+<td>Gets camera viewport offset</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@ViewportSize.html">ViewportSize</a></td>
+<td>Gets camera viewport size</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@WorldMatrix.html">WorldMatrix</a></td>
+<td>Gets camera world matrix</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@FieldOfViewAngleForNearObjects.html">FieldOfViewAngleForNearObjects</a></td>
+<td><em><strong>Obsolete</strong></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@FovWithZoomForNearObjects.html">FovWithZoomForNearObjects</a></td>
+<td><em><strong>Obsolete</strong></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@ProjectionMatrixForNearObjects.html">ProjectionMatrixForNearObjects</a></td>
+<td><em><strong>Obsolete</strong></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@GetDistanceWithFOV.html">GetDistanceWithFOV(Vector3D)</a></td>
+<td>Gets distance from point. Equals to <a href="VRageMath.Vector3D@Distance.html">Distance(Vector3D, Vector3D)</a></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@IsInFrustum.html">IsInFrustum(ref BoundingBoxD)</a></td>
+<td>Checks if specified bounding box is in actual bounding frustum IMPORTANT: If you observe bad result of this test, check how you transform your bounding box. Don't use BoundingBox.Transform. Instead transform box manualy and then create new box.</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@IsInFrustum.html">IsInFrustum(ref BoundingSphereD)</a></td>
+<td>Checks if specified bounding sphere is in actual bounding frustum IMPORTANT: If you observe bad result of this test, check how you transform your bounding sphere. Don't use BoundingSphere.Transform. Instead transform sphere center manualy and then create new sphere.</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@IsInFrustum.html">IsInFrustum(BoundingBoxD)</a></td>
+<td>Checks if specified bounding box is in actual bounding frustum IMPORTANT: If you observe bad result of this test, check how you transform your bounding box. Don't use BoundingBox.Transform. Instead transform box manualy and then create new box.</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@WorldLineFromScreen.html">WorldLineFromScreen(Vector2)</a></td>
+<td>Gets normalized world space line from screen space coordinates.</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyCamera@WorldToScreen.html">WorldToScreen(ref Vector3D)</a></td>
+<td>Gets screen coordinates of 3d world pos in 0 - 1 distance where 1.0 is screen width(for X) or height(for Y). WARNING: Y is from bottom to top.</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

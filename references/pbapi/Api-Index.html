@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Api-Index - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Api-Index" data-cache-buster="54480b3351e0" data-api-type="{{API_TYPE}}">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T20:19:18Z">Generated 2025-12-16 20:19 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <h1>Api&#160;Index</h1>
+<p>← <a href="Namespace-Index.html">Namespace Index</a></p>
+<p>This index contains all types and members available to ingame scripting - with exception to the .NET types, because including those would have made the listing far too big. There will be links to Microsoft's own documentation for those types where appropriate.</p>
+<h2 id="blocks">Blocks</h2>
+<p>Use these interfaces when you wish to access specific block types.</p>
+<p><a href="Sandbox.ModAPI.Ingame.IMyAdvancedDoor.html">IMyAdvancedDoor</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyAirtightHangarDoor.html">IMyAirtightHangarDoor</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyAirtightSlideDoor.html">IMyAirtightSlideDoor</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyAirVent.html">IMyAirVent</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyArtificialMassBlock.html">IMyArtificialMassBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyAssembler.html">IMyAssembler</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyBasicMissionBlock.html">IMyBasicMissionBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyBatteryBlock.html">IMyBatteryBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyBeacon.html">IMyBeacon</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyBroadcastController.html">IMyBroadcastController</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyBroadcastControllerBlock.html">IMyBroadcastControllerBlock</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyButtonPanel.html">IMyButtonPanel</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyCameraBlock.html">IMyCameraBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyCargoContainer.html">IMyCargoContainer</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyCollector.html">IMyCollector</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyControlPanel.html">IMyControlPanel</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyConveyorSorter.html">IMyConveyorSorter</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyCryoChamber.html">IMyCryoChamber</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyDecoy.html">IMyDecoy</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyDefensiveCombatBlock.html">IMyDefensiveCombatBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyEmotionControllerBlock.html">IMyEmotionControllerBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyEventControllerBlock.html">IMyEventControllerBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyExtendedPistonBase.html">IMyExtendedPistonBase</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyFlightMovementBlock.html">IMyFlightMovementBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyGasGenerator.html">IMyGasGenerator</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyGasTank.html">IMyGasTank</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyGravityGenerator.html">IMyGravityGenerator</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyGravityGeneratorSphere.html">IMyGravityGeneratorSphere</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyGyro.html">IMyGyro</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyHeatVent.html">IMyHeatVent</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyInteriorLight.html">IMyInteriorLight</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyJumpDrive.html">IMyJumpDrive</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear.html">IMyLandingGear</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeGatlingTurret.html">IMyLargeGatlingTurret</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeInteriorTurret.html">IMyLargeInteriorTurret</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeMissileTurret.html">IMyLargeMissileTurret</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyLaserAntenna.html">IMyLaserAntenna</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyMedicalRoom.html">IMyMedicalRoom</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyMotorAdvancedStator.html">IMyMotorAdvancedStator</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyMotorSuspension.html">IMyMotorSuspension</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyOffensiveCombatBlock.html">IMyOffensiveCombatBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyOreDetector.html">IMyOreDetector</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm.html">IMyOxygenFarm</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyParachute.html">IMyParachute</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyPathRecorderBlock.html">IMyPathRecorderBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyProgrammableBlock.html">IMyProgrammableBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyProjector.html">IMyProjector</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyRadioAntenna.html">IMyRadioAntenna</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyReactor.html">IMyReactor</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyRefinery.html">IMyRefinery</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyReflectorLight.html">IMyReflectorLight</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyRemoteControl.html">IMyRemoteControl</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMySafeZoneBlock.html">IMySafeZoneBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMySearchlight.html">IMySearchlight</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMySensorBlock.html">IMySensorBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyShipConnector.html">IMyShipConnector</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyShipDrill.html">IMyShipDrill</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyShipGrinder.html">IMyShipGrinder</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyShipMergeBlock.html">IMyShipMergeBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyShipWelder.html">IMyShipWelder</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMySmallGatlingGun.html">IMySmallGatlingGun</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMySmallMissileLauncherReload.html">IMySmallMissileLauncherReload</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMySolarPanel.html">IMySolarPanel</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMySoundBlock.html">IMySoundBlock</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMySpaceBall.html">IMySpaceBall</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyStoreBlock.html">IMyStoreBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyTargetDummyBlock.html">IMyTargetDummyBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyTextPanel.html">IMyTextPanel</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyThrust.html">IMyThrust</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyTimerBlock.html">IMyTimerBlock</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyTransponder.html">IMyTransponder</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyTurretControlBlock.html">IMyTurretControlBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyUpgradeModule.html">IMyUpgradeModule</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyVirtualMass.html">IMyVirtualMass</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyWarhead.html">IMyWarhead</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyWindTurbine.html">IMyWindTurbine</a></p>
+<h2 id="block-categories">Block Categories</h2>
+<p>Use these interfaces when you wish to access blocks by a specific function or category rather than a specific block type.</p>
+<p><a href="Sandbox.ModAPI.Ingame.IMyAirtightDoorBase.html">IMyAirtightDoorBase</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyCockpit.html">IMyCockpit</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyDoor.html">IMyDoor</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyFunctionalBlock.html">IMyFunctionalBlock</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyGravityGeneratorBase.html">IMyGravityGeneratorBase</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeConveyorTurretBase.html">IMyLargeConveyorTurretBase</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyLargeTurretBase.html">IMyLargeTurretBase</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyLightingBlock.html">IMyLightingBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyMechanicalConnectionBlock.html">IMyMechanicalConnectionBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyMotorBase.html">IMyMotorBase</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyMotorStator.html">IMyMotorStator</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyPistonBase.html">IMyPistonBase</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyPowerProducer.html">IMyPowerProducer</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyProductionBlock.html">IMyProductionBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyShipController.html">IMyShipController</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyShipToolBase.html">IMyShipToolBase</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMySmallMissileLauncher.html">IMySmallMissileLauncher</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyUserControllableGun.html">IMyUserControllableGun</a></p>
+<h2 id="utilities">Utilities</h2>
+<p>Various useful utilities for your scripts</p>
+<p><a href="VRage.Game.ModAPI.Ingame.Utilities.MyCommandLine.html">MyCommandLine</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.MyCommandLine+Enumerator.html">MyCommandLine.Enumerator</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.MyCommandLine+ItemCollection.html">MyCommandLine.ItemCollection</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.MyCommandLine+SwitchCollection.html">MyCommandLine.SwitchCollection</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.MyCommandLine+SwitchEnumerator.html">MyCommandLine.SwitchEnumerator</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni.html">MyIni</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniKey.html">MyIniKey</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniParseResult.html">MyIniParseResult</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue.html">MyIniValue</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.StringSegment.html">StringSegment</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.StringSegmentComparer.html">StringSegmentComparer</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.StringSegmentIgnoreCaseComparer.html">StringSegmentIgnoreCaseComparer</a><br />
+<a href="VRage.Game.ModAPI.Ingame.Utilities.TextPtr.html">TextPtr</a></p>
+<h2 id="grid-program-and-terminal-system">Grid Program and Terminal System</h2>
+<p>Types related to the grid program and grid terminal system</p>
+<p><a href="Sandbox.ModAPI.Ingame.IMyBlockGroup.html">IMyBlockGroup</a><br />
+<a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a><br />
+<a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyGridProgramRuntimeInfo.html">IMyGridProgramRuntimeInfo</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyGridTerminalSystem.html">IMyGridTerminalSystem</a><br />
+<a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyGridProgram.html">MyGridProgram</a><br />
+<a href="Sandbox.ModAPI.Ingame.UpdateFrequency.html">UpdateFrequency</a><br />
+<a href="Sandbox.ModAPI.Ingame.UpdateType.html">UpdateType</a></p>
+<h2 id="entity-component-systems">Entity Component Systems</h2>
+<p>Gain access to advanced block components</p>
+<p><a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a><br />
+<a href="Sandbox.Game.EntityComponents.MyResourceSinkComponent.html">MyResourceSinkComponent</a><br />
+<a href="VRage.Game.Components.MyResourceSinkComponentBase.html">MyResourceSinkComponentBase</a><br />
+<a href="Sandbox.Game.EntityComponents.MyResourceSourceComponent.html">MyResourceSourceComponent</a><br />
+<a href="VRage.Game.Components.MyResourceSourceComponentBase.html">MyResourceSourceComponentBase</a></p>
+<h2 id="igc">IGC</h2>
+<p>Types related to the intergrid communication system.</p>
+<p><a href="Sandbox.ModAPI.Ingame.IMyBroadcastListener.html">IMyBroadcastListener</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyIntergridCommunicationSystem.html">IMyIntergridCommunicationSystem</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyMessageProvider.html">IMyMessageProvider</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyUnicastListener.html">IMyUnicastListener</a><br />
+<a href="Sandbox.ModAPI.Ingame.TransmissionDistance.html">TransmissionDistance</a></p>
+<h2 id="inventory">Inventory</h2>
+<p>Types related to inventory analysis and management.</p>
+<p><a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a><br />
+<a href="VRage.Game.ModAPI.Ingame.MyInventoryItem.html">MyInventoryItem</a><br />
+<a href="VRage.Game.ModAPI.Ingame.MyItemInfo.html">MyItemInfo</a></p>
+<h2 id="terminal-properties-and-actions">Terminal Properties and Actions</h2>
+<p>Types related to the terminal properties and actions. You should endeavor to avoid the use of these if possible due to their extra overhead. There are usually proper interface members available instead, which are orders of magnitude faster in use.</p>
+<p><a href="Sandbox.ModAPI.Interfaces.ITerminalAction.html">ITerminalAction</a><br />
+<a href="Sandbox.ModAPI.Interfaces.ITerminalProperty.html">ITerminalProperty</a><br />
+<a href="Sandbox.ModAPI.Interfaces.ITerminalProperty%7BTValue%7D.html">ITerminalProperty&lt;TValue&gt;</a><br />
+<a href="Sandbox.Game.Gui.TerminalActionExtensions.html">TerminalActionExtensions</a><br />
+<a href="Sandbox.ModAPI.Ingame.TerminalActionParameter.html">TerminalActionParameter</a></p>
+<h2 id="math">Math</h2>
+<p>Math utilities</p>
+<p><a href="VRageMath.Base27Directions.html">Base27Directions</a><br />
+<a href="VRageMath.Base27Directions+Direction.html">Base27Directions.Direction</a><br />
+<a href="VRageMath.Base6Directions.html">Base6Directions</a><br />
+<a href="VRageMath.Base6Directions+Axis.html">Base6Directions.Axis</a><br />
+<a href="VRageMath.Base6Directions+Direction.html">Base6Directions.Direction</a><br />
+<a href="VRageMath.Base6Directions+DirectionFlags.html">Base6Directions.DirectionFlags</a><br />
+<a href="VRageMath.BoundingBox.html">BoundingBox</a><br />
+<a href="VRageMath.BoundingBox+ComparerType.html">BoundingBox.ComparerType</a><br />
+<a href="VRageMath.BoundingBox2.html">BoundingBox2</a><br />
+<a href="VRageMath.BoundingBox2D.html">BoundingBox2D</a><br />
+<a href="VRageMath.BoundingBox2I.html">BoundingBox2I</a><br />
+<a href="VRageMath.BoundingBoxD.html">BoundingBoxD</a><br />
+<a href="VRageMath.BoundingBoxD+ComparerType.html">BoundingBoxD.ComparerType</a><br />
+<a href="VRageMath.BoundingBoxExtensions.html">BoundingBoxExtensions</a><br />
+<a href="VRageMath.BoundingBoxI.html">BoundingBoxI</a><br />
+<a href="VRageMath.BoundingFrustum.html">BoundingFrustum</a><br />
+<a href="VRageMath.BoundingFrustumD.html">BoundingFrustumD</a><br />
+<a href="VRageMath.BoundingFrustumExtensions.html">BoundingFrustumExtensions</a><br />
+<a href="VRageMath.BoundingSphere.html">BoundingSphere</a><br />
+<a href="VRageMath.BoundingSphereD.html">BoundingSphereD</a><br />
+<a href="VRageMath.BoxCornerEnumerator.html">BoxCornerEnumerator</a><br />
+<a href="VRageMath.BoxCornerEnumerator+_m_minMax_e__FixedBuffer.html">BoxCornerEnumerator.&lt;m_minMax&gt;e__FixedBuffer</a><br />
+<a href="VRageMath.Capsule.html">Capsule</a><br />
+<a href="VRageMath.CapsuleD.html">CapsuleD</a><br />
+<a href="VRageMath.Color.html">Color</a><br />
+<a href="VRageMath.ColorExtensions.html">ColorExtensions</a><br />
+<a href="VRageMath.CompressedPositionOrientation.html">CompressedPositionOrientation</a><br />
+<a href="VRageMath.ContainmentType.html">ContainmentType</a><br />
+<a href="VRageMath.CubeFace.html">CubeFace</a><br />
+<a href="VRageMath.Curve.html">Curve</a><br />
+<a href="VRageMath.CurveContinuity.html">CurveContinuity</a><br />
+<a href="VRageMath.CurveKey.html">CurveKey</a><br />
+<a href="VRageMath.CurveKeyCollection.html">CurveKeyCollection</a><br />
+<a href="VRageMath.CurveLoopType.html">CurveLoopType</a><br />
+<a href="VRageMath.CurveTangent.html">CurveTangent</a><br />
+<a href="VRageMath.HyperSphereHelpers.html">HyperSphereHelpers</a><br />
+<a href="VRageMath.IAddOp%7BT%7D.html">IAddOp&lt;T&gt;</a><br />
+<a href="VRageMath.Line.html">Line</a><br />
+<a href="VRageMath.LineD.html">LineD</a><br />
+<a href="VRageMath.MathHelper.html">MathHelper</a><br />
+<a href="VRageMath.MathHelperD.html">MathHelperD</a><br />
+<a href="VRageMath.Matrix.html">Matrix</a><br />
+<a href="VRageMath.Matrix3x3.html">Matrix3x3</a><br />
+<a href="VRageMath.MatrixD.html">MatrixD</a><br />
+<a href="VRageMath.MatrixI.html">MatrixI</a><br />
+<a href="VRageMath.MyBlockOrientation.html">MyBlockOrientation</a><br />
+<a href="VRageMath.MyBounds.html">MyBounds</a><br />
+<a href="VRageMath.MyCuboid.html">MyCuboid</a><br />
+<a href="VRageMath.MyCuboidSide.html">MyCuboidSide</a><br />
+<a href="VRageMath.MyDynamicAABBTree.html">MyDynamicAABBTree</a><br />
+<a href="VRageMath.MyDynamicAABBTree+DynamicTreeNode.html">MyDynamicAABBTree.DynamicTreeNode</a><br />
+<a href="VRageMath.MyDynamicAABBTreeD.html">MyDynamicAABBTreeD</a><br />
+<a href="VRageMath.MyLineSegmentOverlapResult%7BT%7D.html">MyLineSegmentOverlapResult&lt;T&gt;</a><br />
+<a href="VRageMath.MyLineSegmentOverlapResult%7BT%7D+MyLineSegmentOverlapResultComparer.html">MyLineSegmentOverlapResult&lt;T&gt;.MyLineSegmentOverlapResultComparer&lt;T&gt;</a><br />
+<a href="VRageMath.MyMath.html">MyMath</a><br />
+<a href="VRageMath.MyMortonCode3D.html">MyMortonCode3D</a><br />
+<a href="VRageMath.MyMovingAverage.html">MyMovingAverage</a><br />
+<a href="VRageMath.MyOrientedBoundingBox.html">MyOrientedBoundingBox</a><br />
+<a href="VRageMath.MyOrientedBoundingBoxD.html">MyOrientedBoundingBoxD</a><br />
+<a href="VRageMath.MyQuad.html">MyQuad</a><br />
+<a href="VRageMath.MyQuadD.html">MyQuadD</a><br />
+<a href="VRageMath.MyShort4.html">MyShort4</a><br />
+<a href="VRageMath.MyTransform.html">MyTransform</a><br />
+<a href="VRageMath.MyTransformD.html">MyTransformD</a><br />
+<a href="VRageMath.MyUShort4.html">MyUShort4</a><br />
+<a href="VRageMath.NullableVector3DExtensions.html">NullableVector3DExtensions</a><br />
+<a href="VRageMath.NullableVector3Extensions.html">NullableVector3Extensions</a><br />
+<a href="VRageMath.Plane.html">Plane</a><br />
+<a href="VRageMath.PlaneD.html">PlaneD</a><br />
+<a href="VRageMath.PlaneIntersectionType.html">PlaneIntersectionType</a><br />
+<a href="VRageMath.Point.html">Point</a><br />
+<a href="VRageMath.Quaternion.html">Quaternion</a><br />
+<a href="VRageMath.QuaternionD.html">QuaternionD</a><br />
+<a href="VRageMath.Ray.html">Ray</a><br />
+<a href="VRageMath.RayD.html">RayD</a><br />
+<a href="VRageMath.Rectangle.html">Rectangle</a><br />
+<a href="VRageMath.RectangleF.html">RectangleF</a><br />
+<a href="VRageMath.SerializableRange.html">SerializableRange</a><br />
+<a href="VRageMath.SymmetricSerializableRange.html">SymmetricSerializableRange</a><br />
+<a href="VRageMath.Vector2.html">Vector2</a><br />
+<a href="VRageMath.Vector2B.html">Vector2B</a><br />
+<a href="VRageMath.Vector2D.html">Vector2D</a><br />
+<a href="VRageMath.Vector2I.html">Vector2I</a><br />
+<a href="VRageMath.Vector2I+ComparerClass.html">Vector2I.ComparerClass</a><br />
+<a href="VRageMath.Vector3.html">Vector3</a><br />
+<a href="VRageMath.Vector3B.html">Vector3B</a><br />
+<a href="VRageMath.Vector3D.html">Vector3D</a><br />
+<a href="VRageMath.Vector3Extensions.html">Vector3Extensions</a><br />
+<a href="VRageMath.Vector3I.html">Vector3I</a><br />
+<a href="VRageMath.Vector3I+EqualityComparer.html">Vector3I.EqualityComparer</a><br />
+<a href="VRageMath.Vector3I_RangeIterator.html">Vector3I_RangeIterator</a><br />
+<a href="VRageMath.Vector3INormalEqualityComparer.html">Vector3INormalEqualityComparer</a><br />
+<a href="VRageMath.Vector3L.html">Vector3L</a><br />
+<a href="VRageMath.Vector3L+EqualityComparer.html">Vector3L.EqualityComparer</a><br />
+<a href="VRageMath.Vector3L_RangeIterator.html">Vector3L_RangeIterator</a><br />
+<a href="VRageMath.Vector3LNormalEqualityComparer.html">Vector3LNormalEqualityComparer</a><br />
+<a href="VRageMath.Vector3S.html">Vector3S</a><br />
+<a href="VRageMath.Vector3UByte.html">Vector3UByte</a><br />
+<a href="VRageMath.Vector3UByte+EqualityComparer.html">Vector3UByte.EqualityComparer</a><br />
+<a href="VRageMath.Vector3Ushort.html">Vector3Ushort</a><br />
+<a href="VRageMath.Vector4.html">Vector4</a><br />
+<a href="VRageMath.Vector4D.html">Vector4D</a><br />
+<a href="VRageMath.Vector4I.html">Vector4I</a><br />
+<a href="VRageMath.Vector4I+EqualityComparer.html">Vector4I.EqualityComparer</a><br />
+<a href="VRageMath.Vector4UByte.html">Vector4UByte</a></p>
+<h2 id="other">Other</h2>
+<p>Currently ungrouped types</p>
+<p><a href="System.ArrayExtensions.html">ArrayExtensions</a><br />
+<a href="Sandbox.ModAPI.Ingame.BroadcastTarget.html">BroadcastTarget</a><br />
+<a href="Sandbox.ModAPI.Ingame.ChargeMode.html">ChargeMode</a><br />
+<a href="System.Collections.Generic.ClearToken%7BT%7D.html">ClearToken&lt;T&gt;</a><br />
+<a href="VRage.Game.GUI.TextPanel.ContentType.html">ContentType</a><br />
+<a href="System.Collections.Generic.DictionaryExtensions.html">DictionaryExtensions</a><br />
+<a href="Sandbox.ModAPI.Ingame.DoorStatus.html">DoorStatus</a><br />
+<a href="VRage.Game.ModAPI.Ingame.FleeMode.html">FleeMode</a><br />
+<a href="VRage.Game.ModAPI.Ingame.FleeTrigger.html">FleeTrigger</a><br />
+<a href="Sandbox.ModAPI.Ingame.FlightMode.html">FlightMode</a><br />
+<a href="VRage.Game.ModAPI.Ingame.GuidanceType.html">GuidanceType</a><br />
+<a href="System.Collections.Generic.HashSetExtensions.html">HashSetExtensions</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyAttachableTopBlock.html">IMyAttachableTopBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyAttackPatternComponent.html">IMyAttackPatternComponent</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyAutopilotWaypoint.html">IMyAutopilotWaypoint</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyBasicMissionComponent.html">IMyBasicMissionComponent</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyBasicMissionFollowHome.html">IMyBasicMissionFollowHome</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyBasicMissionFollowPlayer.html">IMyBasicMissionFollowPlayer</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyChatBroadcastControllerComponent.html">IMyChatBroadcastControllerComponent</a><br />
+<a href="VRage.Game.Components.Interfaces.IMyComponentContainer.html">IMyComponentContainer</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyConveyor.html">IMyConveyor</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyConveyorTube.html">IMyConveyorTube</a><br />
+<a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyFarmPlotLogic.html">IMyFarmPlotLogic</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyGridProgramWorldInfo.html">IMyGridProgramWorldInfo</a><br />
+<a href="VRage.Game.ModAPI.Ingame.IMyInventoryItem.html">IMyInventoryItem</a><br />
+<a href="VRage.Game.ModAPI.Ingame.IMyInventoryOwner.html">IMyInventoryOwner</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyItemProducerComponent.html">IMyItemProducerComponent</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyLightingComponent.html">IMyLightingComponent</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyMotorAdvancedRotor.html">IMyMotorAdvancedRotor</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyMotorRotor.html">IMyMotorRotor</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyOffensiveCombatCircleOrbit.html">IMyOffensiveCombatCircleOrbit</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyOffensiveCombatHitAndRun.html">IMyOffensiveCombatHitAndRun</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyOffensiveCombatIntercept.html">IMyOffensiveCombatIntercept</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyOffensiveCombatStayAtRange.html">IMyOffensiveCombatStayAtRange</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyPassage.html">IMyPassage</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyPistonTop.html">IMyPistonTop</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyResourceStorageComponent.html">IMyResourceStorageComponent</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMySearchEnemyComponent.html">IMySearchEnemyComponent</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMySolarFoodGenerator.html">IMySolarFoodGenerator</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMySolarOccludable.html">IMySolarOccludable</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.IMySurvivalBuffsProgression.html">IMySurvivalBuffsProgression</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyTextSurface.html">IMyTextSurface</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyTextSurfaceProvider.html">IMyTextSurfaceProvider</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyUpgradableBlock.html">IMyUpgradableBlock</a><br />
+<a href="Sandbox.ModAPI.Ingame.IMyWheel.html">IMyWheel</a><br />
+<a href="Sandbox.ModAPI.Ingame.IUserCustomizableTerminalAction.html">IUserCustomizableTerminalAction</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.LandingGearMode.html">LandingGearMode</a><br />
+<a href="System.Collections.Generic.ListExtensions.html">ListExtensions</a><br />
+<a href="VRage.Collections.ListReader%7BT%7D.html">ListReader&lt;T&gt;</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeArrayList.html">MemorySafeArrayList</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeDictionary%7BTKey,TValue%7D.html">MemorySafeDictionary&lt;TKey, TValue&gt;</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeHashSet%7BT%7D.html">MemorySafeHashSet&lt;T&gt;</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeHashtable.html">MemorySafeHashtable</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeImmutableArray.html">MemorySafeImmutableArray</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeImmutableDictionary.html">MemorySafeImmutableDictionary</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeImmutableHashSet.html">MemorySafeImmutableHashSet</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeImmutableList.html">MemorySafeImmutableList</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeLinkedList%7BT%7D.html">MemorySafeLinkedList&lt;T&gt;</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeLinqExtensions.html">MemorySafeLinqExtensions</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeList%7BT%7D.html">MemorySafeList&lt;T&gt;</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeQueue.html">MemorySafeQueue</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeQueue%7BT%7D.html">MemorySafeQueue&lt;T&gt;</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeSortedDictionary%7BTKey,TValue%7D.html">MemorySafeSortedDictionary&lt;TKey, TValue&gt;</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeSortedList.html">MemorySafeSortedList</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeSortedList%7BTKey,TValue%7D.html">MemorySafeSortedList&lt;TKey, TValue&gt;</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeSortedSet%7BT%7D.html">MemorySafeSortedSet&lt;T&gt;</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeStack.html">MemorySafeStack</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeStack%7BT%7D.html">MemorySafeStack&lt;T&gt;</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeStringBuilder.html">MemorySafeStringBuilder</a><br />
+<a href="VRage.Scripting.MemorySafeTypes.MemorySafeStringBuilderExtensions.html">MemorySafeStringBuilderExtensions</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.MergeState.html">MergeState</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyAssemblerMode.html">MyAssemblerMode</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyConveyorSorterMode.html">MyConveyorSorterMode</a><br />
+<a href="VRage.Game.MyCubeSize.html">MyCubeSize</a><br />
+<a href="VRage.Game.MyDefinitionId.html">MyDefinitionId</a><br />
+<a href="VRage.Game.MyDefinitionId+DefinitionIdComparerType.html">MyDefinitionId.DefinitionIdComparerType</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyDetectedEntityInfo.html">MyDetectedEntityInfo</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyDetectedEntityType.html">MyDetectedEntityType</a><br />
+<a href="VRage.MyFixedPoint.html">MyFixedPoint</a><br />
+<a href="VRage.Game.ModAPI.Ingame.MyGridTargetingRelationFiltering.html">MyGridTargetingRelationFiltering</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyIGCMessage.html">MyIGCMessage</a><br />
+<a href="VRage.Game.ModAPI.Ingame.MyInventoryItemExtension.html">MyInventoryItemExtension</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyInventoryItemFilter.html">MyInventoryItemFilter</a><br />
+<a href="VRage.Game.ModAPI.Ingame.MyItemType.html">MyItemType</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyJumpDriveStatus.html">MyJumpDriveStatus</a><br />
+<a href="VRage.MyLanguagesEnum.html">MyLanguagesEnum</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyLaserAntennaStatus.html">MyLaserAntennaStatus</a><br />
+<a href="VRage.ObjectBuilders.MyObjectBuilder_Base.html">MyObjectBuilder_Base</a><br />
+<a href="VRage.Game.ObjectBuilders.Definitions.MyObjectBuilder_GasProperties.html">MyObjectBuilder_GasProperties</a><br />
+<a href="VRage.Game.ModAPI.Ingame.MyPhysicalInventoryItemExtensions_ModAPI.html">MyPhysicalInventoryItemExtensions_ModAPI</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyPlanetElevation.html">MyPlanetElevation</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyProductionItem.html">MyProductionItem</a><br />
+<a href="VRage.Game.MyRelationsBetweenPlayerAndBlock.html">MyRelationsBetweenPlayerAndBlock</a><br />
+<a href="VRage.Game.MyRelationsBetweenPlayerAndBlockExtensions.html">MyRelationsBetweenPlayerAndBlockExtensions</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyRotationDirection.html">MyRotationDirection</a><br />
+<a href="VRage.Game.GUI.TextPanel.MySerializableSprite.html">MySerializableSprite</a><br />
+<a href="VRage.Game.GUI.TextPanel.MySerializableSpriteCollection.html">MySerializableSpriteCollection</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyShipConnectorStatus.html">MyShipConnectorStatus</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyShipMass.html">MyShipMass</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyShipVelocities.html">MyShipVelocities</a><br />
+<a href="Sandbox.Game.Localization.MySpaceTexts.html">MySpaceTexts</a><br />
+<a href="VRage.Game.GUI.TextPanel.MySprite.html">MySprite</a><br />
+<a href="VRage.Game.GUI.TextPanel.MySpriteCollection.html">MySpriteCollection</a><br />
+<a href="VRage.Game.GUI.TextPanel.MySpriteDrawFrame.html">MySpriteDrawFrame</a><br />
+<a href="VRage.Game.GUI.TextPanel.MySpriteDrawFrame+ClearClipToken.html">MySpriteDrawFrame.ClearClipToken</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyStoreInsertResults.html">MyStoreInsertResults</a><br />
+<a href="VRage.Game.ModAPI.Ingame.MyStoreItemDataSimple.html">MyStoreItemDataSimple</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyStoreQueryItem.html">MyStoreQueryItem</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyTerminalAccessScope.html">MyTerminalAccessScope</a><br />
+<a href="VRage.MyTexts.html">MyTexts</a><br />
+<a href="VRage.MyTexts+MyLanguageDescription.html">MyTexts.MyLanguageDescription</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyTransmitTarget.html">MyTransmitTarget</a><br />
+<a href="VRage.Game.ModAPI.Ingame.MyTransponderRelationFilter.html">MyTransponderRelationFilter</a><br />
+<a href="VRage.MyTuple.html">MyTuple</a><br />
+<a href="VRage.MyTuple%7BT1,T2,T3,T4,T5,T6%7D.html">MyTuple&lt;T1, T2, T3, T4, T5, T6&gt;</a><br />
+<a href="VRage.MyTuple%7BT1,T2,T3,T4,T5%7D.html">MyTuple&lt;T1, T2, T3, T4, T5&gt;</a><br />
+<a href="VRage.MyTuple%7BT1,T2,T3,T4%7D.html">MyTuple&lt;T1, T2, T3, T4&gt;</a><br />
+<a href="VRage.MyTuple%7BT1,T2,T3%7D.html">MyTuple&lt;T1, T2, T3&gt;</a><br />
+<a href="VRage.MyTuple%7BT1,T2%7D.html">MyTuple&lt;T1, T2&gt;</a><br />
+<a href="VRage.MyTuple%7BT1%7D.html">MyTuple&lt;T1&gt;</a><br />
+<a href="VRage.MyTupleComparer%7BT1,T2,T3%7D.html">MyTupleComparer&lt;T1, T2, T3&gt;</a><br />
+<a href="VRage.MyTupleComparer%7BT1,T2%7D.html">MyTupleComparer&lt;T1, T2&gt;</a><br />
+<a href="Sandbox.ModAPI.Ingame.MyWaypointInfo.html">MyWaypointInfo</a><br />
+<a href="VRage.Game.ModAPI.Ingame.OffensiveCombatTargetPriority.html">OffensiveCombatTargetPriority</a><br />
+<a href="Sandbox.ModAPI.Ingame.PistonStatus.html">PistonStatus</a><br />
+<a href="System.Collections.Generic.QueueExtensions.html">QueueExtensions</a><br />
+<a href="VRage.ObjectBuilders.SerializableDefinitionId.html">SerializableDefinitionId</a><br />
+<a href="VRage.Game.GUI.TextPanel.ShowTextOnScreenFlag.html">ShowTextOnScreenFlag</a><br />
+<a href="VRage.Game.GUI.TextPanel.SpriteType.html">SpriteType</a><br />
+<a href="System.Text.StringBuilderExtensions_Format.html">StringBuilderExtensions_Format</a><br />
+<a href="Sandbox.ModAPI.Ingame.TargetingGroupOptions.html">TargetingGroupOptions</a><br />
+<a href="Sandbox.ModAPI.Ingame.TerminalBlockExtentions.html">TerminalBlockExtentions</a><br />
+<a href="Sandbox.ModAPI.Interfaces.TerminalPropertyExtensions.html">TerminalPropertyExtensions</a><br />
+<a href="VRage.Game.GUI.TextPanel.TextAlignment.html">TextAlignment</a><br />
+<a href="VRage.Game.GUI.TextPanel.TextPanelAccessFlag.html">TextPanelAccessFlag</a><br />
+<a href="SpaceEngineers.Game.ModAPI.Ingame.VentStatus.html">VentStatus</a></p>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

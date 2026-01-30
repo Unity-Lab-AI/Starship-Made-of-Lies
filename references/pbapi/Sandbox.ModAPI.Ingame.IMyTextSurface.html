@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.Ingame.IMyTextSurface - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.Ingame.IMyTextSurface" data-cache-buster="54480b3351e0" data-api-type="pb">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:36Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI.Ingame</div>
+                <h1>IMyTextSurface</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Common.dll</p>
+<pre><code class="language-csharp">public interface IMyTextSurface
+</code></pre>
+<p>Describes one of block LCDs where you can write text or draw things (PB scripting interface)</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@Alignment.html">Alignment</a></td>
+<td>How should the text be aligned</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@BackgroundAlpha.html">BackgroundAlpha</a></td>
+<td>Value for offscreen texture alpha channel - for PBR material it is metalness (should be 0) - for transparent texture it is opacity</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@BackgroundColor.html">BackgroundColor</a></td>
+<td>Gets or sets background color</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@ChangeInterval.html">ChangeInterval</a></td>
+<td>Gets or sets the change interval for selected textures</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@ContentType.html">ContentType</a></td>
+<td>Type of content to be displayed on the screen.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@CurrentlyShownImage.html">CurrentlyShownImage</a></td>
+<td>Gets image that is currently shown on the screen. Returns NULL if there are no images selected OR the screen is in text mode.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@DisplayName.html">DisplayName</a></td>
+<td>Get localized name of this surface.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@Font.html">Font</a></td>
+<td>Gets or sets the font</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@FontColor.html">FontColor</a></td>
+<td>Gets or sets font color</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@FontSize.html">FontSize</a></td>
+<td>Gets or sets font size</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@Name.html">Name</a></td>
+<td>Gets identifier name of this surface.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@PreserveAspectRatio.html">PreserveAspectRatio</a></td>
+<td>Gets or sets preserve aspect ratio of images.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@Script.html">Script</a></td>
+<td>Currently running script</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@ScriptBackgroundColor.html">ScriptBackgroundColor</a></td>
+<td>Gets or sets background color used for scripts.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@ScriptForegroundColor.html">ScriptForegroundColor</a></td>
+<td>Gets or sets foreground color used for scripts.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@SurfaceSize.html">SurfaceSize</a></td>
+<td>Gets size of the drawing surface.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@TextPadding.html">TextPadding</a></td>
+<td>Gets or sets text padding from all sides of the panel.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@TextureSize.html">TextureSize</a></td>
+<td>Gets size of the texture the drawing surface is rendered to.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@AddImagesToSelection.html">AddImagesToSelection(List<string>, bool)</a></td>
+<td>Adds image to list of shown images. You can get image ids by <a href="Sandbox.ModAPI.Ingame.IMyTextSurface@GetSelectedImages.html">GetSelectedImages(List<string>)</a></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@AddImageToSelection.html">AddImageToSelection(string, bool)</a></td>
+<td>Adds image to list of shown images. You can get image ids by <a href="Sandbox.ModAPI.Ingame.IMyTextSurface@GetSelectedImages.html">GetSelectedImages(List<string>)</a></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@ClearImagesFromSelection.html">ClearImagesFromSelection()</a></td>
+<td>Removes images from shown images.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@DrawFrame.html">DrawFrame()</a></td>
+<td>Creates a new draw frame where you can add sprites to be rendered.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@GetFonts.html">GetFonts(List<string>)</a></td>
+<td>Gets a list of available fonts</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@GetScripts.html">GetScripts(List<string>)</a></td>
+<td>Gets a list of available scripts</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@GetSelectedImages.html">GetSelectedImages(List<string>)</a></td>
+<td>Outputs the selected image ids to the specified list. NOTE: List is not cleared internally.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@GetSprites.html">GetSprites(List<string>)</a></td>
+<td>Gets a list of available sprites</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@GetText.html">GetText()</a></td>
+<td>Gets current text that is written on surface. Allocates memory (StringBuilder.ToString())! This method doesn't allocate memory <a href="Sandbox.ModAPI.Ingame.IMyTextSurface@ReadText.html">ReadText(StringBuilder, bool)</a></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@MeasureStringInPixels.html">MeasureStringInPixels(StringBuilder, string, float)</a></td>
+<td>Calculates how many pixels a string of a given font and scale will take up.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@ReadText.html">ReadText(StringBuilder, bool)</a></td>
+<td>Gets current text that is written on surface.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@RemoveImageFromSelection.html">RemoveImageFromSelection(string, bool)</a></td>
+<td>Removes image from shown images.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@RemoveImagesFromSelection.html">RemoveImagesFromSelection(List<string>, bool)</a></td>
+<td>Removes images from shown images.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@WriteText.html">WriteText(string, bool)</a></td>
+<td>Writes text to surface. If somebody opened LCD text in popup dialog, text can no longer be added to the surface. Resulting text must is capped with 100000 symbols</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTextSurface@WriteText.html">WriteText(StringBuilder, bool)</a></td>
+<td>Writes text to surface. If somebody opened LCD text in popup dialog, text can no longer be added to the surface. Resulting text must is capped with 100000 symbols</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritors:</strong></p>
+<ul>
+<li><a href="Sandbox.ModAPI.Ingame.IMyTextPanel.html">IMyTextPanel</a></li>
+</ul>
+<p><strong>Type Definitions:</strong></p>
+<ul>
+<li>MyObjectBuilder_TextPanel/HoloLCDLarge</li>
+<li>MyObjectBuilder_TextPanel/HoloLCDSmall</li>
+<li>MyObjectBuilder_TextPanel/LargeBlockCorner_LCD_1</li>
+<li>MyObjectBuilder_TextPanel/LargeBlockCorner_LCD_2</li>
+<li>MyObjectBuilder_TextPanel/LargeBlockCorner_LCD_Flat_1</li>
+<li>MyObjectBuilder_TextPanel/LargeBlockCorner_LCD_Flat_2</li>
+<li>MyObjectBuilder_TextPanel/LargeCurvedLCDPanel</li>
+<li>MyObjectBuilder_TextPanel/LargeDiagonalLCDPanel</li>
+<li>MyObjectBuilder_TextPanel/LargeFullBlockLCDPanel</li>
+<li>MyObjectBuilder_TextPanel/LargeLCDPanel</li>
+<li>MyObjectBuilder_TextPanel/LargeLCDPanel3x3</li>
+<li>MyObjectBuilder_TextPanel/LargeLCDPanel5x3</li>
+<li>MyObjectBuilder_TextPanel/LargeLCDPanel5x5</li>
+<li>MyObjectBuilder_TextPanel/LargeLCDPanelWide</li>
+<li>MyObjectBuilder_TextPanel/LargeTextPanel</li>
+<li>MyObjectBuilder_TextPanel/SmallBlockConsoleModuleScreens</li>
+<li>MyObjectBuilder_TextPanel/SmallBlockCorner_LCD_1</li>
+<li>MyObjectBuilder_TextPanel/SmallBlockCorner_LCD_2</li>
+<li>MyObjectBuilder_TextPanel/SmallBlockCorner_LCD_Flat_1</li>
+<li>MyObjectBuilder_TextPanel/SmallBlockCorner_LCD_Flat_2</li>
+<li>MyObjectBuilder_TextPanel/SmallCurvedLCDPanel</li>
+<li>MyObjectBuilder_TextPanel/SmallDiagonalLCDPanel</li>
+<li>MyObjectBuilder_TextPanel/SmallFullBlockLCDPanel</li>
+<li>MyObjectBuilder_TextPanel/SmallLCDPanel</li>
+<li>MyObjectBuilder_TextPanel/SmallLCDPanelWide</li>
+<li>MyObjectBuilder_TextPanel/SmallTextPanel</li>
+<li>MyObjectBuilder_TextPanel/TransparentLCDLarge</li>
+<li>MyObjectBuilder_TextPanel/TransparentLCDSmall</li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

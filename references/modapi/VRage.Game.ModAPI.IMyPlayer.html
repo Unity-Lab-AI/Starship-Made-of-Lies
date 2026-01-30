@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.IMyPlayer - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.IMyPlayer" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:53Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI</div>
+                <h1>IMyPlayer</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMyPlayer
+</code></pre>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@IdentityChanged.html">IdentityChanged</a></td>
+<td>Event triggered when the player's identity changed (eg. died w/permadeath on)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@BuildColorSlots.html">BuildColorSlots</a></td>
+<td>Gets or sets all the player's build color slots</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@Character.html">Character</a></td>
+<td>Gets the Character entity for the player.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@Client.html">Client</a></td>
+<td>Gets network client for this player. Used for sending network messages between players and server</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@Controller.html">Controller</a></td>
+<td>Gets the EntityController for the player.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@DefaultBuildColorSlots.html">DefaultBuildColorSlots</a></td>
+<td>Gets the list of the default build colors.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@DisplayName.html">DisplayName</a></td>
+<td>Visible player name</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@Grids.html">Grids</a></td>
+<td>List of grids where the player owns at least one block.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@Identity.html">Identity</a></td>
+<td>Gets the identity for the player</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@IdentityId.html">IdentityId</a></td>
+<td>Unique id for the current player identity.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@IsBot.html">IsBot</a></td>
+<td>Gets if the player is a bot (non-human)</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@PromoteLevel.html">PromoteLevel</a></td>
+<td>Gets the player's promote level</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@RespawnShip.html">RespawnShip</a></td>
+<td>Gets the entity id for the player's respawn ship(s).</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@SelectedBuildColor.html">SelectedBuildColor</a></td>
+<td>Gets or sets the build color for the selected slot.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@SelectedBuildColorSlot.html">SelectedBuildColorSlot</a></td>
+<td>Gets or sets the selected slot for the build color.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@SteamUserId.html">SteamUserId</a></td>
+<td>Gets the Steam user id for the player.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@IsAdmin.html">IsAdmin</a></td>
+<td><em><strong>Obsolete:</strong> Use Promote Level instead</em><br /><br />Gets if the player is an admin on the server.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@IsPromoted.html">IsPromoted</a></td>
+<td><em><strong>Obsolete:</strong> Use Promote Level instead</em><br /><br />Gets if the player is promoted to Space Master.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@PlayerID.html">PlayerID</a></td>
+<td><em><strong>Obsolete:</strong> Use IdentityId instead.</em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@AddGrid.html">AddGrid(long)</a></td>
+<td>Adds a grid to the player's Grids list.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@ChangeOrSwitchToColor.html">ChangeOrSwitchToColor(Vector3)</a></td>
+<td>Switches to slot containing color, if present. Otherwise sets active slot to color.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@GetBalanceShortString.html">GetBalanceShortString()</a></td>
+<td>Gets balance of an account associated with player. Format is 'BALANCE CURRENCYSHORTNAME'.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@GetPosition.html">GetPosition()</a></td>
+<td>Gets the position of controlled entity. Grid/Character</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@GetRelationTo.html">GetRelationTo(long)</a></td>
+<td>Gets the relationship between this player and another.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@RemoveGrid.html">RemoveGrid(long)</a></td>
+<td>Removes a grid from the player's Grids list.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@RequestChangeBalance.html">RequestChangeBalance(long)</a></td>
+<td>Changes the balance of the account of this player by given amount. Sends a message to server with the request.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@SetDefaultColors.html">SetDefaultColors()</a></td>
+<td>Sets build colors back to defaults.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@SpawnAt.html">SpawnAt(MatrixD, Vector3, IMyEntity, bool, string, Color?)</a></td>
+<td>Spawns the player at a specific place. Must be called on server.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@SpawnAt.html">SpawnAt(MatrixD, Vector3, IMyEntity)</a></td>
+<td>Spawns the player at a specific place. Must be called on server.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@SpawnIntoCharacter.html">SpawnIntoCharacter(IMyCharacter)</a></td>
+<td>Spawns the player as a new character (changes the model).</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyPlayer@TryGetBalanceInfo.html">TryGetBalanceInfo(out long)</a></td>
+<td>Gets balance of an account associated with player.</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.Vector4D - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.Vector4D" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:59Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>Vector4D</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public struct Vector4D: IEquatable&lt;Vector4&gt;
+</code></pre>
+<p>Defines a vector with four components.</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Vector4D@One.html">static One</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@UnitW.html">static UnitW</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@UnitX.html">static UnitX</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@UnitY.html">static UnitY</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@UnitZ.html">static UnitZ</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Zero.html">static Zero</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@W.html">W</a></td>
+<td>Gets or sets the w-component of the vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@X.html">X</a></td>
+<td>Gets or sets the x-component of the vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Y.html">Y</a></td>
+<td>Gets or sets the y-component of the vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Z.html">Z</a></td>
+<td>Gets or sets the z-component of the vector.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Vector4D@.ctor.html">Vector4D(double, double, double, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@.ctor.html">Vector4D(Vector2, double, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@.ctor.html">Vector4D(Vector3D, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@.ctor.html">Vector4D(double)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Vector4D@Add.html">static Add(Vector4D, Vector4D)</a></td>
+<td>Adds two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Add.html">static Add(ref Vector4D, ref Vector4D, out Vector4D)</a></td>
+<td>Adds two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Barycentric.html">static Barycentric(Vector4D, Vector4D, Vector4D, double, double)</a></td>
+<td>Returns a Vector4 containing the 4D Cartesian coordinates of a point specified in barycentric (areal) coordinates relative to a 4D triangle.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Barycentric.html">static Barycentric(ref Vector4D, ref Vector4D, ref Vector4D, double, double, out Vector4D)</a></td>
+<td>Returns a Vector4 containing the 4D Cartesian coordinates of a point specified in Barycentric (areal) coordinates relative to a 4D triangle.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@CatmullRom.html">static CatmullRom(Vector4D, Vector4D, Vector4D, Vector4D, double)</a></td>
+<td>Performs a Catmull-Rom interpolation using the specified positions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@CatmullRom.html">static CatmullRom(ref Vector4D, ref Vector4D, ref Vector4D, ref Vector4D, double, out Vector4D)</a></td>
+<td>Performs a Catmull-Rom interpolation using the specified positions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Clamp.html">static Clamp(Vector4D, Vector4D, Vector4D)</a></td>
+<td>Restricts a value to be within a specified range.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Clamp.html">static Clamp(ref Vector4D, ref Vector4D, ref Vector4D, out Vector4D)</a></td>
+<td>Restricts a value to be within a specified range.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Distance.html">static Distance(Vector4, Vector4)</a></td>
+<td>Calculates the distance between two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Distance.html">static Distance(ref Vector4, ref Vector4, out double)</a></td>
+<td>Calculates the distance between two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@DistanceSquared.html">static DistanceSquared(Vector4, Vector4)</a></td>
+<td>Calculates the distance between two vectors squared.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@DistanceSquared.html">static DistanceSquared(ref Vector4, ref Vector4, out double)</a></td>
+<td>Calculates the distance between two vectors squared.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Divide.html">static Divide(Vector4D, Vector4D)</a></td>
+<td>Divides the components of a vector by the components of another vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Divide.html">static Divide(ref Vector4D, ref Vector4D, out Vector4D)</a></td>
+<td>Divides the components of a vector by the components of another vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Divide.html">static Divide(Vector4D, double)</a></td>
+<td>Divides a vector by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Divide.html">static Divide(ref Vector4D, double, out Vector4D)</a></td>
+<td>Divides a vector by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Dot.html">static Dot(Vector4, Vector4)</a></td>
+<td>Calculates the dot product of two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Dot.html">static Dot(ref Vector4, ref Vector4, out double)</a></td>
+<td>Calculates the dot product of two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Hermite.html">static Hermite(Vector4D, Vector4D, Vector4D, Vector4D, double)</a></td>
+<td>Performs a Hermite spline interpolation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Hermite.html">static Hermite(ref Vector4D, ref Vector4D, ref Vector4D, ref Vector4D, double, out Vector4D)</a></td>
+<td>Performs a Hermite spline interpolation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Lerp.html">static Lerp(Vector4D, Vector4D, double)</a></td>
+<td>Performs a linear interpolation between two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Lerp.html">static Lerp(ref Vector4D, ref Vector4D, double, out Vector4D)</a></td>
+<td>Performs a linear interpolation between two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Max.html">static Max(Vector4, Vector4)</a></td>
+<td>Returns a vector that contains the highest value from each matching pair of components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Max.html">static Max(ref Vector4, ref Vector4, out Vector4)</a></td>
+<td>Returns a vector that contains the highest value from each matching pair of components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Min.html">static Min(Vector4, Vector4)</a></td>
+<td>Returns a vector that contains the lowest value from each matching pair of components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Min.html">static Min(ref Vector4, ref Vector4, out Vector4)</a></td>
+<td>Returns a vector that contains the lowest value from each matching pair of components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Multiply.html">static Multiply(Vector4D, Vector4D)</a></td>
+<td>Multiplies the components of two vectors by each other.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Multiply.html">static Multiply(ref Vector4, ref Vector4, out Vector4)</a></td>
+<td>Multiplies the components of two vectors by each other.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Multiply.html">static Multiply(Vector4D, double)</a></td>
+<td>Multiplies a vector by a scalar.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Multiply.html">static Multiply(ref Vector4D, double, out Vector4D)</a></td>
+<td>Multiplies a vector by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Negate.html">static Negate(Vector4D)</a></td>
+<td>Returns a vector pointing in the opposite direction.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Negate.html">static Negate(ref Vector4D, out Vector4D)</a></td>
+<td>Returns a vector pointing in the opposite direction.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Normalize.html">static Normalize(Vector4D)</a></td>
+<td>Creates a unit vector from the specified vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Normalize.html">static Normalize(ref Vector4D, out Vector4D)</a></td>
+<td>Returns a normalized version of the specified vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@PackOrthoMatrix.html">static PackOrthoMatrix(Vector3D, Vector3, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@PackOrthoMatrix.html">static PackOrthoMatrix(ref MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@SmoothStep.html">static SmoothStep(Vector4D, Vector4D, double)</a></td>
+<td>Interpolates between two values using a cubic equation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@SmoothStep.html">static SmoothStep(ref Vector4D, ref Vector4D, double, out Vector4D)</a></td>
+<td>Interpolates between two values using a cubic equation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Subtract.html">static Subtract(Vector4, Vector4)</a></td>
+<td>Subtracts a vector from a vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Subtract.html">static Subtract(ref Vector4D, ref Vector4D, out Vector4D)</a></td>
+<td>Subtracts a vector from a vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(Vector2, MatrixD)</a></td>
+<td>Transforms a Vector2 by the given Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(ref Vector2, ref MatrixD, out Vector4D)</a></td>
+<td>Transforms a Vector2 by the given Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(Vector3D, MatrixD)</a></td>
+<td>Transforms a Vector3 by the given Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(ref Vector3D, ref MatrixD, out Vector4D)</a></td>
+<td>Transforms a Vector3 by the given Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(Vector4D, MatrixD)</a></td>
+<td>Transforms a Vector4 by the specified Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(ref Vector4D, ref MatrixD, out Vector4D)</a></td>
+<td>Transforms a Vector4 by the given Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(Vector2, Quaternion)</a></td>
+<td>Transforms a Vector2 by a specified Quaternion into a Vector4.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(ref Vector2, ref Quaternion, out Vector4D)</a></td>
+<td>Transforms a Vector2 by a specified Quaternion into a Vector4.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(Vector3D, Quaternion)</a></td>
+<td>Transforms a Vector3 by a specified Quaternion into a Vector4.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(ref Vector3D, ref Quaternion, out Vector4D)</a></td>
+<td>Transforms a Vector3 by a specified Quaternion into a Vector4.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(Vector4D, Quaternion)</a></td>
+<td>Transforms a Vector4 by a specified Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(ref Vector4D, ref Quaternion, out Vector4D)</a></td>
+<td>Transforms a Vector4 by a specified Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(Vector4D[], ref MatrixD, Vector4D[])</a></td>
+<td>Transforms an array of Vector4s by a specified Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(Vector4D[], int, ref MatrixD, Vector4D[], int, int)</a></td>
+<td>Transforms a specified range in an array of Vector4s by a specified Matrix into a specified range in a destination array.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(Vector4D[], ref Quaternion, Vector4D[])</a></td>
+<td>Transforms an array of Vector4s by a specified Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Transform.html">static Transform(Vector4D[], int, ref Quaternion, Vector4D[], int, int)</a></td>
+<td>Transforms a specified range in an array of Vector4s by a specified Quaternion into a specified range in a destination array.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@UnpackOrthoMatrix.html">static UnpackOrthoMatrix(ref Vector4D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Equals.html">Equals(Vector4)</a></td>
+<td>Determines whether the specified Object is equal to the Vector4.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Equals.html">Equals(object)</a></td>
+<td>Returns a value that indicates whether the current instance is equal to a specified object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@GetHashCode.html">GetHashCode()</a></td>
+<td>Gets the hash code of this object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Length.html">Length()</a></td>
+<td>Calculates the length of the vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@LengthSquared.html">LengthSquared()</a></td>
+<td>Calculates the length of the vector squared.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@Normalize.html">Normalize()</a></td>
+<td>Turns the current vector into a unit vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector4D@ToString.html">ToString()</a></td>
+<td>Retrieves a string representation of the current object.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1?view=netframework-4.6">IEquatable<Vector4></a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.ModAPI.IMyStorage - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.ModAPI.IMyStorage" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:57Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.ModAPI</div>
+                <h1>IMyStorage</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMyStorage
+</code></pre>
+<p>ModAPI interface giving access to voxel functions</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@Closed.html">Closed</a></td>
+<td>Returns true if voxel storage was closed</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@DeleteSupported.html">DeleteSupported</a></td>
+<td>Returns if deletion is supported</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@MarkedForClose.html">MarkedForClose</a></td>
+<td>Returns true if the voxel storage is marked for a pending close</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@Size.html">Size</a></td>
+<td>The size of the voxel storage, in voxel coordinates</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@DeleteRange.html">DeleteRange(MyStorageDataTypeFlags, Vector3I, Vector3I, bool)</a></td>
+<td>Deletes content in cache and storage</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@ExecuteOperationFast%7BTVoxelOperator%7D.html">ExecuteOperationFast<TVoxelOperator>(ref TVoxelOperator, MyStorageDataTypeFlags, ref Vector3I, ref Vector3I, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@Intersect.html">Intersect(ref BoundingBox, bool)</a></td>
+<td>Returns the intersection with the storage region</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@Intersect.html">Intersect(ref LineD)</a></td>
+<td>Returns true if the specific line intersects the storage region</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@NotifyRangeChanged.html">NotifyRangeChanged(ref Vector3I, ref Vector3I, MyStorageDataTypeFlags)</a></td>
+<td>Notify that range changed</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@PinAndExecute.html">PinAndExecute(Action)</a></td>
+<td>Pins the voxel storage to prevent closing, then executes specified action. Unpins when action completes.</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@PinAndExecute.html">PinAndExecute(Action<IMyStorage>)</a></td>
+<td>Pins the voxel storage to prevent closing, then executes specified action. Unpins when action completes.</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@ReadRange.html">ReadRange(MyStorageData, MyStorageDataTypeFlags, int, Vector3I, Vector3I, ref MyVoxelRequestFlags)</a></td>
+<td>Reads range of content and/or materials from specified LOD. If you want to write data back later, you must read LOD0 as that is the only writable one.</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@ReadRange.html">ReadRange(MyStorageData, MyStorageDataTypeFlags, int, Vector3I, Vector3I)</a></td>
+<td>Reads range of content and/or materials from specified LOD. If you want to write data back later, you must read LOD0 as that is the only writable one.</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@Reset.html">Reset(MyStorageDataTypeFlags)</a></td>
+<td>Resets the data specified by flags to values from data provider, or default if no provider is assigned.</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@Save.html">Save(out Byte[])</a></td>
+<td>Gets compressed voxel data</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@WriteRange.html">WriteRange(MyStorageData, MyStorageDataTypeFlags, Vector3I, Vector3I, bool, bool)</a></td>
+<td>Writes range of content and/or materials from cache to storage. Note that this can only write to LOD0 (higher LODs must be computed based on that).</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyStorage@OverwriteAllMaterials.html">OverwriteAllMaterials(byte)</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />Replaces all materials in range with the specific material</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

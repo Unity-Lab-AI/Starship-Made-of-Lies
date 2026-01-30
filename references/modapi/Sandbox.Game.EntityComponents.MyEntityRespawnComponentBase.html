@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.EntityComponents.MyEntityRespawnComponentBase - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.EntityComponents.MyEntityRespawnComponentBase" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:49Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game.EntityComponents</div>
+                <h1>MyEntityRespawnComponentBase</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public abstract class MyEntityRespawnComponentBase: MyEntityComponentBase, IMyComponentBase, IMyEntityComponentBase, IMyCameraController, IMyControllableEntity, IMyControllableEntity
+</code></pre>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnAfterAddedToContainer.html">static OnAfterAddedToContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@BeforeRemovedFromContainer.html">BeforeRemovedFromContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@BeforeRemovedFromContainer.html">BeforeRemovedFromContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEntityRespawnComponentBase@AuxiliaryContext.html">AuxiliaryContext</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEntityRespawnComponentBase@Entity.html">Entity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEntityRespawnComponentBase@IsAutopilotControlled.html">IsAutopilotControlled</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEntityRespawnComponentBase@LastMotionIndicator.html">LastMotionIndicator</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEntityRespawnComponentBase@LastRotationIndicator.html">LastRotationIndicator</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@AllowCubeBuilding.html">AllowCubeBuilding</a></td>
+<td>Gets if player block building enabled<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@AttachSyncToEntity.html">AttachSyncToEntity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@AuxiliaryContext.html">AuxiliaryContext</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@CanSwitchLandingGears.html">CanSwitchLandingGears</a></td>
+<td>Gets if entity can switch landing gears<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td>Name of the base component type for debug purposes (e.g.: &quot;Position&quot;)<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@Container.html">Container</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@Container.html">Container</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@ContainerBase.html">ContainerBase</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@ContainerBase.html">ContainerBase</a></td>
+<td>This cannot be named Container to not conflict with the definition of Container in MyEntityComponentBase.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@ControlContext.html">ControlContext</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@ControllerInfo.html">ControllerInfo</a></td>
+<td>Gets information about who controls this Entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@ControllerInfo.html">ControllerInfo</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@EnabledBroadcasting.html">EnabledBroadcasting</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@EnabledDamping.html">EnabledDamping</a></td>
+<td>Gets if Damping enabled<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@EnabledHelmet.html">EnabledHelmet</a></td>
+<td>Gets if helmet is opened<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@EnabledLeadingGears.html">EnabledLeadingGears</a></td>
+<td>Gets if at least one leading gear is enabled<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@EnabledLights.html">EnabledLights</a></td>
+<td>Gets if lights are enabled<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@EnabledReactors.html">EnabledReactors</a></td>
+<td>Gets if grid is powered<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@EnabledThrusts.html">EnabledThrusts</a></td>
+<td>Gets if thrusts are enabled<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@EnableFirstPersonView.html">EnableFirstPersonView</a></td>
+<td>Gets or set if player can use first person view<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@Entity.html">Entity</a></td>
+<td>Gets information which entity is being controlled<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@Entity.html">Entity</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@Entity.html">Entity</a></td>
+<td>Gets Entity to which it is attached<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@Entity.html">Entity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@Entity.html">Entity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@FailedOnSceneAdd.html">FailedOnSceneAdd</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@ForceFirstPersonCamera.html">ForceFirstPersonCamera</a></td>
+<td>Gets or sets if camera should be first person<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@ForceFirstPersonCamera.html">ForceFirstPersonCamera</a></td>
+<td>Gets or sets if player can use only first person view<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@HeadLocalXAngle.html">HeadLocalXAngle</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@HeadLocalYAngle.html">HeadLocalYAngle</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@IsAutopilotControlled.html">IsAutopilotControlled</a></td>
+<td>Gets whether the entity is controller by autopilot<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@IsInFirstPersonView.html">IsInFirstPersonView</a></td>
+<td>Gets or sets if the current camera view is first person.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@LastMotionIndicator.html">LastMotionIndicator</a></td>
+<td>Gets last motion indicator. User input W/A/S/D Space/C<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@LastRotationIndicator.html">LastRotationIndicator</a></td>
+<td>Gets last rotation indicator. Z used for RollIndicator<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@PrimaryLookaround.html">PrimaryLookaround</a></td>
+<td>When false, blocks 3rd view look around<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@RelativeDampeningDistance.html">RelativeDampeningDistance</a></td>
+<td>Allows you to set a custom max distance which relative dampening to another entity will remain active.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@RelativeDampeningEntity.html">RelativeDampeningEntity</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@RelativeDampeningTarget.html">RelativeDampeningTarget</a></td>
+<td>Allows you to get or set the relative dampening entity.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@RemoveExistingComponentOnNewInsert.html">RemoveExistingComponentOnNewInsert</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@RemoveExistingComponentOnNewInsert.html">RemoveExistingComponentOnNewInsert</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@Toolbar.html">Toolbar</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@ToolbarType.html">ToolbarType</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEntityRespawnComponentBase@CleanControls.html">CleanControls()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEntityRespawnComponentBase@GetOverridingFocusMatrix.html">GetOverridingFocusMatrix()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@BeginShoot.html">BeginShoot(MyShootActionEnum)</a></td>
+<td>This will be called locally to start shooting with the given action<br /><br /><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@CanSwitchAmmoMagazine.html">CanSwitchAmmoMagazine()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@CanSwitchToWeapon.html">CanSwitchToWeapon(MyDefinitionId?)</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@CleanControls.html">CleanControls()</a></td>
+<td>Implementation should clear previousControlled entities and cameras. They are no longer valid. Called on game load, if player is not online<br /><br /><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@ControlCamera.html">ControlCamera(MyCamera)</a></td>
+<td>Change camera properties now. Communication: from controller to camera.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@Crouch.html">Crouch()</a></td>
+<td>Only <a href="VRage.Game.ModAPI.IMyCharacter.html">IMyCharacter</a> has implementation for this method.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@Die.html">Die()</a></td>
+<td>Makes character dead.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@Down.html">Down()</a></td>
+<td>Move direction : down. Only <a href="VRage.Game.ModAPI.IMyCharacter.html">IMyCharacter</a> has implementation for this method.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@DrawHud.html">DrawHud(IMyCameraController, long)</a></td>
+<td>Updates hud logic, connected to entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@EndShoot.html">EndShoot(MyShootActionEnum)</a></td>
+<td>This will be called locally to start shooting with the given action<br /><br /><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@GetAs%7BT%7D.html">GetAs<T>()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@GetAs%7BT%7D.html">GetAs<T>()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@GetCameraEntitySettings.html">GetCameraEntitySettings()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@GetHeadMatrix.html">GetHeadMatrix(bool, bool, bool, bool)</a></td>
+<td>Gets head of character that controls this<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@GetOverridingFocusMatrix.html">GetOverridingFocusMatrix()</a></td>
+<td>Transformation that should be used for target selection while focusing<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@HandlePickUp.html">HandlePickUp()</a></td>
+<td>Does nothing.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@HandleUse.html">HandleUse()</a></td>
+<td>Used to send &quot;use&quot; commands to camera controller<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Init.html">Init(MyComponentDefinitionBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Init.html">Init(MyComponentDefinitionBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@IsSerialized.html">IsSerialized()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@IsSerialized.html">IsSerialized()</a></td>
+<td>Tells the component container serializer whether this component should be saved<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@Jump.html">Jump(Vector3)</a></td>
+<td>Character jump. Only <a href="VRage.Game.ModAPI.IMyCharacter.html">IMyCharacter</a> has implementation for this method.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@MoveAndRotate.html">MoveAndRotate(Vector3, Vector2, float)</a></td>
+<td>Defines user input. Call <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@MoveAndRotateStopped.html">MoveAndRotateStopped()</a> on user input finished<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@MoveAndRotateStopped.html">MoveAndRotateStopped()</a></td>
+<td>Should be called when input is finished<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td>Gets called after the container of this component changes<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnAddedToScene.html">OnAddedToScene()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnAddedToScene.html">OnAddedToScene()</a></td>
+<td>CH: TOOD: Be careful! This does not get called if the component is added to a container that is in the scene already!<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@OnAssumeControl.html">OnAssumeControl(IMyCameraController)</a></td>
+<td>Called when it is setted as new main camera controller<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td>Gets called before the removal of this component from a container<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@OnBeginShoot.html">OnBeginShoot(MyShootActionEnum)</a></td>
+<td>This will be called back from the sync object both on local and remote clients<br /><br /><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@OnEndShoot.html">OnEndShoot(MyShootActionEnum)</a></td>
+<td>This will be called back from the sync object both on local and remote clients<br /><br /><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@OnReleaseControl.html">OnReleaseControl(IMyCameraController)</a></td>
+<td>Called when new camera controller setted, and this was main camera controller<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnRemovedFromScene.html">OnRemovedFromScene()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnRemovedFromScene.html">OnRemovedFromScene()</a></td>
+<td>CH: TOOD: Be careful! This does not get called if the component is removed from a container that is still in the scene!<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@PickUp.html">PickUp()</a></td>
+<td>Forwarding this action to <a href="VRage.Game.Entity.UseObject.IMyUseObject@Use.html">Use(UseActionEnum, IMyEntity)</a> with argument <a href="VRage.Game.Entity.UseObject.UseActionEnum@PickUp.html">PickUp</a><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@PickUpContinues.html">PickUpContinues()</a></td>
+<td>Forwarding this action to <a href="VRage.Game.Entity.UseObject.IMyUseObject@Use.html">Use(UseActionEnum, IMyEntity)</a> with argument <a href="VRage.Game.Entity.UseObject.UseActionEnum@PickUp.html">PickUp</a><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@PickUpFinished.html">PickUpFinished()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@Rotate.html">Rotate(Vector2, float)</a></td>
+<td>Rotate camera controller.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController@RotateStopped.html">RotateStopped()</a></td>
+<td>Rotation of camera controller stopped.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Serialize.html">Serialize(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Serialize.html">Serialize(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@SetContainer.html">SetContainer(IMyComponentContainer)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@SetContainer.html">SetContainer(IMyComponentContainer)</a></td>
+<td>Sets the container of this component. Note that the component is not added to the container here! Therefore, use MyComponentContainer.Add(...) method and it will in turn call this method. Actually, you should seldom have the need to call this method yourself.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@ShouldEndShootingOnPause.html">ShouldEndShootingOnPause(MyShootActionEnum)</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@ShowInventory.html">ShowInventory()</a></td>
+<td>Shows inventory gui of controlled Entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@ShowRemoteAccessMenu.html">ShowRemoteAccessMenu()</a></td>
+<td>Shows remote access menu<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@ShowTerminal.html">ShowTerminal()</a></td>
+<td>Shows terminal gui<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@Sprint.html">Sprint(bool)</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@SwitchAmmoMagazine.html">SwitchAmmoMagazine()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@SwitchBroadcasting.html">SwitchBroadcasting()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@SwitchDamping.html">SwitchDamping()</a></td>
+<td>Switches damping state<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@SwitchHandbrake.html">SwitchHandbrake()</a></td>
+<td>Switches handbrake state<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@SwitchHelmet.html">SwitchHelmet()</a></td>
+<td>Switches helmet open/closed state<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@SwitchLandingGears.html">SwitchLandingGears()</a></td>
+<td>Switches landing gears state<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@SwitchLights.html">SwitchLights()</a></td>
+<td>Switches lights state<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@SwitchReactors.html">SwitchReactors()</a></td>
+<td>Switches reactors state<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@SwitchReactorsLocal.html">SwitchReactorsLocal()</a></td>
+<td>Switches handbrake state<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@SwitchThrusts.html">SwitchThrusts()</a></td>
+<td>Turns on jetpack on character<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@SwitchToWeapon.html">SwitchToWeapon(MyDefinitionId)</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@SwitchToWeapon.html">SwitchToWeapon(MyToolbarItemWeapon)</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@SwitchWalk.html">SwitchWalk()</a></td>
+<td>Switch between walk / run mode. Only <a href="VRage.Game.ModAPI.IMyCharacter.html">IMyCharacter</a> has implementation for this method.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@Up.html">Up()</a></td>
+<td>Move direction : up. Only <a href="VRage.Game.ModAPI.IMyCharacter.html">IMyCharacter</a> has implementation for this method.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@Use.html">Use()</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity@UseContinues.html">UseContinues()</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyControllableEntity@UseFinished.html">UseFinished()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritance:</strong>   <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a> ˃ <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></p>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.ModAPI.Interfaces.IMyCameraController.html">IMyCameraController</a></li>
+<li><a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></li>
+<li><a href="Sandbox.Game.Entities.IMyControllableEntity.html">IMyControllableEntity</a></li>
+<li><a href="VRage.Game.ModAPI.Interfaces.IMyControllableEntity.html">IMyControllableEntity</a></li>
+<li><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

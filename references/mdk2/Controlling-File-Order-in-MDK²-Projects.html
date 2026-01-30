@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controlling File Order in MDK² Projects - MDK2 Documentation - MDK2 Documentation</title>
+    <link rel="stylesheet" href="docs-styles.css?v=0547896f3fc5">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn header-btn-api" title="Programmable Block API">
+                <span class="api-label"><strong>PB</strong><br><small>api</small></span>
+            </a>
+            <a href="../modapi/index.html" class="header-btn header-btn-api header-btn-compact" title="Mod API">
+                <span class="api-label"><strong>MOD</strong><br><small>api</small></span>
+            </a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">MDK2 Documentation</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+<a href="index.html">Home</a>
+<h3>Getting Started</h3>
+<ul>
+    <li><a href="Getting-Started-using-Jetbrains-Rider.html">Getting Started using Jetbrains Rider</a></li>
+    <li><a href="Getting-Started-using-Visual-Studio.html">Getting Started using Visual Studio</a></li>
+    <li><a href="Getting-Started-using-VSCode.html">Getting Started using VSCode</a></li>
+</ul>
+<h3>Configuration</h3>
+<ul>
+    <li><a href="Controlling-File-Order-in-MDK²-Projects.html">Controlling File Order in MDK² Projects</a></li>
+    <li><a href="MDK²-Project-Configuration-Guide.html">MDK² Project Configuration Guide</a></li>
+    <li><a href="Mixin-Projects.html">Mixin Projects</a></li>
+    <li><a href="Programmable-Block-Scripts.html">Programmable Block Scripts</a></li>
+    <li><a href="Using-the-Minifier-and-Preserve-Regions-in-MDK².html">Using the Minifier and Preserve Regions in MDK²</a></li>
+</ul>
+<h3>Updates</h3>
+<ul>
+    <li><a href="Updating-the-MDK2-Nuget-packages-using-Jetbrains-Rider.html">Updating the MDK2 Nuget packages using Jetbrains Rider</a></li>
+    <li><a href="Updating-the-MDK2-Nuget-packages-using-Visual-Studio.html">Updating the MDK2 Nuget packages using Visual Studio</a></li>
+    <li><a href="Updating-the-MDK2-Nuget-packages-using-VSCode-or-command-line.html">Updating the MDK2 Nuget packages using VSCode or command line</a></li>
+    <li><a href="Updating-the-MDK2-templates.html">Updating the MDK2 templates</a></li>
+</ul>
+<h3>Platform Support</h3>
+<ul>
+    <li><a href="Running-MDK-on-Linux-(functional,-but-unsupported).html">Running MDK on Linux (functional, but unsupported)</a></li>
+</ul>
+
+        </nav>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <main class="content">
+        <article class="docs-content">
+<p>You can influence the order in which your <code>.cs</code> files are combined when building your MDK² project by specifying a sort order at the top of your files. For example:</p>
+<pre><code class="language-csharp">// &lt;mdk sortorder=&quot;1000&quot; /&gt;
+</code></pre>
+<p>This directive assigns a sorting weight to the file, determining its position during the combination process. Lower values are processed first.</p>
+<h2 id="important-limitation">Important Limitation</h2>
+<p>In Space Engineers, the <code>Program</code> class and its contents <strong>must appear first</strong> in the final combined script. This means:</p>
+<ul>
+<li>Any file containing types or code <strong>outside</strong> the <code>Program</code> class cannot be placed <strong>before</strong> files containing the <code>Program</code> class or its nested types, regardless of the sort order you assign.</li>
+</ul>
+<hr />
+<p>This mechanism gives you a degree of control over file order while respecting the constraints imposed by Space Engineers' scripting requirements.</p>
+
+        </article>
+    </main>
+    <script src="docs.js?v=0547896f3fc5"></script>
+</body>
+</html>

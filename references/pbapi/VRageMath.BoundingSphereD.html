@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.BoundingSphereD - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.BoundingSphereD" data-cache-buster="54480b3351e0" data-api-type="pb">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:37Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>BoundingSphereD</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public struct BoundingSphereD: IEquatable&lt;BoundingSphereD&gt;
+</code></pre>
+<p>Defines a sphere.</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Center.html">Center</a></td>
+<td>The center point of the sphere.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Radius.html">Radius</a></td>
+<td>The radius of the sphere.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@.ctor.html">BoundingSphereD(Vector3D, double)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@CreateFromBoundingBox.html">static CreateFromBoundingBox(BoundingBoxD)</a></td>
+<td>Creates the smallest BoundingSphereD that can contain a specified BoundingBoxD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@CreateFromBoundingBox.html">static CreateFromBoundingBox(ref BoundingBoxD, out BoundingSphereD)</a></td>
+<td>Creates the smallest BoundingSphereD that can contain a specified BoundingBoxD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@CreateFromFrustum.html">static CreateFromFrustum(BoundingFrustumD)</a></td>
+<td>Creates the smallest BoundingSphereD that can contain a specified BoundingFrustum.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@CreateFromPoints.html">static CreateFromPoints(Vector3D[])</a></td>
+<td>Creates a BoundingSphereD that can contain a specified list of points.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@CreateInvalid.html">static CreateInvalid()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@CreateMerged.html">static CreateMerged(BoundingSphereD, BoundingSphereD)</a></td>
+<td>Creates a BoundingSphereD that contains the two specified BoundingSphereD instances.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@CreateMerged.html">static CreateMerged(ref BoundingSphereD, ref BoundingSphereD, out BoundingSphereD)</a></td>
+<td>Creates a BoundingSphereD that contains the two specified BoundingSphereD instances.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Include.html">static Include(ref BoundingSphereD, ref BoundingSphereD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Contains.html">Contains(BoundingBoxD)</a></td>
+<td>Checks whether the current BoundingSphereD contains the specified BoundingBoxD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Contains.html">Contains(ref BoundingBoxD, out ContainmentType)</a></td>
+<td>Checks whether the current BoundingSphereD contains the specified BoundingBoxD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Contains.html">Contains(MyOrientedBoundingBoxD)</a></td>
+<td>Checks whether the current BoundingSphereD contains the specified MyOrientedBoundingBoxD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Contains.html">Contains(ref MyOrientedBoundingBoxD, out ContainmentType)</a></td>
+<td>Checks whether the current BoundingSphereD contains the specified MyOrientedBoundingBoxD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Contains.html">Contains(BoundingFrustumD)</a></td>
+<td>Checks whether the current BoundingSphereD contains the specified BoundingFrustum.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Contains.html">Contains(Vector3D)</a></td>
+<td>Checks whether the current BoundingSphereD contains the specified point.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Contains.html">Contains(ref Vector3D, out ContainmentType)</a></td>
+<td>Checks whether the current BoundingSphereD contains the specified point.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Contains.html">Contains(BoundingSphereD)</a></td>
+<td>Checks whether the current BoundingSphereD contains the specified BoundingSphereD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Contains.html">Contains(ref BoundingSphereD, out ContainmentType)</a></td>
+<td>Checks whether the current BoundingSphereD contains the specified BoundingSphereD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Equals.html">Equals(BoundingSphereD)</a></td>
+<td>Determines whether the specified BoundingSphereD is equal to the current BoundingSphereD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Equals.html">Equals(object)</a></td>
+<td>Determines whether the specified Object is equal to the BoundingSphereD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@GetBoundingBox.html">GetBoundingBox()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@GetHashCode.html">GetHashCode()</a></td>
+<td>Gets the hash code for this instance.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Include.html">Include(BoundingSphereD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@IntersectRaySphere.html">IntersectRaySphere(RayD, out double, out double)</a></td>
+<td>NOTE: This function doesn't calculate the normal because it's easily derived for a sphere (p - center).</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Intersects.html">Intersects(BoundingBoxD)</a></td>
+<td>Checks whether the current BoundingSphereD intersects with a specified BoundingBoxD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Intersects.html">Intersects(ref BoundingBoxD, out bool)</a></td>
+<td>Checks whether the current BoundingSphereD intersects a BoundingBoxD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Intersects.html">Intersects(RayD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Intersects.html">Intersects(BoundingFrustumD)</a></td>
+<td>Checks whether the current BoundingSphereD intersects with a specified BoundingFrustum.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Intersects.html">Intersects(BoundingSphereD)</a></td>
+<td>Checks whether the current BoundingSphereD intersects with a specified BoundingSphereD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Intersects.html">Intersects(ref BoundingSphereD, out bool)</a></td>
+<td>Checks whether the current BoundingSphereD intersects another BoundingSphereD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@RandomToUniformPointInSphere.html">RandomToUniformPointInSphere(double, double, double)</a></td>
+<td>If ranX, ranY, ranZ are uniformly distributed across ranges &lt;0,1&gt;, Resulting point will be uniformly distributed inside sphere</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@RandomToUniformPointInSphereWithInnerCutout.html">RandomToUniformPointInSphereWithInnerCutout(double, double, double, double)</a></td>
+<td>Similar to RandomToUniformPointInSphere(...) but excludes points within distance of cutoutRadius from center. (Results are randomly distributed in the shape that remains from sphere that had another sphere cut out from center. )</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@RandomToUniformPointOnSphere.html">RandomToUniformPointOnSphere(double, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@ToString.html">ToString()</a></td>
+<td>Returns a String that represents the current BoundingSphereD.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Transform.html">Transform(MatrixD)</a></td>
+<td>Translates and scales the BoundingSphereD using a given Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingSphereD@Transform.html">Transform(ref MatrixD, out BoundingSphereD)</a></td>
+<td>Translates and scales the BoundingSphereD using a given Matrix.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1?view=netframework-4.6">IEquatable<BoundingSphereD></a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

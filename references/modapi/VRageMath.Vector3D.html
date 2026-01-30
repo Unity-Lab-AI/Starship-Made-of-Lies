@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.Vector3D - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.Vector3D" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:59Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>Vector3D</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public struct Vector3D: IEquatable&lt;Vector3D&gt;
+</code></pre>
+<p>Defines a vector with three components. Vector3 with double floating point precision</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Vector3D@Backward.html">static Backward</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Down.html">static Down</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Forward.html">static Forward</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Half.html">static Half</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Left.html">static Left</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@MaxValue.html">static MaxValue</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@MinValue.html">static MinValue</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@NegativeInfinity.html">static NegativeInfinity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@One.html">static One</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@PositiveInfinity.html">static PositiveInfinity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Right.html">static Right</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@UnitX.html">static UnitX</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@UnitY.html">static UnitY</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@UnitZ.html">static UnitZ</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Up.html">static Up</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Zero.html">static Zero</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@X.html">X</a></td>
+<td>Gets or sets the x-component of the vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Y.html">Y</a></td>
+<td>Gets or sets the y-component of the vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Z.html">Z</a></td>
+<td>Gets or sets the z-component of the vector.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Vector3D@Sum.html">Sum</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Volume.html">Volume</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Vector3D@.ctor.html">Vector3D(double, double, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@.ctor.html">Vector3D(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@.ctor.html">Vector3D(Vector2, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@.ctor.html">Vector3D(Vector2D, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@.ctor.html">Vector3D(Vector4)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@.ctor.html">Vector3D(Vector4D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@.ctor.html">Vector3D(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@.ctor.html">Vector3D(ref Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@.ctor.html">Vector3D(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@.ctor.html">Vector3D(Vector3D)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Vector3D@Abs.html">static Abs(ref Vector3D, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Abs.html">static Abs(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Add.html">static Add(Vector3D, Vector3D)</a></td>
+<td>Adds two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Add.html">static Add(ref Vector3D, ref Vector3D, out Vector3D)</a></td>
+<td>Adds two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Angle.html">static Angle(Vector3D, Vector3D)</a></td>
+<td>Gets angle between 2 vectors in radians</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@ArePerpendicular.html">static ArePerpendicular(ref Vector3D, ref Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Barycentric.html">static Barycentric(Vector3D, Vector3D, Vector3D, double, double)</a></td>
+<td>Returns a Vector3 containing the 3D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 3D triangle.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Barycentric.html">static Barycentric(ref Vector3D, ref Vector3D, ref Vector3D, double, double, out Vector3D)</a></td>
+<td>Returns a Vector3 containing the 3D Cartesian coordinates of a point specified in barycentric (areal) coordinates relative to a 3D triangle.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Barycentric.html">static Barycentric(Vector3D, Vector3D, Vector3D, Vector3D, out double, out double, out double)</a></td>
+<td>Compute barycentric coordinates (u, v, w) for point p with respect to triangle (a, b, c) From : Real-Time Collision Detection, Christer Ericson, CRC Press 3.4 Barycentric Coordinates</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@CalculatePerpendicularVector.html">static CalculatePerpendicularVector(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@CatmullRom.html">static CatmullRom(Vector3D, Vector3D, Vector3D, Vector3D, double)</a></td>
+<td>Performs a Catmull-Rom interpolation using the specified positions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@CatmullRom.html">static CatmullRom(ref Vector3D, ref Vector3D, ref Vector3D, ref Vector3D, double, out Vector3D)</a></td>
+<td>Performs a Catmull-Rom interpolation using the specified positions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Clamp.html">static Clamp(Vector3D, Vector3D, Vector3D)</a></td>
+<td>Restricts a value to be within a specified range.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Clamp.html">static Clamp(ref Vector3D, ref Vector3D, ref Vector3D, out Vector3D)</a></td>
+<td>Restricts a value to be within a specified range.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@ClampToSphere.html">static ClampToSphere(Vector3D, double, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@ClampToSphere.html">static ClampToSphere(ref Vector3D, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@CreateFromAzimuthAndElevation.html">static CreateFromAzimuthAndElevation(double, double, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Cross.html">static Cross(Vector3D, Vector3D)</a></td>
+<td>Calculates the cross product of two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Cross.html">static Cross(ref Vector3D, ref Vector3D, out Vector3D)</a></td>
+<td>Calculates the cross product of two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Distance.html">static Distance(Vector3D, Vector3D)</a></td>
+<td>Calculates the distance between two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Distance.html">static Distance(Vector3D, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Distance.html">static Distance(Vector3, Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Distance.html">static Distance(ref Vector3D, ref Vector3D, out double)</a></td>
+<td>Calculates the distance between two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@DistanceSquared.html">static DistanceSquared(Vector3D, Vector3D)</a></td>
+<td>Calculates the distance between two vectors squared.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@DistanceSquared.html">static DistanceSquared(ref Vector3D, ref Vector3D, out double)</a></td>
+<td>Calculates the distance between two vectors squared.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Divide.html">static Divide(Vector3D, Vector3D)</a></td>
+<td>Divides the components of a vector by the components of another vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Divide.html">static Divide(ref Vector3D, ref Vector3D, out Vector3D)</a></td>
+<td>Divides the components of a vector by the components of another vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Divide.html">static Divide(Vector3D, double)</a></td>
+<td>Divides a vector by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Divide.html">static Divide(ref Vector3D, double, out Vector3D)</a></td>
+<td>Divides a vector by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@DominantAxisProjection.html">static DominantAxisProjection(Vector3D)</a></td>
+<td>Returns a vector that is equal to the projection of the input vector to the coordinate axis that corresponds to the original vector's largest value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@DominantAxisProjection.html">static DominantAxisProjection(ref Vector3D, out Vector3D)</a></td>
+<td>Calculates a vector that is equal to the projection of the input vector to the coordinate axis that corresponds to the original vector's largest value. The result is saved into a user-specified variable.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Dot.html">static Dot(Vector3D, Vector3D)</a></td>
+<td>Calculates the dot product of two vectors. If the two vectors are unit vectors, the dot product returns a doubleing point value between -1 and 1 that can be used to determine some properties of the angle between two vectors. For example, it can show whether the vectors are orthogonal, parallel, or have an acute or obtuse angle between them.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Dot.html">static Dot(Vector3D, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Dot.html">static Dot(ref Vector3D, ref Vector3D, out double)</a></td>
+<td>Calculates the dot product of two vectors and writes the result to a user-specified variable. If the two vectors are unit vectors, the dot product returns a doubleing point value between -1 and 1 that can be used to determine some properties of the angle between two vectors. For example, it can show whether the vectors are orthogonal, parallel, or have an acute or obtuse angle between them.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Dot.html">static Dot(ref Vector3D, ref Vector3, out double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Dot.html">static Dot(ref Vector3, ref Vector3D, out double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Floor.html">static Floor(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Fract.html">static Fract(ref Vector3D, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@GetAzimuthAndElevation.html">static GetAzimuthAndElevation(Vector3D, out double, out double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Hermite.html">static Hermite(Vector3D, Vector3D, Vector3D, Vector3D, double)</a></td>
+<td>Performs a Hermite spline interpolation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Hermite.html">static Hermite(ref Vector3D, ref Vector3D, ref Vector3D, ref Vector3D, double, out Vector3D)</a></td>
+<td>Performs a Hermite spline interpolation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@IsUnit.html">static IsUnit(ref Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@IsZero.html">static IsZero(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@IsZero.html">static IsZero(Vector3D, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@IsZeroVector.html">static IsZeroVector(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@IsZeroVector.html">static IsZeroVector(Vector3D, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Lerp.html">static Lerp(Vector3D, Vector3D, double)</a></td>
+<td>Performs a linear interpolation between two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Lerp.html">static Lerp(ref Vector3D, ref Vector3D, double, out Vector3D)</a></td>
+<td>Performs a linear interpolation between two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Max.html">static Max(Vector3D, Vector3D)</a></td>
+<td>Returns a vector that contains the highest value from each matching pair of components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Max.html">static Max(ref Vector3D, ref Vector3D, out Vector3D)</a></td>
+<td>Returns a vector that contains the highest value from each matching pair of components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Min.html">static Min(Vector3D, Vector3D)</a></td>
+<td>Returns a vector that contains the lowest value from each matching pair of components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Min.html">static Min(ref Vector3D, ref Vector3D, out Vector3D)</a></td>
+<td>Returns a vector that contains the lowest value from each matching pair of components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@MinMax.html">static MinMax(ref Vector3D, ref Vector3D)</a></td>
+<td>Separates minimal and maximal values of any two input vectors</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Multiply.html">static Multiply(Vector3D, Vector3D)</a></td>
+<td>Multiplies the components of two vectors by each other.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Multiply.html">static Multiply(ref Vector3D, ref Vector3D, out Vector3D)</a></td>
+<td>Multiplies the components of two vectors by each other.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Multiply.html">static Multiply(Vector3D, double)</a></td>
+<td>Multiplies a vector by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Multiply.html">static Multiply(ref Vector3D, double, out Vector3D)</a></td>
+<td>Multiplies a vector by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Negate.html">static Negate(Vector3D)</a></td>
+<td>Returns a vector pointing in the opposite direction.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Negate.html">static Negate(ref Vector3D, out Vector3D)</a></td>
+<td>Returns a vector pointing in the opposite direction.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Normalize.html">static Normalize(Vector3D)</a></td>
+<td>Creates a unit vector from the specified vector. The result is a vector one unit in length pointing in the same direction as the original vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Normalize.html">static Normalize(ref Vector3D, out Vector3D)</a></td>
+<td>Creates a unit vector from the specified vector, writing the result to a user-specified variable. The result is a vector one unit in length pointing in the same direction as the original vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@ProjectOnPlane.html">static ProjectOnPlane(ref Vector3D, ref Vector3D)</a></td>
+<td>Projects given vector on plane specified by it's normal.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@ProjectOnVector.html">static ProjectOnVector(ref Vector3D, ref Vector3D)</a></td>
+<td>Projects vector on another vector resulting in new vector in guided vector's direction with different length.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@RectangularDistance.html">static RectangularDistance(Vector3D, Vector3D)</a></td>
+<td>Calculates rectangular distance (a.k.a. Manhattan distance or Chessboard distace) between two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@RectangularDistance.html">static RectangularDistance(ref Vector3D, ref Vector3D)</a></td>
+<td>Calculates rectangular distance (a.k.a. Manhattan distance or Chessboard distace) between two vectors.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Reflect.html">static Reflect(Vector3D, Vector3D)</a></td>
+<td>Returns the reflection of a vector off a surface that has the specified normal. Reference page contains code sample.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Reflect.html">static Reflect(ref Vector3D, ref Vector3D, out Vector3D)</a></td>
+<td>Returns the reflection of a vector off a surface that has the specified normal. Reference page contains code sample.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Reject.html">static Reject(Vector3D, Vector3D)</a></td>
+<td>Returns the rejection of vector from direction, i.e. projection of vector onto the plane defined by origin and direction</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Reject.html">static Reject(ref Vector3D, ref Vector3D, out Vector3D)</a></td>
+<td>Returns the rejection of vector from direction, i.e. projection of vector onto the plane defined by origin and direction</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Rotate.html">static Rotate(ref Vector3D, ref MatrixD, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Rotate.html">static Rotate(Vector3D, MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@RotateAndScale.html">static RotateAndScale(ref Vector3D, ref MatrixD, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Round.html">static Round(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Round.html">static Round(Vector3D, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Sign.html">static Sign(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@SignNonZero.html">static SignNonZero(Vector3D)</a></td>
+<td>Returns per component sign, never returns zero. For zero component returns sign 1. Faster than Sign.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@SmoothStep.html">static SmoothStep(Vector3D, Vector3D, double)</a></td>
+<td>Interpolates between two values using a cubic equation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@SmoothStep.html">static SmoothStep(ref Vector3D, ref Vector3D, double, out Vector3D)</a></td>
+<td>Interpolates between two values using a cubic equation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Step.html">static Step(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Subtract.html">static Subtract(Vector3D, Vector3D)</a></td>
+<td>Subtracts a vector from a vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Subtract.html">static Subtract(ref Vector3D, ref Vector3D, out Vector3D)</a></td>
+<td>Subtracts a vector from a vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@SwapYZCoordinates.html">static SwapYZCoordinates(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3D, Quaternion)</a></td>
+<td>Transforms a Vector3 by a specified Quaternion rotation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3D, QuaternionD)</a></td>
+<td>Transforms a Vector3 by a specified Quaternion rotation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(ref Vector3D, ref Quaternion, out Vector3D)</a></td>
+<td>Transforms a Vector3 by a specified Quaternion rotation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3D[], ref MatrixD, Vector3D[])</a></td>
+<td>Transforms a source array of Vector3s by a specified Matrix and writes the results to an existing destination array.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3D[], ref MatrixD, *Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3D[], int, ref Matrix, Vector3D[], int, int)</a></td>
+<td>Applies a specified transform Matrix to a specified range of an array of Vector3s and writes the results into a specified range of a destination array.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3D[], ref Quaternion, Vector3D[])</a></td>
+<td>Transforms a source array of Vector3s by a specified Quaternion rotation and writes the results to an existing destination array.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3D[], int, ref Quaternion, Vector3D[], int, int)</a></td>
+<td>Applies a specified Quaternion rotation to a specified range of an array of Vector3s and writes the results into a specified range of a destination array.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3D, MatrixD)</a></td>
+<td>Transforms a 3D vector by the given matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3, MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3D, Matrix)</a></td>
+<td>Transforms a 3D vector by the given matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(Vector3D, ref MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(ref Vector3D, ref MatrixD, out Vector3D)</a></td>
+<td>Transforms a Vector3 by the given Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(ref Vector3, ref MatrixD, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Transform.html">static Transform(ref Vector3D, ref MatrixI, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNoProjection.html">static TransformNoProjection(ref Vector3D, ref MatrixD, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(Vector3D, MatrixD)</a></td>
+<td>Transforms a 3D vector normal by a matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(ref Vector3D, ref MatrixD, out Vector3D)</a></td>
+<td>Transforms a vector normal by a matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(ref Vector3, ref MatrixD, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(ref Vector3D, ref MatrixI, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(Vector3D, MyBlockOrientation)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(ref Vector3D, MyBlockOrientation, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(Vector3D, ref MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(Vector3D[], ref Matrix, Vector3D[])</a></td>
+<td>Transforms an array of 3D vector normals by a specified Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(Vector3D[], ref Matrix, *Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(Vector3D[], int, ref Matrix, Vector3D[], int, int)</a></td>
+<td>Transforms a specified range in an array of 3D vector normals by a specified Matrix and writes the results to a specified range in a destination array.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(Vector3D, Matrix)</a></td>
+<td>Transforms a 3D vector normal by a matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TransformNormal.html">static TransformNormal(Vector3, MatrixD)</a></td>
+<td>Transforms a 3D vector normal by a matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@TryParse.html">static TryParse(string, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@AbsMax.html">AbsMax()</a></td>
+<td>Returns the component of the vector, whose absolute value is largest of all the three components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@AbsMaxComponent.html">AbsMaxComponent()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@AbsMin.html">AbsMin()</a></td>
+<td>Returns the component of the vector, whose absolute value is smallest of all the three components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@AssertIsValid.html">AssertIsValid()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@CalculatePerpendicularVector.html">CalculatePerpendicularVector(out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Cross.html">Cross(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Dot.html">Dot(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Dot.html">Dot(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Dot.html">Dot(ref Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Equals.html">Equals(Vector3D)</a></td>
+<td>Determines whether the specified Object is equal to the Vector3.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Equals.html">Equals(Vector3D, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Equals.html">Equals(object)</a></td>
+<td>Returns a value that indicates whether the current instance is equal to a specified object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@GetDim.html">GetDim(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@GetHash.html">GetHash()</a></td>
+<td>Gets the hash code of the vector object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@GetHashCode.html">GetHashCode()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Interpolate3.html">Interpolate3(Vector3D, Vector3D, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@IsInsideInclusive.html">IsInsideInclusive(ref Vector3D, ref Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@IsValid.html">IsValid()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@IsZero.html">IsZero()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Length.html">Length()</a></td>
+<td>Calculates the length of the vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@LengthSquared.html">LengthSquared()</a></td>
+<td>Calculates the length of the vector squared.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Max.html">Max()</a></td>
+<td>Returns the component of the vector that is largest of all the three components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Min.html">Min()</a></td>
+<td>Returns the component of the vector that is smallest of all the three components.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Normalize.html">Normalize()</a></td>
+<td>Turns the current vector into a unit vector. The result is a vector one unit in length pointing in the same direction as the original vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Normalized.html">Normalized()</a></td>
+<td>Creates a unit vector from the specified vector. The result is a vector one unit in length pointing in the same direction as the original vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@Rotate.html">Rotate(Vector3D, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@SetDim.html">SetDim(int, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@ToString.html">ToString()</a></td>
+<td>Retrieves a string representation of the current object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@ToString.html">ToString(string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Vector3D@VolumeInt.html">VolumeInt(double)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1?view=netframework-4.6">IEquatable<Vector3D></a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

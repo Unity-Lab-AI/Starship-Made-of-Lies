@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.Entities.MyGridGroupsHelper - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.Entities.MyGridGroupsHelper" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:49Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game.Entities</div>
+                <h1>MyGridGroupsHelper</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyGridGroupsHelper: IMyGridGroups
+</code></pre>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGridGroupsHelper@OnGridGroupCreated.html">OnGridGroupCreated</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGridGroupsHelper@OnGridGroupDestroyed.html">OnGridGroupDestroyed</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGridGroups@OnGridGroupCreated.html">OnGridGroupCreated</a></td>
+<td>Called when new grid-group was created. Example 1: 1 large grid-group splitted into 2 parts. Example 2: new grid created<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGridGroups.html">IMyGridGroups</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGridGroups@OnGridGroupDestroyed.html">OnGridGroupDestroyed</a></td>
+<td>Called when grid-group was destroyed. Example 1: 2 small grids-groups joined into larger one. Example 2: grid, not connected to any other grid, was destroyed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGridGroups.html">IMyGridGroups</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGridGroupsHelper@.ctor.html">MyGridGroupsHelper()</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGridGroupsHelper@AddGridGroupLogic%7BT%7D.html">AddGridGroupLogic<T>(GridLinkTypeEnum, Func&lt;IMyGridGroupData, T&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGridGroupsHelper@FindConnection.html">FindConnection(GridLinkTypeEnum, IMyCubeGrid, Func&lt;IMyCubeGrid, IMyCubeGrid, long, bool&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGridGroupsHelper@GetGridGroup.html">GetGridGroup(GridLinkTypeEnum, IMyCubeGrid)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGridGroupsHelper@GetGridGroups%7BT%7D.html">GetGridGroups<T>(GridLinkTypeEnum, T)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGridGroups@AddGridGroupLogic%7BT%7D.html">AddGridGroupLogic<T>(GridLinkTypeEnum, Func&lt;IMyGridGroupData, T&gt;)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyGridGroups.html">IMyGridGroups</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGridGroups@FindConnection.html">FindConnection(GridLinkTypeEnum, IMyCubeGrid, Func&lt;IMyCubeGrid, IMyCubeGrid, long, bool&gt;)</a></td>
+<td>Dijkstra search over grid-to-grid connections until searcher is return true NOTE: pretty expensive function on large grid-groups, don't call it often.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGridGroups.html">IMyGridGroups</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGridGroups@GetGridGroup.html">GetGridGroup(GridLinkTypeEnum, IMyCubeGrid)</a></td>
+<td>Gets grid-group for provided grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGridGroups.html">IMyGridGroups</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGridGroups@GetGridGroups%7BT%7D.html">GetGridGroups<T>(GridLinkTypeEnum, T)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyGridGroups.html">IMyGridGroups</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGridGroups@GetGroup.html">GetGroup(IMyCubeGrid, GridLinkTypeEnum, ICollection<IMyCubeGrid>)</a></td>
+<td>Returns all grids connected to the given grid by the specified link type. Array always contains node.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGridGroups.html">IMyGridGroups</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGridGroups@HasConnection.html">HasConnection(IMyCubeGrid, IMyCubeGrid, GridLinkTypeEnum)</a></td>
+<td>Checks if two grids are connected by the given link type.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGridGroups.html">IMyGridGroups</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGridGroupsHelper@GetGroup.html">GetGroup(IMyCubeGrid, GridLinkTypeEnum)</a></td>
+<td><em><strong>Obsolete:</strong> Use GetGroup with passing your own collection, it is better for simulation speed</em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGridGroupsHelper@GetGroup.html">GetGroup(IMyCubeGrid, GridLinkTypeEnum, ICollection<IMyCubeGrid>)</a></td>
+<td><em><strong>Obsolete:</strong> Use MyCubeGrid.GetConnectedGrids instead</em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGridGroupsHelper@HasConnection.html">HasConnection(IMyCubeGrid, IMyCubeGrid, GridLinkTypeEnum)</a></td>
+<td><em><strong>Obsolete:</strong> Use MyCubeGrid.IsConnectedTo instead</em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGridGroups@GetGroup.html">GetGroup(IMyCubeGrid, GridLinkTypeEnum)</a></td>
+<td><em><strong>Obsolete:</strong> Use GetGroup with passing your own collection, it is better for simulation speed</em><br /><br />OBSOLETE: Use GetGroup with passing your own collection, it is better for simulation speed. Returns all grids connected to the given grid by the specified link type. Array always contains node.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGridGroups.html">IMyGridGroups</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.ModAPI.IMyGridGroups.html">IMyGridGroups</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

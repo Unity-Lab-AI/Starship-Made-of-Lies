@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.IMyContractSystem - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.IMyContractSystem" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:52Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI</div>
+                <h1>IMyContractSystem</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMyContractSystem
+</code></pre>
+<p>Describes contract system (mods interface)</p>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomActivateContract.html">CustomActivateContract</a></td>
+<td>Called when contract is activated.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomCleanUp.html">CustomCleanUp</a></td>
+<td>Called when contract ended due to any reason. Use to clean up/remove anything.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomConditionFinished.html">CustomConditionFinished</a></td>
+<td>Called after Condition has been successfully finished.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomFail.html">CustomFail</a></td>
+<td>Called when contract failed.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomFailFor.html">CustomFailFor</a></td>
+<td>Called when contract has failed. Has additional information associated with the contract.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomFinish.html">CustomFinish</a></td>
+<td>Called when contract was finished.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomFinishFor.html">CustomFinishFor</a></td>
+<td>Called when contract was finished. Has additional information associated with the contract.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomTimeRanOut.html">CustomTimeRanOut</a></td>
+<td>Called immediately just before contract failed.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomUpdate.html">CustomUpdate</a></td>
+<td>Called every frame if marked for it by CustomNeedsUpdate.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomCanActivateContract.html">CustomCanActivateContract</a></td>
+<td>Gets or sets function that is triggered when player trying to take contract First argument - ContractId, Second - IdentityId</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomFinishCondition.html">CustomFinishCondition</a></td>
+<td>The operation of finishing Condition itself Returns whether it succeeded or not</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@CustomNeedsUpdate.html">CustomNeedsUpdate</a></td>
+<td>Gets or sets function that is triggered each 100 frames per each contract.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@AddContract.html">AddContract(IMyContract)</a></td>
+<td>Adds the contract</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@GetContractDefinitionId.html">GetContractDefinitionId(long)</a></td>
+<td>Gets Contracts Definition Id</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@GetContractState.html">GetContractState(long)</a></td>
+<td>Gets Contract State</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@IsContractActive.html">IsContractActive(long)</a></td>
+<td>Checks if specified contract is in active state</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@RemoveContract.html">RemoveContract(long)</a></td>
+<td>Removes the contract</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@TryAbandonCustomContract.html">TryAbandonCustomContract(long, long)</a></td>
+<td>Tries to abandon the contract</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@TryFailCustomContract.html">TryFailCustomContract(long)</a></td>
+<td>Tries to set the contract to fail state</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyContractSystem@TryFinishCustomContract.html">TryFinishCustomContract(long)</a></td>
+<td>Tries to set the contract to finish state</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

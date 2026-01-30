@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Engine.Physics.MyPhysics - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Engine.Physics.MyPhysics" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:47Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Engine.Physics</div>
+                <h1>MyPhysics</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyPhysics: MySessionComponentBase, IMyUserInputComponent
+</code></pre>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@Clusters.html">static Clusters</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@DebugDrawClustersEnable.html">static DebugDrawClustersEnable</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@DebugDrawClustersMatrix.html">static DebugDrawClustersMatrix</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@SyncVDBCamera.html">static SyncVDBCamera</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@ThreadId.html">static ThreadId</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@WorkPriority.html">static WorkPriority</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@StopEnable.html">StopEnable</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ComponentType.html">ComponentType</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@DebugName.html">DebugName</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Priority.html">Priority</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@InsideSimulation.html">static InsideSimulation</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@QueuedForces.html">static QueuedForces</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@RaycastLock.html">static RaycastLock</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@RestingVelocity.html">static RestingVelocity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@SimulationRatio.html">static SimulationRatio</a></td>
+<td>Simulation ratio, when physics cannot keep up, this is smaller than 1</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@SingleWorld.html">static SingleWorld</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@StepsLastSecond.html">static StepsLastSecond</a></td>
+<td>Number of physics steps done in last second</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Definition.html">Definition</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Dependencies.html">Dependencies</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Initialized.html">Initialized</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@IsRequiredByGame.html">IsRequiredByGame</a></td>
+<td>Indicates whether a session component should be used in current configuration. Example: MyDestructionData component returns true only when game uses Havok Destruction<br /><br /><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@IsServerOnly.html">IsServerOnly</a></td>
+<td>Is server only is used for client request of the world. if the component is server only, it's not sent to the client on world request.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Loaded.html">Loaded</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ModContext.html">ModContext</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ObjectBuilderType.html">ObjectBuilderType</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Session.html">Session</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateOnPause.html">UpdateOnPause</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateOrder.html">UpdateOrder</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@.ctor.html">MyPhysics()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@.ctor.html">MySessionComponentBase()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@ActivateInBox.html">static ActivateInBox(ref BoundingBoxD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@AssertThread.html">static AssertThread()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastChainedRaycastsParallel.html">static CastChainedRaycastsParallel(int, Func&lt;int, bool&gt;, Action<int>, int, Func<bool>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastLongRay.html">static CastLongRay(Vector3D, Vector3D, bool)</a></td>
+<td>Finds closest or any object on the path of the ray from-&gt;to. Uses Storage for voxels for faster search but only good for long rays (more or less more than 50m). Use it only in such cases.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastRay.html">static CastRay(Vector3D, Vector3D, List<HitInfo>, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastRay.html">static CastRay(Vector3D, Vector3D, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastRay.html">static CastRay(Vector3D, Vector3D, out HitInfo, uint, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastRay_AllHits.html">static CastRay_AllHits(Vector3D, Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastRayParallel.html">static CastRayParallel(ref Vector3D, ref Vector3D, int, Action&lt;HitInfo?&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastRayParallel.html">static CastRayParallel(ref Vector3D, ref Vector3D, List<HitInfo>, int, Action&lt;List<HitInfo>&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastRayWorld.html">static CastRayWorld(MyClusterQueryResult, Vector3D, Vector3D, List<HitInfo>, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastShape.html">static CastShape(Vector3D, HkShape, ref MatrixD, int, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastShapeInAllWorlds.html">static CastShapeInAllWorlds(Vector3D, HkShape, ref MatrixD, int, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastShapeReturnContact.html">static CastShapeReturnContact(Vector3D, HkShape, ref MatrixD, int, float, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastShapeReturnContactBodyData.html">static CastShapeReturnContactBodyData(Vector3D, HkShape, ref MatrixD, uint, float, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastShapeReturnContactBodyDatas.html">static CastShapeReturnContactBodyDatas(Vector3D, HkShape, ref MatrixD, uint, float, List<HitInfo>, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastShapeReturnContactData.html">static CastShapeReturnContactData(Vector3D, HkShape, ref MatrixD, uint, float, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CastShapeReturnPoint.html">static CastShapeReturnPoint(Vector3D, HkShape, ref MatrixD, int, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CheckThread.html">static CheckThread()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CommitSchedulingSettingToServer.html">static CommitSchedulingSettingToServer()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@ControlVDBRecording.html">static ControlVDBRecording(string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@CreateHkWorld.html">static CreateHkWorld(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@DebugDrawClusters.html">static DebugDrawClusters()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@DeserializeClusters.html">static DeserializeClusters(List<BoundingBoxD>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@EnsurePhysicsSpace.html">static EnsurePhysicsSpace(BoundingBoxD)</a></td>
+<td>Ensure aabb is inside only one subspace. If no, reorder.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetAll.html">static GetAll(List<MyClusterQueryResult>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetClusterList.html">static GetClusterList()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetCollisionLayer.html">static GetCollisionLayer(string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetHkWorld.html">static GetHkWorld(ref Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetObjectOffset.html">static GetObjectOffset(ulong)</a></td>
+<td>Return offset of objects subspace center.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetPenetrationsBox.html">static GetPenetrationsBox(ref Vector3, ref Vector3D, ref Quaternion, List<HkBodyCollision>, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetPenetrationsBoxParallel.html">static GetPenetrationsBoxParallel(ref Vector3, ref Vector3D, ref Quaternion, List<HkBodyCollision>, int, Action&lt;List<HkBodyCollision>&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetPenetrationsShape.html">static GetPenetrationsShape(HkShape, ref Vector3D, ref Quaternion, List<HkBodyCollision>, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetPenetrationsShape.html">static GetPenetrationsShape(HkShape, ref Vector3D, ref Quaternion, HashSet<HkRigidBody>, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetPenetrationsShapeParallel.html">static GetPenetrationsShapeParallel(HkShape, ref Vector3D, ref Quaternion, HashSet<HkRigidBody>, int, Action&lt;HashSet<HkRigidBody>&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetPenetrationsShapeShape.html">static GetPenetrationsShapeShape(HkShape, ref Vector3, ref Quaternion, HkShape, ref Vector3, ref Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetPenetrationsShapeShape.html">static GetPenetrationsShapeShape(HkShape, ref Vector3, ref Quaternion, HkShape, ref Vector3, ref Quaternion, List<HkShapeCollision>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@IsPenetratingShapeShape.html">static IsPenetratingShapeShape(HkShape, ref Vector3D, ref Quaternion, HkShape, ref Vector3D, ref Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@IsPenetratingShapeShape.html">static IsPenetratingShapeShape(HkShape, ref Matrix, HkShape, ref Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@IsPenetratingShapeShapeInsideOfHavok.html">static IsPenetratingShapeShapeInsideOfHavok(HkShape, ref Vector3D, ref Quaternion, HkShape, ref Vector3D, ref Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@MoveObject.html">static MoveObject(ulong, BoundingBoxD, Vector3)</a></td>
+<td>Change position of object in world. Move object between subspaces if necessary.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@ProfileHkCall.html">static ProfileHkCall(Action)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@RefreshCollisionFilter.html">static RefreshCollisionFilter(MyPhysicsBody)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@RemoveObject.html">static RemoveObject(ulong)</a></td>
+<td>Remove object from world, remove also subspace if empty.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@Schedule.html">static Schedule(Action, string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@SerializeClusters.html">static SerializeClusters(List<BoundingBoxD>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@SetScheduling.html">static SetScheduling(bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@TryAddEntity.html">static TryAddEntity(IMyEntity, MyPhysicsBody, bool)</a></td>
+<td>Attempts to add the entity to the cluster Creates new cluster if allowed (!SingleCluster.HasValue) and needed (entity is outside of existing clusters). If not allowed, marks entity as left the world.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@GetEntityReplicableExistsById.html">GetEntityReplicableExistsById(long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@InformReplicationEnded.html">InformReplicationEnded(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@InformReplicationStarted.html">InformReplicationStarted(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@LoadData.html">LoadData()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Engine.Physics.MyPhysics@Simulate.html">Simulate()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@AfterLoadData.html">AfterLoadData()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@BeforeStart.html">BeforeStart()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Draw.html">Draw()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@GetObjectBuilder.html">GetObjectBuilder()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyUserInputComponent@HandleInput.html">HandleInput()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyUserInputComponent.html">IMyUserInputComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@HandleInput.html">HandleInput()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Init.html">Init(MyObjectBuilder_SessionComponent)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@InitFromDefinition.html">InitFromDefinition(MySessionComponentDefinition)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@LoadData.html">LoadData()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@SaveData.html">SaveData()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@SetUpdateOrder.html">SetUpdateOrder(MyUpdateOrder)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Simulate.html">Simulate()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ToString.html">ToString()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UnloadDataConditional.html">UnloadDataConditional()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateAfterSimulation.html">UpdateAfterSimulation()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateBeforeSimulation.html">UpdateBeforeSimulation()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdatedBeforeInit.html">UpdatedBeforeInit()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdatingStopped.html">UpdatingStopped()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritance:</strong>   <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></p>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.Components.Interfaces.IMyUserInputComponent.html">IMyUserInputComponent</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

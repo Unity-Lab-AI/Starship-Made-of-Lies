@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.Weapons.MyGunBase - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.Weapons.MyGunBase" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:50Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game.Weapons</div>
+                <h1>MyGunBase</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyGunBase: MyDeviceBase
+</code></pre>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@AMMO_PER_SHOOT.html">static AMMO_PER_SHOOT</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@DUMMY_KEY_HOLDING.html">static DUMMY_KEY_HOLDING</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@DUMMY_KEY_MISSILE.html">static DUMMY_KEY_MISSILE</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@DUMMY_KEY_PROJECTILE.html">static DUMMY_KEY_PROJECTILE</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ActiveLoopEffects.html">ActiveLoopEffects</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@m_holdingDummyMatrix.html">m_holdingDummyMatrix</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@OnAmmoAmountChanged.html">OnAmmoAmountChanged</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@BackkickForcePerSecond.html">BackkickForcePerSecond</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@CurrentAmmo.html">CurrentAmmo</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@CurrentAmmoDefinition.html">CurrentAmmoDefinition</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@CurrentAmmoMagazineDefinition.html">CurrentAmmoMagazineDefinition</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@CurrentAmmoMagazineId.html">CurrentAmmoMagazineId</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@CurrentMagazines.html">CurrentMagazines</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@DeviateAngle.html">DeviateAngle</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@DeviateAngleWhileAiming.html">DeviateAngleWhileAiming</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@HasAmmoMagazines.html">HasAmmoMagazines</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@HasDummies.html">HasDummies</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@HasIronSightsActive.html">HasIronSightsActive</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@HasMissileAmmoDefined.html">HasMissileAmmoDefined</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@HasProjectileAmmoDefined.html">HasProjectileAmmoDefined</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@IsAmmoMissile.html">IsAmmoMissile</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@IsAmmoProjectile.html">IsAmmoProjectile</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@IsUserControllableGunBlock.html">IsUserControllableGunBlock</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@LastShootTime.html">LastShootTime</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@MechanicalDamage.html">MechanicalDamage</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@MuzzleFlashLifeSpan.html">MuzzleFlashLifeSpan</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@NoAmmoSound.html">NoAmmoSound</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@PreShotSound.html">PreShotSound</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ReleaseTimeAfterFire.html">ReleaseTimeAfterFire</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ReloadSound.html">ReloadSound</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ReloadTime.html">ReloadTime</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@SecondarySound.html">SecondarySound</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ShootIntervalInMiliseconds.html">ShootIntervalInMiliseconds</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ShootIntervalModifier.html">ShootIntervalModifier</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ShootSound.html">ShootSound</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ShotsInBurst.html">ShotsInBurst</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@SupportReloading.html">SupportReloading</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@UseDefaultMuzzleFlash.html">UseDefaultMuzzleFlash</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@User.html">User</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@WeaponDefinition.html">WeaponDefinition</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@WeaponProperties.html">WeaponProperties</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@WorldMatrix.html">WorldMatrix</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.MyDeviceBase@InventoryItemId.html">InventoryItemId</a></td>
+<td>Reference to the inventory item that this device originated from. Can be used to update the inventory item (when ammo changes etc...)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.MyDeviceBase.html">MyDeviceBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@.ctor.html">MyGunBase()</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetMissileInitialSpeed.html">static GetMissileInitialSpeed(Vector3, Vector3, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@AddMuzzleMatrix.html">AddMuzzleMatrix(MyAmmoType, Matrix, string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@CanSwitchAmmoMagazine.html">CanSwitchAmmoMagazine()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ConsumeAmmo.html">ConsumeAmmo()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ConsumeMagazine.html">ConsumeMagazine()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@CreateAmmoInventoryConstraints.html">CreateAmmoInventoryConstraints(string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@CreateEffects.html">CreateEffects(WeaponEffectAction, uint?, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@DummiesPerType.html">DummiesPerType(MyAmmoType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@EmptyMagazine.html">EmptyMagazine()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetAmmoMagazinesClient.html">GetAmmoMagazinesClient()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetAmmunitionAmount.html">GetAmmunitionAmount()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetCurrentDummyName.html">GetCurrentDummyName()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetDeviatedVector.html">GetDeviatedVector(float, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetInventoryAmmoMagazinesCount.html">GetInventoryAmmoMagazinesCount()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetMagazineAmount.html">GetMagazineAmount()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetMuzzleLocalMatrix.html">GetMuzzleLocalMatrix()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetMuzzleLocalPosition.html">GetMuzzleLocalPosition()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetMuzzleWorldMatrix.html">GetMuzzleWorldMatrix()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetMuzzleWorldPosition.html">GetMuzzleWorldPosition()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetObjectBuilder.html">GetObjectBuilder()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@GetTotalAmmunitionAmount.html">GetTotalAmmunitionAmount()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@HasActiveEffects.html">HasActiveEffects()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@HasEnoughAmmunition.html">HasEnoughAmmunition()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@HasEnoughMagazines.html">HasEnoughMagazines()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@Init.html">Init(MyObjectBuilder_GunBase, MyCubeBlockDefinition, IMyGunBaseUser)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@Init.html">Init(MyObjectBuilder_GunBase, MyDefinitionId, IMyGunBaseUser)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@InitAmmoFromObjectBuilder.html">InitAmmoFromObjectBuilder(MyObjectBuilder_GunBase, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@IsAmmoFull.html">IsAmmoFull()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@IsAmmoMagazineCompatible.html">IsAmmoMagazineCompatible(MyDefinitionId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@LoadDummies.html">LoadDummies(Dictionary&lt;string, MyModelDummy&gt;, Dictionary&lt;int, string&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@MoveToNextMuzzle.html">MoveToNextMuzzle(MyAmmoType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@RefreshAmmunitionAmount.html">RefreshAmmunitionAmount(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@RemoveAllEffects.html">RemoveAllEffects()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@RemoveOldEffects.html">RemoveOldEffects(WeaponEffectAction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@SetCurrentAmmo.html">SetCurrentAmmo(int, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@Shoot.html">Shoot(Vector3, MyEntity, MyLargeBarrelBase)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@Shoot.html">Shoot(Vector3, MyEntity, uint?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@Shoot.html">Shoot(Vector3, Vector3D, MyEntity, uint?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@Shoot.html">Shoot(Vector3D, Vector3, Vector3, MyEntity, uint?, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@ShootWithOffset.html">ShootWithOffset(Vector3, Vector3, float, MyEntity, uint?, bool)</a></td>
+<td>This function changes default shooting position (muzzle flash) with an offset. (allow us to shoot at close objects)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@StartPreShotSound.html">StartPreShotSound(MyEntity3DSoundEmitter, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@StartShootSound.html">StartShootSound(MyEntity3DSoundEmitter, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@StopShoot.html">StopShoot()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@SwitchAmmoMagazine.html">SwitchAmmoMagazine(MyDefinitionId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@SwitchAmmoMagazineToFirstAvailable.html">SwitchAmmoMagazineToFirstAvailable()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@SwitchAmmoMagazineToNextAvailable.html">SwitchAmmoMagazineToNextAvailable()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@SwitchToNextAmmoMagazine.html">SwitchToNextAmmoMagazine()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@TrySubscribeToEntityEvents.html">TrySubscribeToEntityEvents(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@UpdateEffectPositions.html">UpdateEffectPositions()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Weapons.MyGunBase@UpdateEffects.html">UpdateEffects()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.MyDeviceBase@CanSwitchAmmoMagazine.html">CanSwitchAmmoMagazine()</a></td>
+<td>Determines whether this device can switch ammo<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.MyDeviceBase.html">MyDeviceBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.MyDeviceBase@GetMuzzleLocalPosition.html">GetMuzzleLocalPosition()</a></td>
+<td>Gets the muzzle local position<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.MyDeviceBase.html">MyDeviceBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.MyDeviceBase@GetMuzzleWorldPosition.html">GetMuzzleWorldPosition()</a></td>
+<td>Gets the muzzle world position<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.MyDeviceBase.html">MyDeviceBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.MyDeviceBase@Init.html">Init(MyObjectBuilder_DeviceBase)</a></td>
+<td>Initialization of the device<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.MyDeviceBase.html">MyDeviceBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.MyDeviceBase@SwitchAmmoMagazineToNextAvailable.html">SwitchAmmoMagazineToNextAvailable()</a></td>
+<td>Switches to the next available ammo magazine<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.MyDeviceBase.html">MyDeviceBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.MyDeviceBase@SwitchToNextAmmoMagazine.html">SwitchToNextAmmoMagazine()</a></td>
+<td>Switches to the next ammo magazine<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.MyDeviceBase.html">MyDeviceBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritance:</strong>   <a href="VRage.Game.ModAPI.MyDeviceBase.html">MyDeviceBase</a></p>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

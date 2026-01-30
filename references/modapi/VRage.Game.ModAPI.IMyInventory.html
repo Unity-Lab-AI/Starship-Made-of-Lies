@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.IMyInventory - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.IMyInventory" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:53Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI</div>
+                <h1>IMyInventory</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMyInventory: IMyInventory
+</code></pre>
+<p>Describes inventory interface (PB scripting interface) You can cast if MyInventory for getting more functionality</p>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@OnVolumeChanged.html">OnVolumeChanged</a></td>
+<td>Triggers when volume of the inventory is changed</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@CanPutItems.html">CanPutItems</a></td>
+<td>Gets or sets if inventory can receive items or not.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@Owner.html">Owner</a></td>
+<td>Returns entity this inventory belongs to.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@CanPutItems.html">CanPutItems</a></td>
+<td>Gets if inventory can receive items or not.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@CurrentMass.html">CurrentMass</a></td>
+<td>Returns total mass of items inside this inventory in Kg.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@CurrentVolume.html">CurrentVolume</a></td>
+<td>Returns total volume of items inside this inventory in m^3.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@IsFull.html">IsFull</a></td>
+<td>Determines if inventory is absolutely full.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@ItemCount.html">ItemCount</a></td>
+<td>Returns number of occupied inventory slots.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@MaxVolume.html">MaxVolume</a></td>
+<td>Sets maximum volume of items this inventory can contain in m^3.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@Owner.html">Owner</a></td>
+<td>Returns entity this inventory belongs to.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@VolumeFillFactor.html">VolumeFillFactor</a></td>
+<td>Gets the current volume fill factor of the inventory<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@AddItems.html">AddItems(MyFixedPoint, MyObjectBuilder_PhysicalObject, int)</a></td>
+<td>Adds item to inventory. Doesn't do all checks inside. Call <a href="VRage.Game.ModAPI.IMyInventory@CanAddItemAmount.html">CanAddItemAmount(IMyInventoryItem, MyFixedPoint)</a> before this function</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@CanAddItemAmount.html">CanAddItemAmount(IMyInventoryItem, MyFixedPoint)</a></td>
+<td>Gets whether item could be added into inventory, but doesn't add it Checks: - Inserting volume - Inventory can receive items - Inventory filter can</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@Clear.html">Clear(bool)</a></td>
+<td>Remove all items from inventory</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@Empty.html">Empty()</a></td>
+<td>Gets if inventory is empty</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@FindItem.html">FindItem(SerializableDefinitionId)</a></td>
+<td>Finds first item stack, whose content matching provided id</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@GetItemByID.html">GetItemByID(uint)</a></td>
+<td>Gets item by id</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@RemoveItemAmount.html">RemoveItemAmount(IMyInventoryItem, MyFixedPoint)</a></td>
+<td>Remove</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@RemoveItems.html">RemoveItems(uint, MyFixedPoint?, bool, bool)</a></td>
+<td>Removes item by itemId</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@RemoveItemsAt.html">RemoveItemsAt(int, MyFixedPoint?, bool, bool)</a></td>
+<td>Removes items at exact inventory index</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@RemoveItemsOfType.html">RemoveItemsOfType(MyFixedPoint, MyObjectBuilder_PhysicalObject, bool)</a></td>
+<td>Removes amount for specified item type from inventory</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@RemoveItemsOfType.html">RemoveItemsOfType(MyFixedPoint, SerializableDefinitionId, MyItemFlags, bool)</a></td>
+<td>Removes amount for specified item type from inventory</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@TransferItemFrom.html">TransferItemFrom(IMyInventory, int, int?, bool?, MyFixedPoint?, bool)</a></td>
+<td>Transfer item from one inventory to another</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@TransferItemFrom.html">TransferItemFrom(IMyInventory, IMyInventoryItem, MyFixedPoint)</a></td>
+<td>Transfer item from one inventory to another</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@TransferItemTo.html">TransferItemTo(IMyInventory, int, int?, bool?, MyFixedPoint?, bool)</a></td>
+<td>Transfer item from one inventory to another</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@CanItemsBeAdded.html">CanItemsBeAdded(MyFixedPoint, MyItemType)</a></td>
+<td>Determines if given amount of items fits into this inventory on top of existing items.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@CanTransferItemTo.html">CanTransferItemTo(IMyInventory, MyItemType)</a></td>
+<td>Determines if there is working conveyor connection for item of give type to be transferred to other inventory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@ContainItems.html">ContainItems(MyFixedPoint, MyItemType)</a></td>
+<td>Determines if there is at least given amount of items of given type contained inside this inventory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@FindItem.html">FindItem(MyItemType)</a></td>
+<td>Tries to find an item of given type inside this inventory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@GetAcceptedItems.html">GetAcceptedItems(List<MyItemType>, Func&lt;MyItemType, bool&gt;)</a></td>
+<td>Returns all items this inventory accepts.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@GetItemAmount.html">GetItemAmount(MyItemType)</a></td>
+<td>Sums up total amount of items of given type contained inside this inventory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@GetItemAt.html">GetItemAt(int)</a></td>
+<td>Returns info about item at give position.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@GetItemByID.html">GetItemByID(uint)</a></td>
+<td>Returns info about item contained inside this inventory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@GetItems.html">GetItems(List<MyInventoryItem>, Func&lt;MyInventoryItem, bool&gt;)</a></td>
+<td>Collects all items present inside this inventory and returns snapshot of the current inventory state.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@IsConnectedTo.html">IsConnectedTo(IMyInventory)</a></td>
+<td>Checks if two inventories are connected.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@IsItemAt.html">IsItemAt(int)</a></td>
+<td>Determines if there is any item on given inventory slot.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@TransferItemFrom.html">TransferItemFrom(IMyInventory, MyInventoryItem, MyFixedPoint?)</a></td>
+<td>Attempts to transfer item from one inventory to another.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@TransferItemFrom.html">TransferItemFrom(IMyInventory, int, int?, bool?, MyFixedPoint?)</a></td>
+<td>Attempts to transfer item from one inventory to another.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@TransferItemTo.html">TransferItemTo(IMyInventory, MyInventoryItem, MyFixedPoint?)</a></td>
+<td>Attempts to transfer item from one inventory to another.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@TransferItemTo.html">TransferItemTo(IMyInventory, int, int?, bool?, MyFixedPoint?)</a></td>
+<td>Attempts to transfer item from one inventory to another.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@GetItems.html">GetItems()</a></td>
+<td><em><strong>Obsolete:</strong> Use non-allocating GetItems overload</em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></li>
+</ul>
+<p><strong>Inheritors:</strong></p>
+<ul>
+<li><a href="Sandbox.Game.MyInventory.html">MyInventory</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

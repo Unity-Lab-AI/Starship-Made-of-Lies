@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.ModAPI.PhysicsSettings - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.ModAPI.PhysicsSettings" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:57Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.ModAPI</div>
+                <h1>PhysicsSettings</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public struct PhysicsSettings
+</code></pre>
+<p>Implements Physics Settings</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@AngularDamping.html">AngularDamping</a></td>
+<td>Gets or Sets the Angular Damping. SE default value is 0.1</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@CollisionLayer.html">CollisionLayer</a></td>
+<td>Collision layer. Makes your entity react on collisions with entities that having certain layers TargetDummyLayer = 6 BlockPlacementTestCollisionLayer = 7 MissileLayer = 8 NoVoxelCollisionLayer = 9 LightFloatingObjectCollisionLayer = 10 VoxelLod1CollisionLayer = 11 NotCollideWithStaticLayer = 12 StaticCollisionLayer = 13 CollideWithStaticLayer = 14 DefaultCollisionLayer = 15 DynamicDoubledCollisionLayer = 16 KinematicDoubledCollisionLayer = 17 CharacterCollisionLayer = 18 NoCollisionLayer = 19 DebrisCollisionLayer = 20 GravityPhantomLayer = 21 CharacterNetworkCollisionLayer = 22 FloatingObjectCollisionLayer = 23 ObjectDetectionCollisionLayer = 24 VirtualMassLayer = 25 CollectorCollisionLayer = 26 AmmoLayer = 27 VoxelCollisionLayer = 28 ExplosionRaycastLayer = 29 CollisionLayerWithoutCharacter = 30 RagdollCollisionLayer = 31</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@DetectorColliderCallback.html">DetectorColliderCallback</a></td>
+<td>If it is not null, then it would be call this callback each time entity Enters/Leaves it's collision. Also removes physical collision (Now all entities can go through it) CollisionCallback is called from parallel thread, and called once per HkBody. Grids can have more than 100 bodies. Try find best collision layer, to filter unneeded collisions and improve performance If you trying detect grids:<code>csharp&lt;br /&gt;protected MyConcurrentHashSet&lt;long&gt; m_containedEntities = new MyConcurrentHashSet&lt;long&gt;();&lt;br /&gt;var topEntity = entity.GetTopMostParent() as MyEntity;&lt;br /&gt;if (m_containedEntities.Add(topEntity.EntityId))&lt;br /&gt;{&lt;br /&gt;    MyAPIGateway.Utilities.InvokeOnGameThread(() =&gt;&lt;br /&gt;    {&lt;br /&gt;        //Called once in main thread&lt;br /&gt;    });&lt;br /&gt;}&lt;br /&gt;&lt;br /&gt;</code></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@Entity.html">Entity</a></td>
+<td>For modders: You can create your own entities with this code.<code>csharp&lt;br /&gt;var entity = new MyEntity();&lt;br /&gt;entity.WorldMatrix = MatrixD.Identity;&lt;br /&gt;entity.Init(new StringBuilder(&quot;Name&quot;), &quot;Models\\Cubes\\Large\\GeneratorLarge.mwm&quot;, null, null, &quot;Models\\Cubes\\Large\\GeneratorLarge.mwm&quot;);&lt;br /&gt;MyAPIGateway.Entities.AddEntity(entity);&lt;br /&gt;&lt;br /&gt;</code></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@IsPhantom.html">IsPhantom</a></td>
+<td>Is mainly used, to detect if block can be placed at this position</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@LinearDamping.html">LinearDamping</a></td>
+<td>Gets or Sets the Linear Damping in meters per tick</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@LocalCenter.html">LocalCenter</a></td>
+<td>Gets or Sets the Center of physical shape</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@Mass.html">Mass</a></td>
+<td>Gets or Sets the mass of object</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@MaterialType.html">MaterialType</a></td>
+<td>Gets or Sets From what material object is. Example: Rock,Metal,Ammo,Character,Wood,Thruster_large,Thruster_small,Missile</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@RigidBodyFlags.html">RigidBodyFlags</a></td>
+<td>Gets or Sets the Flags, defining behavioral features</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.PhysicsSettings@WorldMatrix.html">WorldMatrix</a></td>
+<td>Gets or Sets the World matrix of physical shape</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

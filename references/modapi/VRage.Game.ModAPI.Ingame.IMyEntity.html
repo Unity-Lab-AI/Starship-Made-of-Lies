@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.Ingame.IMyEntity - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.Ingame.IMyEntity" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:53Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI.Ingame</div>
+                <h1>IMyEntity</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMyEntity
+</code></pre>
+<p>Interface for all entities. (PB scripting interface)</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Closed.html">Closed</a></td>
+<td>True if the block has been removed from the world.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Components.html">Components</a></td>
+<td>Gets blocks component logic container</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@DisplayName.html">DisplayName</a></td>
+<td>Gets user friendly name of entity. May be null For block terminal name use <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DisplayNameText.html">DisplayNameText</a></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@EntityId.html">EntityId</a></td>
+<td>Id of entity</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@HasInventory.html">HasInventory</a></td>
+<td>Returns true if this entity has got at least one inventory. Note that one aggregate inventory can contain zero simple inventories =&gt; zero will be returned even if GetInventory() != null.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@InventoryCount.html">InventoryCount</a></td>
+<td>Returns the count of the number of inventories this entity has.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Name.html">Name</a></td>
+<td>Some entities can have uniq name, and game can find them by name <a href="VRage.ModAPI.IMyEntities@TryGetEntityByName.html">TryGetEntityByName(string, out IMyEntity)</a></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldAABB.html">WorldAABB</a></td>
+<td>Gets world axis-aligned bounding box</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldAABBHr.html">WorldAABBHr</a></td>
+<td>Gets world axis-aligned bounding box</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldMatrix.html">WorldMatrix</a></td>
+<td>Gets world matrix of this entity</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldVolume.html">WorldVolume</a></td>
+<td>Gets bounding sphere of this entity</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldVolumeHr.html">WorldVolumeHr</a></td>
+<td>Gets bounding sphere of this entity</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetInventory.html">GetInventory()</a></td>
+<td>Simply get the MyInventoryBase component stored in this entity.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetInventory.html">GetInventory(int)</a></td>
+<td>Search for inventory component with maching index.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetPosition.html">GetPosition()</a></td>
+<td>Gets position in world coordinates</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritors:</strong></p>
+<ul>
+<li><a href="Sandbox.ModAPI.IMyAdvancedDoor.html">IMyAdvancedDoor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAdvancedDoor.html">IMyAdvancedDoor</a></li>
+<li><a href="Sandbox.ModAPI.IMyAirtightDoorBase.html">IMyAirtightDoorBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAirtightDoorBase.html">IMyAirtightDoorBase</a></li>
+<li><a href="Sandbox.ModAPI.IMyAirtightHangarDoor.html">IMyAirtightHangarDoor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAirtightHangarDoor.html">IMyAirtightHangarDoor</a></li>
+<li><a href="Sandbox.ModAPI.IMyAirtightSlideDoor.html">IMyAirtightSlideDoor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAirtightSlideDoor.html">IMyAirtightSlideDoor</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyAirVent.html">IMyAirVent</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyAirVent.html">IMyAirVent</a></li>
+<li><a href="Sandbox.ModAPI.Weapons.IMyAngleGrinder.html">IMyAngleGrinder</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyArtificialMassBlock.html">IMyArtificialMassBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyArtificialMassBlock.html">IMyArtificialMassBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyAssembler.html">IMyAssembler</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAssembler.html">IMyAssembler</a></li>
+<li><a href="Sandbox.ModAPI.IMyAttachableTopBlock.html">IMyAttachableTopBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAttachableTopBlock.html">IMyAttachableTopBlock</a></li>
+<li><a href="Sandbox.ModAPI.Weapons.IMyAutomaticRifleGun.html">IMyAutomaticRifleGun</a></li>
+<li><a href="Sandbox.ModAPI.IMyBasicMissionBlock.html">IMyBasicMissionBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyBasicMissionBlock.html">IMyBasicMissionBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyBatteryBlock.html">IMyBatteryBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyBatteryBlock.html">IMyBatteryBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyBeacon.html">IMyBeacon</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyBeacon.html">IMyBeacon</a></li>
+<li><a href="Sandbox.ModAPI.Weapons.IMyBlockPlacerBase.html">IMyBlockPlacerBase</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyBroadcastController.html">IMyBroadcastController</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyBroadcastController.html">IMyBroadcastController</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyBroadcastControllerBlock.html">IMyBroadcastControllerBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyButtonPanel.html">IMyButtonPanel</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyButtonPanel.html">IMyButtonPanel</a></li>
+<li><a href="Sandbox.ModAPI.IMyCameraBlock.html">IMyCameraBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyCameraBlock.html">IMyCameraBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyCargoContainer.html">IMyCargoContainer</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyCargoContainer.html">IMyCargoContainer</a></li>
+<li><a href="VRage.Game.ModAPI.IMyCharacter.html">IMyCharacter</a></li>
+<li><a href="Sandbox.ModAPI.IMyCockpit.html">IMyCockpit</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyCockpit.html">IMyCockpit</a></li>
+<li><a href="Sandbox.ModAPI.IMyCollector.html">IMyCollector</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyCollector.html">IMyCollector</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyControlPanel.html">IMyControlPanel</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyControlPanel.html">IMyControlPanel</a></li>
+<li><a href="Sandbox.ModAPI.IMyConveyor.html">IMyConveyor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyConveyor.html">IMyConveyor</a></li>
+<li><a href="Sandbox.ModAPI.IMyConveyorSorter.html">IMyConveyorSorter</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyConveyorSorter.html">IMyConveyorSorter</a></li>
+<li><a href="Sandbox.ModAPI.IMyConveyorTube.html">IMyConveyorTube</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyConveyorTube.html">IMyConveyorTube</a></li>
+<li><a href="Sandbox.ModAPI.IMyCryoChamber.html">IMyCryoChamber</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyCryoChamber.html">IMyCryoChamber</a></li>
+<li><a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></li>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></li>
+<li><a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></li>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></li>
+<li><a href="Sandbox.ModAPI.IMyDecoy.html">IMyDecoy</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyDecoy.html">IMyDecoy</a></li>
+<li><a href="Sandbox.ModAPI.IMyDefensiveCombatBlock.html">IMyDefensiveCombatBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyDefensiveCombatBlock.html">IMyDefensiveCombatBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyDoor.html">IMyDoor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyDoor.html">IMyDoor</a></li>
+<li><a href="Sandbox.ModAPI.IMyEmotionControllerBlock.html">IMyEmotionControllerBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyEmotionControllerBlock.html">IMyEmotionControllerBlock</a></li>
+<li><a href="Sandbox.ModAPI.Weapons.IMyEngineerToolBase.html">IMyEngineerToolBase</a></li>
+<li><a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></li>
+<li><a href="Sandbox.ModAPI.IMyEventControllerBlock.html">IMyEventControllerBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyEventControllerBlock.html">IMyEventControllerBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyExhaustBlock.html">IMyExhaustBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyExtendedPistonBase.html">IMyExtendedPistonBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyExtendedPistonBase.html">IMyExtendedPistonBase</a></li>
+<li><a href="Sandbox.ModAPI.IMyFlightMovementBlock.html">IMyFlightMovementBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyFlightMovementBlock.html">IMyFlightMovementBlock</a></li>
+<li><a href="VRage.Game.ModAPI.IMyFloatingObject.html">IMyFloatingObject</a></li>
+<li><a href="Sandbox.ModAPI.IMyFunctionalBlock.html">IMyFunctionalBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyFunctionalBlock.html">IMyFunctionalBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyGasGenerator.html">IMyGasGenerator</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyGasGenerator.html">IMyGasGenerator</a></li>
+<li><a href="Sandbox.ModAPI.IMyGasTank.html">IMyGasTank</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyGasTank.html">IMyGasTank</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyGravityGenerator.html">IMyGravityGenerator</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyGravityGenerator.html">IMyGravityGenerator</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyGravityGeneratorBase.html">IMyGravityGeneratorBase</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyGravityGeneratorBase.html">IMyGravityGeneratorBase</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyGravityGeneratorSphere.html">IMyGravityGeneratorSphere</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyGravityGeneratorSphere.html">IMyGravityGeneratorSphere</a></li>
+<li><a href="Sandbox.ModAPI.IMyGyro.html">IMyGyro</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyGyro.html">IMyGyro</a></li>
+<li><a href="Sandbox.ModAPI.Weapons.IMyHandDrill.html">IMyHandDrill</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyHeatVent.html">IMyHeatVent</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyHeatVent.html">IMyHeatVent</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyInteriorLight.html">IMyInteriorLight</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyInteriorLight.html">IMyInteriorLight</a></li>
+<li><a href="Sandbox.ModAPI.IMyInventoryBag.html">IMyInventoryBag</a></li>
+<li><a href="Sandbox.ModAPI.IMyJumpDrive.html">IMyJumpDrive</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyJumpDrive.html">IMyJumpDrive</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyLandingGear.html">IMyLandingGear</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear.html">IMyLandingGear</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyLargeConveyorTurretBase.html">IMyLargeConveyorTurretBase</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeConveyorTurretBase.html">IMyLargeConveyorTurretBase</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyLargeGatlingTurret.html">IMyLargeGatlingTurret</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeGatlingTurret.html">IMyLargeGatlingTurret</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyLargeInteriorTurret.html">IMyLargeInteriorTurret</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeInteriorTurret.html">IMyLargeInteriorTurret</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyLargeMissileTurret.html">IMyLargeMissileTurret</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeMissileTurret.html">IMyLargeMissileTurret</a></li>
+<li><a href="Sandbox.ModAPI.IMyLargeTurretBase.html">IMyLargeTurretBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyLargeTurretBase.html">IMyLargeTurretBase</a></li>
+<li><a href="Sandbox.ModAPI.IMyLaserAntenna.html">IMyLaserAntenna</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyLaserAntenna.html">IMyLaserAntenna</a></li>
+<li><a href="Sandbox.ModAPI.IMyLightingBlock.html">IMyLightingBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyLightingBlock.html">IMyLightingBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyMechanicalConnectionBlock.html">IMyMechanicalConnectionBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMechanicalConnectionBlock.html">IMyMechanicalConnectionBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyMedicalRoom.html">IMyMedicalRoom</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyMedicalRoom.html">IMyMedicalRoom</a></li>
+<li><a href="Sandbox.ModAPI.IMyMeteor.html">IMyMeteor</a></li>
+<li><a href="Sandbox.ModAPI.IMyMissile.html">IMyMissile</a></li>
+<li><a href="Sandbox.ModAPI.IMyMotorAdvancedRotor.html">IMyMotorAdvancedRotor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMotorAdvancedRotor.html">IMyMotorAdvancedRotor</a></li>
+<li><a href="Sandbox.ModAPI.IMyMotorAdvancedStator.html">IMyMotorAdvancedStator</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMotorAdvancedStator.html">IMyMotorAdvancedStator</a></li>
+<li><a href="Sandbox.ModAPI.IMyMotorBase.html">IMyMotorBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMotorBase.html">IMyMotorBase</a></li>
+<li><a href="Sandbox.ModAPI.IMyMotorRotor.html">IMyMotorRotor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMotorRotor.html">IMyMotorRotor</a></li>
+<li><a href="Sandbox.ModAPI.IMyMotorStator.html">IMyMotorStator</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMotorStator.html">IMyMotorStator</a></li>
+<li><a href="Sandbox.ModAPI.IMyMotorSuspension.html">IMyMotorSuspension</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMotorSuspension.html">IMyMotorSuspension</a></li>
+<li><a href="Sandbox.ModAPI.IMyOffensiveCombatBlock.html">IMyOffensiveCombatBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyOffensiveCombatBlock.html">IMyOffensiveCombatBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyOreDetector.html">IMyOreDetector</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyOreDetector.html">IMyOreDetector</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyOxygenFarm.html">IMyOxygenFarm</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm.html">IMyOxygenFarm</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyParachute.html">IMyParachute</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyParachute.html">IMyParachute</a></li>
+<li><a href="Sandbox.Game.Entities.IMyParallelUpdateable.html">IMyParallelUpdateable</a></li>
+<li><a href="Sandbox.ModAPI.IMyPassage.html">IMyPassage</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyPassage.html">IMyPassage</a></li>
+<li><a href="Sandbox.ModAPI.IMyPathRecorderBlock.html">IMyPathRecorderBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderBlock.html">IMyPathRecorderBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyPistonBase.html">IMyPistonBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyPistonBase.html">IMyPistonBase</a></li>
+<li><a href="Sandbox.ModAPI.IMyPistonTop.html">IMyPistonTop</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyPistonTop.html">IMyPistonTop</a></li>
+<li><a href="Sandbox.ModAPI.IMyPowerProducer.html">IMyPowerProducer</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyPowerProducer.html">IMyPowerProducer</a></li>
+<li><a href="Sandbox.ModAPI.IMyProductionBlock.html">IMyProductionBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyProductionBlock.html">IMyProductionBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyProgrammableBlock.html">IMyProgrammableBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyProgrammableBlock.html">IMyProgrammableBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyProjector.html">IMyProjector</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyProjector.html">IMyProjector</a></li>
+<li><a href="Sandbox.ModAPI.IMyRadioAntenna.html">IMyRadioAntenna</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyRadioAntenna.html">IMyRadioAntenna</a></li>
+<li><a href="Sandbox.ModAPI.IMyReactor.html">IMyReactor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyReactor.html">IMyReactor</a></li>
+<li><a href="Sandbox.ModAPI.IMyRefinery.html">IMyRefinery</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyRefinery.html">IMyRefinery</a></li>
+<li><a href="Sandbox.ModAPI.IMyReflectorLight.html">IMyReflectorLight</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyReflectorLight.html">IMyReflectorLight</a></li>
+<li><a href="Sandbox.ModAPI.IMyRemoteControl.html">IMyRemoteControl</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyRemoteControl.html">IMyRemoteControl</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMySafeZoneBlock.html">IMySafeZoneBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMySafeZoneBlock.html">IMySafeZoneBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMySearchlight.html">IMySearchlight</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMySearchlight.html">IMySearchlight</a></li>
+<li><a href="Sandbox.ModAPI.IMySensorBlock.html">IMySensorBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMySensorBlock.html">IMySensorBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyShipConnector.html">IMyShipConnector</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipConnector.html">IMyShipConnector</a></li>
+<li><a href="Sandbox.ModAPI.IMyShipController.html">IMyShipController</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipController.html">IMyShipController</a></li>
+<li><a href="Sandbox.ModAPI.IMyShipDrill.html">IMyShipDrill</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipDrill.html">IMyShipDrill</a></li>
+<li><a href="Sandbox.ModAPI.IMyShipGrinder.html">IMyShipGrinder</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipGrinder.html">IMyShipGrinder</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyShipMergeBlock.html">IMyShipMergeBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyShipMergeBlock.html">IMyShipMergeBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyShipToolBase.html">IMyShipToolBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipToolBase.html">IMyShipToolBase</a></li>
+<li><a href="Sandbox.ModAPI.IMyShipWelder.html">IMyShipWelder</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipWelder.html">IMyShipWelder</a></li>
+<li><a href="Sandbox.ModAPI.IMySmallGatlingGun.html">IMySmallGatlingGun</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMySmallGatlingGun.html">IMySmallGatlingGun</a></li>
+<li><a href="Sandbox.ModAPI.IMySmallMissileLauncher.html">IMySmallMissileLauncher</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMySmallMissileLauncher.html">IMySmallMissileLauncher</a></li>
+<li><a href="Sandbox.ModAPI.IMySmallMissileLauncherReload.html">IMySmallMissileLauncherReload</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMySmallMissileLauncherReload.html">IMySmallMissileLauncherReload</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMySolarPanel.html">IMySolarPanel</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMySolarPanel.html">IMySolarPanel</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMySoundBlock.html">IMySoundBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMySoundBlock.html">IMySoundBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMySpaceBall.html">IMySpaceBall</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMySpaceBall.html">IMySpaceBall</a></li>
+<li><a href="Sandbox.ModAPI.IMyStoreBlock.html">IMyStoreBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyStoreBlock.html">IMyStoreBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyTargetDummyBlock.html">IMyTargetDummyBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyTargetDummyBlock.html">IMyTargetDummyBlock</a></li>
+<li><a href="Sandbox.Game.EntityComponents.IMyTargetLockingCapableEntity.html">IMyTargetLockingCapableEntity</a></li>
+<li><a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyTextPanel.html">IMyTextPanel</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyTextPanel.html">IMyTextPanel</a></li>
+<li><a href="Sandbox.ModAPI.IMyThrust.html">IMyThrust</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyThrust.html">IMyThrust</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyTimerBlock.html">IMyTimerBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyTimerBlock.html">IMyTimerBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyTransponder.html">IMyTransponder</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyTransponder.html">IMyTransponder</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyTurretControlBlock.html">IMyTurretControlBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyTurretControlBlock.html">IMyTurretControlBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyUpgradableBlock.html">IMyUpgradableBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyUpgradableBlock.html">IMyUpgradableBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyUpgradeModule.html">IMyUpgradeModule</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyUpgradeModule.html">IMyUpgradeModule</a></li>
+<li><a href="Sandbox.ModAPI.IMyUserControllableGun.html">IMyUserControllableGun</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyUserControllableGun.html">IMyUserControllableGun</a></li>
+<li><a href="Sandbox.ModAPI.IMyVendingMachine.html">IMyVendingMachine</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.IMyVirtualMass.html">IMyVirtualMass</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyVirtualMass.html">IMyVirtualMass</a></li>
+<li><a href="VRage.ModAPI.IMyVoxelBase.html">IMyVoxelBase</a></li>
+<li><a href="VRage.Game.ModAPI.IMyVoxelMap.html">IMyVoxelMap</a></li>
+<li><a href="Sandbox.ModAPI.IMyWarhead.html">IMyWarhead</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyWarhead.html">IMyWarhead</a></li>
+<li><a href="Sandbox.ModAPI.Weapons.IMyWelder.html">IMyWelder</a></li>
+<li><a href="Sandbox.ModAPI.IMyWheel.html">IMyWheel</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyWheel.html">IMyWheel</a></li>
+<li><a href="Sandbox.ModAPI.IMyWindTurbine.html">IMyWindTurbine</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyWindTurbine.html">IMyWindTurbine</a></li>
+<li><a href="Sandbox.Game.Entities.MyAdvancedDoor.html">MyAdvancedDoor</a></li>
+<li><a href="Sandbox.Game.Entities.MyAirtightDoorGeneric.html">MyAirtightDoorGeneric</a></li>
+<li><a href="Sandbox.Game.Entities.MyAirtightHangarDoor.html">MyAirtightHangarDoor</a></li>
+<li><a href="Sandbox.Game.Entities.MyAirtightSlideDoor.html">MyAirtightSlideDoor</a></li>
+<li><a href="Sandbox.Game.Weapons.MyAmmoBase.html">MyAmmoBase</a></li>
+<li><a href="Sandbox.Game.Entities.MyBatteryBlock.html">MyBatteryBlock</a></li>
+<li><a href="Sandbox.Game.Entities.MyCameraBlock.html">MyCameraBlock</a></li>
+<li><a href="Sandbox.Game.Entities.MyCargoContainer.html">MyCargoContainer</a></li>
+<li><a href="Sandbox.Game.Entities.MyCargoContainerInventoryBagEntity.html">MyCargoContainerInventoryBagEntity</a></li>
+<li><a href="Sandbox.Game.Entities.MyCockpit.html">MyCockpit</a></li>
+<li><a href="Sandbox.Game.Entities.MyConveyor.html">MyConveyor</a></li>
+<li><a href="Sandbox.Game.Entities.MyConveyorConnector.html">MyConveyorConnector</a></li>
+<li><a href="Sandbox.Game.Entities.MyConveyorSorter.html">MyConveyorSorter</a></li>
+<li><a href="Sandbox.Game.Entities.MyCubeBlock.html">MyCubeBlock</a></li>
+<li><a href="Sandbox.Game.Entities.MyCubeGrid.html">MyCubeGrid</a></li>
+<li><a href="Sandbox.Game.Entities.MyCustomRenderEntitySubpart%7BTCustomRenderComponent%7D.html">MyCustomRenderEntitySubpart<TCustomRenderComponent></a></li>
+<li><a href="Sandbox.Game.Entities.MyDoor.html">MyDoor</a></li>
+<li><a href="Sandbox.Game.Entities.MyDoorBase.html">MyDoorBase</a></li>
+<li><a href="Sandbox.Game.Entities.MyEmissiveBlock.html">MyEmissiveBlock</a></li>
+<li><a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></li>
+<li><a href="VRage.Game.Entity.MyEntitySubpart.html">MyEntitySubpart</a></li>
+<li><a href="Sandbox.Game.WorldEnvironment.MyEnvironmentSector.html">MyEnvironmentSector</a></li>
+<li><a href="Sandbox.Game.Entities.MyFloatingObject.html">MyFloatingObject</a></li>
+<li><a href="Sandbox.Game.Entities.MyForageableEntity.html">MyForageableEntity</a></li>
+<li><a href="Sandbox.Game.Entities.MyFueledPowerProducer.html">MyFueledPowerProducer</a></li>
+<li><a href="Sandbox.Game.Entities.MyGyro.html">MyGyro</a></li>
+<li><a href="Sandbox.Game.Entities.MyHandToolBase.html">MyHandToolBase</a></li>
+<li><a href="Sandbox.Game.Entities.MyInventoryBagEntity.html">MyInventoryBagEntity</a></li>
+<li><a href="Sandbox.Game.Entities.MyJumpDrive.html">MyJumpDrive</a></li>
+<li><a href="Sandbox.Game.Entities.MyKitchen.html">MyKitchen</a></li>
+<li><a href="Sandbox.Game.Entities.MyMeteor.html">MyMeteor</a></li>
+<li><a href="Sandbox.Game.Entities.MyModifiableEntity.html">MyModifiableEntity</a></li>
+<li><a href="Sandbox.Game.Entities.MyPlanet.html">MyPlanet</a></li>
+<li><a href="Sandbox.Game.Entities.MyPlanter.html">MyPlanter</a></li>
+<li><a href="Sandbox.Game.Entities.MyReactor.html">MyReactor</a></li>
+<li><a href="Sandbox.Game.Entities.MyReflectorLight.html">MyReflectorLight</a></li>
+<li><a href="Sandbox.Game.Entities.MyRemoteControl.html">MyRemoteControl</a></li>
+<li><a href="Sandbox.Game.Entities.MySafeZone.html">MySafeZone</a></li>
+<li><a href="Sandbox.Game.Entities.MyShipController.html">MyShipController</a></li>
+<li><a href="Sandbox.Game.Entities.MySkinnedEntity.html">MySkinnedEntity</a></li>
+<li><a href="Sandbox.Game.Entities.MyThrust.html">MyThrust</a></li>
+<li><a href="Sandbox.Game.Entities.MyVoxelBase.html">MyVoxelBase</a></li>
+<li><a href="Sandbox.Game.Entities.MyVoxelMap.html">MyVoxelMap</a></li>
+<li><a href="Sandbox.Game.Entities.MyWaypoint.html">MyWaypoint</a></li>
+<li><a href="Sandbox.Game.Components.MyRenderComponentThrust+PropellerSubpart.html">PropellerSubpart</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

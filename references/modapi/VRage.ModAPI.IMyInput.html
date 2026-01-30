@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.ModAPI.IMyInput - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.ModAPI.IMyInput" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:57Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.ModAPI</div>
+                <h1>IMyInput</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Input.dll</p>
+<pre><code class="language-csharp">public interface IMyInput
+</code></pre>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@JoystickConnected.html">JoystickConnected</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsJoystickLastUsed.html">IsJoystickLastUsed</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@JoystickAsMouse.html">JoystickAsMouse</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@JoystickInstanceName.html">JoystickInstanceName</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@TextInput.html">TextInput</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@DeltaMouseScrollWheelValue.html">DeltaMouseScrollWheelValue()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@EnumerateJoystickNames.html">EnumerateJoystickNames()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetCodeForControl.html">GetCodeForControl(MyStringId, MyStringId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetControl.html">GetControl(MyKeys)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetControl.html">GetControl(MyKeys, MyKeyboardModifiers)</a></td>
+<td>Gets control for combination of key + modifiers</td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetControl.html">GetControl(MyMouseButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetControl.html">GetControl(MyStringId, MyStringId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetGameControl.html">GetGameControl(MyStringId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetGameControlAnalogState.html">GetGameControlAnalogState(MyStringId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetJoystickAxisStateForGameplay.html">GetJoystickAxisStateForGameplay(MyJoystickAxesEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetKeyName.html">GetKeyName(MyKeys)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetListOfPressedKeys.html">GetListOfPressedKeys(List<MyKeys>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetListOfPressedMouseButtons.html">GetListOfPressedMouseButtons(List<MyMouseButtonsEnum>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetMouseAreaSize.html">GetMouseAreaSize()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetMousePosition.html">GetMousePosition()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetMouseSensitivity.html">GetMouseSensitivity()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetMouseX.html">GetMouseX()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetMouseXForGamePlay.html">GetMouseXForGamePlay()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetMouseXInversion.html">GetMouseXInversion()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetMouseY.html">GetMouseY()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetMouseYForGamePlay.html">GetMouseYForGamePlay()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetMouseYInversion.html">GetMouseYInversion()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetName.html">GetName(MyMouseButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetName.html">GetName(MyJoystickButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetName.html">GetName(MyJoystickAxesEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetPressedKeys.html">GetPressedKeys(List<MyKeys>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@GetUnassignedName.html">GetUnassignedName()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsAnyAltKeyPressed.html">IsAnyAltKeyPressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsAnyCtrlKeyPressed.html">IsAnyCtrlKeyPressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsAnyKeyPress.html">IsAnyKeyPress()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsAnyMouseOrJoystickPressed.html">IsAnyMouseOrJoystickPressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsAnyMousePressed.html">IsAnyMousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsAnyNewMouseOrJoystickPressed.html">IsAnyNewMouseOrJoystickPressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsAnyNewMousePressed.html">IsAnyNewMousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsAnyShiftKeyPressed.html">IsAnyShiftKeyPressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsButtonPressed.html">IsButtonPressed(MySharedButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsButtonReleased.html">IsButtonReleased(MySharedButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsControl.html">IsControl(MyStringId, MyStringId, MyControlStateType, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsControlAnalog.html">IsControlAnalog(MyStringId, MyStringId, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsDefined.html">IsDefined(MyStringId, MyStringId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsGameControlPressed.html">IsGameControlPressed(MyStringId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsGameControlReleased.html">IsGameControlReleased(MyStringId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsJoystickAxisNewPressed.html">IsJoystickAxisNewPressed(MyJoystickAxesEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsJoystickAxisPressed.html">IsJoystickAxisPressed(MyJoystickAxesEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsJoystickAxisValid.html">IsJoystickAxisValid(MyJoystickAxesEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsJoystickButtonNewPressed.html">IsJoystickButtonNewPressed(MyJoystickButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsJoystickButtonPressed.html">IsJoystickButtonPressed(MyJoystickButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsJoystickButtonValid.html">IsJoystickButtonValid(MyJoystickButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsJoystickConnected.html">IsJoystickConnected()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsKeyDigit.html">IsKeyDigit(MyKeys)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsKeyPress.html">IsKeyPress(MyKeys)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsKeyValid.html">IsKeyValid(MyKeys)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsLeftMousePressed.html">IsLeftMousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsLeftMouseReleased.html">IsLeftMouseReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsMiddleMousePressed.html">IsMiddleMousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsMouseButtonValid.html">IsMouseButtonValid(MyMouseButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsMousePressed.html">IsMousePressed(MyMouseButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsMouseReleased.html">IsMouseReleased(MyMouseButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewButtonPressed.html">IsNewButtonPressed(MySharedButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewButtonReleased.html">IsNewButtonReleased(MySharedButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewGameControlPressed.html">IsNewGameControlPressed(MyStringId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewGameControlReleased.html">IsNewGameControlReleased(MyStringId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewJoystickAxisReleased.html">IsNewJoystickAxisReleased(MyJoystickAxesEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewJoystickButtonReleased.html">IsNewJoystickButtonReleased(MyJoystickButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewKeyPressed.html">IsNewKeyPressed(MyKeys)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewKeyReleased.html">IsNewKeyReleased(MyKeys)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewLeftMousePressed.html">IsNewLeftMousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewLeftMouseReleased.html">IsNewLeftMouseReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewMiddleMousePressed.html">IsNewMiddleMousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewMiddleMouseReleased.html">IsNewMiddleMouseReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewMousePressed.html">IsNewMousePressed(MyMouseButtonsEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewPrimaryButtonPressed.html">IsNewPrimaryButtonPressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewPrimaryButtonReleased.html">IsNewPrimaryButtonReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewRightMousePressed.html">IsNewRightMousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewRightMouseReleased.html">IsNewRightMouseReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewSecondaryButtonPressed.html">IsNewSecondaryButtonPressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewSecondaryButtonReleased.html">IsNewSecondaryButtonReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewXButton1MousePressed.html">IsNewXButton1MousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewXButton1MouseReleased.html">IsNewXButton1MouseReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewXButton2MousePressed.html">IsNewXButton2MousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsNewXButton2MouseReleased.html">IsNewXButton2MouseReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsPrimaryButtonPressed.html">IsPrimaryButtonPressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsPrimaryButtonReleased.html">IsPrimaryButtonReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsRightMousePressed.html">IsRightMousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsSecondaryButtonPressed.html">IsSecondaryButtonPressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsSecondaryButtonReleased.html">IsSecondaryButtonReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsXButton1MousePressed.html">IsXButton1MousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@IsXButton2MousePressed.html">IsXButton2MousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@MouseScrollWheelValue.html">MouseScrollWheelValue()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@PreviousMouseScrollWheelValue.html">PreviousMouseScrollWheelValue()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@TryGetControl.html">TryGetControl(MyStringId, MyStringId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@WasKeyPress.html">WasKeyPress(MyKeys)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@WasMiddleMousePressed.html">WasMiddleMousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@WasMiddleMouseReleased.html">WasMiddleMouseReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@WasRightMousePressed.html">WasRightMousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@WasRightMouseReleased.html">WasRightMouseReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@WasXButton1MousePressed.html">WasXButton1MousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@WasXButton1MouseReleased.html">WasXButton1MouseReleased()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@WasXButton2MousePressed.html">WasXButton2MousePressed()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyInput@WasXButton2MouseReleased.html">WasXButton2MouseReleased()</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

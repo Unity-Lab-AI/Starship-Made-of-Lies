@@ -1,0 +1,28 @@
+{
+  "Generated": "2025-12-16T19:14:51.4603639Z",
+  "Files": [
+    "api-index.js",
+    "Controlling-File-Order-in-MDK\u00B2-Projects.html",
+    "Getting-Started-using-Jetbrains-Rider.html",
+    "Getting-Started-using-Visual-Studio.html",
+    "Getting-Started-using-VSCode.html",
+    "index.html",
+    "MDK\u00B2-Project-Configuration-Guide.html",
+    "mdk2.png",
+    "Mixin-Projects.html",
+    "Programmable-Block-Scripts.html",
+    "Running-MDK-on-Linux-(functional,-but-unsupported).html",
+    "search-index-old.json",
+    "sidebar-tree.html",
+    "styles.css",
+    "Updating-the-MDK2-Nuget-packages-using-Jetbrains-Rider.html",
+    "Updating-the-MDK2-Nuget-packages-using-Visual-Studio.html",
+    "Updating-the-MDK2-Nuget-packages-using-VSCode-or-command-line.html",
+    "Updating-the-MDK2-templates.html",
+    "Using-the-Minifier-and-Preserve-Regions-in-MDK\u00B2.html",
+    "wiki.png"
+  ],
+  "Directories": [
+    ".\\"
+  ]
+}

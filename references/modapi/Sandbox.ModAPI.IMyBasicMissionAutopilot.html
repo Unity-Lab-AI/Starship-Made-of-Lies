@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.IMyBasicMissionAutopilot - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.IMyBasicMissionAutopilot" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:50Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI</div>
+                <h1>IMyBasicMissionAutopilot</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Common.dll</p>
+<pre><code class="language-csharp">public interface IMyBasicMissionAutopilot: IMyBasicMissionComponent, IMyBasicMissionComponent
+</code></pre>
+<p>Describes autopilot mission for the Basic AI block</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyBasicMissionAutopilot@Mode.html">Mode</a></td>
+<td>Current FlightMode</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyBasicMissionComponent@DetailedInfo.html">DetailedInfo</a></td>
+<td>Contains detailed info with current status/error messages<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyBasicMissionComponent.html">IMyBasicMissionComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyBasicMissionComponent@IsSelected.html">IsSelected</a></td>
+<td>Gets or sets whether the mission is selected<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyBasicMissionComponent.html">IMyBasicMissionComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyBasicMissionComponent@MissionName.html">MissionName</a></td>
+<td>Gets mission name<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyBasicMissionComponent.html">IMyBasicMissionComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyBasicMissionComponent@UniqueSelectionId.html">UniqueSelectionId</a></td>
+<td>Gets unique selection id for the mission. You can find id of the mission in the EntityComponents.sbc.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyBasicMissionComponent.html">IMyBasicMissionComponent</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyBasicMissionAutopilot@AddWaypoint.html">AddWaypoint(IMyAutopilotWaypoint)</a></td>
+<td>Adds waypoint</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyBasicMissionAutopilot@AddWaypoint.html">AddWaypoint(IMyGps)</a></td>
+<td>Adds waypoint from gps</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyBasicMissionAutopilot@ClearWaypoints.html">ClearWaypoints()</a></td>
+<td>Removes all waypoints</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyBasicMissionAutopilot@GetLastWaypoint.html">GetLastWaypoint()</a></td>
+<td>Gets the last waypoint</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyBasicMissionAutopilot@GetWaypoints.html">GetWaypoints(List<IMyAutopilotWaypoint>)</a></td>
+<td>Gets list of waypoints in this component</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyBasicMissionAutopilot@RemoveWaypoint.html">RemoveWaypoint(IMyAutopilotWaypoint)</a></td>
+<td>Removes waypoint</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyBasicMissionAutopilot@SetMode.html">SetMode(FlightMode)</a></td>
+<td>Sets current FlightMode</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyBasicMissionComponent@CreateTerminalInterfaceControls%7BT%7D.html">CreateTerminalInterfaceControls<T>()</a></td>
+<td><em>Inherited from <a href="Sandbox.ModAPI.IMyBasicMissionComponent.html">IMyBasicMissionComponent</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="Sandbox.ModAPI.IMyBasicMissionComponent.html">IMyBasicMissionComponent</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyBasicMissionComponent.html">IMyBasicMissionComponent</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

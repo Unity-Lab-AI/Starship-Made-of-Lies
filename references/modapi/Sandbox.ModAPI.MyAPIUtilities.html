@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.MyAPIUtilities - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.MyAPIUtilities" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:51Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI</div>
+                <h1>MyAPIUtilities</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyAPIUtilities: IMyUtilities, IMyGamePaths
+</code></pre>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@Static.html">static Static</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@Variables.html">Variables</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@MessageEntered.html">MessageEntered</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@MessageEnteredSender.html">MessageEnteredSender</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@MessageRecieved.html">MessageRecieved</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@MessageEntered.html">MessageEntered</a></td>
+<td>Old handler. Use <a href="VRage.Game.ModAPI.IMyUtilities@MessageEnteredSender.html">MessageEnteredSender</a> instead<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@MessageEnteredSender.html">MessageEnteredSender</a></td>
+<td>Called when player sending message. If you changeto false, message won't be sent to other players and server It may be used to handle local commands like /wave<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@MessageRecieved.html">MessageRecieved</a></td>
+<td>Called when message arrived from server (other player). Arguments - Player SteamId and message text.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ConfigDedicated.html">ConfigDedicated</a></td>
+<td>Gets config of dedicated server<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGamePaths@ContentPath.html">ContentPath</a></td>
+<td>Return path, where original SE content folder is located. Example: D:\SteamLibrary\steamapps\common\SpaceEngineers\Content<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGamePaths.html">IMyGamePaths</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@GamePaths.html">GamePaths</a></td>
+<td>Gets ModAPI interface that, giving you information about most important game paths<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@IsDedicated.html">IsDedicated</a></td>
+<td>Gets if this game instance is dedicated server<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGamePaths@ModScopeName.html">ModScopeName</a></td>
+<td>Gets the calling mod's assembly ScopeName. This name is used in storage paths (eg. 1234567.sbm_TypeName).<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGamePaths.html">IMyGamePaths</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGamePaths@ModsPath.html">ModsPath</a></td>
+<td>Return path, where SE mod folder is located. Example: C:\Users{USERNAME}\AppData\Roaming\SpaceEngineers\Mods<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGamePaths.html">IMyGamePaths</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGamePaths@SavesPath.html">SavesPath</a></td>
+<td>Return path, where SE user saves path is located. Example: C:\Users{USERNAME}\AppData\Roaming\SpaceEngineers\Saves<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGamePaths.html">IMyGamePaths</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyGamePaths@UserDataPath.html">UserDataPath</a></td>
+<td>Return path, where SE user folder is located. Example: C:\Users{USERNAME}\AppData\Roaming\SpaceEngineers<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyGamePaths.html">IMyGamePaths</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@.ctor.html">MyAPIUtilities()</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table Assembly="" Scope="" SteamId="" WorldName="">
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@EnterMessage.html">EnterMessage(ulong, string, ref bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@EnterMessageSender.html">EnterMessageSender(ulong, string, ref bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@RecieveMessage.html">RecieveMessage(ulong, string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@RegisterMessageHandler.html">RegisterMessageHandler(long, Action<object>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@SendModMessage.html">SendModMessage(long, object)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.MyAPIUtilities@UnregisterMessageHandler.html">UnregisterMessageHandler(long, Action<object>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@CreateNotification.html">CreateNotification(string, int, string)</a></td>
+<td>Create a notification object. The object needs to have Show() called on it to be shown. On top of that you can dynamically change the text, font and adjust the time to live.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@DeleteFileInGlobalStorage.html">DeleteFileInGlobalStorage(string)</a></td>
+<td>Deletes file in global storage %APPDATA%/Roaming/SpaceEngineers/Storage<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@DeleteFileInLocalStorage.html">DeleteFileInLocalStorage(string, Type)</a></td>
+<td>Deletes file in local storage %APPDATA%/Roaming/SpaceEngineers/Storage/ Where  - callingType.Assembly.ManifestModule.ScopeName<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@DeleteFileInWorldStorage.html">DeleteFileInWorldStorage(string, Type)</a></td>
+<td>Deletes file in world storage %APPDATA%/Roaming/SpaceEngineers/Save///Storage/ Where  - callingType.Assembly.ManifestModule.ScopeName<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@FileExistsInGameContent.html">FileExistsInGameContent(string)</a></td>
+<td>Checks if file exists in game content folder. (Folder where SE is installed)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@FileExistsInGlobalStorage.html">FileExistsInGlobalStorage(string)</a></td>
+<td>Checks if file exists in %APPDATA%/Roaming/SpaceEngineers/Storage folder. (Folder where SE is installed)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@FileExistsInLocalStorage.html">FileExistsInLocalStorage(string, Type)</a></td>
+<td>Checks if file exists in %APPDATA%/Roaming/SpaceEngineers/Storage/ Where  - callingType.Assembly.ManifestModule.ScopeName<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@FileExistsInModLocation.html">FileExistsInModLocation(string, ModItem)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@FileExistsInWorldStorage.html">FileExistsInWorldStorage(string, Type)</a></td>
+<td>Checks if file exists in world save %APPDATA%/Roaming/SpaceEngineers/Save///Storage/ Where  - callingType.Assembly.ManifestModule.ScopeName<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@GetObjectiveLine.html">GetObjectiveLine()</a></td>
+<td>Gets objectives interface<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@GetTypeName.html">GetTypeName(Type)</a></td>
+<td>Gets name of type<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@GetVariable%7BT%7D.html">GetVariable<T>(string, out T)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@InvokeOnGameThread.html">InvokeOnGameThread(Action, string, int, int)</a></td>
+<td>Invokes action on simulation thread<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ReadBinaryFileInGameContent.html">ReadBinaryFileInGameContent(string)</a></td>
+<td>Reads text file from game content folder. (Folder where SE is installed)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ReadBinaryFileInGlobalStorage.html">ReadBinaryFileInGlobalStorage(string)</a></td>
+<td>Reads text file from global storage %APPDATA%/Roaming/SpaceEngineers/Storage<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ReadBinaryFileInLocalStorage.html">ReadBinaryFileInLocalStorage(string, Type)</a></td>
+<td>Reads binary file from local storage %APPDATA%/Roaming/SpaceEngineers/Storage/<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ReadBinaryFileInModLocation.html">ReadBinaryFileInModLocation(string, ModItem)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ReadBinaryFileInWorldStorage.html">ReadBinaryFileInWorldStorage(string, Type)</a></td>
+<td>Read binary file from world storage %APPDATA%/Roaming/SpaceEngineers/Save///Storage/<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ReadFileInGameContent.html">ReadFileInGameContent(string)</a></td>
+<td>Reads text file from game content folder. (Folder where SE is installed)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ReadFileInGlobalStorage.html">ReadFileInGlobalStorage(string)</a></td>
+<td>Reads text file from global storage %APPDATA%/Roaming/SpaceEngineers/Storage<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ReadFileInLocalStorage.html">ReadFileInLocalStorage(string, Type)</a></td>
+<td>Reads text file from local storage %APPDATA%/Roaming/SpaceEngineers/Storage/<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ReadFileInModLocation.html">ReadFileInModLocation(string, ModItem)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ReadFileInWorldStorage.html">ReadFileInWorldStorage(string, Type)</a></td>
+<td>Read text file from world storage %APPDATA%/Roaming/SpaceEngineers/Save///Storage/<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@RegisterMessageHandler.html">RegisterMessageHandler(long, Action<object>)</a></td>
+<td>Adds a handler to the mod message system.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@RemoveVariable.html">RemoveVariable(string)</a></td>
+<td>Unregisters variable<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@SendMessage.html">SendMessage(string)</a></td>
+<td>Send message to other players<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@SendModMessage.html">SendModMessage(long, object)</a></td>
+<td>Allows passing data between mods on the same client.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@SerializeFromBinary%7BT%7D.html">SerializeFromBinary<T>(Byte[])</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@SerializeFromXML%7BT%7D.html">SerializeFromXML<T>(string)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@SerializeToBinary%7BT%7D.html">SerializeToBinary<T>(T)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@SerializeToXML%7BT%7D.html">SerializeToXML<T>(T)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@SetVariable%7BT%7D.html">SetVariable<T>(string, T)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ShowMessage.html">ShowMessage(string, string)</a></td>
+<td>Shows message for local player without sending it to other players<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ShowMissionScreen.html">ShowMissionScreen(string, string, string, string, Action<ResultEnum>, string)</a></td>
+<td>Shows mission screen<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@ShowNotification.html">ShowNotification(string, int, string)</a></td>
+<td>Shows notification<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@UnregisterMessageHandler.html">UnregisterMessageHandler(long, Action<object>)</a></td>
+<td>Removes a handler from the mod message system.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@WriteBinaryFileInGlobalStorage.html">WriteBinaryFileInGlobalStorage(string)</a></td>
+<td>Write bytes to file from local storage %APPDATA%/Roaming/SpaceEngineers/Storage/<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@WriteBinaryFileInLocalStorage.html">WriteBinaryFileInLocalStorage(string, Type)</a></td>
+<td>Write bytes to file from local storage %APPDATA%/Roaming/SpaceEngineers/Storage/<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@WriteBinaryFileInWorldStorage.html">WriteBinaryFileInWorldStorage(string, Type)</a></td>
+<td>Write file to the current world's Storage directory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@WriteFileInGlobalStorage.html">WriteFileInGlobalStorage(string)</a></td>
+<td>Write text to file from local storage %APPDATA%/Roaming/SpaceEngineers/Storage/<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@WriteFileInLocalStorage.html">WriteFileInLocalStorage(string, Type)</a></td>
+<td>Write text to file from local storage %APPDATA%/Roaming/SpaceEngineers/Storage/<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyUtilities@WriteFileInWorldStorage.html">WriteFileInWorldStorage(string, Type)</a></td>
+<td>Write text to file from current world's storage directory. %APPDATA%/Roaming/SpaceEngineers/Save///Storage/<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.ModAPI.IMyGamePaths.html">IMyGamePaths</a></li>
+<li><a href="VRage.Game.ModAPI.IMyUtilities.html">IMyUtilities</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.Quaternion - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.Quaternion" data-cache-buster="54480b3351e0" data-api-type="pb">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:38Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>Quaternion</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public struct Quaternion: IEquatable&lt;Quaternion&gt;
+</code></pre>
+<p>Defines a four-dimensional vector (x,y,z,w), which is used to efficiently rotate an object about the (x, y, z) vector by the angle theta, where w = cos(theta/2).</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Quaternion@Identity.html">static Identity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Zero.html">static Zero</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@W.html">W</a></td>
+<td>Specifies the rotation component of the quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@X.html">X</a></td>
+<td>Specifies the x-value of the vector component of the quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Y.html">Y</a></td>
+<td>Specifies the y-value of the vector component of the quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Z.html">Z</a></td>
+<td>Specifies the z-value of the vector component of the quaternion.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Quaternion@Forward.html">Forward</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Right.html">Right</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Up.html">Up</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Quaternion@.ctor.html">Quaternion(float, float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@.ctor.html">Quaternion(Vector3, float)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Quaternion@Add.html">static Add(Quaternion, Quaternion)</a></td>
+<td>Adds two Quaternions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Add.html">static Add(ref Quaternion, ref Quaternion, out Quaternion)</a></td>
+<td>Adds two Quaternions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Concatenate.html">static Concatenate(Quaternion, Quaternion)</a></td>
+<td>Concatenates two Quaternions; the result represents the value1 rotation followed by the value2 rotation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Concatenate.html">static Concatenate(ref Quaternion, ref Quaternion, out Quaternion)</a></td>
+<td>Concatenates two Quaternions; the result represents the value1 rotation followed by the value2 rotation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Conjugate.html">static Conjugate(Quaternion)</a></td>
+<td>Returns the conjugate of a specified Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Conjugate.html">static Conjugate(ref Quaternion, out Quaternion)</a></td>
+<td>Returns the conjugate of a specified Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromAxisAngle.html">static CreateFromAxisAngle(Vector3, float)</a></td>
+<td>Creates a Quaternion from a vector and an angle to rotate about the vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromAxisAngle.html">static CreateFromAxisAngle(ref Vector3, float, out Quaternion)</a></td>
+<td>Creates a Quaternion from a vector and an angle to rotate about the vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromForwardUp.html">static CreateFromForwardUp(Vector3, Vector3)</a></td>
+<td>Works for normalized vectors only</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromRotationMatrix.html">static CreateFromRotationMatrix(ref MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromRotationMatrix.html">static CreateFromRotationMatrix(Matrix)</a></td>
+<td>Creates a Quaternion from a rotation Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromRotationMatrix.html">static CreateFromRotationMatrix(ref MatrixD, out Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromRotationMatrix.html">static CreateFromRotationMatrix(ref Matrix, out Quaternion)</a></td>
+<td>Creates a Quaternion from a rotation Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromRotationMatrix.html">static CreateFromRotationMatrix(ref Matrix3x3, out Quaternion)</a></td>
+<td>Creates a Quaternion from a rotation Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromTwoVectors.html">static CreateFromTwoVectors(ref Vector3, ref Vector3, out Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromTwoVectors.html">static CreateFromTwoVectors(Vector3, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromYawPitchRoll.html">static CreateFromYawPitchRoll(float, float, float)</a></td>
+<td>Creates a new Quaternion from specified yaw, pitch, and roll angles.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@CreateFromYawPitchRoll.html">static CreateFromYawPitchRoll(float, float, float, out Quaternion)</a></td>
+<td>Creates a new Quaternion from specified yaw, pitch, and roll angles.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Divide.html">static Divide(Quaternion, Quaternion)</a></td>
+<td>Divides a Quaternion by another Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Divide.html">static Divide(ref Quaternion, ref Quaternion, out Quaternion)</a></td>
+<td>Divides a Quaternion by another Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Dot.html">static Dot(Quaternion, Quaternion)</a></td>
+<td>Calculates the dot product of two Quaternions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Dot.html">static Dot(ref Quaternion, ref Quaternion, out float)</a></td>
+<td>Calculates the dot product of two Quaternions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@FromVector4.html">static FromVector4(Vector4)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@GetForward.html">static GetForward(ref Quaternion, out Vector3)</a></td>
+<td>Gets forward vector (0,0,-1) transformed by quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@GetRight.html">static GetRight(ref Quaternion, out Vector3)</a></td>
+<td>Gets right vector (1,0,0) transformed by quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@GetUp.html">static GetUp(ref Quaternion, out Vector3)</a></td>
+<td>Gets up vector (0,1,0) transformed by quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Inverse.html">static Inverse(Quaternion)</a></td>
+<td>Returns the inverse of a Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Inverse.html">static Inverse(ref Quaternion, out Quaternion)</a></td>
+<td>Returns the inverse of a Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@IsZero.html">static IsZero(Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@IsZero.html">static IsZero(Quaternion, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Lerp.html">static Lerp(Quaternion, Quaternion, float)</a></td>
+<td>Linearly interpolates between two quaternions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Lerp.html">static Lerp(ref Quaternion, ref Quaternion, float, out Quaternion)</a></td>
+<td>Linearly interpolates between two quaternions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Multiply.html">static Multiply(Quaternion, Quaternion)</a></td>
+<td>Multiplies two quaternions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Multiply.html">static Multiply(ref Quaternion, ref Quaternion, out Quaternion)</a></td>
+<td>Multiplies two quaternions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Multiply.html">static Multiply(Quaternion, float)</a></td>
+<td>Multiplies a quaternion by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Multiply.html">static Multiply(ref Quaternion, float, out Quaternion)</a></td>
+<td>Multiplies a quaternion by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Negate.html">static Negate(Quaternion)</a></td>
+<td>Flips the sign of each component of the quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Negate.html">static Negate(ref Quaternion, out Quaternion)</a></td>
+<td>Flips the sign of each component of the quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Normalize.html">static Normalize(Quaternion)</a></td>
+<td>Divides each component of the quaternion by the length of the quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Normalize.html">static Normalize(ref Quaternion, out Quaternion)</a></td>
+<td>Divides each component of the quaternion by the length of the quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Slerp.html">static Slerp(Quaternion, Quaternion, float)</a></td>
+<td>Interpolates between two quaternions, using spherical linear interpolation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Slerp.html">static Slerp(ref Quaternion, ref Quaternion, float, out Quaternion)</a></td>
+<td>Interpolates between two quaternions, using spherical linear interpolation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Subtract.html">static Subtract(Quaternion, Quaternion)</a></td>
+<td>Subtracts a quaternion from another quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Subtract.html">static Subtract(ref Quaternion, ref Quaternion, out Quaternion)</a></td>
+<td>Subtracts a quaternion from another quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Conjugate.html">Conjugate()</a></td>
+<td>Transforms this Quaternion into its conjugate.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Equals.html">Equals(Quaternion)</a></td>
+<td>Determines whether the specified Object is equal to the Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Equals.html">Equals(Quaternion, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Equals.html">Equals(object)</a></td>
+<td>Returns a value that indicates whether the current instance is equal to a specified object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@FindLargestIndex.html">FindLargestIndex()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@GetAxisAngle.html">GetAxisAngle(out Vector3, out float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@GetComponent.html">GetComponent(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@GetHashCode.html">GetHashCode()</a></td>
+<td>Get the hash code of this object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Length.html">Length()</a></td>
+<td>Calculates the length of a Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@LengthSquared.html">LengthSquared()</a></td>
+<td>Calculates the length squared of a Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@Normalize.html">Normalize()</a></td>
+<td>Divides each component of the quaternion by the length of the quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@SetComponent.html">SetComponent(int, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@ToString.html">ToString()</a></td>
+<td>Retireves a string representation of the current object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@ToString.html">ToString(string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@ToStringAxisAngle.html">ToStringAxisAngle(string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Quaternion@ToVector4.html">ToVector4()</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1?view=netframework-4.6">IEquatable<Quaternion></a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

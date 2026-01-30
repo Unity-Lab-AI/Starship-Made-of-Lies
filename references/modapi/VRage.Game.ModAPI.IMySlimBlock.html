@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.IMySlimBlock - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.IMySlimBlock" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:53Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI</div>
+                <h1>IMySlimBlock</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMySlimBlock: IMySlimBlock, IMyDestroyableObject, IMyDecalProxy
+</code></pre>
+<p>Basic block interface (Mod api interface)</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@BlockDefinition.html">BlockDefinition</a></td>
+<td>The blocks definition (cast to MyCubeBlockDefinition)</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@BlockGeneralDamageModifier.html">BlockGeneralDamageModifier</a></td>
+<td>Allows you to get or set the damage modifier of a block.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@BuiltBy.html">BuiltBy</a></td>
+<td>Identity ID of the builder of this block.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@ComponentStack.html">ComponentStack</a></td>
+<td>Gets the component stack of the block</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@CubeGrid.html">CubeGrid</a></td>
+<td>Gets the grid the slimblock is on</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@Dithering.html">Dithering</a></td>
+<td>Sets the transparency of the block.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@FatBlock.html">FatBlock</a></td>
+<td>Gets the fatblock if there is one</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@IsMovedBySplit.html">IsMovedBySplit</a></td>
+<td>Gets if the block is in process of being moved from one grid to the other. Happens when grid splits to two.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@Max.html">Max</a></td>
+<td>Largest part of block</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@Min.html">Min</a></td>
+<td>Min position in the grid</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@Orientation.html">Orientation</a></td>
+<td>Blocks orientation</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@AccumulatedDamage.html">AccumulatedDamage</a></td>
+<td>Current accumlated damage, pending application<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@BlockDefinition.html">BlockDefinition</a></td>
+<td>Block definition ID<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@BuildIntegrity.html">BuildIntegrity</a></td>
+<td>Build integrity (of components)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@BuildLevelRatio.html">BuildLevelRatio</a></td>
+<td>Ratio of BuildIntegrity and MaxIntegrity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@ColorMaskHSV.html">ColorMaskHSV</a></td>
+<td>Gets the color of the block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@CubeGrid.html">CubeGrid</a></td>
+<td>Gets the grid the slimblock is on<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@CurrentDamage.html">CurrentDamage</a></td>
+<td>BuildIntegrity - Integrity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@DamageRatio.html">DamageRatio</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@FatBlock.html">FatBlock</a></td>
+<td>Gets the fatblock if there is one<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@HasDeformation.html">HasDeformation</a></td>
+<td>If this block is deformed (bones deformed)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyDestroyableObject@Integrity.html">Integrity</a></td>
+<td>Gets the integrity (health) of the object<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyDestroyableObject.html">IMyDestroyableObject</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@IsDestroyed.html">IsDestroyed</a></td>
+<td>Gets if component stack is empty<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@IsFullIntegrity.html">IsFullIntegrity</a></td>
+<td>Integrity is at maximum<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@IsFullyDismounted.html">IsFullyDismounted</a></td>
+<td>Gets if component stack is empty<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@Mass.html">Mass</a></td>
+<td>Block mass<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@MaxDeformation.html">MaxDeformation</a></td>
+<td>Maximum deformation of block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@MaxIntegrity.html">MaxIntegrity</a></td>
+<td>The maximum integrity of block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@OwnerId.html">OwnerId</a></td>
+<td>Fatblock owner, if present; otherwise grid owner<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@Position.html">Position</a></td>
+<td>Grid relative position of block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@ShowParts.html">ShowParts</a></td>
+<td>Gets if sub parts are shown<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@SkinSubtypeId.html">SkinSubtypeId</a></td>
+<td>Gets the skin of the block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@StockpileAllocated.html">StockpileAllocated</a></td>
+<td>A component stockpile has been allocated<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@StockpileEmpty.html">StockpileEmpty</a></td>
+<td>The component stockpile is empty (no build components)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyDestroyableObject@UseDamageSystem.html">UseDamageSystem</a></td>
+<td>When set to true, it should use MyDamageSystem damage routing.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyDestroyableObject.html">IMyDestroyableObject</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@Neighbours.html">Neighbours</a></td>
+<td><em><strong>Obsolete:</strong> Allocates memory, Use GetNeighbours function</em><br /><br />OBSOLETE: allocates memory use GetNeighbours function. The blocks that neighbour this block</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@AddNeighbours.html">AddNeighbours()</a></td>
+<td>Calls function that adds neighbours to block</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@ApplyAccumulatedDamage.html">ApplyAccumulatedDamage(bool)</a></td>
+<td>When damage is less than threshold, applies not</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@CalculateCurrentModel.html">CalculateCurrentModel(out Matrix)</a></td>
+<td>Get current model for block. When block is not functional, it would return current construction model</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@CanContinueBuild.html">CanContinueBuild(IMyInventory)</a></td>
+<td>Can we continue to weld this block?</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@ClearConstructionStockpile.html">ClearConstructionStockpile(IMyInventory)</a></td>
+<td>Clears out the construction stockpile and moves the components into a destination inventory</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@ComputeScaledCenter.html">ComputeScaledCenter(out Vector3D)</a></td>
+<td>Gets the block center as a Vector3D, relative to grid WorldMatrix</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@ComputeScaledHalfExtents.html">ComputeScaledHalfExtents(out Vector3)</a></td>
+<td>Gets the half extents for the block</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@ComputeWorldCenter.html">ComputeWorldCenter(out Vector3D)</a></td>
+<td>Gets the world position for the center of the block</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@DecreaseMountLevel.html">DecreaseMountLevel(float, IMyInventory, bool)</a></td>
+<td>Decreases the build level of a block</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@FixBones.html">FixBones(float, float)</a></td>
+<td>Repair block deformation</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@FullyDismount.html">FullyDismount(IMyInventory)</a></td>
+<td>Reset built level to 0</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@GetColorMask.html">GetColorMask()</a></td>
+<td>Gets block color</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@GetConstructionStockpileItemAmount.html">GetConstructionStockpileItemAmount(MyDefinitionId)</a></td>
+<td>Get the amount of items in the construction stockpile</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@GetNeighbours.html">GetNeighbours(ICollection<IMySlimBlock>)</a></td>
+<td>The blocks that neighbour this block. Doesn't allocate memory</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@GetObjectBuilder.html">GetObjectBuilder(bool)</a></td>
+<td>Gets the object builder for the slimblock</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@GetWorldBoundingBox.html">GetWorldBoundingBox(out BoundingBoxD, bool)</a></td>
+<td>The AABB of this block</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@IncreaseMountLevel.html">IncreaseMountLevel(float, long, IMyInventory, float, bool, MyOwnershipShareModeEnum)</a></td>
+<td>Increases the build level of a block</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@InitOrientation.html">InitOrientation(ref Vector3I, ref Vector3I)</a></td>
+<td>Sets orientation of block</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@InitOrientation.html">InitOrientation(Direction, Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@InitOrientation.html">InitOrientation(MyBlockOrientation)</a></td>
+<td>Sets orientation of block</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@MoveItemsFromConstructionStockpile.html">MoveItemsFromConstructionStockpile(IMyInventory, MyItemFlags)</a></td>
+<td>Transfer construction components from inventory to stockpile</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@MoveItemsToConstructionStockpile.html">MoveItemsToConstructionStockpile(IMyInventory)</a></td>
+<td>Move items missing from an inventory into the construction stockpile</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@PlayConstructionSound.html">PlayConstructionSound(MyIntegrityChangeEnum, bool)</a></td>
+<td>Play the construction sound associated with the integrity change</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@RemoveNeighbours.html">RemoveNeighbours()</a></td>
+<td>Removes block neighbours</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@SetToConstructionSite.html">SetToConstructionSite()</a></td>
+<td>Resets welded integrity to minimal value</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@SpawnConstructionStockpile.html">SpawnConstructionStockpile()</a></td>
+<td>Spawn contents of construction stockpile</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@SpawnFirstItemInConstructionStockpile.html">SpawnFirstItemInConstructionStockpile()</a></td>
+<td>Adds the first component to the stockpile</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@UpdateVisual.html">UpdateVisual()</a></td>
+<td>Drops visual cache. May fix some render problems.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyDecalProxy@AddDecals.html">AddDecals(ref MyHitInfo, MyStringHash, Vector3, object, IMyDecalHandler, MyStringHash, MyStringHash, bool, MyDecalFlags, int, List<uint>)</a></td>
+<td>Called from Sandbox.Game.MyDecals<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyDecalProxy.html">IMyDecalProxy</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyDestroyableObject@DoDamage.html">DoDamage(float, MyStringHash, bool, MyHitInfo?, long, long, bool, MyStringHash?)</a></td>
+<td>Applies damage to an object<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyDestroyableObject.html">IMyDestroyableObject</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock@GetMissingComponents.html">GetMissingComponents(Dictionary&lt;string, int&gt;)</a></td>
+<td>Gets the list of missing components for this block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Interfaces.IMyDestroyableObject@OnDestroy.html">OnDestroy()</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.Interfaces.IMyDestroyableObject.html">IMyDestroyableObject</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySlimBlock@GetCopyObjectBuilder.html">GetCopyObjectBuilder()</a></td>
+<td><em><strong>Obsolete:</strong> GetCopyObjectBuilder() is deprecated. Call GetObjectBuilder(bool) and pass 'true'.</em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.ModAPI.Interfaces.IMyDecalProxy.html">IMyDecalProxy</a></li>
+<li><a href="VRage.Game.ModAPI.Interfaces.IMyDestroyableObject.html">IMyDestroyableObject</a></li>
+<li><a href="VRage.Game.ModAPI.Ingame.IMySlimBlock.html">IMySlimBlock</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

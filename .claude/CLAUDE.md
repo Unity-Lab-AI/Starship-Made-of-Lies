@@ -16,13 +16,14 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
 6. [Per-PB CustomData Architecture](#per-pb-customdata-architecture)
 7. [No Tests Policy](#no-tests-policy)
 8. [MDK Project Structure](#mdk-project-structure)
-9. [Character Budgets](#character-budgets)
-10. [IGC Communication Channels](#igc-communication-channels)
-11. [Missile System Architecture](#missile-system-architecture)
-12. [The 600-Line Read Standard](#the-600-line-read-standard)
-13. [Agent Files](#agent-files)
-14. [Quick Reference](#quick-reference)
-15. [Boot Handshake Protocol](#boot-handshake-protocol)
+9. [Local API Reference Documentation](#local-api-reference-documentation)
+10. [Character Budgets](#character-budgets)
+11. [IGC Communication Channels](#igc-communication-channels)
+12. [Missile System Architecture](#missile-system-architecture)
+13. [The 600-Line Read Standard](#the-600-line-read-standard)
+14. [Agent Files](#agent-files)
+15. [Quick Reference](#quick-reference)
+16. [Boot Handshake Protocol](#boot-handshake-protocol)
     - [PB Discovery Pattern](#pb-discovery-pattern)
     - [How Scripts Read From Other PBs](#how-scripts-read-from-other-pbs)
     - [In-Game Script Compile Order](#in-game-script-compile-order)
@@ -35,8 +36,8 @@ Analyzes and develops the guided missile system for Space Engineers. Uses Unity 
     - [The 26 Boot Checks](#the-26-boot-checks)
     - [Boot Flow](#boot-flow-per-pb-architecture)
     - [Checking Boot Status](#checking-boot-status-in-operational-scripts)
-16. [Credits & Acknowledgements](#credits--acknowledgements)
-17. [Multi-Pad Setup](#multi-pad-setup)
+17. [Credits & Acknowledgements](#credits--acknowledgements)
+18. [Multi-Pad Setup](#multi-pad-setup)
 
 ---
 
@@ -424,6 +425,11 @@ Unity Missile System/
 │   └── check-chars.ps1           # Character count checker
 │
 ├── references/
+│   ├── mdk2/                     # MDK2 framework wiki docs (23 files)
+│   ├── modapi/                   # SE Mod API reference (27,000+ files)
+│   ├── pbapi/                    # PB Scripting API reference (3,800+ files)
+│   ├── MDK2_Configuration.md     # MDK2 config guide (minify, preserve, sortorder)
+│   ├── PB_API_Reference.md       # Key PB interfaces quick reference
 │   └── se_blueprints.csv         # Blueprint reference data
 │
 ├── src/
@@ -497,6 +503,93 @@ namespaces=IngameScript
 ```
 
 **CRITICAL:** Always use `minify=full` - it reduces deployed size by ~20-30%!
+
+### Creating a New MDK2 Project
+
+To create a new PB script project from the MDK2 template:
+
+```powershell
+cd src/scripts
+dotnet new mdk2pbscript -n ScriptName -o ScriptName
+```
+
+This creates a new MDK2 project folder with the correct `.csproj`, `Program.cs`, and `mdk.ini` structure. After creation, add the project to `tools/wrap-scripts.ps1` if using the raw `.cs` wrapper workflow.
+
+### MDK2 File Order Control
+
+Control the order `.cs` files are combined in the final output:
+
+```csharp
+// <mdk sortorder="1000" />
+```
+
+- Lower values are processed first
+- The `Program` class MUST appear first in the final combined script
+- Files with code outside `Program` cannot appear before files containing `Program`
+
+### MDK2 Preserve Regions
+
+Protect specific code from minification (useful for enums or constants):
+
+```csharp
+#region mdk preserve
+// This code won't be minified (names preserved)
+#endregion
+```
+
+- Keep preserve blocks within a single logical scope (inside a class or method)
+- Regions crossing scope boundaries can cause unexpected behavior
+- Only preserve what's absolutely necessary — over-preserving defeats minification
+
+---
+
+## LOCAL API REFERENCE DOCUMENTATION
+
+**IMPORTANT:** The Malforge documentation site (malforge.github.io) is NOT indexed by search engines. Always search the local `references/` folders first before attempting web searches.
+
+### Reference Folders
+
+| Folder | Contents | Use For |
+|--------|----------|---------|
+| `references/pbapi/` | PB Scripting API (3,800+ files) | Block interfaces for in-game scripts (IMyThrust, IMyGyro, IMySensorBlock, etc.) |
+| `references/modapi/` | Mod API (27,000+ files) | Mod development (Sandbox.Game, Sandbox.ModAPI, VRage) |
+| `references/mdk2/` | MDK2 Framework (23 files) | Project setup, minification, mixin projects |
+| `references/MDK2_Configuration.md` | MDK2 config summary | Quick reference for mdk.ini settings |
+| `references/PB_API_Reference.md` | PB API summary | Common interfaces, properties, methods |
+
+### How to Search Local API Docs
+
+When you need to look up a block interface or API method, search locally first:
+
+```
+# Find a specific interface (e.g., turret controller)
+Grep pattern: "turret" in references/pbapi/
+Glob pattern: references/pbapi/*Turret*
+
+# Find a specific class
+Glob pattern: references/pbapi/Sandbox.ModAPI.Ingame.IMyThrust*
+
+# General pattern for PB interfaces
+references/pbapi/Sandbox.ModAPI.Ingame.[InterfaceName].html
+```
+
+### Common Interface Hierarchy
+
+Most block interfaces follow this inheritance pattern:
+
+```
+IMyEntity
+└── IMyCubeBlock
+    └── IMyTerminalBlock
+        └── IMyFunctionalBlock
+            └── [Specific Block Interface]
+```
+
+### Search Priority Order
+
+1. **LOCAL FIRST:** Search `references/pbapi/` or `references/modapi/` using Grep/Glob
+2. **Summary docs:** Check `references/PB_API_Reference.md` for common interfaces
+3. **Web fallback:** Only if not found locally, search for `malforge space engineers pbapi [block type]`
 
 ---
 

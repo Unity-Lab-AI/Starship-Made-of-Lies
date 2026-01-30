@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.Base6Directions - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.Base6Directions" data-cache-buster="54480b3351e0" data-api-type="pb">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:37Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>Base6Directions</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public class Base6Directions
+</code></pre>
+<p>Workaround because .NET XML serializer is stupid and does not like enum inside static class</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Base6Directions@Directions.html">static Directions</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@EnumDirections.html">static EnumDirections</a></td>
+<td>Because Enum.GetValues(...) returns array of objects</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@IntDirections.html">static IntDirections</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetAxis.html">static GetAxis(Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetBaseAxisDirection.html">static GetBaseAxisDirection(Axis)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetClosestDirection.html">static GetClosestDirection(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetClosestDirection.html">static GetClosestDirection(ref Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetCross.html">static GetCross(Direction, Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetDirection.html">static GetDirection(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetDirection.html">static GetDirection(ref Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetDirection.html">static GetDirection(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetDirection.html">static GetDirection(ref Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetDirectionFlag.html">static GetDirectionFlag(Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetDirectionInAxis.html">static GetDirectionInAxis(Vector3, Axis)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetDirectionInAxis.html">static GetDirectionInAxis(ref Vector3, Axis)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetFlippedDirection.html">static GetFlippedDirection(Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetForward.html">static GetForward(Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetForward.html">static GetForward(ref Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetForward.html">static GetForward(ref Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetIntVector.html">static GetIntVector(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetIntVector.html">static GetIntVector(Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetLeft.html">static GetLeft(Direction, Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetOppositeDirection.html">static GetOppositeDirection(Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetOrientation.html">static GetOrientation(Direction, Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetPerpendicular.html">static GetPerpendicular(Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetUp.html">static GetUp(Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetUp.html">static GetUp(ref Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetUp.html">static GetUp(ref Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetVector.html">static GetVector(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetVector.html">static GetVector(Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@GetVector.html">static GetVector(Direction, out Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@IsBaseDirection.html">static IsBaseDirection(ref Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@IsBaseDirection.html">static IsBaseDirection(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@IsBaseDirection.html">static IsBaseDirection(ref Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Base6Directions@IsValidBlockOrientation.html">static IsValidBlockOrientation(Direction, Direction)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

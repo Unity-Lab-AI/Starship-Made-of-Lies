@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.Entities.MyComponentStack - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.Entities.MyComponentStack" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:48Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game.Entities</div>
+                <h1>MyComponentStack</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyComponentStack: IMyComponentStack
+</code></pre>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@MOUNT_THRESHOLD.html">static MOUNT_THRESHOLD</a></td>
+<td>Mount threshold, required because of float inaccuracy. Component that has integrity beyond this threshold is considered unmounted. The integrity of the whole stack will never fall beyond this level (unless the stack is fully dismounted)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@BuildIntegrityChanged.html">BuildIntegrityChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@IntegrityChanged.html">IntegrityChanged</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@IsFunctionalChanged.html">IsFunctionalChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@IntegrityChanged.html">IntegrityChanged</a></td>
+<td>Triggers when integrity is changed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@IsFunctionalChanged.html">IsFunctionalChanged</a></td>
+<td>Triggers when functional state has changed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@NewBlockIntegrity.html">static NewBlockIntegrity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@BuildIntegrity.html">BuildIntegrity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@BuildRatio.html">BuildRatio</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@GroupCount.html">GroupCount</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@Integrity.html">Integrity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@IntegrityRatio.html">IntegrityRatio</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@IsBuilt.html">IsBuilt</a></td>
+<td>Whether the block is built based on build-time integrity (construction state) and the final model can be shown. Uses <a href="Sandbox.Game.Entities.MyComponentStack@BuildIntegrity.html">BuildIntegrity</a> for the check.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@IsDestroyed.html">IsDestroyed</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@IsFullIntegrity.html">IsFullIntegrity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@IsFullyDismounted.html">IsFullyDismounted</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@IsFunctional.html">IsFunctional</a></td>
+<td>Component stack is functional when critical part is not destroyed (integrity &gt; 0). IMPORTANT: When you change the logic beyond this property, don't forget to call CheckFunctionalState every time the functional state could have been changed! (Also, remove calls to CheckFunctionalState where no longer needed)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@LastChangeStamp.html">LastChangeStamp</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@MaxIntegrity.html">MaxIntegrity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@YieldLastComponent.html">YieldLastComponent</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@BuildIntegrity.html">BuildIntegrity</a></td>
+<td>Gets the build integrity of the component stack<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@BuildRatio.html">BuildRatio</a></td>
+<td>Gets the build ration of the component stack<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@GroupCount.html">GroupCount</a></td>
+<td>Gets count of the components in the group (stack). Use with GetComponentStackInfo to get components in the stack.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@Integrity.html">Integrity</a></td>
+<td>Gets the integrity of the component stack<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@IntegrityRatio.html">IntegrityRatio</a></td>
+<td>Gets the integrity ratio of the component stack<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@IsBuilt.html">IsBuilt</a></td>
+<td>Whether this component stack is built<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@IsDestroyed.html">IsDestroyed</a></td>
+<td>Whether the component stack is destroyed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@IsFullIntegrity.html">IsFullIntegrity</a></td>
+<td>Whether the component stack is at full integrity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@IsFullyDismounted.html">IsFullyDismounted</a></td>
+<td>Whether the component stack is fully dismounted<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@IsFunctional.html">IsFunctional</a></td>
+<td>Whether this component stack is in functional state<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@MaxIntegrity.html">MaxIntegrity</a></td>
+<td>Gets the max integrity of the component stack<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@YieldLastComponent.html">YieldLastComponent</a></td>
+<td>Whether the yield last component is enabled or not.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@.ctor.html">MyComponentStack(MyCubeBlockDefinition, float, float)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@GetMountedComponents.html">static GetMountedComponents(MyComponentList, MyObjectBuilder_CubeBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@ApplyDamage.html">ApplyDamage(float, MyConstructionStockpile)</a></td>
+<td>Applies damage to the component stack. The method works almost the same as dismounting, it just leaves the build level at the original value and also the parts that are put into the outputStockpile are damaged.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@CanContinueBuild.html">CanContinueBuild(MyInventoryBase, MyConstructionStockpile)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@DecreaseMountLevel.html">DecreaseMountLevel(float, MyConstructionStockpile, bool)</a></td>
+<td>Dismounts component stack, dismounted items are put into output stockpile</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@DestroyCompletely.html">DestroyCompletely()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@DisableLastComponentYield.html">DisableLastComponentYield()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@GetAllMissingComponents.html">GetAllMissingComponents(Dictionary&lt;string, int&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@GetComponentStackInfo.html">GetComponentStackInfo(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@GetGroupInfo.html">GetGroupInfo(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@GetMissingComponents.html">GetMissingComponents(Dictionary&lt;string, int&gt;, MyConstructionStockpile)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@GetMissingInfo.html">GetMissingInfo(out int, out int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@IncreaseMountLevel.html">IncreaseMountLevel(float, MyConstructionStockpile)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@UpdateBuildIntegrityDown.html">UpdateBuildIntegrityDown(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@UpdateBuildIntegrityUp.html">UpdateBuildIntegrityUp()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyComponentStack@WillFunctionalityRise.html">WillFunctionalityRise(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@GetAllMissingComponents.html">GetAllMissingComponents(Dictionary&lt;string, int&gt;)</a></td>
+<td>Gets missing components<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@GetComponentStackInfo.html">GetComponentStackInfo(int)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyComponentStack@GetMissingInfo.html">GetMissingInfo(out int, out int)</a></td>
+<td>Gets index and amount of missing component<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.ModAPI.IMyComponentStack.html">IMyComponentStack</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

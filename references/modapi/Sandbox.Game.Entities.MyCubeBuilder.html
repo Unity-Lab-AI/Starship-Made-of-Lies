@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.Entities.MyCubeBuilder - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.Entities.MyCubeBuilder" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:48Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game.Entities</div>
+                <h1>MyCubeBuilder</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyCubeBuilder: MyBlockBuilderBase, IMyUserInputComponent, IMyFocusHolder, IMyCubeBuilder
+</code></pre>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@AllPlayersColors.html">static AllPlayersColors</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@Static.html">static Static</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@m_toolType.html">m_toolType</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@MaxGridDistanceFrom.html">MaxGridDistanceFrom</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ComponentType.html">ComponentType</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@DebugName.html">DebugName</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Priority.html">Priority</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@OnActivated.html">OnActivated</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@OnBlockAdded.html">OnBlockAdded</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@OnBlockSizeChanged.html">OnBlockSizeChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@OnBlockVariantChanged.html">OnBlockVariantChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@OnDeactivated.html">OnDeactivated</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@OnSymmetrySetupModeChanged.html">OnSymmetrySetupModeChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@OnToolTypeChanged.html">OnToolTypeChanged</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@BuildComponent.html">static BuildComponent</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@BuildingMode.html">static BuildingMode</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@CameraControllerSpectator.html">static CameraControllerSpectator</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@CubeBuilderDefinition.html">static CubeBuilderDefinition</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@IntersectionDirection.html">static IntersectionDirection</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@IntersectionDistance.html">static IntersectionDistance</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@IntersectionStart.html">static IntersectionStart</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@PlacementProvider.html">static PlacementProvider</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@SpectatorIsBuilding.html">static SpectatorIsBuilding</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@AlignToDefault.html">AlignToDefault</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@BlockCreationIsActivated.html">BlockCreationIsActivated</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@CubeBuilderState.html">CubeBuilderState</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@CubePlacementMode.html">CubePlacementMode</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@CurrentBlockDefinition.html">CurrentBlockDefinition</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@Dependencies.html">Dependencies</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@DynamicMode.html">DynamicMode</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@FreezeGizmo.html">FreezeGizmo</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@IsActivated.html">IsActivated</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@IsBuildMode.html">IsBuildMode</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@IsCubeSizeModesAvailable.html">IsCubeSizeModesAvailable</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@PlacingSmallGridOnLargeStatic.html">PlacingSmallGridOnLargeStatic</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@RotationAxis.html">RotationAxis</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ShowRemoveGizmo.html">ShowRemoveGizmo</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ToolbarBlockDefinition.html">ToolbarBlockDefinition</a></td>
+<td>Current block definition for toolbar.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ToolType.html">ToolType</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@UseSymmetry.html">UseSymmetry</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@UseTransparency.html">UseTransparency</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@BlockCreationIsActivated.html">BlockCreationIsActivated</a></td>
+<td>Returns state of building mode<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@CurrentBlockDefinition.html">CurrentBlockDefinition</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Definition.html">Definition</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Dependencies.html">Dependencies</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@FreePlacementTarget.html">FreePlacementTarget</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@FreezeGizmo.html">FreezeGizmo</a></td>
+<td>Freezes the built object preview in current position<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@HitInfo.html">HitInfo</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Initialized.html">Initialized</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@IsActivated.html">IsActivated</a></td>
+<td>Gets whether there block creation is activated<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@IsActivated.html">IsActivated</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@IsRequiredByGame.html">IsRequiredByGame</a></td>
+<td>Indicates whether a session component should be used in current configuration. Example: MyDestructionData component returns true only when game uses Havok Destruction<br /><br /><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@IsServerOnly.html">IsServerOnly</a></td>
+<td>Is server only is used for client request of the world. if the component is server only, it's not sent to the client on world request.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Loaded.html">Loaded</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ModContext.html">ModContext</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ObjectBuilderType.html">ObjectBuilderType</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Session.html">Session</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@ShowRemoveGizmo.html">ShowRemoveGizmo</a></td>
+<td>Shows the delete area preview<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateOnPause.html">UpdateOnPause</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateOrder.html">UpdateOrder</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@UseSymmetry.html">UseSymmetry</a></td>
+<td>Enables symmetry block placing<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@UseTransparency.html">UseTransparency</a></td>
+<td>Gets or sets whether projected block should be 25% transparent<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@.ctor.html">MyCubeBuilder()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@.ctor.html">MySessionComponentBase()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@AutogenerateMountpoints.html">static AutogenerateMountpoints(MyModel, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@AutogenerateMountpoints.html">static AutogenerateMountpoints(HkShape[], float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@CalculateBlockRotation.html">static CalculateBlockRotation(int, int, ref MatrixD, out MatrixD, double, MyBlockDirection, MyBlockRotation)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@CheckValidBlockRotation.html">static CheckValidBlockRotation(Matrix, MyBlockDirection, MyBlockRotation)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@CheckValidBlocksRotation.html">static CheckValidBlocksRotation(Matrix, MyCubeGrid)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ConvertDynamicGridBlockToStatic.html">static ConvertDynamicGridBlockToStatic(ref MatrixD, MyObjectBuilder_CubeBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ConvertGridBuilderToStatic.html">static ConvertGridBuilderToStatic(MyObjectBuilder_CubeGrid, MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@DrawMountPoints.html">static DrawMountPoints(float, MyCubeBlockDefinition, ref MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@DrawMountPoints.html">static DrawMountPoints(float, MyCubeBlockDefinition, MatrixD, MountPoint[])</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@DrawSemiTransparentBox.html">static DrawSemiTransparentBox(MyCubeGrid, MySlimBlock, Color, bool, MyStringId?, Vector4?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@DrawSemiTransparentBox.html">static DrawSemiTransparentBox(Vector3I, Vector3I, MyCubeGrid, Color, bool, MyStringId?, Vector4?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@GetAllBlocksPositions.html">static GetAllBlocksPositions(HashSet&lt;Tuple`2&gt;, HashSet<Vector3I>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@GetCurrentRayIntersection.html">static GetCurrentRayIntersection()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@PrepareCharacterCollisionPoints.html">static PrepareCharacterCollisionPoints(List<Vector3D>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@RemovePlayerColors.html">static RemovePlayerColors(PlayerId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@RemovePlayerColors_Internal.html">static RemovePlayerColors_Internal(PlayerId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@SelectBlockToToolbar.html">static SelectBlockToToolbar(MySlimBlock, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@SpawnDynamicGrid.html">static SpawnDynamicGrid(MyCubeBlockDefinition, MyEntity, MatrixD, Vector3, MyStringHash, long, SpawnFlags, long, Action<MyEntity>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@SpawnStaticGrid.html">static SpawnStaticGrid(MyCubeBlockDefinition, MyEntity, MatrixD, Vector3, MyStringHash, SpawnFlags, long, Action<MyEntity>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@SpawnStaticGrid_nonParalel.html">static SpawnStaticGrid_nonParalel(MyCubeBlockDefinition, MyEntity, MatrixD, Vector3, MyStringHash, SpawnFlags, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@TransformLargeGridHitCoordToSmallGrid.html">static TransformLargeGridHitCoordToSmallGrid(Vector3D, MatrixD, float)</a></td>
+<td>Converts large grid hit coordinates for small cubes. Allows placement of small grids to large grids. Returns coordinates of small grid (in large grid coordinates) which touches large grid in the hit position.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@ComputeSteps.html">static ComputeSteps(Vector3I, Vector3I, Vector3I, out Vector3I, out Vector3I, out int)</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@Activate.html">Activate(MyDefinitionId?, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ActivateColorTool.html">ActivateColorTool()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ActivateFromRadialMenu.html">ActivateFromRadialMenu(MyDefinitionId?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@Add.html">Add()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@AddBlocksToBuildQueueOrSpawn.html">AddBlocksToBuildQueueOrSpawn(MyCubeBlockDefinition, ref MatrixD, Vector3I, Vector3I, Vector3I, Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@AddConstruction.html">AddConstruction(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@AddFastBuildModels.html">AddFastBuildModels(MatrixD, ref Matrix, List<MatrixD>, List<string>, MyCubeBlockDefinition, Vector3I?, Vector3I?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@AlignToGravity.html">AlignToGravity(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@CanStartConstruction.html">CanStartConstruction(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@CheckGizmoRotation.html">CheckGizmoRotation()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ColorPickerCancel.html">ColorPickerCancel()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ColorPickerOk.html">ColorPickerOk()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ContinueBuilding.html">ContinueBuilding(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@CycleCubePlacementMode.html">CycleCubePlacementMode()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@Deactivate.html">Deactivate()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@DeactivateBlockCreation.html">DeactivateBlockCreation()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@Draw.html">Draw()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@GetAddAndRemovePositions.html">GetAddAndRemovePositions(float, bool, out Vector3I, out Vector3?, out Vector3I, out Vector3I, out MySlimBlock, out ushort?, HashSet&lt;Tuple`2&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@GetAddPosition.html">GetAddPosition(out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@GetBuildBoundingBox.html">GetBuildBoundingBox(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@GetNextBlockVariantDefinition.html">GetNextBlockVariantDefinition()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@HandleGameInput.html">HandleGameInput()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@InitFromDefinition.html">InitFromDefinition(MySessionComponentDefinition)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@InputLost.html">InputLost()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@IsBuildToolActive.html">IsBuildToolActive()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@IsOnlyColorToolActive.html">IsOnlyColorToolActive()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@IsSymmetrySetupMode.html">IsSymmetrySetupMode()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@LoadData.html">LoadData()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@NotifyPlacementUnable.html">NotifyPlacementUnable()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@OnClosedMessageBox.html">OnClosedMessageBox(ResultEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@OnLostFocus.html">OnLostFocus()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@SetToolType.html">SetToolType(MyCubeBuilderToolType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@StartBuilding.html">StartBuilding()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@StartStaticGridPlacement.html">StartStaticGridPlacement(MyCubeSize, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@StopBuilding.html">StopBuilding()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ToggleSymmetry.html">ToggleSymmetry()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@ToggleSymmetrySetup.html">ToggleSymmetrySetup()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@UpdateAfterSimulation.html">UpdateAfterSimulation()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@UpdateBeforeSimulation.html">UpdateBeforeSimulation()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeBuilder@UpdateNotificationBlockNotAvailable.html">UpdateNotificationBlockNotAvailable(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@Activate.html">Activate(MyDefinitionId?)</a></td>
+<td>Activates the building mode<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@Activate.html">Activate(MyDefinitionId?, bool)</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@AfterLoadData.html">AfterLoadData()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@BeforeStart.html">BeforeStart()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@Deactivate.html">Deactivate()</a></td>
+<td>Deactivates all modes<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@Deactivate.html">Deactivate()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@DeactivateBlockCreation.html">DeactivateBlockCreation()</a></td>
+<td>Deactivates building mode<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Draw.html">Draw()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@FindClosestGrid.html">FindClosestGrid()</a></td>
+<td>Finds grid to build on<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@FindClosestGrid.html">FindClosestGrid()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@FindClosestPlacementObject.html">FindClosestPlacementObject(out MyCubeGrid, out MyVoxelBase)</a></td>
+<td>Finds closest object (grid or voxel map) for placement of blocks .<br /><br /><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@GetObjectBuilder.html">GetObjectBuilder()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyUserInputComponent@HandleInput.html">HandleInput()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyUserInputComponent.html">IMyUserInputComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@HandleInput.html">HandleInput()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Init.html">Init(MyObjectBuilder_SessionComponent)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyBlockBuilderBase@InitFromDefinition.html">InitFromDefinition(MySessionComponentDefinition)</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@InitFromDefinition.html">InitFromDefinition(MySessionComponentDefinition)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@LoadData.html">LoadData()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@SaveData.html">SaveData()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@SetUpdateOrder.html">SetUpdateOrder(MyUpdateOrder)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Simulate.html">Simulate()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@StartNewGridPlacement.html">StartNewGridPlacement(MyCubeSize, bool)</a></td>
+<td>Calls <a href="VRage.Game.ModAPI.IMyCubeBuilder@Activate.html">Activate(MyDefinitionId?)</a> with LargeBlockArmorBlock definition and forces local player stop using weapon or tool<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ToString.html">ToString()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UnloadDataConditional.html">UnloadDataConditional()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateAfterSimulation.html">UpdateAfterSimulation()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateBeforeSimulation.html">UpdateBeforeSimulation()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdatedBeforeInit.html">UpdatedBeforeInit()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdatingStopped.html">UpdatingStopped()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBuilder@AddConstruction.html">AddConstruction(IMyEntity)</a></td>
+<td><em><strong>Obsolete:</strong> Not used. Always returns false</em><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritance:</strong>   <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a> ˃ <a href="Sandbox.Game.Entities.MyBlockBuilderBase.html">MyBlockBuilderBase</a></p>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.ModAPI.IMyCubeBuilder.html">IMyCubeBuilder</a></li>
+<li>IMyFocusHolder <sub>prohibited</sub></li>
+<li><a href="VRage.Game.Components.Interfaces.IMyUserInputComponent.html">IMyUserInputComponent</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

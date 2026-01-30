@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.Ingame.Utilities.MyIni - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.Ingame.Utilities.MyIni" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:53Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI.Ingame.Utilities</div>
+                <h1>MyIni</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public class MyIni
+</code></pre>
+<p>A configuration class to parse and create a text string resembling the old fashioned INI format, but with support for multiline values.</p>
+<p>Do not forget that parsing is a time-consuming task. Keep your parsing to a minimum.</p>
+<h2 id="example">Example</h2>
+<p>Using MyIni to deal with CustomData end-user configuration:</p>
+<p>The CustomData:</p>
+<pre><code class="language-csharp">[kernel]  
+output=DebugTextPanel  
+bootText=  
+|-- HAL9000 --  
+|Good morning, Dave.  
+  
+</code></pre>
+<p>The code:</p>
+<pre><code class="language-csharp">MyIni _ini = new MyIni();  
+IMyTextPanel _outputTextPanel;  
+  
+public Program()  
+{  
+    MyIniParseResult result;  
+    if (!_ini.TryParse(Me.CustomData, out result)  
+    {  
+        Echo($&quot;CustomData error:\nLine {result}&quot;);  
+    }  
+  
+    // Get the kernel section's output value. If this value is set, the system attempts  
+    // to retrieve a text panel with the value set. Otherwise output is ignored.  
+    var name = _ini.Get(&quot;kernel&quot;, &quot;output&quot;).ToString();  
+    if (name != null)  
+    {  
+        _outputTextPanel = GridTerminalSystem.GetBlockWithName&lt;IMyTextPanel&gt;(name);  
+        if (_outputTextPanel == null)  
+            Echo($&quot;No text panel named {name}&quot;);  
+    }  
+  
+    // Get the kernel section's boottext value. If no value is given, a default value will be returned.  
+    var bootText = _ini.Get(&quot;kernel&quot;, &quot;bootText&quot;).ToString(&quot;Kernel is starting up...&quot;);  
+    _outputTextPanel?.WritePublicText(bootText);  
+}  
+  
+public void Main() {  
+    // Do your stuff. Only parse the configuration when you have to.  
+}  
+  
+</code></pre>
+<p>Using MyIni to deal with internal storage:</p>
+<pre><code class="language-csharp">MyIni _storage = new MyIni();  
+Vector3D _startupPosition;  
+bool _hasTarget;  
+Vector3D _currentTarget;  
+  
+public Program()  
+{  
+    // You only need to parse here in the constructor.  
+    if (_ini.TryParse(Storage)  
+    {  
+        var str = _ini.Get(&quot;state&quot;, &quot;startupPosition&quot;).ToString();  
+        Vector3D.TryParse(str, out _startupPosition);  
+        str = _ini.Get(&quot;state&quot;, &quot;currentTarget&quot;).ToString();  
+        Vector3D.TryParse(str, out _currentTarget);  
+        _hasTarget = _ini.Get(&quot;state&quot;, &quot;hasTarget&quot;).ToBoolean();  
+    }  
+    else  
+    {  
+        // Set up defaults, the storage is nonexistent or corrupt  
+        _startupPosition = Me.CubeGrid.Position;  
+    }  
+}  
+  
+public void Save()  
+{  
+    // You only need to update Storage when the Save method is called.  
+    _ini.Set(&quot;state&quot;, &quot;startupPosition&quot;, _startupPosition);  
+    _ini.Set(&quot;state&quot;, &quot;currentTarget&quot;, _currentTarget);  
+    Storage = _ini.ToString();  
+}  
+  
+public void Main() {  
+    // Do your stuff  
+}  
+  
+</code></pre>
+<h2 id="remarks">Remarks</h2>
+<p>This class is NOT THREAD SAFE as it's optimized for programmable block use.</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@EndComment.html">EndComment</a></td>
+<td>Get or set a comment to be placed after the last section or item. Is<code>null</code>if the section does not exist or has no comment.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@EndContent.html">EndContent</a></td>
+<td>You can terminate a configuration stream by entering &quot;---&quot; on a separate line. This property will contain all the content after this line.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@.ctor.html">MyIni()</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@HasSection.html">static HasSection(string, string)</a></td>
+<td>Determines if the given configuration contains what looks like the given section. It does not verify that the content is actually in a valid format, just if there's a line starting with [section].</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@AddSection.html">AddSection(string)</a></td>
+<td>Adds an empty section</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Clear.html">Clear()</a></td>
+<td>Empties this configuration</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@ContainsKey.html">ContainsKey(string, string)</a></td>
+<td>Determines whether a configuration key (section/key) exists in the currently parsed configuration.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@ContainsKey.html">ContainsKey(MyIniKey)</a></td>
+<td>Determines whether a configuration key (section/key) exists in the currently parsed configuration.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@ContainsSection.html">ContainsSection(string)</a></td>
+<td>Determines whether a section of a given name exists in the currently parsed configuration.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Delete.html">Delete(string, string)</a></td>
+<td>Deletes the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Delete.html">Delete(MyIniKey)</a></td>
+<td>Deletes the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@DeleteSection.html">DeleteSection(string)</a></td>
+<td>Deletes an entire selection</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Get.html">Get(string, string)</a></td>
+<td>Gets the <a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue.html">MyIniValue</a> of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Get.html">Get(MyIniKey)</a></td>
+<td>Gets the <a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue.html">MyIniValue</a> of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@GetComment.html">GetComment(string, string)</a></td>
+<td>Gets any comment that might be associated with the given key. Returns<code>null</code>if the key does not exist or has no comment.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@GetComment.html">GetComment(MyIniKey)</a></td>
+<td>Gets any comment that might be associated with the given key. Returns<code>null</code>if the key does not exist or has no comment.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@GetKeys.html">GetKeys(string, List<MyIniKey>)</a></td>
+<td>Fills the provided list with the configuration keys within the given section.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@GetKeys.html">GetKeys(List<MyIniKey>)</a></td>
+<td>Fills the provided list with all configuration keys within the currently parsed configuration.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@GetSectionComment.html">GetSectionComment(string)</a></td>
+<td>Get any comment that might be associated with the given section. Returns<code>null</code>if the section does not exist or has no comment.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@GetSections.html">GetSections(List<string>)</a></td>
+<td>Fills the provided list with the names of all the sections in the currently parsed configuration.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Invalidate.html">Invalidate()</a></td>
+<td>Forces regeneration of the ini content. Only really useful if you want to reformat the configuration file.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, string)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, string)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, bool)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, bool)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, byte)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, byte)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, sbyte)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, sbyte)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, ushort)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, ushort)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, short)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, short)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, uint)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, uint)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, int)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, int)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, ulong)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, ulong)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, long)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, long)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, float)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, float)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, double)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, double)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(string, string, decimal)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@Set.html">Set(MyIniKey, decimal)</a></td>
+<td>Sets the value of the given configuration key.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@SetComment.html">SetComment(string, string, string)</a></td>
+<td>Sets a comment on a given item. The item must already exist. Set the comment to<code>null</code>to remove it.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@SetComment.html">SetComment(MyIniKey, string)</a></td>
+<td>Sets a comment on a given item. The item must already exist. Set the comment to<code>null</code>to remove it.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@SetEndComment.html">SetEndComment(string)</a></td>
+<td>Sets a comment to be placed after the last section or item. Set the comment to<code>null</code>to remove it.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@SetSectionComment.html">SetSectionComment(string, string)</a></td>
+<td>Sets a comment on a given section. The section must already exist. Set the comment to<code>null</code>to remove it.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@ToString.html">ToString()</a></td>
+<td>Generates a configuration file from the currently parsed configuration</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@TryParse.html">TryParse(string)</a></td>
+<td>Attempts to parse the given content as a configuration file.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@TryParse.html">TryParse(string, out MyIniParseResult)</a></td>
+<td>Attempts to parse the given content as a configuration file.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@TryParse.html">TryParse(string, string, out MyIniParseResult)</a></td>
+<td>Attempts to parse the given content as a configuration file. OBSERVE: Use only for read-only operations. If you parse a single section and run <a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@ToString.html">ToString()</a> , you will only get the parsed section, the rest will be discarded.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@TryParse.html">TryParse(string, string)</a></td>
+<td>Attempts to parse the given content as a configuration file. OBSERVE: Use only for read-only operations. If you parse a single section and run <a href="VRage.Game.ModAPI.Ingame.Utilities.MyIni@ToString.html">ToString()</a> , you will only get the parsed section, the rest will be discarded.</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

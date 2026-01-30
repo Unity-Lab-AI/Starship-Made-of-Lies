@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.Matrix - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.Matrix" data-cache-buster="54480b3351e0" data-api-type="pb">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:37Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>Matrix</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public struct Matrix: IEquatable&lt;Matrix&gt;
+</code></pre>
+<p>Defines a matrix.</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Matrix@Identity.html">static Identity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Zero.html">static Zero</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M11.html">M11</a></td>
+<td>Value at row 1 column 1 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M12.html">M12</a></td>
+<td>Value at row 1 column 2 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M13.html">M13</a></td>
+<td>Value at row 1 column 3 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M14.html">M14</a></td>
+<td>Value at row 1 column 4 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M21.html">M21</a></td>
+<td>Value at row 2 column 1 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M22.html">M22</a></td>
+<td>Value at row 2 column 2 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M23.html">M23</a></td>
+<td>Value at row 2 column 3 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M24.html">M24</a></td>
+<td>Value at row 2 column 4 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M31.html">M31</a></td>
+<td>Value at row 3 column 1 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M32.html">M32</a></td>
+<td>Value at row 3 column 2 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M33.html">M33</a></td>
+<td>Value at row 3 column 3 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M34.html">M34</a></td>
+<td>Value at row 3 column 4 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M41.html">M41</a></td>
+<td>Value at row 4 column 1 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M42.html">M42</a></td>
+<td>Value at row 4 column 2 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M43.html">M43</a></td>
+<td>Value at row 4 column 3 of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@M44.html">M44</a></td>
+<td>Value at row 4 column 4 of the matrix.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Matrix@Backward.html">Backward</a></td>
+<td>Gets and sets the backward vector of the Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Col0.html">Col0</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Col1.html">Col1</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Col2.html">Col2</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Down.html">Down</a></td>
+<td>Gets and sets the down vector of the Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Forward.html">Forward</a></td>
+<td>Gets and sets the forward vector of the Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Item.html">Item</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Left.html">Left</a></td>
+<td>Gets and sets the left vector of the Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Right.html">Right</a></td>
+<td>Gets and sets the right vector of the Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Scale.html">Scale</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Translation.html">Translation</a></td>
+<td>Gets and sets the translation vector of the Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Up.html">Up</a></td>
+<td>Gets and sets the up vector of the Matrix.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Matrix@.ctor.html">Matrix(float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@.ctor.html">Matrix(float, float, float, float, float, float, float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@.ctor.html">Matrix(MatrixD)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Matrix@Add.html">static Add(Matrix, Matrix)</a></td>
+<td>Adds a matrix to another matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Add.html">static Add(ref Matrix, ref Matrix, out Matrix)</a></td>
+<td>Adds a matrix to another matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@AlignRotationToAxes.html">static AlignRotationToAxes(ref Matrix, ref Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateBillboard.html">static CreateBillboard(Vector3, Vector3, Vector3, Vector3?)</a></td>
+<td>Creates a spherical billboard that rotates around a specified object position.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateBillboard.html">static CreateBillboard(ref Vector3, ref Vector3, ref Vector3, Vector3?, out Matrix)</a></td>
+<td>Creates a spherical billboard that rotates around a specified object position.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateConstrainedBillboard.html">static CreateConstrainedBillboard(Vector3, Vector3, Vector3, Vector3?, Vector3?)</a></td>
+<td>Creates a cylindrical billboard that rotates around a specified axis.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateConstrainedBillboard.html">static CreateConstrainedBillboard(ref Vector3, ref Vector3, ref Vector3, Vector3?, Vector3?, out Matrix)</a></td>
+<td>Creates a cylindrical billboard that rotates around a specified axis.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateFromAxisAngle.html">static CreateFromAxisAngle(Vector3, float)</a></td>
+<td>Creates a new Matrix that rotates around an arbitrary vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateFromAxisAngle.html">static CreateFromAxisAngle(ref Vector3, float, out Matrix)</a></td>
+<td>Creates a new Matrix that rotates around an arbitrary vector.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateFromDir.html">static CreateFromDir(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateFromDir.html">static CreateFromDir(Vector3, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateFromPerspectiveFieldOfView.html">static CreateFromPerspectiveFieldOfView(ref Matrix, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateFromQuaternion.html">static CreateFromQuaternion(Quaternion)</a></td>
+<td>Creates a rotation Matrix from a Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateFromQuaternion.html">static CreateFromQuaternion(ref Quaternion, out Matrix)</a></td>
+<td>Creates a rotation Matrix from a Quaternion.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateFromTransformScale.html">static CreateFromTransformScale(Quaternion, Vector3, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateFromYawPitchRoll.html">static CreateFromYawPitchRoll(float, float, float)</a></td>
+<td>Creates a new rotation matrix from a specified yaw, pitch, and roll.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateFromYawPitchRoll.html">static CreateFromYawPitchRoll(float, float, float, out Matrix)</a></td>
+<td>Fills in a rotation matrix from a specified yaw, pitch, and roll.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateLookAt.html">static CreateLookAt(Vector3, Vector3, Vector3)</a></td>
+<td>Creates a view matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateLookAt.html">static CreateLookAt(ref Vector3, ref Vector3, ref Vector3, out Matrix)</a></td>
+<td>Creates a view matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateLookAtInverse.html">static CreateLookAtInverse(Vector3, Vector3, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateOrthographic.html">static CreateOrthographic(float, float, float, float)</a></td>
+<td>Builds an orthogonal projection matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateOrthographic.html">static CreateOrthographic(float, float, float, float, out Matrix)</a></td>
+<td>Builds an orthogonal projection matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateOrthographicOffCenter.html">static CreateOrthographicOffCenter(float, float, float, float, float, float)</a></td>
+<td>Builds a customized, orthogonal projection matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateOrthographicOffCenter.html">static CreateOrthographicOffCenter(float, float, float, float, float, float, out Matrix)</a></td>
+<td>Builds a customized, orthogonal projection matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspective.html">static CreatePerspective(float, float, float, float)</a></td>
+<td>Builds a perspective projection matrix and returns the result by value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspective.html">static CreatePerspective(float, float, float, float, out Matrix)</a></td>
+<td>Builds a perspective projection matrix and returns the result by reference.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspectiveFieldOfView.html">static CreatePerspectiveFieldOfView(float, float, float, float)</a></td>
+<td>Builds a perspective projection matrix based on a field of view and returns by value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspectiveFieldOfView.html">static CreatePerspectiveFieldOfView(float, float, float, float, out Matrix)</a></td>
+<td>Builds a perspective projection matrix based on a field of view and returns by reference.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspectiveFovRhComplementary.html">static CreatePerspectiveFovRhComplementary(float, float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspectiveFovRhInfinite.html">static CreatePerspectiveFovRhInfinite(float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspectiveFovRhInfiniteComplementary.html">static CreatePerspectiveFovRhInfiniteComplementary(float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspectiveFovRhInfiniteComplementaryInverse.html">static CreatePerspectiveFovRhInfiniteComplementaryInverse(float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspectiveFovRhInfiniteInverse.html">static CreatePerspectiveFovRhInfiniteInverse(float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspectiveFovRhInverse.html">static CreatePerspectiveFovRhInverse(float, float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspectiveOffCenter.html">static CreatePerspectiveOffCenter(float, float, float, float, float, float)</a></td>
+<td>Builds a customized, perspective projection matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreatePerspectiveOffCenter.html">static CreatePerspectiveOffCenter(float, float, float, float, float, float, out Matrix)</a></td>
+<td>Builds a customized, perspective projection matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateReflection.html">static CreateReflection(Plane)</a></td>
+<td>Creates a Matrix that reflects the coordinate system about a specified Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateReflection.html">static CreateReflection(ref Plane, out Matrix)</a></td>
+<td>Fills in an existing Matrix so that it reflects the coordinate system about a specified Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateRotationFromTwoVectors.html">static CreateRotationFromTwoVectors(ref Vector3, ref Vector3, out Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateRotationX.html">static CreateRotationX(float)</a></td>
+<td>Returns a matrix that can be used to rotate a set of vertices around the x-axis.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateRotationX.html">static CreateRotationX(float, out Matrix)</a></td>
+<td>Populates data into a user-specified matrix that can be used to rotate a set of vertices around the x-axis.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateRotationY.html">static CreateRotationY(float)</a></td>
+<td>Returns a matrix that can be used to rotate a set of vertices around the y-axis.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateRotationY.html">static CreateRotationY(float, out Matrix)</a></td>
+<td>Populates data into a user-specified matrix that can be used to rotate a set of vertices around the y-axis.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateRotationZ.html">static CreateRotationZ(float)</a></td>
+<td>Returns a matrix that can be used to rotate a set of vertices around the z-axis.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateRotationZ.html">static CreateRotationZ(float, out Matrix)</a></td>
+<td>Populates data into a user-specified matrix that can be used to rotate a set of vertices around the z-axis.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateScale.html">static CreateScale(float, float, float)</a></td>
+<td>Creates a scaling Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateScale.html">static CreateScale(float, float, float, out Matrix)</a></td>
+<td>Creates a scaling Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateScale.html">static CreateScale(Vector3)</a></td>
+<td>Creates a scaling Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateScale.html">static CreateScale(ref Vector3, out Matrix)</a></td>
+<td>Creates a scaling Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateScale.html">static CreateScale(float)</a></td>
+<td>Creates a scaling Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateScale.html">static CreateScale(float, out Matrix)</a></td>
+<td>Creates a scaling Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateShadow.html">static CreateShadow(Vector3, Plane)</a></td>
+<td>Creates a Matrix that flattens geometry into a specified Plane as if casting a shadow from a specified light source.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateShadow.html">static CreateShadow(ref Vector3, ref Plane, out Matrix)</a></td>
+<td>Fills in a Matrix to flatten geometry into a specified Plane as if casting a shadow from a specified light source.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateTranslation.html">static CreateTranslation(Vector3)</a></td>
+<td>Creates a translation Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateTranslation.html">static CreateTranslation(ref Vector3, out Matrix)</a></td>
+<td>Creates a translation Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateTranslation.html">static CreateTranslation(float, float, float)</a></td>
+<td>Creates a translation Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateTranslation.html">static CreateTranslation(float, float, float, out Matrix)</a></td>
+<td>Creates a translation Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateWorld.html">static CreateWorld(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateWorld.html">static CreateWorld(Vector3, Vector3, Vector3)</a></td>
+<td>Creates a world matrix with the specified parameters.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@CreateWorld.html">static CreateWorld(ref Vector3, ref Vector3, ref Vector3, out Matrix)</a></td>
+<td>Creates a world matrix with the specified parameters.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Divide.html">static Divide(Matrix, Matrix)</a></td>
+<td>Divides the components of a matrix by the corresponding components of another matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Divide.html">static Divide(ref Matrix, ref Matrix, out Matrix)</a></td>
+<td>Divides the components of a matrix by the corresponding components of another matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Divide.html">static Divide(Matrix, float)</a></td>
+<td>Divides the components of a matrix by a scalar.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Divide.html">static Divide(ref Matrix, float, out Matrix)</a></td>
+<td>Divides the components of a matrix by a scalar.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@GetEulerAnglesXYZ.html">static GetEulerAnglesXYZ(ref Matrix, out Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Invert.html">static Invert(Matrix)</a></td>
+<td>Calculates the inverse of a matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Invert.html">static Invert(ref Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Invert.html">static Invert(ref Matrix, out Matrix)</a></td>
+<td>Calculates the inverse of a matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Lerp.html">static Lerp(Matrix, Matrix, float)</a></td>
+<td>Linearly interpolates between the corresponding values of two matrices.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Lerp.html">static Lerp(ref Matrix, ref Matrix, float, out Matrix)</a></td>
+<td>Linearly interpolates between the corresponding values of two matrices.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Multiply.html">static Multiply(Matrix, Matrix)</a></td>
+<td>Multiplies a matrix by another matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Multiply.html">static Multiply(ref Matrix, ref Matrix, out Matrix)</a></td>
+<td>Multiplies a matrix by another matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Multiply.html">static Multiply(Matrix, float)</a></td>
+<td>Multiplies a matrix by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Multiply.html">static Multiply(ref Matrix, float, out Matrix)</a></td>
+<td>Multiplies a matrix by a scalar value.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@MultiplyRotation.html">static MultiplyRotation(ref Matrix, ref Matrix, out Matrix)</a></td>
+<td>Multiplies a matrix by another matrix, only rotation parts.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Negate.html">static Negate(Matrix)</a></td>
+<td>Negates individual elements of a matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Negate.html">static Negate(ref Matrix, out Matrix)</a></td>
+<td>Negates individual elements of a matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Normalize.html">static Normalize(Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Orthogonalize.html">static Orthogonalize(Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Rescale.html">static Rescale(ref Matrix, float)</a></td>
+<td>Same result as Matrix.CreateScale(scale) * matrix, but much faster</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Rescale.html">static Rescale(ref Matrix, ref Vector3)</a></td>
+<td>Same result as Matrix.CreateScale(scale) * matrix, but much faster</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Rescale.html">static Rescale(Matrix, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Rescale.html">static Rescale(Matrix, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Round.html">static Round(ref Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Slerp.html">static Slerp(ref Matrix, ref Matrix, float, out Matrix)</a></td>
+<td>Performs spherical linear interpolation of position and rotation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Slerp.html">static Slerp(Matrix, Matrix, float, out Matrix)</a></td>
+<td>Performs spherical linear interpolation of position and rotation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Slerp.html">static Slerp(Matrix, Matrix, float)</a></td>
+<td>Performs spherical linear interpolation of position and rotation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@SlerpScale.html">static SlerpScale(ref Matrix, ref Matrix, float, out Matrix)</a></td>
+<td>Performs spherical linear interpolation of position and rotation and scale.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@SlerpScale.html">static SlerpScale(Matrix, Matrix, float, out Matrix)</a></td>
+<td>Performs spherical linear interpolation of position and rotation and scale.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@SlerpScale.html">static SlerpScale(Matrix, Matrix, float)</a></td>
+<td>Performs spherical linear interpolation of position and rotation and scale.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Subtract.html">static Subtract(ref Matrix, ref Matrix, out Matrix)</a></td>
+<td>Subtracts matrices.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Subtract.html">static Subtract(Matrix, Matrix)</a></td>
+<td>Subtracts matrices.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@SwapYZCoordinates.html">static SwapYZCoordinates(Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Transform.html">static Transform(Matrix, Quaternion)</a></td>
+<td>Transforms a Matrix by applying a Quaternion rotation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Transform.html">static Transform(ref Matrix, ref Quaternion, out Matrix)</a></td>
+<td>Transforms a Matrix by applying a Quaternion rotation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Transpose.html">static Transpose(Matrix)</a></td>
+<td>Transposes the rows and columns of a matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Transpose.html">static Transpose(ref Matrix, out Matrix)</a></td>
+<td>Transposes the rows and columns of a matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@AssertIsValid.html">AssertIsValid()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Determinant.html">Determinant()</a></td>
+<td>Calculates the determinant of the matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Equals.html">Equals(Matrix)</a></td>
+<td>Determines whether the specified Object is equal to the Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@Equals.html">Equals(object)</a></td>
+<td>Returns a value that indicates whether the current instance is equal to a specified object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@EqualsFast.html">EqualsFast(ref Matrix, float)</a></td>
+<td>Compares just position, forward and up</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@GetClosestDirection.html">GetClosestDirection(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@GetClosestDirection.html">GetClosestDirection(ref Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@GetDirectionVector.html">GetDirectionVector(Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@GetHashCode.html">GetHashCode()</a></td>
+<td>Gets the hash code of this object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@GetOrientation.html">GetOrientation()</a></td>
+<td>Gets the orientation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@GetRow.html">GetRow(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@HasNoTranslationOrPerspective.html">HasNoTranslationOrPerspective()</a></td>
+<td>Returns true if this matrix represents invertible (you can call Invert on it) linear (it does not contain translation or perspective transformation) transformation. Such matrix consist solely of rotations, shearing, mirroring and scaling. It can be orthogonalized to create an orthogonal rotation matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@IsMirrored.html">IsMirrored()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@IsNan.html">IsNan()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@IsOrthogonal.html">IsOrthogonal()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@IsRotation.html">IsRotation()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@IsValid.html">IsValid()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@SetDirectionVector.html">SetDirectionVector(Direction, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@SetFrom.html">SetFrom(ref MatrixD)</a></td>
+<td>Set this ma</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@SetRotationAndScale.html">SetRotationAndScale(ref MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@SetRow.html">SetRow(int, Vector4)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@ToString.html">ToString()</a></td>
+<td>Retrieves a string representation of the current object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Matrix@TransposeRotationInPlace.html">TransposeRotationInPlace()</a></td>
+<td>Transposes the rows and columns of a matrix that is assumed to be rotation only in place.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1?view=netframework-4.6">IEquatable<Matrix></a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

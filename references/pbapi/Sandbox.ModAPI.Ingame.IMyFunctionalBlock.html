@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.Ingame.IMyFunctionalBlock - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.Ingame.IMyFunctionalBlock" data-cache-buster="54480b3351e0" data-api-type="pb">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:36Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI.Ingame</div>
+                <h1>IMyFunctionalBlock</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Common.dll</p>
+<pre><code class="language-csharp">public interface IMyFunctionalBlock: IMyTerminalBlock, IMyCubeBlock, IMyEntity
+</code></pre>
+<p>Describes functional block (block with Enabled/Disabled toggle) (PB scripting interface)</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyFunctionalBlock@Enabled.html">Enabled</a></td>
+<td>Represents terminal gui toggle. Gets or sets if block is Enabled</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@BlockDefinition.html">BlockDefinition</a></td>
+<td>Gets definition.Id assigned to this block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Closed.html">Closed</a></td>
+<td>True if the block has been removed from the world.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Components.html">Components</a></td>
+<td>Gets blocks component logic container<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@CubeGrid.html">CubeGrid</a></td>
+<td>Grid in which the block is placed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@CustomData.html">CustomData</a></td>
+<td>Gets or sets the Custom Data string. NOTE: Only use this for user input. For storing large mod configs, create your own MyModStorageComponent<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@CustomInfo.html">CustomInfo</a></td>
+<td>Gets information about block status (available from mods) <code>IMyTerminalBlock.AppendingCustomInfo</code><sub>prohibited</sub>  <code>IMyTerminalBlock.RefreshCustomInfo</code><sub>prohibited</sub> .<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@CustomName.html">CustomName</a></td>
+<td>Gets or sets how block is named in Terminal menu<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@CustomNameWithFaction.html">CustomNameWithFaction</a></td>
+<td>Gets or sets how block is named in Terminal menu. Work only for Cockpit, LaserAntenna RadioAntenna, SpaceBall, Beacon<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DefinitionDisplayNameText.html">DefinitionDisplayNameText</a></td>
+<td>Definition name<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@DetailedInfo.html">DetailedInfo</a></td>
+<td>Gets information about block status. In Control panel bottom right text<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DisassembleRatio.html">DisassembleRatio</a></td>
+<td>Is set in definition Ratio at which is the block disassembled (grinding) Bigger values - longer grinding<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@DisplayName.html">DisplayName</a></td>
+<td>Gets user friendly name of entity. May be null For block terminal name use <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DisplayNameText.html">DisplayNameText</a><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DisplayNameText.html">DisplayNameText</a></td>
+<td>Translated block name<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@EntityId.html">EntityId</a></td>
+<td>Id of entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@HasInventory.html">HasInventory</a></td>
+<td>Returns true if this entity has got at least one inventory. Note that one aggregate inventory can contain zero simple inventories =&gt; zero will be returned even if GetInventory() != null.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@InventoryCount.html">InventoryCount</a></td>
+<td>Returns the count of the number of inventories this entity has.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@IsBeingHacked.html">IsBeingHacked</a></td>
+<td>Hacking of the block is in progress<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@IsFunctional.html">IsFunctional</a></td>
+<td>Gets if integrity is above breaking threshold<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@IsWorking.html">IsWorking</a></td>
+<td>True if block is able to do its work depening on block type (is functional, powered, enabled, etc...)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@Mass.html">Mass</a></td>
+<td>Block mass<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@Max.html">Max</a></td>
+<td>Maximum coordinates of grid cells occupied by this block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@Min.html">Min</a></td>
+<td>Minimum coordinates of grid cells occupied by this block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Name.html">Name</a></td>
+<td>Some entities can have uniq name, and game can find them by name <code>IMyEntities.TryGetEntityByName</code><sub>prohibited</sub><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@NumberInGrid.html">NumberInGrid</a></td>
+<td>Order in which were the blocks of same type added to grid Used in default display name<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@Orientation.html">Orientation</a></td>
+<td>Returns block orientation in base 6 directions<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@OwnerId.html">OwnerId</a></td>
+<td>IdentityId of player owning block (not steam Id)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@Position.html">Position</a></td>
+<td>Position in grid coordinates<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@ShowInInventory.html">ShowInInventory</a></td>
+<td>Represent terminal gui toggle <code>Show block in Inventory Screen</code>. Gets or sets its value<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@ShowInTerminal.html">ShowInTerminal</a></td>
+<td>Represent terminal gui toggle <code>Show block in terminal</code>. Gets or sets its value<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@ShowInToolbarConfig.html">ShowInToolbarConfig</a></td>
+<td>Represent terminal gui toggle <code>Show in toolbar config</code>. Gets or sets its value<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@ShowOnHUD.html">ShowOnHUD</a></td>
+<td>Represent terminal gui toggle <code>Show On HUD</code>. Gets or sets its value<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldAABB.html">WorldAABB</a></td>
+<td>Gets world axis-aligned bounding box<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldAABBHr.html">WorldAABBHr</a></td>
+<td>Gets world axis-aligned bounding box<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldMatrix.html">WorldMatrix</a></td>
+<td>Gets world matrix of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldVolume.html">WorldVolume</a></td>
+<td>Gets bounding sphere of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldVolumeHr.html">WorldVolumeHr</a></td>
+<td>Gets bounding sphere of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@GetActions.html">GetActions(List<ITerminalAction>, Func&lt;ITerminalAction, bool&gt;)</a></td>
+<td>Get all terminal actions available for block<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@GetActionWithName.html">GetActionWithName(string)</a></td>
+<td>Get first found terminal action with name<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetInventory.html">GetInventory()</a></td>
+<td>Simply get the MyInventoryBase component stored in this entity.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetInventory.html">GetInventory(int)</a></td>
+<td>Search for inventory component with maching index.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@GetOwnerFactionTag.html">GetOwnerFactionTag()</a></td>
+<td>Tag of faction owning block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetPosition.html">GetPosition()</a></td>
+<td>Gets position in world coordinates<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@GetProperties.html">GetProperties(List<ITerminalProperty>, Func&lt;ITerminalProperty, bool&gt;)</a></td>
+<td>Get all terminal actions available for block.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@GetProperty.html">GetProperty(string)</a></td>
+<td>Finds terminal property with provided id<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@GetUserRelationToOwner.html">GetUserRelationToOwner(long, MyRelationsBetweenPlayerAndBlock)</a></td>
+<td>Gets relation to owner of block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@HasLocalPlayerAccess.html">HasLocalPlayerAccess()</a></td>
+<td>Returns if local player can use block. Executes <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@HasPlayerAccess.html">HasPlayerAccess(long, MyRelationsBetweenPlayerAndBlock)</a> with local player identityId. On Dedicated Server as identityId it is using 0 as playerId<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@HasNobodyPlayerAccessToBlock.html">HasNobodyPlayerAccessToBlock()</a></td>
+<td>Returns if Nobody has access to block.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@HasPlayerAccess.html">HasPlayerAccess(long, MyRelationsBetweenPlayerAndBlock)</a></td>
+<td>Returns if local player can use block. It is also checking for admin access.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@HasPlayerAccessWithNobodyCheck.html">HasPlayerAccessWithNobodyCheck(long, bool)</a></td>
+<td>Returns if player can use block. If playerId is 0 (Nobody), calls HasNobodyPlayerAccessToBlock instead It is also checking for admin access.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@IsSameConstructAs.html">IsSameConstructAs(IMyTerminalBlock)</a></td>
+<td>Determines whether this block is <code>Mechanical</code><sub>prohibited</sub> connected to the other. This is any block connected with rotors or pistons or other mechanical devices, but not things like connectors. This will in most cases constitute your complete construct.<br /><br />Be aware that using merge blocks combines grids into one, so this function will not filter out grids connected that way. Also be aware that detaching the heads of pistons and rotors will cause this connection to change.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@SearchActionsOfName.html">SearchActionsOfName(string, List<ITerminalAction>, Func&lt;ITerminalAction, bool&gt;)</a></td>
+<td>Get all terminal actions available for block. NOTE: First called <code>&lt;br /&gt;&lt;br /&gt;</code> and then <code>&lt;br /&gt;&lt;br /&gt;</code> check<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyFunctionalBlock@RequestEnable.html">RequestEnable(bool)</a></td>
+<td><em><strong>Obsolete:</strong> Use the setter of Enabled</em><br /><br />Obsolete</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@GetPlayerRelationToOwner.html">GetPlayerRelationToOwner()</a></td>
+<td><em><strong>Obsolete:</strong> GetPlayerRelationToOwner() is useless ingame. Mods should use the one in ModAPI.IMyCubeBlock</em><br /><br />Relation of local player to the block Should not be called on Dedicated Server.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@SetCustomName.html">SetCustomName(string)</a></td>
+<td><em><strong>Obsolete:</strong> Use the setter of Customname</em><br /><br />Obsolete<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@SetCustomName.html">SetCustomName(StringBuilder)</a></td>
+<td><em><strong>Obsolete:</strong> Use the setter of Customname</em><br /><br />Obsolete<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@UpdateIsWorking.html">UpdateIsWorking()</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />Force refresh working state. Call if you change block state that could affect its working status.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@UpdateVisual.html">UpdateVisual()</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />Updates block visuals (ie. block emissivity)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></li>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></li>
+</ul>
+<p><strong>Inheritors:</strong></p>
+<ul>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAdvancedDoor.html">IMyAdvancedDoor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAirtightDoorBase.html">IMyAirtightDoorBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAirtightHangarDoor.html">IMyAirtightHangarDoor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAirtightSlideDoor.html">IMyAirtightSlideDoor</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyAirVent.html">IMyAirVent</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyArtificialMassBlock.html">IMyArtificialMassBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyAssembler.html">IMyAssembler</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyBasicMissionBlock.html">IMyBasicMissionBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyBatteryBlock.html">IMyBatteryBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyBeacon.html">IMyBeacon</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyBroadcastController.html">IMyBroadcastController</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyBroadcastControllerBlock.html">IMyBroadcastControllerBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyCameraBlock.html">IMyCameraBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyCollector.html">IMyCollector</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyConveyorSorter.html">IMyConveyorSorter</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyDecoy.html">IMyDecoy</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyDefensiveCombatBlock.html">IMyDefensiveCombatBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyDoor.html">IMyDoor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyEmotionControllerBlock.html">IMyEmotionControllerBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyEventControllerBlock.html">IMyEventControllerBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyExtendedPistonBase.html">IMyExtendedPistonBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyFlightMovementBlock.html">IMyFlightMovementBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyGasGenerator.html">IMyGasGenerator</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyGasTank.html">IMyGasTank</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyGravityGenerator.html">IMyGravityGenerator</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyGravityGeneratorBase.html">IMyGravityGeneratorBase</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyGravityGeneratorSphere.html">IMyGravityGeneratorSphere</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyGyro.html">IMyGyro</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyHeatVent.html">IMyHeatVent</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyInteriorLight.html">IMyInteriorLight</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyJumpDrive.html">IMyJumpDrive</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear.html">IMyLandingGear</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeConveyorTurretBase.html">IMyLargeConveyorTurretBase</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeGatlingTurret.html">IMyLargeGatlingTurret</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeInteriorTurret.html">IMyLargeInteriorTurret</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyLargeMissileTurret.html">IMyLargeMissileTurret</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyLargeTurretBase.html">IMyLargeTurretBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyLaserAntenna.html">IMyLaserAntenna</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyLightingBlock.html">IMyLightingBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMechanicalConnectionBlock.html">IMyMechanicalConnectionBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyMedicalRoom.html">IMyMedicalRoom</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMotorAdvancedStator.html">IMyMotorAdvancedStator</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMotorBase.html">IMyMotorBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMotorStator.html">IMyMotorStator</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMotorSuspension.html">IMyMotorSuspension</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyOffensiveCombatBlock.html">IMyOffensiveCombatBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyOreDetector.html">IMyOreDetector</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm.html">IMyOxygenFarm</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyParachute.html">IMyParachute</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderBlock.html">IMyPathRecorderBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyPistonBase.html">IMyPistonBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyPowerProducer.html">IMyPowerProducer</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyProductionBlock.html">IMyProductionBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyProgrammableBlock.html">IMyProgrammableBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyProjector.html">IMyProjector</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyRadioAntenna.html">IMyRadioAntenna</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyReactor.html">IMyReactor</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyRefinery.html">IMyRefinery</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyReflectorLight.html">IMyReflectorLight</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMySafeZoneBlock.html">IMySafeZoneBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMySearchlight.html">IMySearchlight</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMySensorBlock.html">IMySensorBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipConnector.html">IMyShipConnector</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipDrill.html">IMyShipDrill</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipGrinder.html">IMyShipGrinder</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyShipMergeBlock.html">IMyShipMergeBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipToolBase.html">IMyShipToolBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipWelder.html">IMyShipWelder</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMySmallGatlingGun.html">IMySmallGatlingGun</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMySmallMissileLauncher.html">IMySmallMissileLauncher</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMySmallMissileLauncherReload.html">IMySmallMissileLauncherReload</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMySolarPanel.html">IMySolarPanel</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMySoundBlock.html">IMySoundBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMySpaceBall.html">IMySpaceBall</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyStoreBlock.html">IMyStoreBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyTargetDummyBlock.html">IMyTargetDummyBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyTextPanel.html">IMyTextPanel</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyThrust.html">IMyThrust</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyTimerBlock.html">IMyTimerBlock</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyTransponder.html">IMyTransponder</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyTurretControlBlock.html">IMyTurretControlBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyUpgradeModule.html">IMyUpgradeModule</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyUserControllableGun.html">IMyUserControllableGun</a></li>
+<li><a href="SpaceEngineers.Game.ModAPI.Ingame.IMyVirtualMass.html">IMyVirtualMass</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyWindTurbine.html">IMyWindTurbine</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.EntityComponents.MyModStorageComponent - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.EntityComponents.MyModStorageComponent" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:49Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game.EntityComponents</div>
+                <h1>MyModStorageComponent</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyModStorageComponent: MyModStorageComponentBase, IMyComponentBase, IMyEntityComponentBase, IDictionary&lt;Guid, string&gt;, ICollection&lt;KeyValuePair&lt;Guid, string&gt;&gt;, IEnumerable&lt;KeyValuePair&lt;Guid, string&gt;&gt;, IEnumerable
+</code></pre>
+<p>Component that stores custom mod data for an entity. Shared by all mods. NOTE: Create an EntityComponents.sbc with your mod's GUIDs to make sure data is saved. This allows data to remain in the world file until the user removes the mod.</p>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnAfterAddedToContainer.html">static OnAfterAddedToContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@BeforeRemovedFromContainer.html">BeforeRemovedFromContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@BeforeRemovedFromContainer.html">BeforeRemovedFromContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyModStorageComponent@Storage.html">Storage</a></td>
+<td>Store custom mod data here. Use a GUID unique to your mod. Use only system types, not custom types in mod script or game.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@AttachSyncToEntity.html">AttachSyncToEntity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td>Name of the base component type for debug purposes (e.g.: &quot;Position&quot;)<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@Container.html">Container</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@Container.html">Container</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@ContainerBase.html">ContainerBase</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@ContainerBase.html">ContainerBase</a></td>
+<td>This cannot be named Container to not conflict with the definition of Container in MyEntityComponentBase.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Count.html">Count</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@Entity.html">Entity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@Entity.html">Entity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@FailedOnSceneAdd.html">FailedOnSceneAdd</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@IsReadOnly.html">IsReadOnly</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Item.html">Item</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Keys.html">Keys</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@RemoveExistingComponentOnNewInsert.html">RemoveExistingComponentOnNewInsert</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@RemoveExistingComponentOnNewInsert.html">RemoveExistingComponentOnNewInsert</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Values.html">Values</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyModStorageComponent@.ctor.html">MyModStorageComponent()</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyModStorageComponent@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyModStorageComponent@GetValue.html">GetValue(Guid)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyModStorageComponent@IsSerialized.html">IsSerialized()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyModStorageComponent@RemoveValue.html">RemoveValue(Guid)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyModStorageComponent@Serialize.html">Serialize(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyModStorageComponent@SetValue.html">SetValue(Guid, string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyModStorageComponent@TryGetValue.html">TryGetValue(Guid, out string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Add.html">Add(KeyValuePair&lt;Guid, string&gt;)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Add.html">Add(Guid, string)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Clear.html">Clear()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Contains.html">Contains(KeyValuePair&lt;Guid, string&gt;)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@ContainsKey.html">ContainsKey(Guid)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@CopyTo.html">CopyTo(KeyValuePair`2[], int)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@GetAs%7BT%7D.html">GetAs<T>()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@GetAs%7BT%7D.html">GetAs<T>()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@GetEnumerator.html">GetEnumerator()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@GetValue.html">GetValue(Guid)</a></td>
+<td>Gets a value from the Storage dictionary with the specified key.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Init.html">Init(MyComponentDefinitionBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Init.html">Init(MyComponentDefinitionBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@IsSerialized.html">IsSerialized()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@IsSerialized.html">IsSerialized()</a></td>
+<td>Tells the component container serializer whether this component should be saved<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td>Gets called after the container of this component changes<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnAddedToScene.html">OnAddedToScene()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnAddedToScene.html">OnAddedToScene()</a></td>
+<td>CH: TOOD: Be careful! This does not get called if the component is added to a container that is in the scene already!<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td>Gets called before the removal of this component from a container<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnRemovedFromScene.html">OnRemovedFromScene()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnRemovedFromScene.html">OnRemovedFromScene()</a></td>
+<td>CH: TOOD: Be careful! This does not get called if the component is removed from a container that is still in the scene!<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Remove.html">Remove(KeyValuePair&lt;Guid, string&gt;)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Remove.html">Remove(Guid)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@RemoveValue.html">RemoveValue(Guid)</a></td>
+<td>Removes a value with the specified key from the Storage dictionary.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Serialize.html">Serialize(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@Serialize.html">Serialize(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Serialize.html">Serialize(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@SetContainer.html">SetContainer(IMyComponentContainer)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@SetContainer.html">SetContainer(IMyComponentContainer)</a></td>
+<td>Sets the container of this component. Note that the component is not added to the container here! Therefore, use MyComponentContainer.Add(...) method and it will in turn call this method. Actually, you should seldom have the need to call this method yourself.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@SetValue.html">SetValue(Guid, string)</a></td>
+<td>Stores a value with the specified key into the Storage dictionary.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyModStorageComponentBase@TryGetValue.html">TryGetValue(Guid, out string)</a></td>
+<td>Tries to a value from the Storage dictionary with the specified key.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritance:</strong>   <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a> ˃ <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a> ˃ <a href="VRage.Game.Components.MyModStorageComponentBase.html">MyModStorageComponentBase</a></p>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.ICollection-1?view=netframework-4.6">ICollection&lt;KeyValuePair&lt;Guid, string&gt;&gt;</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IDictionary-2?view=netframework-4.6">IDictionary&lt;Guid, string&gt;</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.IEnumerable?view=netframework-4.6">IEnumerable</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IEnumerable-1?view=netframework-4.6">IEnumerable&lt;KeyValuePair&lt;Guid, string&gt;&gt;</a></li>
+<li><a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></li>
+<li><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.Entities.MyGamePruningStructure - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.Entities.MyGamePruningStructure" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:49Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game.Entities</div>
+                <h1>MyGamePruningStructure</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public sealed class MyGamePruningStructure: MySessionComponentBase, IMyUserInputComponent
+</code></pre>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ComponentType.html">ComponentType</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@DebugName.html">DebugName</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Priority.html">Priority</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@Instance.html">static Instance</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Definition.html">Definition</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Dependencies.html">Dependencies</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Initialized.html">Initialized</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@IsRequiredByGame.html">IsRequiredByGame</a></td>
+<td>Indicates whether a session component should be used in current configuration. Example: MyDestructionData component returns true only when game uses Havok Destruction<br /><br /><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@IsServerOnly.html">IsServerOnly</a></td>
+<td>Is server only is used for client request of the world. if the component is server only, it's not sent to the client on world request.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Loaded.html">Loaded</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ModContext.html">ModContext</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ObjectBuilderType.html">ObjectBuilderType</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Session.html">Session</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateOnPause.html">UpdateOnPause</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateOrder.html">UpdateOrder</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@.ctor.html">MyGamePruningStructure()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@.ctor.html">MySessionComponentBase()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@Add.html">static Add(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@AnyVoxelMapInBox.html">static AnyVoxelMapInBox(ref BoundingBoxD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllEntitiesInBox.html">static GetAllEntitiesInBox(ref BoundingBoxD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllEntitiesInOBB.html">static GetAllEntitiesInOBB(ref MyOrientedBoundingBoxD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllEntitiesInRay.html">static GetAllEntitiesInRay(ref LineD, List&lt;MyLineSegmentOverlapResult<MyEntity>&gt;, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllEntitiesInSphere.html">static GetAllEntitiesInSphere(ref BoundingSphereD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllTopMostEntitiesInSphere.html">static GetAllTopMostEntitiesInSphere(ref BoundingSphereD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllVoxelMapsInBox.html">static GetAllVoxelMapsInBox(ref BoundingBoxD, List<MyVoxelBase>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllVoxelMapsInSphere.html">static GetAllVoxelMapsInSphere(ref BoundingSphereD, List<MyVoxelBase>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAproximateDynamicClustersForSize.html">static GetAproximateDynamicClustersForSize(ref BoundingBoxD, double, List<BoundingBoxD>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAproximateDynamicClustersForSizeDebug.html">static GetAproximateDynamicClustersForSizeDebug(ref BoundingBoxD, double, List<BoundingBoxD>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetClosestPlanet.html">static GetClosestPlanet(Vector3D)</a></td>
+<td>Get the closest planet overlapping a position. This will not return anything if the position is not within the bounding box of the planet.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetClosestPlanet.html">static GetClosestPlanet(ref BoundingBoxD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetEntityAABB.html">static GetEntityAABB(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetTopmostEntitiesInBox.html">static GetTopmostEntitiesInBox(ref BoundingBoxD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetTopMostEntitiesInBox.html">static GetTopMostEntitiesInBox(ref BoundingBoxD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetTopmostEntitiesOverlappingRay.html">static GetTopmostEntitiesOverlappingRay(ref LineD, List&lt;MyLineSegmentOverlapResult<MyEntity>&gt;, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetVoxelMapsOverlappingRay.html">static GetVoxelMapsOverlappingRay(ref LineD, List&lt;MyLineSegmentOverlapResult<MyVoxelBase>&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@Move.html">static Move(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@Remove.html">static Remove(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllTopMostStaticEntitiesInBox.html">static GetAllTopMostStaticEntitiesInBox(ref BoundingBoxD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td><em><strong>Obsolete:</strong> Use GetTopMostEntitiesInBox</em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@AddEntity.html">AddEntity(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@AnyVoxelMap.html">AnyVoxelMap(ref BoundingBoxD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@Draw.html">Draw()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllEntities.html">GetAllEntities(ref BoundingBoxD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllEntities.html">GetAllEntities(ref MyOrientedBoundingBoxD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllEntities.html">GetAllEntities(ref BoundingSphereD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAllEntities.html">GetAllEntities(ref LineD, List&lt;MyLineSegmentOverlapResult<MyEntity>&gt;, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetAproximateDynamicClusters.html">GetAproximateDynamicClusters(ref BoundingBoxD, double, List<BoundingBoxD>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetPlanet.html">GetPlanet(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetPlanet.html">GetPlanet(ref BoundingBoxD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetTopMostEntities.html">GetTopMostEntities(ref BoundingBoxD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetTopMostEntities.html">GetTopMostEntities(ref BoundingSphereD, List<MyEntity>, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetTopMostEntities.html">GetTopMostEntities(ref LineD, List&lt;MyLineSegmentOverlapResult<MyEntity>&gt;, MyEntityQueryType)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetVoxelMaps.html">GetVoxelMaps(ref LineD, List&lt;MyLineSegmentOverlapResult<MyVoxelBase>&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetVoxelMaps.html">GetVoxelMaps(ref BoundingBoxD, List<MyVoxelBase>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@GetVoxelMaps.html">GetVoxelMaps(ref BoundingSphereD, List<MyVoxelBase>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@MoveEntity.html">MoveEntity(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@RemoveEntity.html">RemoveEntity(MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyGamePruningStructure@Simulate.html">Simulate()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@AfterLoadData.html">AfterLoadData()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@BeforeStart.html">BeforeStart()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Draw.html">Draw()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@GetObjectBuilder.html">GetObjectBuilder()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyUserInputComponent@HandleInput.html">HandleInput()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyUserInputComponent.html">IMyUserInputComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@HandleInput.html">HandleInput()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Init.html">Init(MyObjectBuilder_SessionComponent)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@InitFromDefinition.html">InitFromDefinition(MySessionComponentDefinition)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@LoadData.html">LoadData()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@SaveData.html">SaveData()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@SetUpdateOrder.html">SetUpdateOrder(MyUpdateOrder)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@Simulate.html">Simulate()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@ToString.html">ToString()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UnloadDataConditional.html">UnloadDataConditional()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateAfterSimulation.html">UpdateAfterSimulation()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdateBeforeSimulation.html">UpdateBeforeSimulation()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdatedBeforeInit.html">UpdatedBeforeInit()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MySessionComponentBase@UpdatingStopped.html">UpdatingStopped()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritance:</strong>   <a href="VRage.Game.Components.MySessionComponentBase.html">MySessionComponentBase</a></p>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.Components.Interfaces.IMyUserInputComponent.html">IMyUserInputComponent</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

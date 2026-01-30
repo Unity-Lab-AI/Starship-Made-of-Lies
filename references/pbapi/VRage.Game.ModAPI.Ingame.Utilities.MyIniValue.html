@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.Ingame.Utilities.MyIniValue - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue" data-cache-buster="54480b3351e0" data-api-type="pb">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:37Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI.Ingame.Utilities</div>
+                <h1>MyIniValue</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public struct MyIniValue
+</code></pre>
+<p>Represents the value of a single configuration item.</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@EMPTY.html">static EMPTY</a></td>
+<td>Represents an empty <a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue.html">MyIniValue</a></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@Key.html">Key</a></td>
+<td>Gets the <a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniKey.html">MyIniKey</a> this value was retrieved from</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@IsEmpty.html">IsEmpty</a></td>
+<td>Determines whether this value is empty. Be aware that an empty string is not considered to be an empty value.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@.ctor.html">MyIniValue(MyIniKey, string)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@GetLines.html">GetLines(List<string>)</a></td>
+<td>Retrieves each individual line of this value into the provided list.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToBoolean.html">ToBoolean(bool)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.boolean?view=netframework-4.6">bool</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToByte.html">ToByte(byte)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.byte?view=netframework-4.6">byte</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToChar.html">ToChar(char)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.char?view=netframework-4.6">char</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToDecimal.html">ToDecimal(decimal)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.decimal?view=netframework-4.6">decimal</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToDouble.html">ToDouble(double)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.double?view=netframework-4.6">double</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToInt16.html">ToInt16(short)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.int16?view=netframework-4.6">short</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToInt32.html">ToInt32(int)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.int32?view=netframework-4.6">int</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToInt64.html">ToInt64(long)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.int64?view=netframework-4.6">long</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToSByte.html">ToSByte(sbyte)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.sbyte?view=netframework-4.6">sbyte</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToSingle.html">ToSingle(float)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.single?view=netframework-4.6">float</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToString.html">ToString()</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.string?view=netframework-4.6">string</a> . If the value is empty or cannot be understood as this data type, an empty string will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToString.html">ToString(string)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.string?view=netframework-4.6">string</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToUInt16.html">ToUInt16(ushort)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.uint16?view=netframework-4.6">ushort</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToUInt32.html">ToUInt32(uint)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.uint32?view=netframework-4.6">uint</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@ToUInt64.html">ToUInt64(ulong)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.uint64?view=netframework-4.6">ulong</a> . If the value is empty or cannot be understood as this data type, the defaultValue will be returned instead.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetBoolean.html">TryGetBoolean(out bool)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.boolean?view=netframework-4.6">bool</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetByte.html">TryGetByte(out byte)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.byte?view=netframework-4.6">byte</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetChar.html">TryGetChar(out char)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.char?view=netframework-4.6">char</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetDecimal.html">TryGetDecimal(out decimal)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.decimal?view=netframework-4.6">decimal</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetDouble.html">TryGetDouble(out double)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.double?view=netframework-4.6">double</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetInt16.html">TryGetInt16(out short)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.int16?view=netframework-4.6">short</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetInt32.html">TryGetInt32(out int)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.int32?view=netframework-4.6">int</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetInt64.html">TryGetInt64(out long)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.int64?view=netframework-4.6">long</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetSByte.html">TryGetSByte(out sbyte)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.sbyte?view=netframework-4.6">sbyte</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetSingle.html">TryGetSingle(out float)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.single?view=netframework-4.6">float</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetString.html">TryGetString(out string)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.string?view=netframework-4.6">string</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetUInt16.html">TryGetUInt16(out ushort)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.uint16?view=netframework-4.6">ushort</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetUInt32.html">TryGetUInt32(out uint)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.uint32?view=netframework-4.6">uint</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@TryGetUInt64.html">TryGetUInt64(out ulong)</a></td>
+<td>Attempts to get this value as a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.uint64?view=netframework-4.6">ulong</a> . Fills the<code>value</code>on success.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.Utilities.MyIniValue@Write.html">Write(StringBuilder)</a></td>
+<td>Writes this value as a string to the given string builder.</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

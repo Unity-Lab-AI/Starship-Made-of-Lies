@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.ModAPI.EntityFlags - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.ModAPI.EntityFlags" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:57Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.ModAPI</div>
+                <h1>EntityFlags</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public enum EntityFlags
+</code></pre>
+<p>Entity flags.</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default</td>
+<td></td>
+</tr>
+<tr>
+<td>DrawOutsideViewDistance</td>
+<td>Flags would be delivered to render component. <code>DrawOutsideViewDistance</code><sub>prohibited</sub></td>
+</tr>
+<tr>
+<td>FastCastShadowResolve</td>
+<td>Flags would be delivered to render component. <code>FastCastShadowResolve</code><sub>prohibited</sub></td>
+</tr>
+<tr>
+<td>InvalidateOnMove</td>
+<td>If object is moved, invalidate its renderobjects (update render)</td>
+</tr>
+<tr>
+<td>IsGamePrunningStructureObject</td>
+<td>Can be added, removed, or updated in</td>
+</tr>
+<tr>
+<td>IsNotGamePrunningStructureObject</td>
+<td>Do not use in prunning, even though it is a root entity</td>
+</tr>
+<tr>
+<td>Near</td>
+<td>Specifies whether entity is &quot;near&quot;, near entities are cockpit and weapons, these entities are rendered in special way</td>
+</tr>
+<tr>
+<td>NeedsDraw</td>
+<td>Draw method of this entity will be called when suitable. <a href="VRage.Game.Components.MyRenderComponentBase@NeedsDraw.html">NeedsDraw</a></td>
+</tr>
+<tr>
+<td>NeedsDrawFromParent</td>
+<td>Draw method of this entity will be called when suitable and only from parent</td>
+</tr>
+<tr>
+<td>NeedsResolveCastShadow</td>
+<td>Flags would be delivered to render component. <code>NeedsResolveCastShadow</code><sub>prohibited</sub></td>
+</tr>
+<tr>
+<td>NeedsSimulate</td>
+<td>Entity has special simulation update. <a href="VRage.ModAPI.MyEntityUpdateEnum@SIMULATE.html">SIMULATE</a></td>
+</tr>
+<tr>
+<td>NeedsUpdate</td>
+<td>On this entity and its children will be called UpdateBeforeSimulation and UpdateAfterSimulation each frame</td>
+</tr>
+<tr>
+<td>NeedsUpdate10</td>
+<td>Entity updated each 10th frame</td>
+</tr>
+<tr>
+<td>NeedsUpdate100</td>
+<td>Entity updated each 100th frame</td>
+</tr>
+<tr>
+<td>NeedsUpdateAfter</td>
+<td>On this entity and its children will be called UpdateAfterSimulation each frame</td>
+</tr>
+<tr>
+<td>NeedsUpdateBeforeNextFrame</td>
+<td>Entity updated once before first frame.</td>
+</tr>
+<tr>
+<td>NeedsWorldMatrix</td>
+<td>If child, its world matrix must be always updated</td>
+</tr>
+<tr>
+<td>None</td>
+<td>No flags</td>
+</tr>
+<tr>
+<td>Save</td>
+<td>Specifies whether save entity when saving sector or not</td>
+</tr>
+<tr>
+<td>ShadowBoxLod</td>
+<td>Draw LOD shadow as box</td>
+</tr>
+<tr>
+<td>SkipIfTooSmall</td>
+<td>Flags would be delivered to render component. <code>SkipIfTooSmall</code><sub>prohibited</sub></td>
+</tr>
+<tr>
+<td>Sync</td>
+<td>Synchronize object during multiplayer</td>
+</tr>
+<tr>
+<td>Transparent</td>
+<td>Render the entity using dithering to simulate transparency</td>
+</tr>
+<tr>
+<td>UpdateRender</td>
+<td>Entity call <a href="VRage.Game.Components.MyRenderComponentBase@UpdateRenderObject.html">UpdateRenderObject(bool, bool)</a> on OnAddedToScene</td>
+</tr>
+<tr>
+<td>Visible</td>
+<td>Specifies whether draw this entity or not.</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.Lights.MyLight - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.Lights.MyLight" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:49Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game.Lights</div>
+                <h1>MyLight</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyLight
+</code></pre>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@CastShadows.html">CastShadows</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@Color.html">Color</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@DiffuseFactor.html">DiffuseFactor</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@Falloff.html">Falloff</a></td>
+<td>Exponential falloff (1 = linear, 2 = quadratic, etc)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@GlareIntensity.html">GlareIntensity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@GlareMaxDistance.html">GlareMaxDistance</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@GlareOn.html">GlareOn</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@GlareQueryFreqMinMs.html">GlareQueryFreqMinMs</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@GlareQueryFreqRndMs.html">GlareQueryFreqRndMs</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@GlareQueryShift.html">GlareQueryShift</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@GlareQuerySize.html">GlareQuerySize</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@GlareSize.html">GlareSize</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@GlareType.html">GlareType</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@GlossFactor.html">GlossFactor</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@Intensity.html">Intensity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@LightOn.html">LightOn</a></td>
+<td>If true, we use the light in lighting calculation. Otherwise it's like turned off, but still in the buffer.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@LightSourceType.html">LightSourceType</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@LightType.html">LightType</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ParentID.html">ParentID</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@PointLightOffset.html">PointLightOffset</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@Position.html">Position</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@Range.html">Range</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorColor.html">ReflectorColor</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorConeDegrees.html">ReflectorConeDegrees</a></td>
+<td>Sets reflector cone angle in degrees, minimum is 0, teoretical maximum is 180</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorConeMaxAngleCos.html">ReflectorConeMaxAngleCos</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorConeRadians.html">ReflectorConeRadians</a></td>
+<td>Sets reflector cone angle in degrees, minimum is 0, teoretical maximum is PI</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorDiffuseFactor.html">ReflectorDiffuseFactor</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorDirection.html">ReflectorDirection</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorFalloff.html">ReflectorFalloff</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorGlossFactor.html">ReflectorGlossFactor</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorIntensity.html">ReflectorIntensity</a></td>
+<td>Reflector parameters are also parameters for spot light</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorOn.html">ReflectorOn</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorRange.html">ReflectorRange</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorTexture.html">ReflectorTexture</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@ReflectorUp.html">ReflectorUp</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@RenderObjectID.html">RenderObjectID</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@SubGlares.html">SubGlares</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@.ctor.html">MyLight()</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@Clear.html">Clear()</a></td>
+<td>Can be called only from MyLights.RemoveLight.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@MarkPositionDirty.html">MarkPositionDirty()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@SpotlightNotTooLarge.html">SpotlightNotTooLarge(float, float)</a></td>
+<td>When setting Reflector properties, use this function to test whether properties are in bounds and light AABB is not too large. Properties which affects calculations are ReflectorRange and ReflectorConeMaxAngleCos (ReflectorConeDegrees, ReflectorConeRadians)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@Start.html">Start(Vector3D, Vector4, float, string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@Start.html">Start(Vector4, float, string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@Start.html">Start(string)</a></td>
+<td>IMPORTANT: This class isn't realy inicialized by constructor, but by Start()</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@UpdateLight.html">UpdateLight()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Lights.MyLight@UpdateReflectorRangeAndAngle.html">UpdateReflectorRangeAndAngle(float, float)</a></td>
+<td>Use when setting both values and previous state of both value is undefined</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

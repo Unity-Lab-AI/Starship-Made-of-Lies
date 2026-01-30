@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.IMyWeatherEffects - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.IMyWeatherEffects" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:53Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI</div>
+                <h1>IMyWeatherEffects</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMyWeatherEffects
+</code></pre>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@FogAtmoOverride.html">FogAtmoOverride</a></td>
+<td>Gets or sets sector's FogAtmo. When value is null, used default sector value</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@FogColorOverride.html">FogColorOverride</a></td>
+<td>Gets or sets sector's FogColor. When value is null, used default sector value</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@FogDensityOverride.html">FogDensityOverride</a></td>
+<td>Gets or sets sector's FogDensity. When value is null, used default sector value</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@FogMultiplierOverride.html">FogMultiplierOverride</a></td>
+<td>Gets or sets sector's FogMultiplier. When value is null, used default sector value</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@FogSkyboxOverride.html">FogSkyboxOverride</a></td>
+<td>Gets or sets sector's FogSkybox. When value is null, used default sector value</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@ParticleDirectionOverride.html">ParticleDirectionOverride</a></td>
+<td>Gets or sets sector's ParticleDirection. When value is null, used default sector value</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@ParticleVelocityOverride.html">ParticleVelocityOverride</a></td>
+<td>Gets or sets sector's ParticleVelocity. When value is null, used default sector value</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@SunIntensityOverride.html">SunIntensityOverride</a></td>
+<td>Gets or sets sector's SunIntensity. When value is null, used default sector value</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@CreateLightning.html">CreateLightning(Vector3D, MyObjectBuilder_WeatherLightning, bool)</a></td>
+<td>Creates lightning</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetOxygenMultiplier.html">GetOxygenMultiplier(Vector3D)</a></td>
+<td>Gets weather oxygen multiplier at world coordinates</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetOxygenMultiplier.html">GetOxygenMultiplier(Vector3D, MyObjectBuilder_WeatherEffect)</a></td>
+<td>Gets weather oxygen multiplier in point for provided weather</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetSolarMultiplier.html">GetSolarMultiplier(Vector3D)</a></td>
+<td>Gets solar multiplier at world coordinates</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetSolarMultiplier.html">GetSolarMultiplier(Vector3D, MyObjectBuilder_WeatherEffect)</a></td>
+<td>Gets weather solar multiplier in point for provided weather</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetTemperatureMultiplier.html">GetTemperatureMultiplier(Vector3D)</a></td>
+<td>Gets weather temperature multiplier in point for provided weather</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetTemperatureMultiplier.html">GetTemperatureMultiplier(Vector3D, MyObjectBuilder_WeatherEffect)</a></td>
+<td>Gets weather temperature multiplier in point for provided weather</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetWeather.html">GetWeather(Vector3D)</a></td>
+<td>Gets weather name at provided position</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetWeather.html">GetWeather(Vector3D, out MyObjectBuilder_WeatherEffect)</a></td>
+<td>Gets object builder of weather at provided position</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetWeatherIntensity.html">GetWeatherIntensity(Vector3D)</a></td>
+<td>Gets weather intensity at world coordinates</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetWeatherIntensity.html">GetWeatherIntensity(Vector3D, MyObjectBuilder_WeatherEffect)</a></td>
+<td>Gets weather intensity in point for provided weather</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetWeatherPlanetData.html">GetWeatherPlanetData()</a></td>
+<td>Gets list (not a copy) of all weathers that are currently running</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetWindMultiplier.html">GetWindMultiplier(Vector3D)</a></td>
+<td>Gets weather temperature multiplier in point for provided weather</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@GetWindMultiplier.html">GetWindMultiplier(Vector3D, MyObjectBuilder_WeatherEffect)</a></td>
+<td>Gets weather solar multiplier in point for provided weather</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@RemoveWeather.html">RemoveWeather(Vector3D)</a></td>
+<td>Removes weather at specific location</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@RemoveWeather.html">RemoveWeather(MyObjectBuilder_WeatherEffect)</a></td>
+<td>Removes weather by its object builder</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyWeatherEffects@SetWeather.html">SetWeather(string, float, Vector3D?, bool, Vector3D, int, float)</a></td>
+<td>Sets weather</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.BoundingBox2I - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.BoundingBox2I" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:58Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>BoundingBox2I</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public struct BoundingBox2I: IEquatable&lt;BoundingBox2I&gt;
+</code></pre>
+<p>Defines an axis-aligned box-shaped 3D volume.</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Max.html">Max</a></td>
+<td>The maximum point the BoundingBox2I contains.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Min.html">Min</a></td>
+<td>The minimum point the BoundingBox2I contains.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Center.html">Center</a></td>
+<td>Calculates center</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Extents.html">Extents</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@HalfExtents.html">HalfExtents</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Height.html">Height</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Size.html">Size</a></td>
+<td>Size</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Width.html">Width</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@.ctor.html">BoundingBox2I(Vector2I, Vector2I)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@CreateFromHalfExtent.html">static CreateFromHalfExtent(Vector2I, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@CreateFromHalfExtent.html">static CreateFromHalfExtent(Vector2I, Vector2I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@CreateFromPoints.html">static CreateFromPoints(IEnumerable<Vector2I>)</a></td>
+<td>Creates the smallest BoundingBox2I that will contain a group of points.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@CreateInvalid.html">static CreateInvalid()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@CreateMerged.html">static CreateMerged(BoundingBox2I, BoundingBox2I)</a></td>
+<td>Creates the smallest BoundingBox2I that contains the two specified BoundingBox2I instances.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@CreateMerged.html">static CreateMerged(ref BoundingBox2I, ref BoundingBox2I, out BoundingBox2I)</a></td>
+<td>Creates the smallest BoundingBox2I that contains the two specified BoundingBox2I instances.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Area.html">Area()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Contains.html">Contains(BoundingBox2I)</a></td>
+<td>Tests whether the BoundingBox2I contains another BoundingBox2I.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Contains.html">Contains(ref BoundingBox2I, out ContainmentType)</a></td>
+<td>Tests whether the BoundingBox2I contains a BoundingBox2I.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Contains.html">Contains(Vector2I)</a></td>
+<td>Tests whether the BoundingBox2I contains a point.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Contains.html">Contains(ref Vector2I, out ContainmentType)</a></td>
+<td>Tests whether the BoundingBox2I contains a point.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Equals.html">Equals(BoundingBox2I)</a></td>
+<td>Determines whether two instances of BoundingBox2I are equal.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Equals.html">Equals(object)</a></td>
+<td>Determines whether two instances of BoundingBox2I are equal.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@GetCorners.html">GetCorners()</a></td>
+<td>Gets an array of points that make up the corners of the BoundingBox2I.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@GetCorners.html">GetCorners(Vector2I[])</a></td>
+<td>Gets the array of points that make up the corners of the BoundingBox2I.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@GetCornersUnsafe.html">GetCornersUnsafe(*Vector2I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@GetHashCode.html">GetHashCode()</a></td>
+<td>Gets the hash code for this instance.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@GetIncluded.html">GetIncluded(Vector2I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Include.html">Include(ref Vector2I)</a></td>
+<td>return expanded aabb (abb include point)</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Include.html">Include(Vector2I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Include.html">Include(Vector2I, Vector2I, Vector2I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Include.html">Include(ref Vector2I, ref Vector2I, ref Vector2I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Include.html">Include(ref BoundingBox2I)</a></td>
+<td>return expanded aabb (abb include point)</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Include.html">Include(BoundingBox2I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Inflate.html">Inflate(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@InflateToMinimum.html">InflateToMinimum(Vector2I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Intersect.html">Intersect(BoundingBox2I)</a></td>
+<td>Returns bounding box which is intersection of this and box It's called 'Prunik' Result is invalid box when there's no intersection (Min &gt; Max)</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Intersects.html">Intersects(BoundingBox2I)</a></td>
+<td>Checks whether the current BoundingBox2I intersects another BoundingBox2I.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Intersects.html">Intersects(ref BoundingBox2I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Intersects.html">Intersects(ref BoundingBox2I, out bool)</a></td>
+<td>Checks whether the current BoundingBox2I intersects another BoundingBox2I.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Perimeter.html">Perimeter()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Scale.html">Scale(Vector2I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@ToString.html">ToString()</a></td>
+<td>Returns a String that represents the current BoundingBox2I.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.BoundingBox2I@Translate.html">Translate(Vector2I)</a></td>
+<td>Translate</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1?view=netframework-4.6">IEquatable<BoundingBox2I></a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

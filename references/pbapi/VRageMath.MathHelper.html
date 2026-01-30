@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.MathHelper - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.MathHelper" data-cache-buster="54480b3351e0" data-api-type="pb">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:37Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>MathHelper</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public abstract sealed class MathHelper
+</code></pre>
+<p>Contains commonly used precalculated values.</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.MathHelper@E.html">static E</a></td>
+<td>Represents the mathematical constant e.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@EPSILON.html">static EPSILON</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@EPSILON10.html">static EPSILON10</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@FourPi.html">static FourPi</a></td>
+<td>Represents the value of pi times two.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Log10E.html">static Log10E</a></td>
+<td>Represents the log base ten of e.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Log2E.html">static Log2E</a></td>
+<td>Represents the log base two of e.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Pi.html">static Pi</a></td>
+<td>Represents the value of pi.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@PiOver2.html">static PiOver2</a></td>
+<td>Represents the value of pi divided by two.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@PiOver4.html">static PiOver4</a></td>
+<td>Represents the value of pi divided by four.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@RadiansPerSecondToRPM.html">static RadiansPerSecondToRPM</a></td>
+<td>60 / 2*pi</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@RPMToRadiansPerMillisec.html">static RPMToRadiansPerMillisec</a></td>
+<td>2*pi / 60000</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@RPMToRadiansPerSecond.html">static RPMToRadiansPerSecond</a></td>
+<td>2*pi / 60</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Sqrt2.html">static Sqrt2</a></td>
+<td>Represents the value of the square root of two</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Sqrt3.html">static Sqrt3</a></td>
+<td>Represents the value of the square root of three</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@TwoPi.html">static TwoPi</a></td>
+<td>Represents the value of pi times two.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.MathHelper@Align.html">static Align(int, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Atan.html">static Atan(float)</a></td>
+<td>Faster Atan implementation. Good only in the [-pi/2, pi/2] range.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Atan.html">static Atan(double)</a></td>
+<td>Faster Atan implementation. Good only in the [-pi/2, pi/2] range.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Barycentric.html">static Barycentric(float, float, float, float, float)</a></td>
+<td>Returns the Cartesian coordinate for one axis of a point that is defined by a given triangle and two normalized barycentric (areal) coordinates.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@CalculateBezierPoint.html">static CalculateBezierPoint(double, Vector3D, Vector3D, Vector3D, Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@CalculateVectorOnSphere.html">static CalculateVectorOnSphere(Vector3, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@CatmullRom.html">static CatmullRom(float, float, float, float, float)</a></td>
+<td>Performs a Catmull-Rom interpolation using the specified positions.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@CeilToInt.html">static CeilToInt(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@CeilToInt.html">static CeilToInt(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Clamp.html">static Clamp(float, float, float)</a></td>
+<td>Restricts a value to be within a specified range. Reference page contains links to related code samples.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Clamp.html">static Clamp(double, double, double)</a></td>
+<td>Restricts a value to be within a specified range. Reference page contains links to related code samples.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Clamp.html">static Clamp(MyFixedPoint, MyFixedPoint, MyFixedPoint)</a></td>
+<td>Restricts a value to be within a specified range. Reference page contains links to related code samples.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Clamp.html">static Clamp(int, int, int)</a></td>
+<td>Restricts a value to be within a specified range. Reference page contains links to related code samples.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Clamp.html">static Clamp(byte, byte, byte)</a></td>
+<td>Restricts a value to be within a specified range.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@ComputeHashFromBytes.html">static ComputeHashFromBytes(Byte[])</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@CubicInterp.html">static CubicInterp(double, double, double, double, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Distance.html">static Distance(float, float)</a></td>
+<td>Calculates the absolute value of the difference of two values.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Floor.html">static Floor(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Floor.html">static Floor(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@FloorToInt.html">static FloorToInt(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@FloorToInt.html">static FloorToInt(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@GetNearestBiggerPowerOfTwo.html">static GetNearestBiggerPowerOfTwo(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@GetNearestBiggerPowerOfTwo.html">static GetNearestBiggerPowerOfTwo(uint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@GetNearestBiggerPowerOfTwo.html">static GetNearestBiggerPowerOfTwo(float)</a></td>
+<td>Returns nearest bigger power of two</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@GetNearestBiggerPowerOfTwo.html">static GetNearestBiggerPowerOfTwo(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@GetNumberOfMipmaps.html">static GetNumberOfMipmaps(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Hermite.html">static Hermite(float, float, float, float, float)</a></td>
+<td>Performs a Hermite spline interpolation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@InterpLog.html">static InterpLog(float, float, float)</a></td>
+<td>Performs interpolation on logarithmic scale.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@InterpLogInv.html">static InterpLogInv(float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsEqual.html">static IsEqual(float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsEqual.html">static IsEqual(Vector2, Vector2)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsEqual.html">static IsEqual(Vector3, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsEqual.html">static IsEqual(Quaternion, Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsEqual.html">static IsEqual(QuaternionD, QuaternionD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsEqual.html">static IsEqual(Matrix, Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsPowerOfTwo.html">static IsPowerOfTwo(int)</a></td>
+<td>Returns true if value is power of two</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValid.html">static IsValid(Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValid.html">static IsValid(MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValid.html">static IsValid(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValid.html">static IsValid(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValid.html">static IsValid(Vector2)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValid.html">static IsValid(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValid.html">static IsValid(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValid.html">static IsValid(Vector3?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValid.html">static IsValid(Quaternion)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValidNormal.html">static IsValidNormal(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsValidOrZero.html">static IsValidOrZero(Matrix)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsZero.html">static IsZero(float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsZero.html">static IsZero(double, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsZero.html">static IsZero(Vector3, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsZero.html">static IsZero(Vector3D, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsZero.html">static IsZero(Quaternion, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@IsZero.html">static IsZero(Vector4)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Lerp.html">static Lerp(float, float, float)</a></td>
+<td>Linearly interpolates between two values.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Lerp.html">static Lerp(double, double, double)</a></td>
+<td>Linearly interpolates between two values.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@LimitRadians.html">static LimitRadians(ref float)</a></td>
+<td>Returns angle in range 0..2*PI</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@LimitRadians2PI.html">static LimitRadians2PI(ref double)</a></td>
+<td>Returns angle in range 0..2*PI</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@LimitRadiansPI.html">static LimitRadiansPI(ref double)</a></td>
+<td>Returns angle in range -PI..PI</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@LimitRadiansPI.html">static LimitRadiansPI(ref float)</a></td>
+<td>Returns angle in range -PI..PI</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Log2.html">static Log2(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Log2.html">static Log2(uint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Log2Ceiling.html">static Log2Ceiling(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Log2Floor.html">static Log2Floor(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Max.html">static Max(float, float)</a></td>
+<td>Returns the greater of two values.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Max.html">static Max(double, double)</a></td>
+<td>Returns the greater of two values.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Max.html">static Max(float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Max.html">static Max(int, int, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Max.html">static Max(double, double, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Min.html">static Min(float, float)</a></td>
+<td>Returns the lesser of two values.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Min.html">static Min(double, double)</a></td>
+<td>Returns the lesser of two values.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Min.html">static Min(float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Min.html">static Min(double, double, double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@MonotonicAcos.html">static MonotonicAcos(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@MonotonicCosine.html">static MonotonicCosine(float)</a></td>
+<td>Calculate the monotonic cosine of a value. Monotonic cosine is an alternative cosine encoding that is monotonic in the [-pi, pi] interval. We use this when some parameter of an onject in a planet is constrained by latitude. The 'monotonicity' is guaranteed by subtracting the cosine value from 2 if the angle is positive. So for instance MonotonicCos(pi/2) = 2. This only works in the above interval of course.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Pow2.html">static Pow2(int)</a></td>
+<td>Returns 2^n</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@RoundOn2.html">static RoundOn2(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@RoundToInt.html">static RoundToInt(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@RoundToInt.html">static RoundToInt(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Saturate.html">static Saturate(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Saturate.html">static Saturate(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@SCurve3.html">static SCurve3(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@SCurve3.html">static SCurve3(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@SCurve5.html">static SCurve5(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@SCurve5.html">static SCurve5(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Smooth.html">static Smooth(int, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@Smooth.html">static Smooth(float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@SmoothStep.html">static SmoothStep(float, float, float)</a></td>
+<td>Interpolates between two values using a cubic equation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@SmoothStep.html">static SmoothStep(double, double, double)</a></td>
+<td>Interpolates between two values using a cubic equation.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@SmoothStepStable.html">static SmoothStepStable(float)</a></td>
+<td>Interpolates between zero and one using cubic equiation, solved by de Casteljau.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@SmoothStepStable.html">static SmoothStepStable(double)</a></td>
+<td>Interpolates between zero and one using cubic equiation, solved by de Casteljau.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@ToDegrees.html">static ToDegrees(float)</a></td>
+<td>Converts radians to degrees.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@ToDegrees.html">static ToDegrees(double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@ToRadians.html">static ToRadians(float)</a></td>
+<td>Converts degrees to radians.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@ToRadians.html">static ToRadians(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@ToRadians.html">static ToRadians(double)</a></td>
+<td>Converts degrees to radians.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MathHelper@WrapAngle.html">static WrapAngle(float)</a></td>
+<td>Reduces a given angle to a value between π and -π.</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

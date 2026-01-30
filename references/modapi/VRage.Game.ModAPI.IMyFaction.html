@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.IMyFaction - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.IMyFaction" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:52Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI</div>
+                <h1>IMyFaction</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMyFaction
+</code></pre>
+<p>Describes faction (mods interface)</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@AcceptHumans.html">AcceptHumans</a></td>
+<td>Gets or set if faction accepts players</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@AutoAcceptMember.html">AutoAcceptMember</a></td>
+<td>Gets if faction automatically accept new members</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@AutoAcceptPeace.html">AutoAcceptPeace</a></td>
+<td>Gets if faction automatically accept peace from other factions</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@CustomColor.html">CustomColor</a></td>
+<td>Gets faction icon background color</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@Description.html">Description</a></td>
+<td>Gets faction description</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@FactionIcon.html">FactionIcon</a></td>
+<td>Gets faction icon</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@FactionId.html">FactionId</a></td>
+<td>Gets faction id</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@FactionType.html">FactionType</a></td>
+<td>Gets faction type: Pirate, Miner ...</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@FounderId.html">FounderId</a></td>
+<td>IdentityId of founder of faction</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@IconColor.html">IconColor</a></td>
+<td>Gets faction icon color</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@JoinRequests.html">JoinRequests</a></td>
+<td>Gets all faction join requests.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@Members.html">Members</a></td>
+<td>Gets all members (founder, leaders also) of faction.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@Name.html">Name</a></td>
+<td>Gets faction name</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@ObjectivePercentageCompleted.html">ObjectivePercentageCompleted</a></td>
+<td>Gets or sets percentage of completed objective. Used in Uranium Heist scenario</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@PrivateInfo.html">PrivateInfo</a></td>
+<td>Gets faction private info</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@Score.html">Score</a></td>
+<td>Gets or sets score of faction. Used in Uranium Heist scenario</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@Tag.html">Tag</a></td>
+<td>Gets faction tag</td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@GetBalanceShortString.html">GetBalanceShortString()</a></td>
+<td>Gets balance of an account associated with faction. Format is 'BALANCE CURRENCYSHORTNAME'.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@HasLastMember.html">HasLastMember()</a></td>
+<td>Returns if faction has last member</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@IsEnemy.html">IsEnemy(long)</a></td>
+<td>Returns if player with provided playerId is enemy to faction</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@IsEveryoneNpc.html">IsEveryoneNpc()</a></td>
+<td>Returns if faction has no humans</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@IsFounder.html">IsFounder(long)</a></td>
+<td>Returns if player with provided playerId is founder of faction</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@IsFriendly.html">IsFriendly(long)</a></td>
+<td>Returns if player with provided playerId is friendly to faction</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@IsLeader.html">IsLeader(long)</a></td>
+<td>Returns if player with provided playerId is faction leader</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@IsMember.html">IsMember(long)</a></td>
+<td>Returns if player with provided playerId is faction member</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@IsNeutral.html">IsNeutral(long)</a></td>
+<td>Returns if player with provided playerId is neutral to faction</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@RequestChangeBalance.html">RequestChangeBalance(long)</a></td>
+<td>Changes the balance of the account of this faction by given amount. Sends a message to server with the request.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyFaction@TryGetBalanceInfo.html">TryGetBalanceInfo(out long)</a></td>
+<td>Gets balance of an account associated with faction.</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

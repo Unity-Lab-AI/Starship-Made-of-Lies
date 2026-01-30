@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.Color - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.Color" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:58Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>Color</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public struct Color: IPackedVector&lt;uint&gt;, IPackedVector, IEquatable&lt;Color&gt;
+</code></pre>
+<p>Represents a four-component color using red, green, blue, and alpha data.</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PackedValue</td>
+<td>Gets the current color as a packed value.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>static AliceBlue</td>
+<td>Gets a system-defined color with the value R:240 G:248 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static AntiqueWhite</td>
+<td>Gets a system-defined color with the value R:250 G:235 B:215 A:255.</td>
+</tr>
+<tr>
+<td>static Aqua</td>
+<td>Gets a system-defined color with the value R:0 G:255 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static Aquamarine</td>
+<td>Gets a system-defined color with the value R:127 G:255 B:212 A:255.</td>
+</tr>
+<tr>
+<td>static Azure</td>
+<td>Gets a system-defined color with the value R:240 G:255 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static Beige</td>
+<td>Gets a system-defined color with the value R:245 G:245 B:220 A:255.</td>
+</tr>
+<tr>
+<td>static Bisque</td>
+<td>Gets a system-defined color with the value R:255 G:228 B:196 A:255.</td>
+</tr>
+<tr>
+<td>static Black</td>
+<td>Gets a system-defined color with the value R:0 G:0 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static BlanchedAlmond</td>
+<td>Gets a system-defined color with the value R:255 G:235 B:205 A:255.</td>
+</tr>
+<tr>
+<td>static Blue</td>
+<td>Gets a system-defined color with the value R:0 G:0 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static BlueViolet</td>
+<td>Gets a system-defined color with the value R:138 G:43 B:226 A:255.</td>
+</tr>
+<tr>
+<td>static Brown</td>
+<td>Gets a system-defined color with the value R:165 G:42 B:42 A:255.</td>
+</tr>
+<tr>
+<td>static BurlyWood</td>
+<td>Gets a system-defined color with the value R:222 G:184 B:135 A:255.</td>
+</tr>
+<tr>
+<td>static CadetBlue</td>
+<td>Gets a system-defined color with the value R:95 G:158 B:160 A:255.</td>
+</tr>
+<tr>
+<td>static Chartreuse</td>
+<td>Gets a system-defined color with the value R:127 G:255 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static Chocolate</td>
+<td>Gets a system-defined color with the value R:210 G:105 B:30 A:255.</td>
+</tr>
+<tr>
+<td>static Coral</td>
+<td>Gets a system-defined color with the value R:255 G:127 B:80 A:255.</td>
+</tr>
+<tr>
+<td>static CornflowerBlue</td>
+<td>Gets a system-defined color with the value R:100 G:149 B:237 A:255.</td>
+</tr>
+<tr>
+<td>static Cornsilk</td>
+<td>Gets a system-defined color with the value R:255 G:248 B:220 A:255.</td>
+</tr>
+<tr>
+<td>static Crimson</td>
+<td>Gets a system-defined color with the value R:220 G:20 B:60 A:255.</td>
+</tr>
+<tr>
+<td>static Cyan</td>
+<td>Gets a system-defined color with the value R:0 G:255 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static DarkBlue</td>
+<td>Gets a system-defined color with the value R:0 G:0 B:139 A:255.</td>
+</tr>
+<tr>
+<td>static DarkCyan</td>
+<td>Gets a system-defined color with the value R:0 G:139 B:139 A:255.</td>
+</tr>
+<tr>
+<td>static DarkGoldenrod</td>
+<td>Gets a system-defined color with the value R:184 G:134 B:11 A:255.</td>
+</tr>
+<tr>
+<td>static DarkGray</td>
+<td>Gets a system-defined color with the value R:169 G:169 B:169 A:255.</td>
+</tr>
+<tr>
+<td>static DarkGreen</td>
+<td>Gets a system-defined color with the value R:0 G:100 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static DarkKhaki</td>
+<td>Gets a system-defined color with the value R:189 G:183 B:107 A:255.</td>
+</tr>
+<tr>
+<td>static DarkMagenta</td>
+<td>Gets a system-defined color with the value R:139 G:0 B:139 A:255.</td>
+</tr>
+<tr>
+<td>static DarkOliveGreen</td>
+<td>Gets a system-defined color with the value R:85 G:107 B:47 A:255.</td>
+</tr>
+<tr>
+<td>static DarkOrange</td>
+<td>Gets a system-defined color with the value R:255 G:140 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static DarkOrchid</td>
+<td>Gets a system-defined color with the value R:153 G:50 B:204 A:255.</td>
+</tr>
+<tr>
+<td>static DarkRed</td>
+<td>Gets a system-defined color with the value R:139 G:0 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static DarkSalmon</td>
+<td>Gets a system-defined color with the value R:233 G:150 B:122 A:255.</td>
+</tr>
+<tr>
+<td>static DarkSeaGreen</td>
+<td>Gets a system-defined color with the value R:143 G:188 B:139 A:255.</td>
+</tr>
+<tr>
+<td>static DarkSlateBlue</td>
+<td>Gets a system-defined color with the value R:72 G:61 B:139 A:255.</td>
+</tr>
+<tr>
+<td>static DarkSlateGray</td>
+<td>Gets a system-defined color with the value R:47 G:79 B:79 A:255.</td>
+</tr>
+<tr>
+<td>static DarkTurquoise</td>
+<td>Gets a system-defined color with the value R:0 G:206 B:209 A:255.</td>
+</tr>
+<tr>
+<td>static DarkViolet</td>
+<td>Gets a system-defined color with the value R:148 G:0 B:211 A:255.</td>
+</tr>
+<tr>
+<td>static DeepPink</td>
+<td>Gets a system-defined color with the value R:255 G:20 B:147 A:255.</td>
+</tr>
+<tr>
+<td>static DeepSkyBlue</td>
+<td>Gets a system-defined color with the value R:0 G:191 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static DimGray</td>
+<td>Gets a system-defined color with the value R:105 G:105 B:105 A:255.</td>
+</tr>
+<tr>
+<td>static DodgerBlue</td>
+<td>Gets a system-defined color with the value R:30 G:144 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static Firebrick</td>
+<td>Gets a system-defined color with the value R:178 G:34 B:34 A:255.</td>
+</tr>
+<tr>
+<td>static FloralWhite</td>
+<td>Gets a system-defined color with the value R:255 G:250 B:240 A:255.</td>
+</tr>
+<tr>
+<td>static ForestGreen</td>
+<td>Gets a system-defined color with the value R:34 G:139 B:34 A:255.</td>
+</tr>
+<tr>
+<td>static Fuchsia</td>
+<td>Gets a system-defined color with the value R:255 G:0 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static Gainsboro</td>
+<td>Gets a system-defined color with the value R:220 G:220 B:220 A:255.</td>
+</tr>
+<tr>
+<td>static GhostWhite</td>
+<td>Gets a system-defined color with the value R:248 G:248 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static Gold</td>
+<td>Gets a system-defined color with the value R:255 G:215 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static Goldenrod</td>
+<td>Gets a system-defined color with the value R:218 G:165 B:32 A:255.</td>
+</tr>
+<tr>
+<td>static Gray</td>
+<td>Gets a system-defined color with the value R:128 G:128 B:128 A:255.</td>
+</tr>
+<tr>
+<td>static Green</td>
+<td>Gets a system-defined color with the value R:0 G:128 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static GreenYellow</td>
+<td>Gets a system-defined color with the value R:173 G:255 B:47 A:255.</td>
+</tr>
+<tr>
+<td>static Honeydew</td>
+<td>Gets a system-defined color with the value R:240 G:255 B:240 A:255.</td>
+</tr>
+<tr>
+<td>static HotPink</td>
+<td>Gets a system-defined color with the value R:255 G:105 B:180 A:255.</td>
+</tr>
+<tr>
+<td>static IndianRed</td>
+<td>Gets a system-defined color with the value R:205 G:92 B:92 A:255.</td>
+</tr>
+<tr>
+<td>static Indigo</td>
+<td>Gets a system-defined color with the value R:75 G:0 B:130 A:255.</td>
+</tr>
+<tr>
+<td>static Ivory</td>
+<td>Gets a system-defined color with the value R:255 G:255 B:240 A:255.</td>
+</tr>
+<tr>
+<td>static Khaki</td>
+<td>Gets a system-defined color with the value R:240 G:230 B:140 A:255.</td>
+</tr>
+<tr>
+<td>static Lavender</td>
+<td>Gets a system-defined color with the value R:230 G:230 B:250 A:255.</td>
+</tr>
+<tr>
+<td>static LavenderBlush</td>
+<td>Gets a system-defined color with the value R:255 G:240 B:245 A:255.</td>
+</tr>
+<tr>
+<td>static LawnGreen</td>
+<td>Gets a system-defined color with the value R:124 G:252 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static LemonChiffon</td>
+<td>Gets a system-defined color with the value R:255 G:250 B:205 A:255.</td>
+</tr>
+<tr>
+<td>static LightBlue</td>
+<td>Gets a system-defined color with the value R:173 G:216 B:230 A:255.</td>
+</tr>
+<tr>
+<td>static LightCoral</td>
+<td>Gets a system-defined color with the value R:240 G:128 B:128 A:255.</td>
+</tr>
+<tr>
+<td>static LightCyan</td>
+<td>Gets a system-defined color with the value R:224 G:255 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static LightGoldenrodYellow</td>
+<td>Gets a system-defined color with the value R:250 G:250 B:210 A:255.</td>
+</tr>
+<tr>
+<td>static LightGray</td>
+<td>Gets a system-defined color with the value R:211 G:211 B:211 A:255.</td>
+</tr>
+<tr>
+<td>static LightGreen</td>
+<td>Gets a system-defined color with the value R:144 G:238 B:144 A:255.</td>
+</tr>
+<tr>
+<td>static LightPink</td>
+<td>Gets a system-defined color with the value R:255 G:182 B:193 A:255.</td>
+</tr>
+<tr>
+<td>static LightSalmon</td>
+<td>Gets a system-defined color with the value R:255 G:160 B:122 A:255.</td>
+</tr>
+<tr>
+<td>static LightSeaGreen</td>
+<td>Gets a system-defined color with the value R:32 G:178 B:170 A:255.</td>
+</tr>
+<tr>
+<td>static LightSkyBlue</td>
+<td>Gets a system-defined color with the value R:135 G:206 B:250 A:255.</td>
+</tr>
+<tr>
+<td>static LightSlateGray</td>
+<td>Gets a system-defined color with the value R:119 G:136 B:153 A:255.</td>
+</tr>
+<tr>
+<td>static LightSteelBlue</td>
+<td>Gets a system-defined color with the value R:176 G:196 B:222 A:255.</td>
+</tr>
+<tr>
+<td>static LightYellow</td>
+<td>Gets a system-defined color with the value R:255 G:255 B:224 A:255.</td>
+</tr>
+<tr>
+<td>static Lime</td>
+<td>Gets a system-defined color with the value R:0 G:255 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static LimeGreen</td>
+<td>Gets a system-defined color with the value R:50 G:205 B:50 A:255.</td>
+</tr>
+<tr>
+<td>static Linen</td>
+<td>Gets a system-defined color with the value R:250 G:240 B:230 A:255.</td>
+</tr>
+<tr>
+<td>static Magenta</td>
+<td>Gets a system-defined color with the value R:255 G:0 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static Maroon</td>
+<td>Gets a system-defined color with the value R:128 G:0 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static MediumAquamarine</td>
+<td>Gets a system-defined color with the value R:102 G:205 B:170 A:255.</td>
+</tr>
+<tr>
+<td>static MediumBlue</td>
+<td>Gets a system-defined color with the value R:0 G:0 B:205 A:255.</td>
+</tr>
+<tr>
+<td>static MediumOrchid</td>
+<td>Gets a system-defined color with the value R:186 G:85 B:211 A:255.</td>
+</tr>
+<tr>
+<td>static MediumPurple</td>
+<td>Gets a system-defined color with the value R:147 G:112 B:219 A:255.</td>
+</tr>
+<tr>
+<td>static MediumSeaGreen</td>
+<td>Gets a system-defined color with the value R:60 G:179 B:113 A:255.</td>
+</tr>
+<tr>
+<td>static MediumSlateBlue</td>
+<td>Gets a system-defined color with the value R:123 G:104 B:238 A:255.</td>
+</tr>
+<tr>
+<td>static MediumSpringGreen</td>
+<td>Gets a system-defined color with the value R:0 G:250 B:154 A:255.</td>
+</tr>
+<tr>
+<td>static MediumTurquoise</td>
+<td>Gets a system-defined color with the value R:72 G:209 B:204 A:255.</td>
+</tr>
+<tr>
+<td>static MediumVioletRed</td>
+<td>Gets a system-defined color with the value R:199 G:21 B:133 A:255.</td>
+</tr>
+<tr>
+<td>static MidnightBlue</td>
+<td>Gets a system-defined color with the value R:25 G:25 B:112 A:255.</td>
+</tr>
+<tr>
+<td>static MintCream</td>
+<td>Gets a system-defined color with the value R:245 G:255 B:250 A:255.</td>
+</tr>
+<tr>
+<td>static MistyRose</td>
+<td>Gets a system-defined color with the value R:255 G:228 B:225 A:255.</td>
+</tr>
+<tr>
+<td>static Moccasin</td>
+<td>Gets a system-defined color with the value R:255 G:228 B:181 A:255.</td>
+</tr>
+<tr>
+<td>static NavajoWhite</td>
+<td>Gets a system-defined color with the value R:255 G:222 B:173 A:255.</td>
+</tr>
+<tr>
+<td>static Navy</td>
+<td>Gets a system-defined color R:0 G:0 B:128 A:255.</td>
+</tr>
+<tr>
+<td>static OldLace</td>
+<td>Gets a system-defined color with the value R:253 G:245 B:230 A:255.</td>
+</tr>
+<tr>
+<td>static Olive</td>
+<td>Gets a system-defined color with the value R:128 G:128 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static OliveDrab</td>
+<td>Gets a system-defined color with the value R:107 G:142 B:35 A:255.</td>
+</tr>
+<tr>
+<td>static Orange</td>
+<td>Gets a system-defined color with the value R:255 G:165 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static OrangeRed</td>
+<td>Gets a system-defined color with the value R:255 G:69 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static Orchid</td>
+<td>Gets a system-defined color with the value R:218 G:112 B:214 A:255.</td>
+</tr>
+<tr>
+<td>static PaleGoldenrod</td>
+<td>Gets a system-defined color with the value R:238 G:232 B:170 A:255.</td>
+</tr>
+<tr>
+<td>static PaleGreen</td>
+<td>Gets a system-defined color with the value R:152 G:251 B:152 A:255.</td>
+</tr>
+<tr>
+<td>static PaleTurquoise</td>
+<td>Gets a system-defined color with the value R:175 G:238 B:238 A:255.</td>
+</tr>
+<tr>
+<td>static PaleVioletRed</td>
+<td>Gets a system-defined color with the value R:219 G:112 B:147 A:255.</td>
+</tr>
+<tr>
+<td>static PapayaWhip</td>
+<td>Gets a system-defined color with the value R:255 G:239 B:213 A:255.</td>
+</tr>
+<tr>
+<td>static PeachPuff</td>
+<td>Gets a system-defined color with the value R:255 G:218 B:185 A:255.</td>
+</tr>
+<tr>
+<td>static Peru</td>
+<td>Gets a system-defined color with the value R:205 G:133 B:63 A:255.</td>
+</tr>
+<tr>
+<td>static Pink</td>
+<td>Gets a system-defined color with the value R:255 G:192 B:203 A:255.</td>
+</tr>
+<tr>
+<td>static Plum</td>
+<td>Gets a system-defined color with the value R:221 G:160 B:221 A:255.</td>
+</tr>
+<tr>
+<td>static PowderBlue</td>
+<td>Gets a system-defined color with the value R:176 G:224 B:230 A:255.</td>
+</tr>
+<tr>
+<td>static Purple</td>
+<td>Gets a system-defined color with the value R:128 G:0 B:128 A:255.</td>
+</tr>
+<tr>
+<td>static Red</td>
+<td>Gets a system-defined color with the value R:255 G:0 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static RosyBrown</td>
+<td>Gets a system-defined color with the value R:188 G:143 B:143 A:255.</td>
+</tr>
+<tr>
+<td>static RoyalBlue</td>
+<td>Gets a system-defined color with the value R:65 G:105 B:225 A:255.</td>
+</tr>
+<tr>
+<td>static SaddleBrown</td>
+<td>Gets a system-defined color with the value R:139 G:69 B:19 A:255.</td>
+</tr>
+<tr>
+<td>static Salmon</td>
+<td>Gets a system-defined color with the value R:250 G:128 B:114 A:255.</td>
+</tr>
+<tr>
+<td>static SandyBrown</td>
+<td>Gets a system-defined color with the value R:244 G:164 B:96 A:255.</td>
+</tr>
+<tr>
+<td>static SeaGreen</td>
+<td>Gets a system-defined color with the value R:46 G:139 B:87 A:255.</td>
+</tr>
+<tr>
+<td>static SeaShell</td>
+<td>Gets a system-defined color with the value R:255 G:245 B:238 A:255.</td>
+</tr>
+<tr>
+<td>static Sienna</td>
+<td>Gets a system-defined color with the value R:160 G:82 B:45 A:255.</td>
+</tr>
+<tr>
+<td>static Silver</td>
+<td>Gets a system-defined color with the value R:192 G:192 B:192 A:255.</td>
+</tr>
+<tr>
+<td>static SkyBlue</td>
+<td>Gets a system-defined color with the value R:135 G:206 B:235 A:255.</td>
+</tr>
+<tr>
+<td>static SlateBlue</td>
+<td>Gets a system-defined color with the value R:106 G:90 B:205 A:255.</td>
+</tr>
+<tr>
+<td>static SlateGray</td>
+<td>Gets a system-defined color with the value R:112 G:128 B:144 A:255.</td>
+</tr>
+<tr>
+<td>static Snow</td>
+<td>Gets a system-defined color with the value R:255 G:250 B:250 A:255.</td>
+</tr>
+<tr>
+<td>static SpringGreen</td>
+<td>Gets a system-defined color with the value R:0 G:255 B:127 A:255.</td>
+</tr>
+<tr>
+<td>static SteelBlue</td>
+<td>Gets a system-defined color with the value R:70 G:130 B:180 A:255.</td>
+</tr>
+<tr>
+<td>static Tan</td>
+<td>Gets a system-defined color with the value R:210 G:180 B:140 A:255.</td>
+</tr>
+<tr>
+<td>static Teal</td>
+<td>Gets a system-defined color with the value R:0 G:128 B:128 A:255.</td>
+</tr>
+<tr>
+<td>static Thistle</td>
+<td>Gets a system-defined color with the value R:216 G:191 B:216 A:255.</td>
+</tr>
+<tr>
+<td>static Tomato</td>
+<td>Gets a system-defined color with the value R:255 G:99 B:71 A:255.</td>
+</tr>
+<tr>
+<td>static Transparent</td>
+<td>Gets a system-defined color with the value R:0 G:0 B:0 A:0.</td>
+</tr>
+<tr>
+<td>static Turquoise</td>
+<td>Gets a system-defined color with the value R:64 G:224 B:208 A:255.</td>
+</tr>
+<tr>
+<td>static Violet</td>
+<td>Gets a system-defined color with the value R:238 G:130 B:238 A:255.</td>
+</tr>
+<tr>
+<td>static Wheat</td>
+<td>Gets a system-defined color with the value R:245 G:222 B:179 A:255.</td>
+</tr>
+<tr>
+<td>static White</td>
+<td>Gets a system-defined color with the value R:255 G:255 B:255 A:255.</td>
+</tr>
+<tr>
+<td>static WhiteSmoke</td>
+<td>Gets a system-defined color with the value R:245 G:245 B:245 A:255.</td>
+</tr>
+<tr>
+<td>static Yellow</td>
+<td>Gets a system-defined color with the value R:255 G:255 B:0 A:255.</td>
+</tr>
+<tr>
+<td>static YellowGreen</td>
+<td>Gets a system-defined color with the value R:154 G:205 B:50 A:255.</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Gets or sets the alpha component value.</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Gets or sets the blue component value of this Color.</td>
+</tr>
+<tr>
+<td>G</td>
+<td>Gets or sets the green component value of this Color.</td>
+</tr>
+<tr>
+<td>R</td>
+<td>Gets or sets the red component value of this Color.</td>
+</tr>
+<tr>
+<td>X</td>
+<td>Gets or sets the red component value of this Color.</td>
+</tr>
+<tr>
+<td>Y</td>
+<td>Gets or sets the green component value of this Color.</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>Gets or sets the blue component value of this Color.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Color(uint)</td>
+<td></td>
+</tr>
+<tr>
+<td>Color(int, int, int)</td>
+<td></td>
+</tr>
+<tr>
+<td>Color(int, int, int, int)</td>
+<td></td>
+</tr>
+<tr>
+<td>Color(float)</td>
+<td></td>
+</tr>
+<tr>
+<td>Color(float, float, float)</td>
+<td></td>
+</tr>
+<tr>
+<td>Color(float, float, float, float)</td>
+<td></td>
+</tr>
+<tr>
+<td>Color(Color, float)</td>
+<td></td>
+</tr>
+<tr>
+<td>Color(Vector3)</td>
+<td></td>
+</tr>
+<tr>
+<td>Color(Vector4)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>static Darken(Color, double)</td>
+<td></td>
+</tr>
+<tr>
+<td>static FromNonPremultiplied(Vector4)</td>
+<td>Convert a non premultipled color into color data that contains alpha.</td>
+</tr>
+<tr>
+<td>static FromNonPremultiplied(int, int, int, int)</td>
+<td>Converts a non-premultipled alpha color to a color that contains premultiplied alpha.</td>
+</tr>
+<tr>
+<td>static Lerp(Color, Color, float)</td>
+<td>Linearly interpolate a color.</td>
+</tr>
+<tr>
+<td>static Lighten(Color, double)</td>
+<td></td>
+</tr>
+<tr>
+<td>static Multiply(Color, float)</td>
+<td>Multiply each color component by the scale factor.</td>
+</tr>
+<tr>
+<td>Equals(object)</td>
+<td>Test an instance of a color object to see if it is equal to this object.</td>
+</tr>
+<tr>
+<td>Equals(Color)</td>
+<td>Test a color to see if it is equal to the color in this instance.</td>
+</tr>
+<tr>
+<td>GetHashCode()</td>
+<td>Serves as a hash function for a particular type.</td>
+</tr>
+<tr>
+<td>ToGray()</td>
+<td></td>
+</tr>
+<tr>
+<td>ToString()</td>
+<td>Gets a string representation of this object.</td>
+</tr>
+<tr>
+<td>ToVector3()</td>
+<td>Gets a three-component vector representation for this object.</td>
+</tr>
+<tr>
+<td>ToVector4()</td>
+<td>Gets a four-component vector representation for this object.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1?view=netframework-4.6">IEquatable<Color></a></li>
+<li>IPackedVector <sub>prohibited</sub></li>
+<li>IPackedVector<uint> <sub>prohibited</sub></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

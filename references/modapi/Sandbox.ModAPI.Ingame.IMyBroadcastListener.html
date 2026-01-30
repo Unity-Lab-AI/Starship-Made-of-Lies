@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.Ingame.IMyBroadcastListener - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.Ingame.IMyBroadcastListener" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:51Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI.Ingame</div>
+                <h1>IMyBroadcastListener</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Common.dll</p>
+<pre><code class="language-csharp">public interface IMyBroadcastListener: IMyMessageProvider
+</code></pre>
+<p>Broadcast listeners scan the network for broadcasted messages with specific tag.</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyBroadcastListener@IsActive.html">IsActive</a></td>
+<td>Gets a value that indicates whether the broadcast listener is active.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyBroadcastListener@Tag.html">Tag</a></td>
+<td>Gets the tag this broadcast listener is listening for.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyMessageProvider@HasPendingMessage.html">HasPendingMessage</a></td>
+<td>Determines whether there is a message pending to be accepted in this message provider or not. There may be multiple messages pending in single message provider. In such case the flag will stay raised until the last message is consumed.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyMessageProvider.html">IMyMessageProvider</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyMessageProvider@MaxWaitingMessages.html">MaxWaitingMessages</a></td>
+<td>Indicates number of max messages waiting in queue before the oldest one will be dropped to make space for new one.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyMessageProvider.html">IMyMessageProvider</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyMessageProvider@AcceptMessage.html">AcceptMessage()</a></td>
+<td>Accepts first message from pending message queue for this message provider. Messages are guaranteed to be dequeued and returned by this method in order they arrived.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyMessageProvider.html">IMyMessageProvider</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyMessageProvider@DisableMessageCallback.html">DisableMessageCallback()</a></td>
+<td>Disables registered message callback.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyMessageProvider.html">IMyMessageProvider</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyMessageProvider@SetMessageCallback.html">SetMessageCallback(string)</a></td>
+<td>Whenever given message provider obtains new message respective programmable block gets called with provided argument. Each raised callback argument will be called only once per simulation tick no matter how many messages are there pending to be accepted. At most a single callback will be invoked each tick ==&gt; If there are messages pending in multiple message providers with registered callback, one will be randomly picked and invoked. Rest will be deferred to the next tick and follow the same process. In case you don't consume all messages pending in given message provider, the callback will not be raise again in following tick unless new message arrives.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyMessageProvider.html">IMyMessageProvider</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="Sandbox.ModAPI.Ingame.IMyMessageProvider.html">IMyMessageProvider</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.MyInventory - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.MyInventory" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:50Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game</div>
+                <h1>MyInventory</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyInventory: MyInventoryBase, IMyComponentBase, IMyEntityComponentBase, IMyEventProxy, IMyEventOwner, IMyInventory, IMyInventory
+</code></pre>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@INVENTORY_CHANGED.html">static INVENTORY_CHANGED</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Constraint.html">Constraint</a></td>
+<td>Constraint filtering items added to inventory. If null, everything is allowed. Note that setting this constraint will not affect items already in the inventory.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ExternalMass.html">ExternalMass</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@IsWildlifeAgentInventory.html">IsWildlifeAgentInventory</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@SyncType.html">SyncType</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@UserData.html">UserData</a></td>
+<td>Any attached data..</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@CanPutItems.html">CanPutItems</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@IsInModifyInventory.html">IsInModifyInventory</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@RemoveEntityOnEmpty.html">RemoveEntityOnEmpty</a></td>
+<td>Setting this flag to true causes to call Close() on the Entity of Container, when the GetItemsCount() == 0. This causes to remove entity from the world, when this inventory is empty.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@OnTransferByUser.html">static OnTransferByUser</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnAfterAddedToContainer.html">static OnAfterAddedToContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@OnVolumeChanged.html">OnVolumeChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@AfterModifyFinished.html">AfterModifyFinished</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@BeforeContentsChanged.html">BeforeContentsChanged</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@BeforeRemovedFromContainer.html">BeforeRemovedFromContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@BeforeRemovedFromContainer.html">BeforeRemovedFromContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ContentsAdded.html">ContentsAdded</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ContentsChanged.html">ContentsChanged</a></td>
+<td>Called when items were added or removed, or their amount has changed<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ContentsRemoved.html">ContentsRemoved</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@InventoryContentChanged.html">InventoryContentChanged</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@OnVolumeChanged.html">OnVolumeChanged</a></td>
+<td>Triggers when volume of the inventory is changed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@OwnerChanged.html">OwnerChanged</a></td>
+<td>Called if this inventory changed its owner<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@CargoPercentage.html">CargoPercentage</a></td>
+<td>Returns a value in the range [0,1] that indicates how full this inventory is. 0 is empty 1 is full If there are no cargo constraints, will return empty</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@CurrentMass.html">CurrentMass</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@CurrentVolume.html">CurrentVolume</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ForcedPriority.html">ForcedPriority</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@InventoryIdx.html">InventoryIdx</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@IsCharacterOwner.html">IsCharacterOwner</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@IsConstrained.html">IsConstrained</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@IsFull.html">IsFull</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ItemCount.html">ItemCount</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@MaxItemCount.html">MaxItemCount</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@MaxMass.html">MaxMass</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@MaxVolume.html">MaxVolume</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Owner.html">Owner</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@VolumeFillFactor.html">VolumeFillFactor</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@AttachSyncToEntity.html">AttachSyncToEntity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@AttachSyncToEntity.html">AttachSyncToEntity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@CanPutItems.html">CanPutItems</a></td>
+<td>Gets if inventory can receive items or not.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@CanPutItems.html">CanPutItems</a></td>
+<td>Gets or sets if inventory can receive items or not.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td>Name of the base component type for debug purposes (e.g.: &quot;Position&quot;)<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@Container.html">Container</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@Container.html">Container</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@ContainerBase.html">ContainerBase</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@ContainerBase.html">ContainerBase</a></td>
+<td>This cannot be named Container to not conflict with the definition of Container in MyEntityComponentBase.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@CurrentMass.html">CurrentMass</a></td>
+<td>Returns total mass of items inside this inventory in Kg.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@CurrentMass.html">CurrentMass</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@CurrentVolume.html">CurrentVolume</a></td>
+<td>Returns total volume of items inside this inventory in m^3.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@CurrentVolume.html">CurrentVolume</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@Entity.html">Entity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@Entity.html">Entity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@FailedOnSceneAdd.html">FailedOnSceneAdd</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ForcedPriority.html">ForcedPriority</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@InventoryId.html">InventoryId</a></td>
+<td>This is for the purpose of identifying the inventory in aggregates (i.e. &quot;Backpack&quot;, &quot;LeftHand&quot;, ...)<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@IsFull.html">IsFull</a></td>
+<td>Determines if inventory is absolutely full.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@ItemCount.html">ItemCount</a></td>
+<td>Returns number of occupied inventory slots.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@MaxItemCount.html">MaxItemCount</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@MaxMass.html">MaxMass</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@MaxVolume.html">MaxVolume</a></td>
+<td>Sets maximum volume of items this inventory can contain in m^3.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@MaxVolume.html">MaxVolume</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@Owner.html">Owner</a></td>
+<td>Returns entity this inventory belongs to.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@Owner.html">Owner</a></td>
+<td>Returns entity this inventory belongs to.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@RemoveExistingComponentOnNewInsert.html">RemoveExistingComponentOnNewInsert</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@RemoveExistingComponentOnNewInsert.html">RemoveExistingComponentOnNewInsert</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@VolumeFillFactor.html">VolumeFillFactor</a></td>
+<td>Gets the current volume fill factor of the inventory<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@.ctor.html">MyInventory()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@.ctor.html">MyInventory(float, Vector3, MyInventoryFlags)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@.ctor.html">MyInventory(float, float, Vector3, MyInventoryFlags)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@.ctor.html">MyInventory(MyFixedPoint, MyFixedPoint, Vector3, MyInventoryFlags)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@.ctor.html">MyInventory(MyFixedPoint, MyFixedPoint, MyInventoryFlags, List<MyPhysicalInventoryItem>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@.ctor.html">MyInventory(MyObjectBuilder_InventoryDefinition, MyInventoryFlags)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@.ctor.html">MyInventoryBase(string)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetItemVolumeAndMass.html">static GetItemVolumeAndMass(MyDefinitionId, out float, out float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ShowCantConsume.html">static ShowCantConsume()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Transfer.html">static Transfer(MyInventory, MyInventory, MyDefinitionId, MyItemFlags, MyFixedPoint?, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Transfer.html">static Transfer(MyInventory, MyInventory, uint, int, MyFixedPoint?, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@TransferAll.html">static TransferAll(MyInventory, MyInventory)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@TransferByPlanner.html">static TransferByPlanner(MyInventory, MyInventory, SerializableDefinitionId, MyItemFlags, MyFixedPoint?, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@TransferByUser.html">static TransferByUser(MyInventory, MyInventory, uint, int, MyFixedPoint?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@TryConsumeItem.html">static TryConsumeItem(MyCharacter, MyInventory, MyDefinitionId, out bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@TryTransferAll.html">static TryTransferAll(MyInventory, MyInventory)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Add.html">Add(IMyInventoryItem, MyFixedPoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@AddBlocks.html">AddBlocks(MyCubeBlockDefinition, MyFixedPoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@AddItemClient.html">AddItemClient(int, MyPhysicalInventoryItem)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@AddItems.html">AddItems(MyFixedPoint, MyObjectBuilder_Base)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ApplyChanges.html">ApplyChanges(List<MyComponentChange>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@CanItemsBeAdded.html">CanItemsBeAdded(MyFixedPoint, MyDefinitionId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@CanItemsBeAdded.html">CanItemsBeAdded(MyFixedPoint, MyDefinitionId, MyFixedPoint, MyFixedPoint, MyFixedPoint, MyFixedPoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ChangeItemClient.html">ChangeItemClient(MyPhysicalInventoryItem, int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@CheckConstraint.html">CheckConstraint(MyDefinitionId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Clear.html">Clear(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ClearItems.html">ClearItems()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ComputeAmountThatFits.html">ComputeAmountThatFits(MyDefinitionId, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ComputeAmountThatFits.html">ComputeAmountThatFits(MyBlueprintDefinitionBase)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ConsumeItem.html">ConsumeItem(MyDefinitionId, MyFixedPoint, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ContainItems.html">ContainItems(MyFixedPoint, MyObjectBuilder_PhysicalObject)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ContainItems.html">ContainItems(MyFixedPoint?, MyDefinitionId, MyItemFlags)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@CountItems.html">CountItems(Dictionary&lt;MyDefinitionId, MyFixedPoint&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@DebugAddItems.html">DebugAddItems(MyFixedPoint, MyObjectBuilder_Base)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@DropItem.html">DropItem(int, MyFixedPoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@DropItemById.html">DropItemById(uint, MyFixedPoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Empty.html">Empty()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@FilterItemsUsingConstraint.html">FilterItemsUsingConstraint()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@FindFreeSlotSpace.html">FindFreeSlotSpace(MyDefinitionId, IMyInventoryItemAdapter)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@FindItem.html">FindItem(MyDefinitionId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@FindItem.html">FindItem(Func&lt;MyPhysicalInventoryItem, bool&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@FindUsableItem.html">FindUsableItem(MyDefinitionId)</a></td>
+<td>This will try to find the first item that can be use. This means, if durability is enabled on items, it will look for first item with durability HP &gt; 0, if this is disabled, this will behave the same as FindItem method</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@FixInventoryVolume.html">FixInventoryVolume(float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GenerateContent.html">GenerateContent(MyContainerTypeDefinition)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetFlags.html">GetFlags()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetInventoryCount.html">GetInventoryCount()</a></td>
+<td>Returns number of embedded inventories - this inventory can be aggregation of other inventories.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetItemAmount.html">GetItemAmount(MyDefinitionId, MyItemFlags, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetItemAt.html">GetItemAt(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetItemByID.html">GetItemByID(uint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetItemByIndex.html">GetItemByIndex(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetItemIndexById.html">GetItemIndexById(uint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetItems.html">GetItems()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetItemsCount.html">GetItemsCount()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@GetObjectBuilder.html">GetObjectBuilder()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Init.html">Init(MyObjectBuilder_Inventory)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Init.html">Init(MyComponentDefinitionBase)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@IsItemAt.html">IsItemAt(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@IsUniqueId.html">IsUniqueId(uint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ItemsCanBeAdded.html">ItemsCanBeAdded(MyFixedPoint, IMyInventoryItem)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ItemsCanBeRemoved.html">ItemsCanBeRemoved(MyFixedPoint, IMyInventoryItem)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@IterateInventory.html">IterateInventory(int, int)</a></td>
+<td>Search for inventory having given search index. Aggregate inventory: Iterates through aggregate inventory until simple inventory with matching index is found. Simple inventory: Returns itself if currentIndex == searchIndex. Usage: searchIndex = index of inventory being searched, leave currentIndex = 0.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ModifyContent.html">ModifyContent(MyPhysicalInventoryItem, Action&lt;MyObjectBuilder_PhysicalObject&gt;, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ModifyContentForRifle.html">ModifyContentForRifle(MyPhysicalInventoryItem, Action&lt;MyObjectBuilder_PhysicalObject&gt;, bool)</a></td>
+<td>Other way of ModifyContent, it is created specifically for MyAutomaticRifleGun because of complexity of callbacks. Instead it would not force sync</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ModifyDatapad.html">ModifyDatapad(int, uint, string, string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@OnBeforeContentsChanged.html">OnBeforeContentsChanged()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@OnContentsAdded.html">OnContentsAdded(MyPhysicalInventoryItem, MyFixedPoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@OnContentsChanged.html">OnContentsChanged()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@OnContentsRemoved.html">OnContentsRemoved(MyPhysicalInventoryItem, MyFixedPoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@PickupItem.html">PickupItem(MyFloatingObject, MyFixedPoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@RecordConsumedFood.html">RecordConsumedFood(MyFixedPoint, SerializableDefinitionId, ulong)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Refresh.html">Refresh()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Remove.html">Remove(IMyInventoryItem, MyFixedPoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@RemoveItemClient.html">RemoveItemClient(uint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@RemoveItems.html">RemoveItems(uint, MyFixedPoint?, bool, bool, MatrixD?, Action&lt;MyDefinitionId, MyEntity&gt;, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@RemoveItemsAt.html">RemoveItemsAt(int, MyFixedPoint?, bool, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@RemoveItemsOfType.html">RemoveItemsOfType(MyFixedPoint, MyObjectBuilder_PhysicalObject, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@RemoveItemsOfType.html">RemoveItemsOfType(MyFixedPoint, MyDefinitionId, MyItemFlags, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@ResetVolume.html">ResetVolume()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@Serialize.html">Serialize(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@SetFlags.html">SetFlags(MyInventoryFlags)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@TakeFloatingBag.html">TakeFloatingBag(MyCargoContainerInventoryBagEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@TakeFloatingObject.html">TakeFloatingObject(MyFloatingObject)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@TransferItemFrom.html">TransferItemFrom(MyInventory, int, int?, bool?, MyFixedPoint?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@UpdateItem.html">UpdateItem(MyDefinitionId, uint?, float?, float?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.MyInventory@UpdateItemAmoutClient.html">UpdateItemAmoutClient(uint, MyFixedPoint, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@Add.html">Add(IMyInventoryItem, MyFixedPoint)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@AddItems.html">AddItems(MyFixedPoint, MyObjectBuilder_PhysicalObject, int)</a></td>
+<td>Adds item to inventory. Doesn't do all checks inside. Call <a href="VRage.Game.ModAPI.IMyInventory@CanAddItemAmount.html">CanAddItemAmount(IMyInventoryItem, MyFixedPoint)</a> before this function<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@AddItems.html">AddItems(MyFixedPoint, MyObjectBuilder_Base)</a></td>
+<td>Adds item to inventory<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ApplyChanges.html">ApplyChanges(List<MyComponentChange>)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@CanAddItemAmount.html">CanAddItemAmount(IMyInventoryItem, MyFixedPoint)</a></td>
+<td>Gets whether item could be added into inventory, but doesn't add it Checks: - Inserting volume - Inventory can receive items - Inventory filter can<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@CanItemsBeAdded.html">CanItemsBeAdded(MyFixedPoint, MyItemType)</a></td>
+<td>Determines if given amount of items fits into this inventory on top of existing items.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@CanTransferItemTo.html">CanTransferItemTo(IMyInventory, MyItemType)</a></td>
+<td>Determines if there is working conveyor connection for item of give type to be transferred to other inventory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@Clear.html">Clear(bool)</a></td>
+<td>Remove all items from inventory<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ComputeAmountThatFits.html">ComputeAmountThatFits(MyDefinitionId, float, float)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ConsumeItem.html">ConsumeItem(MyDefinitionId, MyFixedPoint, long)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@ContainItems.html">ContainItems(MyFixedPoint, MyItemType)</a></td>
+<td>Determines if there is at least given amount of items of given type contained inside this inventory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@CountItems.html">CountItems(Dictionary&lt;MyDefinitionId, MyFixedPoint&gt;)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@Empty.html">Empty()</a></td>
+<td>Gets if inventory is empty<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@FindItem.html">FindItem(MyItemType)</a></td>
+<td>Tries to find an item of given type inside this inventory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@FindItem.html">FindItem(SerializableDefinitionId)</a></td>
+<td>Finds first item stack, whose content matching provided id<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@GetAcceptedItems.html">GetAcceptedItems(List<MyItemType>, Func&lt;MyItemType, bool&gt;)</a></td>
+<td>Returns all items this inventory accepts.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@GetAs%7BT%7D.html">GetAs<T>()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@GetAs%7BT%7D.html">GetAs<T>()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@GetInventoryCount.html">GetInventoryCount()</a></td>
+<td>Returns number of embedded inventories - this inventory can be aggregation of other inventories.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@GetItemAmount.html">GetItemAmount(MyItemType)</a></td>
+<td>Sums up total amount of items of given type contained inside this inventory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@GetItemAmount.html">GetItemAmount(MyDefinitionId, MyItemFlags, bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@GetItemAt.html">GetItemAt(int)</a></td>
+<td>Returns info about item at give position.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@GetItemByID.html">GetItemByID(uint)</a></td>
+<td>Returns info about item contained inside this inventory.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@GetItemByID.html">GetItemByID(uint)</a></td>
+<td>Gets item by id<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@GetItems.html">GetItems(List<MyInventoryItem>, Func&lt;MyInventoryItem, bool&gt;)</a></td>
+<td>Collects all items present inside this inventory and returns snapshot of the current inventory state.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@GetItems.html">GetItems()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@GetItemsCount.html">GetItemsCount()</a></td>
+<td>Returns the number of items in the inventory. This needs to be overrided, otherwise it returns 0!<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Init.html">Init(MyComponentDefinitionBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Init.html">Init(MyComponentDefinitionBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@IsConnectedTo.html">IsConnectedTo(IMyInventory)</a></td>
+<td>Checks if two inventories are connected.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@IsItemAt.html">IsItemAt(int)</a></td>
+<td>Determines if there is any item on given inventory slot.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@IsSerialized.html">IsSerialized()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@IsSerialized.html">IsSerialized()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@IsSerialized.html">IsSerialized()</a></td>
+<td>Tells the component container serializer whether this component should be saved<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ItemsCanBeAdded.html">ItemsCanBeAdded(MyFixedPoint, IMyInventoryItem)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ItemsCanBeRemoved.html">ItemsCanBeRemoved(MyFixedPoint, IMyInventoryItem)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@IterateInventory.html">IterateInventory(int, int)</a></td>
+<td>Search for inventory having given search index. Aggregate inventory: Iterates through aggregate inventory until simple inventory with matching index is found. Simple inventory: Returns itself if currentIndex == searchIndex. Usage: searchIndex = index of inventory being searched, leave currentIndex = 0.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td>Gets called after the container of this component changes<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnAddedToScene.html">OnAddedToScene()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnAddedToScene.html">OnAddedToScene()</a></td>
+<td>CH: TOOD: Be careful! This does not get called if the component is added to a container that is in the scene already!<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@OnBeforeContentsChanged.html">OnBeforeContentsChanged()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td>Gets called before the removal of this component from a container<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@OnContentsAdded.html">OnContentsAdded(MyPhysicalInventoryItem, MyFixedPoint)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@OnContentsChanged.html">OnContentsChanged()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@OnContentsRemoved.html">OnContentsRemoved(MyPhysicalInventoryItem, MyFixedPoint)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnRemovedFromScene.html">OnRemovedFromScene()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnRemovedFromScene.html">OnRemovedFromScene()</a></td>
+<td>CH: TOOD: Be careful! This does not get called if the component is removed from a container that is still in the scene!<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@RaiseAfterModifyFinished.html">RaiseAfterModifyFinished()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@RaiseBeforeContentsChanged.html">RaiseBeforeContentsChanged()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@RaiseContentsAdded.html">RaiseContentsAdded(MyPhysicalInventoryItem, MyFixedPoint)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@RaiseContentsChanged.html">RaiseContentsChanged()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@RaiseContentsRemoved.html">RaiseContentsRemoved(MyPhysicalInventoryItem, MyFixedPoint)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@RaiseInventoryContentChanged.html">RaiseInventoryContentChanged(MyPhysicalInventoryItem, MyFixedPoint)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@Remove.html">Remove(IMyInventoryItem, MyFixedPoint)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@RemoveItemAmount.html">RemoveItemAmount(IMyInventoryItem, MyFixedPoint)</a></td>
+<td>Remove<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@RemoveItems.html">RemoveItems(uint, MyFixedPoint?, bool, bool)</a></td>
+<td>Removes item by itemId<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@RemoveItemsAt.html">RemoveItemsAt(int, MyFixedPoint?, bool, bool)</a></td>
+<td>Removes items at exact inventory index<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@RemoveItemsOfType.html">RemoveItemsOfType(MyFixedPoint, MyObjectBuilder_PhysicalObject, bool)</a></td>
+<td>Removes amount for specified item type from inventory<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@RemoveItemsOfType.html">RemoveItemsOfType(MyFixedPoint, SerializableDefinitionId, MyItemFlags, bool)</a></td>
+<td>Removes amount for specified item type from inventory<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@RemoveItemsOfType.html">RemoveItemsOfType(MyFixedPoint, MyDefinitionId, MyItemFlags, bool)</a></td>
+<td>Remove items of a given amount and definition<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Serialize.html">Serialize(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@Serialize.html">Serialize(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Serialize.html">Serialize(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@SetContainer.html">SetContainer(IMyComponentContainer)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@SetContainer.html">SetContainer(IMyComponentContainer)</a></td>
+<td>Sets the container of this component. Note that the component is not added to the container here! Therefore, use MyComponentContainer.Add(...) method and it will in turn call this method. Actually, you should seldom have the need to call this method yourself.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyInventoryBase@ToString.html">ToString()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@TransferItemFrom.html">TransferItemFrom(IMyInventory, MyInventoryItem, MyFixedPoint?)</a></td>
+<td>Attempts to transfer item from one inventory to another.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@TransferItemFrom.html">TransferItemFrom(IMyInventory, int, int?, bool?, MyFixedPoint?)</a></td>
+<td>Attempts to transfer item from one inventory to another.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@TransferItemFrom.html">TransferItemFrom(IMyInventory, int, int?, bool?, MyFixedPoint?, bool)</a></td>
+<td>Transfer item from one inventory to another<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@TransferItemFrom.html">TransferItemFrom(IMyInventory, IMyInventoryItem, MyFixedPoint)</a></td>
+<td>Transfer item from one inventory to another<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@TransferItemTo.html">TransferItemTo(IMyInventory, MyInventoryItem, MyFixedPoint?)</a></td>
+<td>Attempts to transfer item from one inventory to another.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyInventory@TransferItemTo.html">TransferItemTo(IMyInventory, int, int?, bool?, MyFixedPoint?)</a></td>
+<td>Attempts to transfer item from one inventory to another.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@TransferItemTo.html">TransferItemTo(IMyInventory, int, int?, bool?, MyFixedPoint?, bool)</a></td>
+<td>Transfer item from one inventory to another<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyInventory@GetItems.html">GetItems()</a></td>
+<td><em><strong>Obsolete:</strong> Use non-allocating GetItems overload</em><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritance:</strong>   <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a> ˃ <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a> ˃ <a href="VRage.Game.Entity.MyInventoryBase.html">MyInventoryBase</a></p>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></li>
+<li><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></li>
+<li>IMyEventOwner <sub>prohibited</sub></li>
+<li><a href="VRage.Network.IMyEventProxy.html">IMyEventProxy</a></li>
+<li><a href="VRage.Game.ModAPI.IMyInventory.html">IMyInventory</a></li>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyInventory.html">IMyInventory</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

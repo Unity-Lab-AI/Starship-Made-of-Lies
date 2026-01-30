@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="index" data-cache-buster="54480b3351e0" data-api-type="pb">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:38Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+<h1 id="space-engineers-programmable-block-api-documentation">Space Engineers – Programmable Block API Documentation</h1>
+<p>This site documents the classes, interfaces, and methods available to in-game scripts.</p>
+<hr />
+<h2 id="how-to-use-this-site">🧭 How to Use This Site</h2>
+<p><strong>Sidebar Navigation:</strong> Click the hamburger menu (☰) to browse namespaces and types. The tree structure mirrors the C# API organization - expand sections to find what you need.</p>
+<p><strong>Search:</strong> Use the search box in the sidebar to find types and members quickly. Fair warning - it's pretty basic and won't win any awards for being smart like Google, but it gets the job done for most searches! Try prefixing with <code>T:</code> for types or <code>M:</code> for members if you need to narrow things down.</p>
+<hr />
+<div class="markdown-alert markdown-alert-important">
+<p class="markdown-alert-title"><svg viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>Important</p>
+<p><strong>Unofficial Project</strong><br />
+This documentation is <strong>community-maintained</strong> and is <strong>not affiliated with or endorsed by Keen Software House</strong>.
+For tutorials and guides, see the official ➡️ <a href="https://spaceengineers.wiki.gg/wiki/Scripting">Space Engineers Scripting Wiki</a></p>
+</div>
+<h2 id="related-tools">Related tools</h2>
+<p>MDK2 (Malware's Development Kit 2) is a separate, optional project that enhances development in fully C# capable IDEs (Visual Studio, VS Code, Rider). It provides IntelliSense, templates, and automated deployment to the game. It is not part of this documentation site.</p>
+<p>➡️ MDK2 repository: <a href="https://github.com/malforge/mdk2">https://github.com/malforge/mdk2</a></p>
+<h2 id="about-this-documentation">About This Documentation</h2>
+<p>This is a <strong>one-person, free-time project</strong>, maintained with care for the Space Engineers community.
+Updates happen when time allows - some gaps and lag behind game updates are unavoidable.</p>
+<h2 id="questions-or-issues">Questions or Issues?</h2>
+<p><strong>Found a problem with the documentation?</strong> We'd love to hear about it! Please <a href="https://github.com/malforge/malforge.github.io/issues">open an issue here</a> so we can fix it.</p>
+<p><strong>Need help learning to script?</strong> This site is just an API reference - for tutorials and guides, check out:</p>
+<ul>
+<li><a href="https://spaceengineers.wiki.gg/wiki/Scripting">Space Engineers Scripting Wiki</a> - Great tutorials and examples</li>
+<li><a href="https://discord.gg/keenswh">Keen Software House Discord</a> - Active community ready to help!</li>
+</ul>
+<h3 id="legal">Legal</h3>
+<p><em>Space Engineers</em> is a trademark of Keen Software House.
+All referenced game content, APIs, and class names remain the property of their respective owners.
+This documentation is provided <strong>as-is</strong>, for educational and reference use only.</p>
+<hr />
+<p><em>Happy scripting - and may Clang be merciful.</em></p>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.MyDynamicAABBTreeD - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../modapi/index.html" class="header-btn api-switcher" title="Switch to Mod API">🔄 Mod API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.MyDynamicAABBTreeD" data-cache-buster="54480b3351e0" data-api-type="pb">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:37Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>MyDynamicAABBTreeD</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public class MyDynamicAABBTreeD
+</code></pre>
+<p>Dynamic aabb tree implementation as a prunning structure</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@NullNode.html">static NullNode</a></td>
+<td>A dynamic tree arranges data in a binary tree to accelerate queries such as volume queries and ray casts. Leafs are proxies with an BoundingBox. In the tree we expand the proxy BoundingBox by Settings.b2_fatAABBFactor so that the proxy BoundingBox is bigger than the client object. This allows the client object to move by small amounts without triggering a tree update. Nodes are pooled and relocatable, so we use node indices rather than pointers.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@ElementsCount.html">ElementsCount</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@.ctor.html">MyDynamicAABBTreeD()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@.ctor.html">MyDynamicAABBTreeD(Vector3D, double)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@Dispose.html">static Dispose()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@AddProxy.html">AddProxy(ref BoundingBoxD, object, uint, bool)</a></td>
+<td>Create a proxy. Provide a tight fitting BoundingBox and a userData pointer.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@Balance.html">Balance(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@Clear.html">Clear()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@CountLeaves.html">CountLeaves(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetAabb.html">GetAabb(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetAll%7BT%7D.html">GetAll<T>(List<T>, bool, List<BoundingBoxD>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetAll%7BT%7D.html">GetAll<T>(Action<T>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetAll%7BT%7D.html">GetAll<T>(Action&lt;T, BoundingBoxD&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetAllNodeBounds.html">GetAllNodeBounds(List<BoundingBoxD>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetAproximateClustersForAabb.html">GetAproximateClustersForAabb(ref BoundingBoxD, double, List<BoundingBoxD>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetAproximateClustersForAabbDebug.html">GetAproximateClustersForAabbDebug(ref BoundingBoxD, double, List<BoundingBoxD>, List&lt;MyTuple&lt;bool, int, object&gt;&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetChildren.html">GetChildren(int, out int, out int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetFatAABB.html">GetFatAABB(int, out BoundingBoxD)</a></td>
+<td>Get the fat BoundingBox for a proxy.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetHeight.html">GetHeight()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetLeafCount.html">GetLeafCount(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetNodeLeaves.html">GetNodeLeaves(int, List<int>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetRoot.html">GetRoot()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@GetUserData%7BT%7D.html">GetUserData<T>(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@IsRootNull.html">IsRootNull()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@MoveProxy.html">MoveProxy(int, ref BoundingBoxD, Vector3D)</a></td>
+<td>Move a proxy with a swepted BoundingBox. If the proxy has moved outside of its fattened BoundingBox, then the proxy is removed from the tree and re-inserted. Otherwise the function returns immediately.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllBoundingBox%7BT%7D.html">OverlapAllBoundingBox<T>(ref BoundingBoxD, List<T>, uint, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllBoundingBox%7BT%7D.html">OverlapAllBoundingBox<T>(ref MyOrientedBoundingBoxD, List<T>, uint, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllBoundingSphere%7BT%7D.html">OverlapAllBoundingSphere<T>(ref BoundingSphereD, List<T>, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllBoundingSphere%7BT%7D.html">OverlapAllBoundingSphere<T>(ref BoundingSphereD, Action<T>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllFrustum%7BT%7D.html">OverlapAllFrustum<T>(ref BoundingFrustumD, List<T>, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllFrustum%7BT%7D.html">OverlapAllFrustum<T>(ref BoundingFrustumD, List<T>, uint, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllFrustum%7BT%7D.html">OverlapAllFrustum<T>(ref BoundingFrustumD, List<T>, List<bool>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllFrustum%7BT%7D.html">OverlapAllFrustum<T>(ref BoundingFrustumD, T)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllFrustum%7BT%7D.html">OverlapAllFrustum<T>(ref BoundingFrustumD, List<T>, List<bool>, float, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllFrustum%7BT%7D.html">OverlapAllFrustum<T>(ref BoundingFrustumD, Action&lt;T, bool&gt;, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllFrustum%7BT%7D.html">OverlapAllFrustum<T>(ref BoundingFrustumD, T, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllFrustumAny%7BT%7D.html">OverlapAllFrustumAny<T>(ref BoundingFrustumD, List<T>, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllLineSegment%7BT%7D.html">OverlapAllLineSegment<T>(ref LineD, List&lt;MyLineSegmentOverlapResult<T>&gt;, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapAllLineSegment%7BT%7D.html">OverlapAllLineSegment<T>(ref LineD, List&lt;MyLineSegmentOverlapResult<T>&gt;, uint, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@OverlapsAnyLeafBoundingBox.html">OverlapsAnyLeafBoundingBox(ref BoundingBoxD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@Query.html">Query(Func&lt;int, bool&gt;, ref BoundingBoxD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@QueryPoint.html">QueryPoint(Func&lt;int, bool&gt;, ref Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.MyDynamicAABBTreeD@RemoveProxy.html">RemoveProxy(int)</a></td>
+<td>Destroy a proxy. This asserts if the id is invalid.</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

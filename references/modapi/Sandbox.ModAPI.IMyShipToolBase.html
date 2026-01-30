@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.IMyShipToolBase - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.IMyShipToolBase" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:51Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI</div>
+                <h1>IMyShipToolBase</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Common.dll</p>
+<pre><code class="language-csharp">public interface IMyShipToolBase: IMyFunctionalBlock, IMyFunctionalBlock, IMyTerminalBlock, IMyCubeBlock, IMyEntity, IMyTerminalBlock, IMyCubeBlock, IMyEntity, IMyShipToolBase
+</code></pre>
+<p>Describes ship tool block (drill/grinder/welder) (mods interface)</p>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@AppendingCustomInfo.html">AppendingCustomInfo</a></td>
+<td>Event to append custom info.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@CubeGridChanged.html">CubeGridChanged</a></td>
+<td>Triggers when blocks cube grid is changed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@CustomDataChanged.html">CustomDataChanged</a></td>
+<td>Called when custom data of block changed<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@CustomNameChanged.html">CustomNameChanged</a></td>
+<td>Called when custom name of block changed<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyFunctionalBlock@EnabledChanged.html">EnabledChanged</a></td>
+<td>Called when Enabled changed<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyFunctionalBlock.html">IMyFunctionalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@IsWorkingChanged.html">IsWorkingChanged</a></td>
+<td>Called when &quot;WorkingState&quot; is changed.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> is called. Order 1) <a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a> 2) <a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a> 3) <a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a> .<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> is called. Order 1) <a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a> 2) <a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a> 3) <a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a> .<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> is called. Order 1) <a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a> 2) <a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a> 3) <a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a> .<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnPhysicsChanged.html">OnPhysicsChanged</a></td>
+<td>Called when havok rigid body physics are changed: inited, closed, modified.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@OnUpgradeValuesChanged.html">OnUpgradeValuesChanged</a></td>
+<td>Event called when upgrade values are changed Either upgrades were built or destroyed, or they become damaged or unpowered<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@OwnershipChanged.html">OwnershipChanged</a></td>
+<td>Called when block ownership changed<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@PropertiesChanged.html">PropertiesChanged</a></td>
+<td>Called when any of block properties changed. It could be anything, starting from CustomName ending with Inventory items<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@ShowOnHUDChanged.html">ShowOnHUDChanged</a></td>
+<td>Called when ShowOnHUD Changed<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyFunctionalBlock@UpdateTimerTriggered.html">UpdateTimerTriggered</a></td>
+<td>Triggered when update timer ticks, event is fired after the block does all gameplay stuff<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyFunctionalBlock.html">IMyFunctionalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@VisibilityChanged.html">VisibilityChanged</a></td>
+<td>Called properties that modify the visibility of this block's controls, are changed<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@BlockDefinition.html">BlockDefinition</a></td>
+<td>Gets definition.Id assigned to this block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@CastShadows.html">CastShadows</a></td>
+<td>Gets or sets flag <a href="VRage.ObjectBuilders.MyPersistentEntityFlags2@CastShadows.html">CastShadows</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@CheckConnectionAllowed.html">CheckConnectionAllowed</a></td>
+<td>Whether the grid should call the ConnectionAllowed method for this block (ConnectionAllowed checks mount points and other per-block requirements)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Closed.html">Closed</a></td>
+<td>True if the block has been removed from the world.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Components.html">Components</a></td>
+<td>Gets blocks component logic container<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@CubeGrid.html">CubeGrid</a></td>
+<td>Grid in which the block is placed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@CubeGrid.html">CubeGrid</a></td>
+<td>Grid in which the block is placed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@CustomData.html">CustomData</a></td>
+<td>Gets or sets the Custom Data string. NOTE: Only use this for user input. For storing large mod configs, create your own MyModStorageComponent<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@CustomInfo.html">CustomInfo</a></td>
+<td>Gets information about block status (available from mods) <a href="Sandbox.ModAPI.IMyTerminalBlock@AppendingCustomInfo.html">AppendingCustomInfo</a>  <a href="Sandbox.ModAPI.IMyTerminalBlock@RefreshCustomInfo.html">RefreshCustomInfo()</a> .<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@CustomName.html">CustomName</a></td>
+<td>Gets or sets how block is named in Terminal menu<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@CustomNameWithFaction.html">CustomNameWithFaction</a></td>
+<td>Gets or sets how block is named in Terminal menu. Work only for Cockpit, LaserAntenna RadioAntenna, SpaceBall, Beacon<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DebugAsyncLoading.html">DebugAsyncLoading</a></td>
+<td>Used for internal usage. Modders should not use it. Will be eventually removed<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DefinitionDisplayNameText.html">DefinitionDisplayNameText</a></td>
+<td>Definition name<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@DetailedInfo.html">DetailedInfo</a></td>
+<td>Gets information about block status. In Control panel bottom right text<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DisassembleRatio.html">DisassembleRatio</a></td>
+<td>Is set in definition Ratio at which is the block disassembled (grinding) Bigger values - longer grinding<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DisplayName.html">DisplayName</a></td>
+<td>Gets or sets user friendly name of entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@DisplayName.html">DisplayName</a></td>
+<td>Gets user friendly name of entity. May be null For block terminal name use <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DisplayNameText.html">DisplayNameText</a><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DisplayNameText.html">DisplayNameText</a></td>
+<td>Translated block name<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyFunctionalBlock@Enabled.html">Enabled</a></td>
+<td>Represents terminal gui toggle. Gets or sets if block is Enabled<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyFunctionalBlock.html">IMyFunctionalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@EntityId.html">EntityId</a></td>
+<td>Uniq id of entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@EntityId.html">EntityId</a></td>
+<td>Id of entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@FastCastShadowResolve.html">FastCastShadowResolve</a></td>
+<td>Gets or sets flag <a href="VRage.ObjectBuilders.MyPersistentEntityFlags2@CastShadows.html">CastShadows</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Flags.html">Flags</a></td>
+<td>Gets or set some behavior of entity. <a href="VRage.ModAPI.EntityFlags.html">EntityFlags</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GameLogic.html">GameLogic</a></td>
+<td>Gets or sets game logic for object. If there is more than 1 game logic attached it should be wrapped into.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@HasInventory.html">HasInventory</a></td>
+<td>Returns true if this entity has got at least one inventory. Note that one aggregate inventory can contain zero simple inventories =&gt; zero will be returned even if GetInventory() != null.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Hierarchy.html">Hierarchy</a></td>
+<td>Gets or sets Hierarchy component<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@InScene.html">InScene</a></td>
+<td>Gets or set if grid is InScene. Objects that are not in scene are not updated and drawn.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@InvalidateOnMove.html">InvalidateOnMove</a></td>
+<td>Gets if entity is invalidated on move When visual look of entity depends on position - then InvalidateOnMove should be true<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@InventoryCount.html">InventoryCount</a></td>
+<td>Returns the count of the number of inventories this entity has.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyShipToolBase@IsActivated.html">IsActivated</a></td>
+<td>True if the tool is activated by mouse click or toggling via terminal.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyShipToolBase.html">IMyShipToolBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@IsBeingHacked.html">IsBeingHacked</a></td>
+<td>Hacking of the block is in progress<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@IsDetailedInfoDirty.html">IsDetailedInfoDirty</a></td>
+<td>Gets whether detailed info is dirty and to be updated<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@IsFunctional.html">IsFunctional</a></td>
+<td>Gets if integrity is above breaking threshold<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyFunctionalBlock@IsUpdateTimerCreated.html">IsUpdateTimerCreated</a></td>
+<td>Returns true if timer was created. If the block does not use timer, this will be false.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyFunctionalBlock.html">IMyFunctionalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyFunctionalBlock@IsUpdateTimerEnabled.html">IsUpdateTimerEnabled</a></td>
+<td>Returns true if timer is enabled and ticking.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyFunctionalBlock.html">IMyFunctionalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@IsVolumetric.html">IsVolumetric</a></td>
+<td>Always returns false<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@IsWorking.html">IsWorking</a></td>
+<td>True if block is able to do its work depening on block type (is functional, powered, enabled, etc...)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalAABB.html">LocalAABB</a></td>
+<td>Gets or sets local axis aligned bounding box. Same as <a href="VRage.ModAPI.IMyEntity@LocalAABBHr.html">LocalAABBHr</a> , <a href="VRage.Game.Components.MyPositionComponentBase@LocalAABB.html">LocalAABB</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalAABBHr.html">LocalAABBHr</a></td>
+<td>Gets local axis aligned bounding box. Same as <a href="VRage.ModAPI.IMyEntity@LocalAABB.html">LocalAABB</a> , <a href="VRage.Game.Components.MyPositionComponentBase@LocalAABB.html">LocalAABB</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalMatrix.html">LocalMatrix</a></td>
+<td>Gets or sets local matrix. When entity, has parent, it's world coordinates are calculated from localMatrix and parent world matrix<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalVolume.html">LocalVolume</a></td>
+<td>Gets or sets local volume. Same as <a href="VRage.Game.Components.MyPositionComponentBase@LocalVolume.html">LocalVolume</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalVolumeOffset.html">LocalVolumeOffset</a></td>
+<td>Gets or sets local volume offset. Same as <a href="VRage.Game.Components.MyPositionComponentBase@LocalVolumeOffset.html">LocalVolumeOffset</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@MarkedForClose.html">MarkedForClose</a></td>
+<td>Checked if <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> was called<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@Mass.html">Mass</a></td>
+<td>Block mass<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@Max.html">Max</a></td>
+<td>Maximum coordinates of grid cells occupied by this block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@MaxGlassDistSq.html">MaxGlassDistSq</a></td>
+<td>Not used in game anymore<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@Min.html">Min</a></td>
+<td>Minimum coordinates of grid cells occupied by this block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Model.html">Model</a></td>
+<td>Gets model of block<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@ModelCollision.html">ModelCollision</a></td>
+<td>Gets collision model of block<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Name.html">Name</a></td>
+<td>Uniq name of entity. Can be used to find entity by name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Name.html">Name</a></td>
+<td>Some entities can have uniq name, and game can find them by name <a href="VRage.ModAPI.IMyEntities@TryGetEntityByName.html">TryGetEntityByName(string, out IMyEntity)</a><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NearFlag.html">NearFlag</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@Near.html">Near</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsDraw.html">NeedsDraw</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@NeedsDraw.html">NeedsDraw</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsDrawFromParent.html">NeedsDrawFromParent</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@NeedsDrawFromParent.html">NeedsDrawFromParent</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsResolveCastShadow.html">NeedsResolveCastShadow</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@NeedsResolveCastShadow.html">NeedsResolveCastShadow</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsUpdate.html">NeedsUpdate</a></td>
+<td>Gets or sets how often the entity should be updated.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsWorldMatrix.html">NeedsWorldMatrix</a></td>
+<td>Gets or sets if <a href="VRage.ModAPI.IMyEntity@WorldMatrix.html">WorldMatrix</a> should be calculated when parent WorldMatrix is changed.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@NumberInGrid.html">NumberInGrid</a></td>
+<td>Order in which were the blocks of same type added to grid Used in default display name<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@Orientation.html">Orientation</a></td>
+<td>Returns block orientation in base 6 directions<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@OwnerId.html">OwnerId</a></td>
+<td>IdentityId of player owning block (not steam Id)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Parent.html">Parent</a></td>
+<td>Gets parent of entity or null, if this entity doesn't have parent. Ex: character sitting in cockpit, has parent - cockpit, cockpit has parent - cube grid, connected grids also has main grid, which would be parent for other grids.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@PersistentFlags.html">PersistentFlags</a></td>
+<td>Gets or sets persistent flags that are used in rendering.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Physics.html">Physics</a></td>
+<td>Gets or sets physics for object<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@Position.html">Position</a></td>
+<td>Position in grid coordinates<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@PositionComp.html">PositionComp</a></td>
+<td>Gets or sets position provider logic<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Render.html">Render</a></td>
+<td>Gets or sets render logic<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@ResourceSink.html">ResourceSink</a></td>
+<td>Resource sink (draws power)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Save.html">Save</a></td>
+<td>Gets or sets <a href="VRage.ModAPI.EntityFlags@Save.html">Save</a> . Entity won't be saved if <a href="VRage.ModAPI.IMyEntity@Save.html">Save</a> is false<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@ShadowBoxLod.html">ShadowBoxLod</a></td>
+<td>Gets or sets flag <a href="VRage.Game.Components.MyRenderComponentBase@ShadowBoxLod.html">ShadowBoxLod</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@ShowInInventory.html">ShowInInventory</a></td>
+<td>Represent terminal gui toggle <code>Show block in Inventory Screen</code>. Gets or sets its value<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@ShowInTerminal.html">ShowInTerminal</a></td>
+<td>Represent terminal gui toggle <code>Show block in terminal</code>. Gets or sets its value<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@ShowInToolbarConfig.html">ShowInToolbarConfig</a></td>
+<td>Represent terminal gui toggle <code>Show in toolbar config</code>. Gets or sets its value<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@ShowOnHUD.html">ShowOnHUD</a></td>
+<td>Represent terminal gui toggle <code>Show On HUD</code>. Gets or sets its value<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SkipIfTooSmall.html">SkipIfTooSmall</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@SkipIfTooSmall.html">SkipIfTooSmall</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@SlimBlock.html">SlimBlock</a></td>
+<td>Gets the SlimBlock associated with this block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@StopPhysicsActivation.html">StopPhysicsActivation</a></td>
+<td><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Storage.html">Storage</a></td>
+<td>Custom storage for mods. Shared with all mods.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Synchronized.html">Synchronized</a></td>
+<td>Gets or sets if the entity should be synced.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SyncObject.html">SyncObject</a></td>
+<td>Gets SyncObject used for synchronizing data over network with<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Transparent.html">Transparent</a></td>
+<td>Gets or sets <a href="VRage.Game.Components.MyRenderComponentBase@Transparency.html">Transparency</a> . When setting true entity would be 25% transparent<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@UpgradeValues.html">UpgradeValues</a></td>
+<td>Get all values changed by upgrade modules Should only be used as read-only<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyShipToolBase@UseConveyorSystem.html">UseConveyorSystem</a></td>
+<td>Gets or sets if block should push/pull items from conveyor system<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyShipToolBase.html">IMyShipToolBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Visible.html">Visible</a></td>
+<td>Gets or sets flag <a href="VRage.Game.Components.MyRenderComponentBase@Visible.html">Visible</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldAABB.html">WorldAABB</a></td>
+<td>Gets world axis-aligned bounding box<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldAABBHr.html">WorldAABBHr</a></td>
+<td>Gets world axis-aligned bounding box<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@WorldMatrix.html">WorldMatrix</a></td>
+<td>Gets or sets world matrix.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldMatrix.html">WorldMatrix</a></td>
+<td>Gets world matrix of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@WorldMatrixInvScaled.html">WorldMatrixInvScaled</a></td>
+<td>Get scaled, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a> , <a href="VRage.ModAPI.IMyEntity@GetWorldMatrixNormalizedInv.html">GetWorldMatrixNormalizedInv()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a> , but not normalized<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a></td>
+<td>Get normalized, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldVolume.html">WorldVolume</a></td>
+<td>Gets bounding sphere of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldVolumeHr.html">WorldVolumeHr</a></td>
+<td>Gets bounding sphere of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@IsCCDForProjectiles.html">IsCCDForProjectiles</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocationForHudMarker.html">LocationForHudMarker</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@AddUpgradeValue.html">AddUpgradeValue(string, float)</a></td>
+<td>Preferred way of registering a block for upgrades Adding directly to the dictionary can have unintended consequences when multiple mods are involved.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@BeforeSave.html">BeforeSave()</a></td>
+<td>Called before method GetObjectBuilder, when saving sector<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@CalcLocalMatrix.html">CalcLocalMatrix(out Matrix, out string)</a></td>
+<td>Calculates local matrix, and currentModel<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@CalculateCurrentModel.html">CalculateCurrentModel(out Matrix)</a></td>
+<td>Calculates model currently used by block depending on its build progress and other factors<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@ClearDetailedInfo.html">ClearDetailedInfo()</a></td>
+<td>Clears detailed info<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a></td>
+<td>This method marks this entity for close which means, that Close will be called after all entities are updated<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DebugDraw.html">DebugDraw()</a></td>
+<td>Calls debug draw of entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DebugDrawInvalidTriangles.html">DebugDrawInvalidTriangles()</a></td>
+<td>Calls special debug draw, that highlighting invalid triangles in model<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Delete.html">Delete()</a></td>
+<td>Performs real cleaning of entity. Should be called by game. Modders should prefer <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> method.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DoOverlapSphereTest.html">DoOverlapSphereTest(float, Vector3D)</a></td>
+<td>Checks if intersects Works only with <a href="VRage.ModAPI.IMyVoxelBase.html">IMyVoxelBase</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@EnableColorMaskForSubparts.html">EnableColorMaskForSubparts(bool)</a></td>
+<td>Allows subparts have different color than their parent<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@GetActions.html">GetActions(List<ITerminalAction>, Func&lt;ITerminalAction, bool&gt;)</a></td>
+<td>Get all terminal actions available for block<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@GetActionWithName.html">GetActionWithName(string)</a></td>
+<td>Get first found terminal action with name<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetChildren.html">GetChildren(List<IMyEntity>, Func&lt;IMyEntity, bool&gt;)</a></td>
+<td>Gets children of entity. Child - entity, who's <a href="VRage.ModAPI.IMyEntity@Parent.html">Parent</a> is this entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@GetDetailedInfo.html">GetDetailedInfo()</a></td>
+<td>Gets detailed info instance<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetDiffuseColor.html">GetDiffuseColor()</a></td>
+<td>Gets render diffuse color<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetDistanceBetweenCameraAndBoundingSphere.html">GetDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td>Distance from camera to bounding sphere of this phys object. Result is always positive, even if camera is inside the sphere. (in meters)<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetDistanceBetweenCameraAndPosition.html">GetDistanceBetweenCameraAndPosition()</a></td>
+<td>Distance from camera to position of entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyFunctionalBlock@GetFramesFromLastTrigger.html">GetFramesFromLastTrigger()</a></td>
+<td>Gets number of frames from the last trigger of the update timer<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyFunctionalBlock.html">IMyFunctionalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetFriendlyName.html">GetFriendlyName()</a></td>
+<td>Not used. Actually not a friendly name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithAABB.html">GetIntersectionWithAABB(ref BoundingBoxD)</a></td>
+<td>Return true if object intersects specified bounding box.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithLine.html">GetIntersectionWithLine(ref LineD, out MyIntersectionResultLineTriangleEx?, IntersectionFlags)</a></td>
+<td>Get intersection of model with provided line<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithLineAndBoundingSphere.html">GetIntersectionWithLineAndBoundingSphere(ref LineD, float)</a></td>
+<td>Calculates intersection of line with any bounding sphere in this model instance. Center of the bounding sphere will be returned. It takes boundingSphereRadiusMultiplier argument which serves for extending the influence (radius) for interaction with line.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithSphere.html">GetIntersectionWithSphere(ref BoundingSphereD)</a></td>
+<td>Return true if object intersects specified sphere.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetInventory.html">GetInventory()</a></td>
+<td>Simply get the MyInventoryBase component stored in this entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetInventory.html">GetInventory(int)</a></td>
+<td>Search for inventory component with matching index.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetInventory.html">GetInventory()</a></td>
+<td>Simply get the MyInventoryBase component stored in this entity.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetInventory.html">GetInventory(int)</a></td>
+<td>Search for inventory component with maching index.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetLargestDistanceBetweenCameraAndBoundingSphere.html">GetLargestDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td>Largest distance from camera to bounding sphere of this phys object. Result is always positive, even if camera is inside the sphere. It's actually distance between camera and opposite side of the sphere<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetObjectBuilder.html">GetObjectBuilder(bool)</a></td>
+<td>Returns object builder - object representing block state, and allows restore it. Used in game save, or syncing over network.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@GetObjectBuilderCubeBlock.html">GetObjectBuilderCubeBlock(bool)</a></td>
+<td>Returns block object builder which can be serialized or added to grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@GetOwnerFactionTag.html">GetOwnerFactionTag()</a></td>
+<td>Tag of faction owning block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetPosition.html">GetPosition()</a></td>
+<td>Gets position in world coordinates<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@GetProperties.html">GetProperties(List<ITerminalProperty>, Func&lt;ITerminalProperty, bool&gt;)</a></td>
+<td>Get all terminal actions available for block.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@GetProperty.html">GetProperty(string)</a></td>
+<td>Finds terminal property with provided id<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetSmallestDistanceBetweenCameraAndBoundingSphere.html">GetSmallestDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td>Smallest distance between camera and bounding sphere of this phys object. Result is always positive, even if camera is inside the sphere.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetSubpart.html">GetSubpart(string)</a></td>
+<td>Gets subpart by subpart name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetTopMostParent.html">GetTopMostParent(Type)</a></td>
+<td>Gets top most <a href="VRage.ModAPI.IMyEntity@Parent.html">Parent</a> of specified type. Top most is entity that doesn't have parent (of specified type)<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetTrianglesIntersectingSphere.html">GetTrianglesIntersectingSphere(ref BoundingSphere, Vector3?, float?, List&lt;MyTriangle_Vertex_Normals&gt;, int)</a></td>
+<td>Return list of triangles intersecting specified sphere. Angle between every triangleVertexes normal vector and 'referenceNormalVector' is calculated, and if more than 'maxAngle', we ignore such triangleVertexes. Triangles are returned in 'retTriangles', and this list must be preallocated! IMPORTANT: Sphere must be in model space, so don't transform it!<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@GetUserRelationToOwner.html">GetUserRelationToOwner(long, MyRelationsBetweenPlayerAndBlock)</a></td>
+<td>Gets relation to owner of block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a></td>
+<td>Get normalized, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetWorldMatrixNormalizedInv.html">GetWorldMatrixNormalizedInv()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetWorldMatrixNormalizedInv.html">GetWorldMatrixNormalizedInv()</a></td>
+<td>Get normalized, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@HasLocalPlayerAccess.html">HasLocalPlayerAccess()</a></td>
+<td>Returns if local player can use block. Executes <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@HasPlayerAccess.html">HasPlayerAccess(long, MyRelationsBetweenPlayerAndBlock)</a> with local player identityId. On Dedicated Server as identityId it is using 0 as playerId<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@HasNobodyPlayerAccessToBlock.html">HasNobodyPlayerAccessToBlock()</a></td>
+<td>Returns if Nobody has access to block.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@HasPlayerAccess.html">HasPlayerAccess(long, MyRelationsBetweenPlayerAndBlock)</a></td>
+<td>Returns if local player can use block. It is also checking for admin access.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@HasPlayerAccessWithNobodyCheck.html">HasPlayerAccessWithNobodyCheck(long, bool)</a></td>
+<td>Returns if player can use block. If playerId is 0 (Nobody), calls HasNobodyPlayerAccessToBlock instead It is also checking for admin access.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@Init.html">Init()</a></td>
+<td>Reloads block model and interactive objects (doors, terminals, etc...)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@Init.html">Init(MyObjectBuilder_CubeBlock, IMyCubeGrid)</a></td>
+<td>Initializes block state from object builder<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@IsInSameLogicalGroupAs.html">IsInSameLogicalGroupAs(IMyTerminalBlock)</a></td>
+<td>Determines whether this block is in the same logical group as the other, meaning they're connected either mechanically or via blocks like connectors. Be aware that using merge blocks combines grids into one, so this function will not filter out grids connected that way.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@IsSameConstructAs.html">IsSameConstructAs(IMyTerminalBlock)</a></td>
+<td>Determines whether this block is mechanically connected to the other. This is any block connected with rotors or pistons or other mechanical devices, but not things like connectors. This will in most cases constitute your complete construct. Be aware that using merge blocks combines grids into one, so this function will not filter out grids connected that way.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@IsSameConstructAs.html">IsSameConstructAs(IMyTerminalBlock)</a></td>
+<td>Determines whether this block is <a href="VRage.Game.ModAPI.GridLinkTypeEnum@Mechanical.html">Mechanical</a> connected to the other. This is any block connected with rotors or pistons or other mechanical devices, but not things like connectors. This will in most cases constitute your complete construct.<br /><br />Be aware that using merge blocks combines grids into one, so this function will not filter out grids connected that way. Also be aware that detaching the heads of pistons and rotors will cause this connection to change.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@IsVisible.html">IsVisible()</a></td>
+<td>Gets or result of function <a href="VRage.Game.Components.MyRenderComponentBase@IsVisible.html">IsVisible()</a> . Function inside check for <a href="VRage.ModAPI.IMyEntities@IsVisible.html">IsVisible(IMyEntity)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnAddedToScene.html">OnAddedToScene(object)</a></td>
+<td>Adds entity to scene: init updates, render physics<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@OnBuildSuccess.html">OnBuildSuccess(long)</a></td>
+<td>Method called when a block has been built (after adding to the grid). This is called right after placing the block and it doesn't matter whether it is fully built (creative mode) or is only construction site. Note that it is not called for blocks which do not create FatBlock at that moment.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@OnBuildSuccess.html">OnBuildSuccess(long, bool)</a></td>
+<td>Method called when a block has been built (after adding to the grid). This is called right after placing the block and it doesn't matter whether it is fully built (creative mode) or is only construction site. Note that it is not called for blocks which do not create FatBlock at that moment.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@OnDestroy.html">OnDestroy()</a></td>
+<td>Called when block is destroyed before being removed from grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@OnModelChange.html">OnModelChange()</a></td>
+<td>Called when the model referred by the block is changed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@OnRegisteredToGridSystems.html">OnRegisteredToGridSystems()</a></td>
+<td>Called at the end of registration from grid systems (after block has been registered).<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@OnRemovedByCubeBuilder.html">OnRemovedByCubeBuilder()</a></td>
+<td>Method called when user removes a cube block from grid. Useful when block has to remove some other attached block (like motors).<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnRemovedFromScene.html">OnRemovedFromScene(object)</a></td>
+<td>Remove entity and it's children from scene: stops updates and render, deactivates physics. Usually called when entity deleted<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@OnUnregisteredFromGridSystems.html">OnUnregisteredFromGridSystems()</a></td>
+<td>Called at the end of unregistration from grid systems (after block has been unregistered).<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@RaycastDetectors.html">RaycastDetectors(Vector3D, Vector3D)</a></td>
+<td>Gets the name of interactive object intersected by defined line<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@RefreshCustomInfo.html">RefreshCustomInfo()</a></td>
+<td>Raises AppendingCustomInfo so every subscriber can append custom info.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@ReloadDetectors.html">ReloadDetectors(bool)</a></td>
+<td>Reloads detectors (interactive objects) in model<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@RemoveEffect.html">RemoveEffect(string, int)</a></td>
+<td>Removes active effect set with SetEffect<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@SearchActionsOfName.html">SearchActionsOfName(string, List<ITerminalAction>, Func&lt;ITerminalAction, bool&gt;)</a></td>
+<td>Get all terminal actions available for block. NOTE: First called <code>&lt;br /&gt;&lt;br /&gt;</code> and then <code>&lt;br /&gt;&lt;br /&gt;</code> check<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetColorMaskForSubparts.html">SetColorMaskForSubparts(Vector3)</a></td>
+<td>Sets subparts custom col<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@SetDamageEffect.html">SetDamageEffect(bool)</a></td>
+<td>Start or stop damage effect on cube block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyTerminalBlock@SetDetailedInfoDirty.html">SetDetailedInfoDirty()</a></td>
+<td>Sets detailed info dirty and to be updated<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@SetEffect.html">SetEffect(string, bool)</a></td>
+<td>Activate block effect listed in definition<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeBlock@SetEffect.html">SetEffect(string, float, bool, bool, bool)</a></td>
+<td>Activate block effect with parameters listed in definition See: Sandbox.Definitions.CubeBlockEffectBase<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetEmissiveParts.html">SetEmissiveParts(string, Color, float)</a></td>
+<td>Sets the emissive value of a specific emissive material on entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetEmissivePartsForSubparts.html">SetEmissivePartsForSubparts(string, Color, float)</a></td>
+<td>Sets the emissive value of a specific emissive material on all entity subparts.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetLocalMatrix.html">SetLocalMatrix(Matrix, object)</a></td>
+<td>Sets local matrix. When entity, has parent, it's world coordinates are calculated from localMatrix and parent world matrix<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetPosition.html">SetPosition(Vector3D)</a></td>
+<td>Set WorldMatrix's <a href="VRageMath.MatrixD@Translation.html">Translation</a> . Moves entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetTextureChangesForSubparts.html">SetTextureChangesForSubparts(Dictionary&lt;MyStringId, MyTextureChange&gt;)</a></td>
+<td>Sets subparts custom skinning. Copy values from <a href="VRage.Game.Components.MyRenderComponentBase@TextureChanges.html">TextureChanges</a> , then change needed keys. You can retrieve values for exact skin with following code:<code>csharp&lt;br /&gt;MyDefinitionManager.Static.GetAssetModifierDefinitionForRender(skinId);&lt;br /&gt;&lt;br /&gt;</code><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetWorldMatrix.html">SetWorldMatrix(MatrixD, object)</a></td>
+<td>Sets world matrix of entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Teleport.html">Teleport(MatrixD, object, bool)</a></td>
+<td>When moving entity over large distances or when entity has children, using this method preferred over <a href="VRage.ModAPI.IMyEntity@SetPosition.html">SetPosition(Vector3D)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@TryGetSubpart.html">TryGetSubpart(string, out MyEntitySubpart)</a></td>
+<td>Gets subpart by subpart name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@UpdateGamePruningStructure.html">UpdateGamePruningStructure()</a></td>
+<td>Update position of entity in MyGamePruningStructure. Calls:<code>csharp&lt;br /&gt;MyGamePruningStructure.Move(this)&lt;br /&gt;&lt;br /&gt;</code><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@AddToGamePruningStructure.html">AddToGamePruningStructure()</a></td>
+<td><em><strong>Obsolete:</strong> Only used during Sandbox removal.</em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@GetPlayerRelationToOwner.html">GetPlayerRelationToOwner()</a></td>
+<td><em><strong>Obsolete:</strong> GetPlayerRelationToOwner() is useless ingame. Mods should use the one in ModAPI.IMyCubeBlock</em><br /><br />Relation of local player to the block Should not be called on Dedicated Server.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@RemoveFromGamePruningStructure.html">RemoveFromGamePruningStructure()</a></td>
+<td><em><strong>Obsolete:</strong> Only used during Sandbox removal.</em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyFunctionalBlock@RequestEnable.html">RequestEnable(bool)</a></td>
+<td><em><strong>Obsolete:</strong> Use the setter of Enabled</em><br /><br />Obsolete<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyFunctionalBlock.html">IMyFunctionalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@SetCustomName.html">SetCustomName(string)</a></td>
+<td><em><strong>Obsolete:</strong> Use the setter of Customname</em><br /><br />Obsolete<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock@SetCustomName.html">SetCustomName(StringBuilder)</a></td>
+<td><em><strong>Obsolete:</strong> Use the setter of Customname</em><br /><br />Obsolete<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetTextureChangesForSubparts.html">SetTextureChangesForSubparts(Dictionary&lt;string, MyTextureChange&gt;)</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />This calling is obsolete, use another version.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@UpdateIsWorking.html">UpdateIsWorking()</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />Force refresh working state. Call if you change block state that could affect its working status.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@UpdateVisual.html">UpdateVisual()</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />Updates block visuals (ie. block emissivity)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock.html">IMyCubeBlock</a></li>
+<li><a href="VRage.Game.ModAPI.IMyCubeBlock.html">IMyCubeBlock</a></li>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></li>
+<li><a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></li>
+<li><a href="Sandbox.ModAPI.IMyFunctionalBlock.html">IMyFunctionalBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyFunctionalBlock.html">IMyFunctionalBlock</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyShipToolBase.html">IMyShipToolBase</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyTerminalBlock.html">IMyTerminalBlock</a></li>
+<li><a href="Sandbox.ModAPI.IMyTerminalBlock.html">IMyTerminalBlock</a></li>
+</ul>
+<p><strong>Inheritors:</strong></p>
+<ul>
+<li><a href="Sandbox.ModAPI.IMyShipDrill.html">IMyShipDrill</a></li>
+<li><a href="Sandbox.ModAPI.IMyShipGrinder.html">IMyShipGrinder</a></li>
+<li><a href="Sandbox.ModAPI.IMyShipWelder.html">IMyShipWelder</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRageMath.Plane - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRageMath.Plane" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:58Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRageMath</div>
+                <h1>Plane</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Math.dll</p>
+<pre><code class="language-csharp">public struct Plane: IEquatable&lt;Plane&gt;
+</code></pre>
+<p>Defines a plane.</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Plane@D.html">D</a></td>
+<td>The distance of the Plane along its normal from the origin. Note: Be careful! The distance is signed and is the opposite of what people usually expect. If you look closely at the plane equation: (n dot P) - D = 0, you'll realize that D = - (n dot P) (that is, negative instead of positive)</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Normal.html">Normal</a></td>
+<td>The normal vector of the Plane.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Plane@.ctor.html">Plane(float, float, float, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@.ctor.html">Plane(Vector3, float)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@.ctor.html">Plane(Vector3, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@.ctor.html">Plane(Vector4)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@.ctor.html">Plane(Vector3, Vector3, Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@.ctor.html">Plane(ref Vector3, ref Vector3, ref Vector3)</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRageMath.Plane@Normalize.html">static Normalize(Plane)</a></td>
+<td>Changes the coefficients of the Normal vector of a Plane to make it of unit length.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Normalize.html">static Normalize(ref Plane, out Plane)</a></td>
+<td>Changes the coefficients of the Normal vector of a Plane to make it of unit length.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Transform.html">static Transform(Plane, Matrix)</a></td>
+<td>Transforms a normalized Plane by a Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Transform.html">static Transform(ref Plane, ref Matrix, out Plane)</a></td>
+<td>Transforms a normalized Plane by a Matrix.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Dot.html">Dot(Vector4)</a></td>
+<td>Calculates the dot product of a specified Vector4 and this Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Dot.html">Dot(ref Vector4, out float)</a></td>
+<td>Calculates the dot product of a specified Vector4 and this Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@DotCoordinate.html">DotCoordinate(Vector3)</a></td>
+<td>Returns the dot product of a specified Vector3 and the Normal vector of this Plane plus the distance (D) value of the Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@DotCoordinate.html">DotCoordinate(ref Vector3, out float)</a></td>
+<td>Returns the dot product of a specified Vector3 and the Normal vector of this Plane plus the distance (D) value of the Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@DotNormal.html">DotNormal(Vector3D)</a></td>
+<td>Returns the dot product of a specified Vector3 and the Normal vector of this Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@DotNormal.html">DotNormal(ref Vector3, out float)</a></td>
+<td>Returns the dot product of a specified Vector3 and the Normal vector of this Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Equals.html">Equals(Plane)</a></td>
+<td>Determines whether the specified Plane is equal to the Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Equals.html">Equals(object)</a></td>
+<td>Determines whether the specified Object is equal to the Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@GetHashCode.html">GetHashCode()</a></td>
+<td>Gets the hash code for this object.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Intersection.html">Intersection(ref Vector3D, ref Vector3D)</a></td>
+<td>Gets intersection point in Plane.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Intersects.html">Intersects(BoundingBox)</a></td>
+<td>Checks whether the current Plane intersects a specified BoundingBox.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Intersects.html">Intersects(ref BoundingBox, out PlaneIntersectionType)</a></td>
+<td>Checks whether the current Plane intersects a BoundingBox.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Intersects.html">Intersects(BoundingFrustum)</a></td>
+<td>Checks whether the current Plane intersects a specified BoundingFrustum.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Intersects.html">Intersects(BoundingSphere)</a></td>
+<td>Checks whether the current Plane intersects a specified BoundingSphere.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Intersects.html">Intersects(ref BoundingSphere, out PlaneIntersectionType)</a></td>
+<td>Checks whether the current Plane intersects a BoundingSphere.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@Normalize.html">Normalize()</a></td>
+<td>Changes the coefficients of the Normal vector of this Plane to make it of unit length.</td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@RandomPoint.html">RandomPoint()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRageMath.Plane@ToString.html">ToString()</a></td>
+<td>Returns a String that represents the current Plane.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1?view=netframework-4.6">IEquatable<Plane></a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

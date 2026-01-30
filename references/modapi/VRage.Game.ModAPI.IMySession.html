@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.IMySession - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.IMySession" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:53Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI</div>
+                <h1>IMySession</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMySession
+</code></pre>
+<p>ModAPI giving access to MySession functions and properties for modders</p>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@OnSessionLoading.html">OnSessionLoading</a></td>
+<td>Called when session started loading</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@OnSessionReady.html">OnSessionReady</a></td>
+<td>Called when session is ready</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@AssemblerEfficiencyMultiplier.html">AssemblerEfficiencyMultiplier</a></td>
+<td>Gets game session global assembler efficiency multiplier</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@AssemblerSpeedMultiplier.html">AssemblerSpeedMultiplier</a></td>
+<td>Gets game session global assembler speed multiplier</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@AutoHealing.html">AutoHealing</a></td>
+<td>Gets if game settings allows auto healing</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@AutoSaveInMinutes.html">AutoSaveInMinutes</a></td>
+<td>Gets auto save game setting</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@BlocksInventorySizeMultiplier.html">BlocksInventorySizeMultiplier</a></td>
+<td>Gets game session global block inventory size multiplier</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Camera.html">Camera</a></td>
+<td>Gets current camera</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@CameraController.html">CameraController</a></td>
+<td>Gets current camera controller</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@CameraTargetDistance.html">CameraTargetDistance</a></td>
+<td>Gets or sets the third person camera distance.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@CargoShipsEnabled.html">CargoShipsEnabled</a></td>
+<td>Gets if game settings allows auto healing</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@CharactersInventoryMultiplier.html">CharactersInventoryMultiplier</a></td>
+<td>Gets game session global characters inventory size multiplier</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Config.html">Config</a></td>
+<td>Obtaining values from config is slow and can allocate memory! Do it only when necessary.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@ControlledObject.html">ControlledObject</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@CreativeMode.html">CreativeMode</a></td>
+<td>Gets whether current create game is in creative mode</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@CurrentPath.html">CurrentPath</a></td>
+<td>Gets current game save path</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@DamageSystem.html">DamageSystem</a></td>
+<td>Gets ModAPI interface providing control over damage system</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Description.html">Description</a></td>
+<td>Gets or sets current game description (used in MOTD)</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@ElapsedPlayTime.html">ElapsedPlayTime</a></td>
+<td>Gets time elapsed since the start of current session</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@EnableCopyPaste.html">EnableCopyPaste</a></td>
+<td>Get whether current player can copy/paste grids.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@EnvironmentHostility.html">EnvironmentHostility</a></td>
+<td>Gets current game environment hostility setting</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Factions.html">Factions</a></td>
+<td>Gets ModAPI interface providing control over faction</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GameDateTime.html">GameDateTime</a></td>
+<td>Gets and sets game date time, that is a sum of 2081 Jan 1 at 0:00:00 and <a href="VRage.Game.ModAPI.IMySession@ElapsedPlayTime.html">ElapsedPlayTime</a> Note using setter, would change <a href="VRage.Game.ModAPI.IMySession@ElapsedPlayTime.html">ElapsedPlayTime</a> as well</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GameplayFrameCounter.html">GameplayFrameCounter</a></td>
+<td>Gets current game amounts of ticks passed from start. Only gets updated when the game is not paused</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GPS.html">GPS</a></td>
+<td>Gets ModAPI interface providing control over gps coordinates</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GrinderSpeedMultiplier.html">GrinderSpeedMultiplier</a></td>
+<td>Gets game session global grinder speed multiplier</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@HackSpeedMultiplier.html">HackSpeedMultiplier</a></td>
+<td>Gets game session global hacking speed multiplier</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@HasCreativeRights.html">HasCreativeRights</a></td>
+<td>Checks if the local player is an admin or is promoted to space master (or higher).</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@InventoryMultiplier.html">InventoryMultiplier</a></td>
+<td>Not used</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsCameraAwaitingEntity.html">IsCameraAwaitingEntity</a></td>
+<td>Not used</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsCameraControlledObject.html">IsCameraControlledObject</a></td>
+<td>Gets if the current camera is the current controlled object (not spectator)</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsCameraUserControlledSpectator.html">IsCameraUserControlledSpectator</a></td>
+<td>Gets if the current camera is the user controlled spectator</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsServer.html">IsServer</a></td>
+<td>Gets whether this game instance is server. (Not if game is multiplayer)</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@LocalHumanPlayer.html">LocalHumanPlayer</a></td>
+<td>Gets player that playing on this game window. Always null, when called on dedicated server instance, and not null in any other cases</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@MaxBackupSaves.html">MaxBackupSaves</a></td>
+<td>Gets maximum backups allowed in game settings</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@MaxFloatingObjects.html">MaxFloatingObjects</a></td>
+<td>Gets maximum floating objects allowed in game settings</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@MaxPlayers.html">MaxPlayers</a></td>
+<td>Gets maximum players allowed in game settings</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Mods.html">Mods</a></td>
+<td>Gets or sets mods added to current game</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@MultiplayerAlive.html">MultiplayerAlive</a></td>
+<td>Gets or sets whether there is connection with server. When it is false, a warning would appear.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@MultiplayerDirect.html">MultiplayerDirect</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@MultiplayerLastMsg.html">MultiplayerLastMsg</a></td>
+<td>Gets or sets time in seconds, from last message from server</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Name.html">Name</a></td>
+<td>Gets or sets name of the game</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@NegativeIntegrityTotal.html">NegativeIntegrityTotal</a></td>
+<td>Gets or sets amount of damage applied to blocks</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@OnlineMode.html">OnlineMode</a></td>
+<td>Gets current session online mode</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@OxygenProviderSystem.html">OxygenProviderSystem</a></td>
+<td>Gets ModAPI interface providing control oxygen system</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Password.html">Password</a></td>
+<td>Gets or sets password, that player must enter to join server</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Player.html">Player</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@PositiveIntegrityTotal.html">PositiveIntegrityTotal</a></td>
+<td>Gets or sets amount of integrity added to blocks</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@PromoteLevel.html">PromoteLevel</a></td>
+<td>Gets the local player's promote level.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@RefinerySpeedMultiplier.html">RefinerySpeedMultiplier</a></td>
+<td>Gets or sets global refinery speed multiplier</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@SessionSettings.html">SessionSettings</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@ShowPlayerNamesOnHud.html">ShowPlayerNamesOnHud</a></td>
+<td>Gets whether player names should be drawn on hud</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@SurvivalMode.html">SurvivalMode</a></td>
+<td>Gets whether current create game is in creative mode</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@ThrusterDamage.html">ThrusterDamage</a></td>
+<td>Gets whether thruster damage setting is enable</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@ThumbPath.html">ThumbPath</a></td>
+<td>Gets current game path to thumbnail</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@TimeOnBigShip.html">TimeOnBigShip</a></td>
+<td>Gets time spent on controlling large grid</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@TimeOnFoot.html">TimeOnFoot</a></td>
+<td>Gets time spent on foot</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@TimeOnJetpack.html">TimeOnJetpack</a></td>
+<td>Gets time spent flying on jetpack</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@TimeOnSmallShip.html">TimeOnSmallShip</a></td>
+<td>Gets time spent on controlling small ship</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@TotalBotLimit.html">TotalBotLimit</a></td>
+<td>Gets limitation on maximum bot amount</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Version.html">Version</a></td>
+<td>Get version of Space Engineers</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@VoxelMaps.html">VoxelMaps</a></td>
+<td>Gets ModAPI interface providing control over voxel maps</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@WeaponsEnabled.html">WeaponsEnabled</a></td>
+<td>Gets whether weapons are enabled in current game</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@WeatherEffects.html">WeatherEffects</a></td>
+<td>Gets MySectorWeatherComponent ModAPI interface</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@WelderSpeedMultiplier.html">WelderSpeedMultiplier</a></td>
+<td>Gets current game welder speed global multiplier</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@WorkshopId.html">WorkshopId</a></td>
+<td>Gets current game scenario workshop id</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@WorldBoundaries.html">WorldBoundaries</a></td>
+<td>Gets world boundaries. Not letting character leaving them</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@ClientCanSave.html">ClientCanSave</a></td>
+<td><em><strong>Obsolete:</strong> Client saving not supported anymore</em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@HasAdminPrivileges.html">HasAdminPrivileges</a></td>
+<td><em><strong>Obsolete:</strong> Use HasCreativeRights</em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@BeforeStartComponents.html">BeforeStartComponents()</a></td>
+<td>Triggers BeforeStart for each game session component, resets game timer.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Draw.html">Draw()</a></td>
+<td>Calls Draw on all game session components</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GameOver.html">GameOver()</a></td>
+<td>Does nothing</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GameOver.html">GameOver(MyStringId?)</a></td>
+<td>Does nothing</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GetCheckpoint.html">GetCheckpoint(string)</a></td>
+<td>Gets current game save. Game is saved in several files. This function returns object builder for file: Sandbox.sbc</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GetComponentByInterfaceType%7BT%7D.html">GetComponentByInterfaceType<T>()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GetSector.html">GetSector()</a></td>
+<td>Gets current game save. Game is saved in several files. This function returns object builder for file: SANDBOX_0_0_0_.sbs</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GetUserPromoteLevel.html">GetUserPromoteLevel(ulong)</a></td>
+<td>Gets a remote player's promote level.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GetVoxelMapsArray.html">GetVoxelMapsArray()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@GetWorld.html">GetWorld()</a></td>
+<td>Gets information what receives client when connecting to server</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsPausable.html">IsPausable()</a></td>
+<td>Get whether game is pauseable (not multiplayer)</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsUserAdmin.html">IsUserAdmin(ulong)</a></td>
+<td>Checks if a given player is an admin (or higher).</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsUserIgnorePCULimit.html">IsUserIgnorePCULimit(ulong)</a></td>
+<td>Gets whether user can ignore pcu and block limits</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsUserIgnoreSafeZones.html">IsUserIgnoreSafeZones(ulong)</a></td>
+<td>Gets whether user can ignore safezone settings</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsUserInvulnerable.html">IsUserInvulnerable(ulong)</a></td>
+<td>Gets whether user is invulnerable</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsUserKeepOriginalOwnershipOnPaste.html">IsUserKeepOriginalOwnershipOnPaste(ulong)</a></td>
+<td>Gets whether user can keep original BuiltBy of blocks when pasting grid</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsUserShowAllPlayers.html">IsUserShowAllPlayers(ulong)</a></td>
+<td>Gets whether user can see all players</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsUserUntargetable.html">IsUserUntargetable(ulong)</a></td>
+<td>Gets whether user can't be targeted by turrets</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsUserUseAllTerminals.html">IsUserUseAllTerminals(ulong)</a></td>
+<td>Gets whether user can see use all terminals</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@RegisterComponent.html">RegisterComponent(MySessionComponentBase, MyUpdateOrder, int)</a></td>
+<td>Registers game session component for updates.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Save.html">Save(string)</a></td>
+<td>Saves game</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@SetAsNotReady.html">SetAsNotReady()</a></td>
+<td>Making game &quot;not ready&quot;, preventing joining server for EOS server</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@SetCameraController.html">SetCameraController(MyCameraControllerEnum, IMyEntity, Vector3D?)</a></td>
+<td>Sets mode of camera controller</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@SetComponentUpdateOrder.html">SetComponentUpdateOrder(MySessionComponentBase, MyUpdateOrder)</a></td>
+<td>Change the update order of a session component. There is a proxy for this method in the session component itself.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@TryGetAdminSettings.html">TryGetAdminSettings(ulong, out MyAdminSettingsEnum)</a></td>
+<td>Gets enabled admins settings</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Unload.html">Unload()</a></td>
+<td>Unloads current game session. Calls <a href="VRage.Game.ModAPI.IMySession@UnloadDataComponents.html">UnloadDataComponents()</a> , <a href="VRage.Game.ModAPI.IMySession@UnloadMultiplayer.html">UnloadMultiplayer()</a></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@UnloadDataComponents.html">UnloadDataComponents()</a></td>
+<td>Unloads data components. Shouldn't be called directly. Use <a href="VRage.Game.ModAPI.IMySession@Unload.html">Unload()</a> instead</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@UnloadMultiplayer.html">UnloadMultiplayer()</a></td>
+<td>Unloads data components. Shouldn't be called directly. Use <a href="VRage.Game.ModAPI.IMySession@Unload.html">Unload()</a> instead</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@UnregisterComponent.html">UnregisterComponent(MySessionComponentBase)</a></td>
+<td>Unregisters components from updates and calls.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@Update.html">Update(MyTimeSpan)</a></td>
+<td>Updates games. Does 1 simulation tick</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@UpdateComponents.html">UpdateComponents()</a></td>
+<td>Updates games. Does 1 simulation tick, but without any other logic, that is executed in <a href="VRage.Game.ModAPI.IMySession@Update.html">Update(MyTimeSpan)</a></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMySession@IsUserPromoted.html">IsUserPromoted(ulong)</a></td>
+<td><em><strong>Obsolete:</strong> Use GetUserPromoteLevel</em></td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

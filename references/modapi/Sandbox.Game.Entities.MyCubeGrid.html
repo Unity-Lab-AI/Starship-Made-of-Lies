@@ -1,0 +1,3348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.Entities.MyCubeGrid - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.Entities.MyCubeGrid" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:48Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game.Entities</div>
+                <h1>MyCubeGrid</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyCubeGrid: MyEntity, IMyEntity, IMyEntity, IMyGridConnectivityTest, IMyEventProxy, IMyEventOwner, IMySyncedEntity, IMyShootOrigin, IMyParallelUpdateable, IMyCubeGrid, IMyCubeGrid
+</code></pre>
+<p>Grid - small ship, large ship, station Cubes (armor, walls...) are merge and rendered by this entity Blocks (turret, thrusts...) are rendered as child entities</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DebugUpdateHistoryDuration.html">static DebugUpdateHistoryDuration</a></td>
+<td>Number of gameplay frames to keep the update history for. Defaults to 120 frames.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnLockToolbarPosition.html">static OnLockToolbarPosition</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnUnLockToolbarPosition.html">static OnUnLockToolbarPosition</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@WorkPriority.html">static WorkPriority</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@AddToGamePruningStructureExtCallBack.html">static AddToGamePruningStructureExtCallBack</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@CreateDefaultSyncEntityExtCallback.html">static CreateDefaultSyncEntityExtCallback</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@CreateStandardRenderComponentsExtCallback.html">static CreateStandardRenderComponentsExtCallback</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@InitComponentsExtCallback.html">static InitComponentsExtCallback</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@MyEntitiesCreateFromObjectBuilderExtCallback.html">static MyEntitiesCreateFromObjectBuilderExtCallback</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@MyEntityFactoryCreateObjectBuilderExtCallback.html">static MyEntityFactoryCreateObjectBuilderExtCallback</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@MyProceduralWorldGeneratorTrackEntityExtCallback.html">static MyProceduralWorldGeneratorTrackEntityExtCallback</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@MyWeldingGroupsAddNodeExtCallback.html">static MyWeldingGroupsAddNodeExtCallback</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@MyWeldingGroupsGetGroupNodesExtCallback.html">static MyWeldingGroupsGetGroupNodesExtCallback</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@MyWeldingGroupsGroupExistsExtCallback.html">static MyWeldingGroupsGroupExistsExtCallback</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@MyWeldingGroupsRemoveNodeExtCallback.html">static MyWeldingGroupsRemoveNodeExtCallback</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@RemoveFromGamePruningStructureExtCallBack.html">static RemoveFromGamePruningStructureExtCallBack</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateGamePruningStructureExtCallBack.html">static UpdateGamePruningStructureExtCallBack</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BeingCreatedInSplit.html">BeingCreatedInSplit</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BlockCounter.html">BlockCounter</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BlocksCounters.html">BlocksCounters</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BlocksWaitingOnAttachUpdate.html">BlocksWaitingOnAttachUpdate</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CloseGrid.html">CloseGrid</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ControlledFromTurret.html">ControlledFromTurret</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CreatePhysics.html">CreatePhysics</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridGeneralDamageModifier.html">GridGeneralDamageModifier</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridPresenceUpdate.html">GridPresenceUpdate</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@HasMechanicalTopPenindingReattach.html">HasMechanicalTopPenindingReattach</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@HasShipSoundEvents.html">HasShipSoundEvents</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IdentityAuthorshipBlockCount.html">IdentityAuthorshipBlockCount</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@InternalInitFinished.html">InternalInitFinished</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsAccessibleForProgrammableBlock.html">IsAccessibleForProgrammableBlock</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@LastSelectedProductionBlockId.html">LastSelectedProductionBlockId</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@m_occupiedBlocks.html">m_occupiedBlocks</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@m_playedTime.html">m_playedTime</a></td>
+<td>Grid play time with player. Used by respawn ship.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@MainCockpit.html">MainCockpit</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@MainRemoteControl.html">MainRemoteControl</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@MassSyncProperty.html">MassSyncProperty</a></td>
+<td>This is updated only when a player is sitting in the cockpit and autopilot is enabled.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@NpcClaimSecondsRemaining.html">NpcClaimSecondsRemaining</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@NpcClaimSecondsRemainingUpdateRequestTime.html">NpcClaimSecondsRemainingUpdateRequestTime</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@NpcClaimSecondsRemainingUpdateTime.html">NpcClaimSecondsRemainingUpdateTime</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@NumberOfReactors.html">NumberOfReactors</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Projector.html">Projector</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@XSymmetryOdd.html">XSymmetryOdd</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@XSymmetryPlane.html">XSymmetryPlane</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@YSymmetryOdd.html">YSymmetryOdd</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@YSymmetryPlane.html">YSymmetryPlane</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ZSymmetryOdd.html">ZSymmetryOdd</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ZSymmetryPlane.html">ZSymmetryPlane</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@DebugAsyncLoading.html">DebugAsyncLoading</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@DefinitionId.html">DefinitionId</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GamePruningProxyId.html">GamePruningProxyId</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@InstantiateSubpartOverrideFunc.html">InstantiateSubpartOverrideFunc</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@IsPreviewChanged.html">IsPreviewChanged</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@m_positionResetFromServer.html">m_positionResetFromServer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnEntityCloseRequest.html">OnEntityCloseRequest</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@PropagateSubpartRotationThroughHieerarchy.html">PropagateSubpartRotationThroughHieerarchy</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@ReadyForReplicationAction.html">ReadyForReplicationAction</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@ReplicationEnded.html">ReplicationEnded</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@ReplicationStarted.html">ReplicationStarted</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@StaticForPruningStructure.html">StaticForPruningStructure</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@TargetPruningProxyId.html">TargetPruningProxyId</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@TopMostPruningProxyId.html">TopMostPruningProxyId</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnBlockAddedGlobally.html">static OnBlockAddedGlobally</a></td>
+<td>Called only for single block changes</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnBlockRemovedGlobally.html">static OnBlockRemovedGlobally</a></td>
+<td>Not called on grid split, or when closing grid</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnBlocksChangeFinishedGlobally.html">static OnBlocksChangeFinishedGlobally</a></td>
+<td>Called on multi block changes. Both arguments may be null. First from where blocks where removed, second - where added</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnSplitGridCreated.html">static OnSplitGridCreated</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridPresenceTierChanged.html">GridPresenceTierChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsPoweredChanged.html">IsPoweredChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnBlockAdded.html">OnBlockAdded</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnBlockClosed.html">OnBlockClosed</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnBlockIntegrityChanged.html">OnBlockIntegrityChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnBlockOwnershipChanged.html">OnBlockOwnershipChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnBlockRemoved.html">OnBlockRemoved</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnConnectionChangeCompleted.html">OnConnectionChangeCompleted</a></td>
+<td>Event triggered, when one of GridLinkTypeEnum connections changed. Used to determine changes in connections. Use may also need react to OnGridMerge/OnGridSplit Event different from OnConnectivityChanged. 1) It is called when all group changes 2) It is called AFTER all group changes, so GetConnectedGrids returning correct results</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnConnectionChanged.html">OnConnectionChanged</a></td>
+<td>Event triggered, when one of GridLinkTypeEnum connections changed. Used to determine changes in connections. Use may also need react to OnGridMerge/OnGridSplit</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnDeschedule.html">OnDeschedule</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnDynamicNPCGridOrSubgridShooting.html">OnDynamicNPCGridOrSubgridShooting</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnFatBlockAdded.html">OnFatBlockAdded</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnFatBlockClosed.html">OnFatBlockClosed</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnFatBlockRemoved.html">OnFatBlockRemoved</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnGridBlockDamaged.html">OnGridBlockDamaged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnGridChanged.html">OnGridChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnGridMarkedDirty.html">OnGridMarkedDirty</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnGridMerge.html">OnGridMerge</a></td>
+<td>Called, when 2 grids are merged with merge block. First grid - grid that will stay, second - will be merged into first, and deleted. Called for both grids</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnGridSplit.html">OnGridSplit</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnHavokSystemIDChanged.html">OnHavokSystemIDChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnHierarchyUpdated.html">OnHierarchyUpdated</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnMassPropertiesChanged.html">OnMassPropertiesChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnMaxThrustChanged.html">OnMaxThrustChanged</a></td>
+<td>May be called from parallel thread</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnMinMaxChanged.html">OnMinMaxChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnNameChanged.html">OnNameChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnNaturalGravityChanged.html">OnNaturalGravityChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnSolarOccludedChanged.html">OnSolarOccludedChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnStaticChanged.html">OnStaticChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnTargetLocked.html">OnTargetLocked</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnTargetLockLost.html">OnTargetLockLost</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@PlayerPresenceTierChanged.html">PlayerPresenceTierChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SpeedChanged.html">SpeedChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SyncPropertyChanged.html">SyncPropertyChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@AddedToScene.html">AddedToScene</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GridPresenceTierChanged.html">GridPresenceTierChanged</a></td>
+<td>Triggered when grid presence tier is changed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnBlockAdded.html">OnBlockAdded</a></td>
+<td>Called when a block is added to the grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnBlockIntegrityChanged.html">OnBlockIntegrityChanged</a></td>
+<td>Triggered when block integrity changes (construction)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnBlockOwnershipChanged.html">OnBlockOwnershipChanged</a></td>
+<td>Called when a block on the grid changes owner<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnBlockRemoved.html">OnBlockRemoved</a></td>
+<td>Called when a block is removed from the grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> is called. Order 1) <a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a> 2) <a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a> 3) <a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a> .<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnClose.html">OnClose</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> is called. Order 1) <a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a> 2) <a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a> 3) <a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a> .<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnClosing.html">OnClosing</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnDebugDraw.html">OnDebugDraw</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnGridBlockDamaged.html">OnGridBlockDamaged</a></td>
+<td>Called when one of blocks on grid is taking damage<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnGridChanged.html">OnGridChanged</a></td>
+<td>Called when a grid is taken control of by a player<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnGridMerge.html">OnGridMerge</a></td>
+<td>Called, when 2 grids are merged with merge block. First grid - grid that will stay, second - will be merged into first, and deleted. Called for both grids<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnGridSplit.html">OnGridSplit</a></td>
+<td>Triggered when grid is split<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnIsStaticChanged.html">OnIsStaticChanged</a></td>
+<td>Triggered when grid changes to or from static (station)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> is called. Order 1) <a href="VRage.ModAPI.IMyEntity@OnMarkForClose.html">OnMarkForClose</a> 2) <a href="VRage.ModAPI.IMyEntity@OnClosing.html">OnClosing</a> 3) <a href="VRage.ModAPI.IMyEntity@OnClose.html">OnClose</a> .<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnMarkForClose.html">OnMarkForClose</a></td>
+<td>This event may not be invoked at all, when calling MyEntities.CloseAll, marking is bypassed<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnMaxThrustChanged.html">OnMaxThrustChanged</a></td>
+<td>Triggered when max thrust in one of directions was changed. Maybe called from parralel thread<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnModelRefresh.html">OnModelRefresh</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnNaturalGravityChanged.html">OnNaturalGravityChanged</a></td>
+<td>Triggered when natural gravity changes around the grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnPhysicsChanged.html">OnPhysicsChanged</a></td>
+<td>Called when havok rigid body physics are changed: inited, closed, modified.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnPhysicsChanged.html">OnPhysicsChanged</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnPhysicsComponentChanged.html">OnPhysicsComponentChanged</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnTargetLocked.html">OnTargetLocked</a></td>
+<td>Called when grid was target locked<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnTeleported.html">OnTeleported</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnUpdateOnceBeforeNextFrame.html">OnUpdateOnceBeforeNextFrame</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@PlayerPresenceTierChanged.html">PlayerPresenceTierChanged</a></td>
+<td>Triggered when player presence tier is changed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@RemovedFromScene.html">RemovedFromScene</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@SpeedChanged.html">SpeedChanged</a></td>
+<td>Triggered when speed of the grid is changed<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnIsStaticChanged.html">OnIsStaticChanged</a></td>
+<td><em><strong>Obsolete:</strong> Use OnStaticChanged</em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridCounter.html">static GridCounter</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShowAiInfo.html">static ShowAiInfo</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShowAntennaGizmos.html">static ShowAntennaGizmos</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShowCenterOfMass.html">static ShowCenterOfMass</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShowGravityGizmos.html">static ShowGravityGizmos</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShowGridPivot.html">static ShowGridPivot</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShowSenzorGizmos.html">static ShowSenzorGizmos</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@AllowPrediction.html">AllowPrediction</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BigOwners.html">BigOwners</a></td>
+<td>players that have the maximum number of functional blocks in cube grid</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BlocksCount.html">BlocksCount</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BlocksDestructionEnabled.html">BlocksDestructionEnabled</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BlocksForDraw.html">BlocksForDraw</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BlocksPCU.html">BlocksPCU</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ClosestParentId.html">ClosestParentId</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ConveyorSystem.html">ConveyorSystem</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CubeBlocks.html">CubeBlocks</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DampenersEnabled.html">DampenersEnabled</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Decoys.html">Decoys</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DestructibleBlocks.html">DestructibleBlocks</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DirtyBlocks.html">DirtyBlocks</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Editable.html">Editable</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@EntityThrustComponent.html">EntityThrustComponent</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ForceDisablePrediction.html">ForceDisablePrediction</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GameLogic.html">GameLogic</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetAmmoDefinition.html">GetAmmoDefinition</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridPresenceTier.html">GridPresenceTier</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridScale.html">GridScale</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridSize.html">GridSize</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridSizeEnum.html">GridSizeEnum</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridSizeHalf.html">GridSizeHalf</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridSizeHalfVector.html">GridSizeHalfVector</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridSizeQuarter.html">GridSizeQuarter</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridSizeQuarterVector.html">GridSizeQuarterVector</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridSizeR.html">GridSizeR</a></td>
+<td>Reciprocal of gridsize</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridSystems.html">GridSystems</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@HasCubeGridRender.html">HasCubeGridRender</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@HasMechanicalBlocksWaitingOnAttachUpdate.html">HasMechanicalBlocksWaitingOnAttachUpdate</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Immune.html">Immune</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@InitFromClipboard.html">InitFromClipboard</a></td>
+<td>True if created from <code>MyGridClipboard</code><sub>prohibited</sub> . Set earlier than IsProjected, before blocks/ec are handled</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Inventories.html">Inventories</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsBlockAreaChange.html">IsBlockAreaChange</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsBlockTrasferInProgress.html">IsBlockTrasferInProgress</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsClientPredicted.html">IsClientPredicted</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsClientPredictedCar.html">IsClientPredictedCar</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsClientPredictedWheel.html">IsClientPredictedWheel</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsGenerated.html">IsGenerated</a></td>
+<td>Gets or sets is generated, used for economy stations</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsLargeDestroyInProgress.html">IsLargeDestroyInProgress</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsMarkedForEarlyDeactivation.html">IsMarkedForEarlyDeactivation</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsNpcSpawnedGrid.html">IsNpcSpawnedGrid</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsParked.html">IsParked</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsPowered.html">IsPowered</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsRespawnGrid.html">IsRespawnGrid</a></td>
+<td>Gets or sets indication if a grid coresponds to a respawn ship/cart.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsSmokeParticleActive.html">IsSmokeParticleActive</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsSolarOccluded.html">IsSolarOccluded</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsSplit.html">IsSplit</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsStatic.html">IsStatic</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsTransparentForJumpDrive.html">IsTransparentForJumpDrive</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsUnsupportedStation.html">IsUnsupportedStation</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@LastUpdates.html">LastUpdates</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@LinearVelocity.html">LinearVelocity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@LocalCoordSystem.html">LocalCoordSystem</a></td>
+<td>Local coord system under which this cube exists. (its id)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@LockedByCount.html">LockedByCount</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@MarkedAsTrash.html">MarkedAsTrash</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Mass.html">Mass</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Max.html">Max</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@MaxShootRange.html">MaxShootRange</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Min.html">Min</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@NaturalGravity.html">NaturalGravity</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@NumberOfGridColors.html">NumberOfGridColors</a></td>
+<td>Return how many colors are on grid</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OccupiedBlocks.html">OccupiedBlocks</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Physics.html">Physics</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@PlayerPresenceTier.html">PlayerPresenceTier</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RenderData.html">RenderData</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RvoAgentId.html">RvoAgentId</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShapeCount.html">ShapeCount</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShootOrigin.html">ShootOrigin</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SmallOwners.html">SmallOwners</a></td>
+<td>players that have at least one block in cube grid</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Speed.html">Speed</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SyncType.html">SyncType</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TrashHighlightCounter.html">TrashHighlightCounter</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UnsafeBlocks.html">UnsafeBlocks</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateFlags.html">UpdateFlags</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UsesTargetingList.html">UsesTargetingList</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@BigOwners.html">BigOwners</a></td>
+<td>List of players with majority of blocks on grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@CastShadows.html">CastShadows</a></td>
+<td>Gets or sets flag <a href="VRage.ObjectBuilders.MyPersistentEntityFlags2@CastShadows.html">CastShadows</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Closed.html">Closed</a></td>
+<td>True if the block has been removed from the world.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Closed.html">Closed</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Components.html">Components</a></td>
+<td>Gets blocks component logic container<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Components.html">Components</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@ControlSystem.html">ControlSystem</a></td>
+<td>Gets grid-group control system<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@ConveyorSystem.html">ConveyorSystem</a></td>
+<td>Gets grid-group conveyor system<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@CustomName.html">CustomName</a></td>
+<td>Getter and setter for display name of the grid (as seen in Info terminal tab)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@CustomName.html">CustomName</a></td>
+<td>Display name of the grid (as seen in Info terminal tab)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DebugAsyncLoading.html">DebugAsyncLoading</a></td>
+<td>Used for internal usage. Modders should not use it. Will be eventually removed<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@DebugName.html">DebugName</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@DisplayName.html">DisplayName</a></td>
+<td>Gets user friendly name of entity. May be null For block terminal name use <a href="VRage.Game.ModAPI.Ingame.IMyCubeBlock@DisplayNameText.html">DisplayNameText</a><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DisplayName.html">DisplayName</a></td>
+<td>Gets or sets user friendly name of entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@DisplayName.html">DisplayName</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@DisplayNameText.html">DisplayNameText</a></td>
+<td>Display Name for GUI etc. Override in descendant classes. Usually used to display in terminal or inventory controls.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@EntityId.html">EntityId</a></td>
+<td>Id of entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@EntityId.html">EntityId</a></td>
+<td>Uniq id of entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@EntityId.html">EntityId</a></td>
+<td>Entity id, can be set by subclasses (for example when using pool...)<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@EntityStorage.html">EntityStorage</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@FastCastShadowResolve.html">FastCastShadowResolve</a></td>
+<td>Gets or sets flag <a href="VRage.ObjectBuilders.MyPersistentEntityFlags2@CastShadows.html">CastShadows</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Flags.html">Flags</a></td>
+<td>Gets or set some behavior of entity. <a href="VRage.ModAPI.EntityFlags.html">EntityFlags</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Flags.html">Flags</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GameLogic.html">GameLogic</a></td>
+<td>Gets or sets game logic for object. If there is more than 1 game logic attached it should be wrapped into.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GameLogic.html">GameLogic</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GasSystem.html">GasSystem</a></td>
+<td>Gets grid-group gas system<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyShootOrigin@GetAmmoDefinition.html">GetAmmoDefinition</a></td>
+<td>Gets ammo definition<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyShootOrigin.html">IMyShootOrigin</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GridPresenceTier.html">GridPresenceTier</a></td>
+<td>Gets grid presence tier<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@GridSize.html">GridSize</a></td>
+<td>Getter of grid size in meters<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@GridSizeEnum.html">GridSizeEnum</a></td>
+<td>Getter for grid size enum<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@HasInventory.html">HasInventory</a></td>
+<td>Returns true if this entity has got at least one inventory. Note that one aggregate inventory can contain zero simple inventories =&gt; zero will be returned even if GetInventory() != null.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@HasInventory.html">HasInventory</a></td>
+<td>Returns true if this entity has got at least one inventory. Note that one aggregate inventory can contain zero simple inventories =&gt; zero will be returned even if GetInventoryBase() != null.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Hierarchy.html">Hierarchy</a></td>
+<td>Gets or sets Hierarchy component<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Hierarchy.html">Hierarchy</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@InScene.html">InScene</a></td>
+<td>Gets or set if grid is InScene. Objects that are not in scene are not updated and drawn.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@InScene.html">InScene</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@InvalidateOnMove.html">InvalidateOnMove</a></td>
+<td>Gets if entity is invalidated on move When visual look of entity depends on position - then InvalidateOnMove should be true<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@InvalidateOnMove.html">InvalidateOnMove</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@InventoryCount.html">InventoryCount</a></td>
+<td>Returns the count of the number of inventories this entity has.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@InventoryCount.html">InventoryCount</a></td>
+<td>Iterate through inventories and return their count.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@IsBlockTrasferInProgress.html">IsBlockTrasferInProgress</a></td>
+<td>Gets whether the move block transfer from one grid to another is in progress. This happens during the split operation.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@IsCCDForProjectiles.html">IsCCDForProjectiles</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@IsNpcSpawnedGrid.html">IsNpcSpawnedGrid</a></td>
+<td>Gets if this grid is NPC spawned grid by the system (cargo ship, encounter, etc)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@IsPreview.html">IsPreview</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@IsReadyForReplication.html">IsReadyForReplication</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@IsReplicated.html">IsReplicated</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@IsRespawnGrid.html">IsRespawnGrid</a></td>
+<td>Gets or sets if this grid is a respawn grid (can be cleaned up automatically when player leaves)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@IsStatic.html">IsStatic</a></td>
+<td>Determines if the grid is static (unmoveable)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@IsStatic.html">IsStatic</a></td>
+<td>Gets or sets if the grid is static (station)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@IsTransparentForJumpDrive.html">IsTransparentForJumpDrive</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@IsVolumetric.html">IsVolumetric</a></td>
+<td>Always returns false<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@IsVolumetric.html">IsVolumetric</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@JumpSystem.html">JumpSystem</a></td>
+<td>Gets grid-group jump system<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@LastSnapshotFlags.html">LastSnapshotFlags</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@LinearVelocity.html">LinearVelocity</a></td>
+<td>Gets linear velocity of the grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalAABB.html">LocalAABB</a></td>
+<td>Gets or sets local axis aligned bounding box. Same as <a href="VRage.ModAPI.IMyEntity@LocalAABBHr.html">LocalAABBHr</a> , <a href="VRage.Game.Components.MyPositionComponentBase@LocalAABB.html">LocalAABB</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalAABBHr.html">LocalAABBHr</a></td>
+<td>Gets local axis aligned bounding box. Same as <a href="VRage.ModAPI.IMyEntity@LocalAABB.html">LocalAABB</a> , <a href="VRage.Game.Components.MyPositionComponentBase@LocalAABB.html">LocalAABB</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalMatrix.html">LocalMatrix</a></td>
+<td>Gets or sets local matrix. When entity, has parent, it's world coordinates are calculated from localMatrix and parent world matrix<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalVolume.html">LocalVolume</a></td>
+<td>Gets or sets local volume. Same as <a href="VRage.Game.Components.MyPositionComponentBase@LocalVolume.html">LocalVolume</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocalVolumeOffset.html">LocalVolumeOffset</a></td>
+<td>Gets or sets local volume offset. Same as <a href="VRage.Game.Components.MyPositionComponentBase@LocalVolumeOffset.html">LocalVolumeOffset</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@LocationForHudMarker.html">LocationForHudMarker</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@MarkedForClose.html">MarkedForClose</a></td>
+<td>Checked if <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> was called<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@MarkedForClose.html">MarkedForClose</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@Max.html">Max</a></td>
+<td>Maximum coordinates of blocks in grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@MaxGlassDistSq.html">MaxGlassDistSq</a></td>
+<td>Not used in game anymore<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@MaxGlassDistSq.html">MaxGlassDistSq</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyShootOrigin@MaxShootRange.html">MaxShootRange</a></td>
+<td>Gets weapon max shoot range<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyShootOrigin.html">IMyShootOrigin</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@Min.html">Min</a></td>
+<td>Minimum coordinates of blocks in grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Model.html">Model</a></td>
+<td>Gets model of block<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Model.html">Model</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@ModelCollision.html">ModelCollision</a></td>
+<td>Gets collision model of block<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@ModelCollision.html">ModelCollision</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@Name.html">Name</a></td>
+<td>Some entities can have uniq name, and game can find them by name <a href="VRage.ModAPI.IMyEntities@TryGetEntityByName.html">TryGetEntityByName(string, out IMyEntity)</a><br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Name.html">Name</a></td>
+<td>Uniq name of entity. Can be used to find entity by name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Name.html">Name</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@NaturalGravity.html">NaturalGravity</a></td>
+<td>Gets natural gravity around the grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NearFlag.html">NearFlag</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@Near.html">Near</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsDraw.html">NeedsDraw</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@NeedsDraw.html">NeedsDraw</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsDrawFromParent.html">NeedsDrawFromParent</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@NeedsDrawFromParent.html">NeedsDrawFromParent</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsResolveCastShadow.html">NeedsResolveCastShadow</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@NeedsResolveCastShadow.html">NeedsResolveCastShadow</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsUpdate.html">NeedsUpdate</a></td>
+<td>Gets or sets how often the entity should be updated.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@NeedsUpdate.html">NeedsUpdate</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@NeedsWorldMatrix.html">NeedsWorldMatrix</a></td>
+<td>Gets or sets if <a href="VRage.ModAPI.IMyEntity@WorldMatrix.html">WorldMatrix</a> should be calculated when parent WorldMatrix is changed.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@NeedsWorldMatrix.html">NeedsWorldMatrix</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Parent.html">Parent</a></td>
+<td>Gets parent of entity or null, if this entity doesn't have parent. Ex: character sitting in cockpit, has parent - cockpit, cockpit has parent - cube grid, connected grids also has main grid, which would be parent for other grids.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Parent.html">Parent</a></td>
+<td>Gets or sets the parent.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@PersistentFlags.html">PersistentFlags</a></td>
+<td>Gets or sets persistent flags that are used in rendering.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Physics.html">Physics</a></td>
+<td>Gets or sets physics for object<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Physics.html">Physics</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Pinned.html">Pinned</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@PlayerPresenceTier.html">PlayerPresenceTier</a></td>
+<td>Gets player presence tier<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@PositionComp.html">PositionComp</a></td>
+<td>Gets or sets position provider logic<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@PositionComp.html">PositionComp</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Render.html">Render</a></td>
+<td>Gets or sets render logic<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Render.html">Render</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@ResourceDistributor.html">ResourceDistributor</a></td>
+<td>Gets grid-group resource distributor<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@RvoAgentId.html">RvoAgentId</a></td>
+<td>Gets RVO Agent ID used for collision avoidance algorithm<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Save.html">Save</a></td>
+<td>Gets or sets <a href="VRage.ModAPI.EntityFlags@Save.html">Save</a> . Entity won't be saved if <a href="VRage.ModAPI.IMyEntity@Save.html">Save</a> is false<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Save.html">Save</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@ShadowBoxLod.html">ShadowBoxLod</a></td>
+<td>Gets or sets flag <a href="VRage.Game.Components.MyRenderComponentBase@ShadowBoxLod.html">ShadowBoxLod</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyShootOrigin@ShootOrigin.html">ShootOrigin</a></td>
+<td>Gets shot starting position<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyShootOrigin.html">IMyShootOrigin</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SkipIfTooSmall.html">SkipIfTooSmall</a></td>
+<td>Gets or sets flag <a href="VRage.ModAPI.EntityFlags@SkipIfTooSmall.html">SkipIfTooSmall</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@SmallOwners.html">SmallOwners</a></td>
+<td>List of players with any blocks on grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@Speed.html">Speed</a></td>
+<td>Gets speed of the grid calculated from Linear Velocity. Rounded to two decimal places.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@StopPhysicsActivation.html">StopPhysicsActivation</a></td>
+<td><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@StopPhysicsActivation.html">StopPhysicsActivation</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Storage.html">Storage</a></td>
+<td>Custom storage for mods. Shared with all mods.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Storage.html">Storage</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Subparts.html">Subparts</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@SyncFlag.html">SyncFlag</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Synchronized.html">Synchronized</a></td>
+<td>Gets or sets if the entity should be synced.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SyncObject.html">SyncObject</a></td>
+<td>Gets SyncObject used for synchronizing data over network with<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@SyncObject.html">SyncObject</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Transparent.html">Transparent</a></td>
+<td>Gets or sets <a href="VRage.Game.Components.MyRenderComponentBase@Transparency.html">Transparency</a> . When setting true entity would be 25% transparent<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateDuration.html">UpdateDuration</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyParallelUpdateable@UpdateFlags.html">UpdateFlags</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyParallelUpdateable.html">IMyParallelUpdateable</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Visible.html">Visible</a></td>
+<td>Gets or sets flag <a href="VRage.Game.Components.MyRenderComponentBase@Visible.html">Visible</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@WeaponSystem.html">WeaponSystem</a></td>
+<td>Gets grid-group weapon system<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldAABB.html">WorldAABB</a></td>
+<td>Gets world axis-aligned bounding box<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldAABBHr.html">WorldAABBHr</a></td>
+<td>Gets world axis-aligned bounding box<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldMatrix.html">WorldMatrix</a></td>
+<td>Gets world matrix of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@WorldMatrix.html">WorldMatrix</a></td>
+<td>Gets or sets world matrix.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@WorldMatrix.html">WorldMatrix</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@WorldMatrixInvScaled.html">WorldMatrixInvScaled</a></td>
+<td>Get scaled, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a> , <a href="VRage.ModAPI.IMyEntity@GetWorldMatrixNormalizedInv.html">GetWorldMatrixNormalizedInv()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a> , but not normalized<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a></td>
+<td>Get normalized, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldVolume.html">WorldVolume</a></td>
+<td>Gets bounding sphere of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@WorldVolumeHr.html">WorldVolumeHr</a></td>
+<td>Gets bounding sphere of this entity<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@XSymmetryOdd.html">XSymmetryOdd</a></td>
+<td>Gets or sets if the symmetry plane is offset from the block center<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@XSymmetryPlane.html">XSymmetryPlane</a></td>
+<td>Gets or sets X-Axis build symmetry plane<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@YSymmetryOdd.html">YSymmetryOdd</a></td>
+<td>Gets or sets if the symmetry plane is offset from the block center<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@YSymmetryPlane.html">YSymmetryPlane</a></td>
+<td>Gets or sets Y-Axis build symmetry plane<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@ZSymmetryOdd.html">ZSymmetryOdd</a></td>
+<td>Gets or sets if the symmetry plane is offset from the block center<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@ZSymmetryPlane.html">ZSymmetryPlane</a></td>
+<td>Gets or sets Z-Axis build symmetry plane<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@IsCCDForProjectiles.html">IsCCDForProjectiles</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@LocationForHudMarker.html">LocationForHudMarker</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@.ctor.html">MyCubeGrid()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@.ctor.html">MyEntity()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@.ctor.html">MyEntity(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BreakGridGroupLink.html">static BreakGridGroupLink(GridLinkTypeEnum, long, MyCubeGrid, MyCubeGrid)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CancelPendingTransferRequestsServerSide.html">static CancelPendingTransferRequestsServerSide(Guid, long, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CanHavePhysics.html">static CanHavePhysics(List<MySlimBlock>, int, int)</a></td>
+<td>Returns true when grid have at least one block which has physics (lights has no physics)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CanPasteGrid.html">static CanPasteGrid()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ChangeOwnersRequest.html">static ChangeOwnersRequest(MyOwnershipShareModeEnum, Dictionary&lt;MyCubeGrid, List<MySingleOwnershipRequest>&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ChangeShareRequest.html">static ChangeShareRequest(MyOwnershipShareModeEnum, Dictionary&lt;MyCubeGrid, List<MySingleOwnershipRequest>&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CheckAreaConnectivity.html">static CheckAreaConnectivity(MyCubeGrid, ref MyBlockBuildArea, List<Vector3UByte>, HashSet<Vector3UByte>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CheckConnectivity.html">static CheckConnectivity(IMyGridConnectivityTest, MyCubeBlockDefinition, MountPoint[], ref Quaternion, ref Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CheckConnectivitySmallBlockToLargeGrid.html">static CheckConnectivitySmallBlockToLargeGrid(MyCubeGrid, MyCubeBlockDefinition, ref Quaternion, ref Vector3I)</a></td>
+<td>Performs check whether small cube block given by its definition, rotation can be connected to large grid. Function checks whether a mount point on placed block exists in opposite direction than addNomal.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CheckMergeConnectivity.html">static CheckMergeConnectivity(MyCubeGrid, MyCubeGrid, Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CheckMountPointsForSide.html">static CheckMountPointsForSide(MyCubeBlockDefinition, MountPoint[], ref MyBlockOrientation, ref Vector3I, ref Vector3I, MyCubeBlockDefinition, MountPoint[], ref MyBlockOrientation, ref Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CheckMountPointsForSide.html">static CheckMountPointsForSide(List<MountPoint>, ref MyBlockOrientation, ref Vector3I, MyDefinitionId, ref Vector3I, List<MountPoint>, ref MyBlockOrientation, ref Vector3I, MyDefinitionId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CheckNeighborMountPoints.html">static CheckNeighborMountPoints(Vector3, Vector3, MountPoint, ref Vector3I, MyCubeBlockDefinition, Vector3I, MyCubeBlockDefinition, MountPoint[], MyBlockOrientation, List<MountPoint>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CheckNeighborMountPointsForCompound.html">static CheckNeighborMountPointsForCompound(Vector3, Vector3, MountPoint, ref Vector3I, MyCubeBlockDefinition, Vector3I, MyCubeBlockDefinition, MountPoint[], MyBlockOrientation, List<MountPoint>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ConvertPrefabsToObjs.html">static ConvertPrefabsToObjs()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CreateGridGroupLink.html">static CreateGridGroupLink(GridLinkTypeEnum, long, MyCubeGrid, MyCubeGrid)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CreateSplit.html">static CreateSplit(MyCubeGrid, List<MySlimBlock>, bool, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CreateSplits.html">static CreateSplits(MyCubeGrid, List<MySlimBlock>, List<Group>, MyTestDisconnectsReason, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DebugFormatMethodName.html">static DebugFormatMethodName(MethodInfo)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ExportObject.html">static ExportObject(MyCubeGrid, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetArmorSkinItem.html">static GetArmorSkinItem(MyStringHash)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetCubeParts.html">static GetCubeParts(MyCubeBlockDefinition, Vector3I, Matrix, float, List<string>, List<MatrixD>, List<Vector3>, List<Vector4UByte>, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetLineIntersection.html">static GetLineIntersection(ref LineD, out MyCubeGrid, out Vector3I, out double, Func&lt;MyCubeGrid, bool&gt;)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetLineIntersectionExact.html">static GetLineIntersectionExact(ref LineD, out MyCubeGrid, out Vector3I, out double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetTargetEntity.html">static GetTargetEntity()</a></td>
+<td>Obtain entity that player is aiming/looking at.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetTargetGrid.html">static GetTargetGrid()</a></td>
+<td>Obtain grid that player is aiming/looking at.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridIntegerToWorld.html">static GridIntegerToWorld(float, Vector3I, MatrixD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@HandleRemovalOfOwnershipTransferRequests.html">static HandleRemovalOfOwnershipTransferRequests()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@HasStandAloneBlocks.html">static HasStandAloneBlocks(List<MySlimBlock>, int, int)</a></td>
+<td>Returns true when grid have at least one stand alone block</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsAabbInsideVoxel.html">static IsAabbInsideVoxel(MatrixD, BoundingBoxD, MyGridPlacementSettings)</a></td>
+<td>Checks if aabb is in voxel. If settings provided it will return false if penetration settings allow for it.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsGridInCompleteState.html">static IsGridInCompleteState(MyCubeGrid)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsInVoxels.html">static IsInVoxels(MySlimBlock, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@KillAllCharacters.html">static KillAllCharacters(MyCubeGrid, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnChangeOwnersRequestConfirmation.html">static OnChangeOwnersRequestConfirmation(Guid, long, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@PackFiles.html">static PackFiles(string, string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@PlacePrefabsToWorld.html">static PlacePrefabsToWorld()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@PlacePrefabToWorld.html">static PlacePrefabToWorld(MyObjectBuilder_CubeGrid[], Vector3D, List<MyCubeGrid>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Players_PlayerRemoved.html">static Players_PlayerRemoved(PlayerId)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Preload.html">static Preload()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RayCastStaticCells.html">static RayCastStaticCells(Vector3D, Vector3D, List<Vector3I>, float, Vector3I?, bool)</a></td>
+<td>Obtains positions of static grid cells regardless of whether these cells are taken up by blocks or not. Usefull when placing block on voxel.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RemoveSplit.html">static RemoveSplit(MyCubeGrid, List<MySlimBlock>, int, int, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ResetInfoGizmos.html">static ResetInfoGizmos()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SendHudNotificationAfterPaste.html">static SendHudNotificationAfterPaste()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShowMessageGridsRemovedWhilePasting.html">static ShowMessageGridsRemovedWhilePasting()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShowMessageGridsRemovedWhilePastingInternal.html">static ShowMessageGridsRemovedWhilePastingInternal()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ShowPasteFailedOperation.html">static ShowPasteFailedOperation()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@StartConverting.html">static StartConverting(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@StaticGlobalGrid_UGToWorld.html">static StaticGlobalGrid_UGToWorld(Vector3D, float, bool)</a></td>
+<td>Converts static global uniform grid coordinate to world coordinate. Grid size is already used inside calculation.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@StaticGlobalGrid_WorldToUG.html">static StaticGlobalGrid_WorldToUG(Vector3D, float, bool)</a></td>
+<td>Converts world coordinate to static global grid uniform coordinate (virtual large grid in whole world which every large grid is snapped to). Grid size is already used inside calculation.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@StaticGlobalGrid_WorldToUGInt.html">static StaticGlobalGrid_WorldToUGInt(Vector3D, float, bool)</a></td>
+<td>Converts world coordinate to static global grid uniform coordinate (virtual large grid in whole world which every large grid is snapped to). Grid size is already used inside calculation.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestBlockPlacementArea.html">static TestBlockPlacementArea(MyCubeGrid, ref MyGridPlacementSettings, MyBlockOrientation, MyCubeBlockDefinition, ref Vector3D, ref Quaternion, ref Vector3, ref BoundingBoxD, ulong, MyEntity, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestBlockPlacementArea.html">static TestBlockPlacementArea(MyCubeGrid, ref MyGridPlacementSettings, MyBlockOrientation, MyCubeBlockDefinition, ref Vector3D, ref Quaternion, ref Vector3, ref BoundingBoxD, out MyCubeGrid, ulong, MyEntity, bool, bool, bool, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestBlockPlacementArea.html">static TestBlockPlacementArea(MyCubeBlockDefinition, MyBlockOrientation?, MatrixD, ref MyGridPlacementSettings, BoundingBoxD, bool, MyEntity, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestBlockPlacementAreaVanilla.html">static TestBlockPlacementAreaVanilla(MyCubeGrid, ref MyGridPlacementSettings, MyBlockOrientation, MyCubeBlockDefinition, ref Vector3D, ref Quaternion, ref Vector3, ref BoundingBoxD, out MyCubeGrid, ulong, MyEntity, bool, bool, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestPlacementArea.html">static TestPlacementArea(MyCubeGrid, ref MyGridPlacementSettings, BoundingBoxD, bool, MyEntity)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestPlacementArea.html">static TestPlacementArea(MyCubeGrid, bool, ref MyGridPlacementSettings, BoundingBoxD, bool, MyEntity, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestPlacementAreaCube.html">static TestPlacementAreaCube(MyCubeGrid, ref MyGridPlacementSettings, Vector3I, Vector3I, MyBlockOrientation, MyCubeBlockDefinition, ulong, MyEntity, bool, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestPlacementAreaCube.html">static TestPlacementAreaCube(MyCubeGrid, ref MyGridPlacementSettings, Vector3I, Vector3I, MyBlockOrientation, MyCubeBlockDefinition, out MyCubeGrid, ulong, MyEntity, bool, bool, bool, bool)</a></td>
+<td>Test cube block placement area in grid.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestPlacementAreaCubeNoAABBInflate.html">static TestPlacementAreaCubeNoAABBInflate(MyCubeGrid, ref MyGridPlacementSettings, Vector3I, Vector3I, MyBlockOrientation, MyCubeBlockDefinition, out MyCubeGrid, ulong, MyEntity, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestPlacementForWheel.html">static TestPlacementForWheel(HkShape, Quaternion, MatrixD, HkBodyCollision, MatrixD, MyCubeBlockDefinition)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestPlacementForWheelWhenPlacingWheel.html">static TestPlacementForWheelWhenPlacingWheel(MyAttachableTopBlockBase, MatrixD, Vector3D, List<HkBodyCollision>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestPlacementVoxelMapOverlap.html">static TestPlacementVoxelMapOverlap(MyVoxelBase, ref MyGridPlacementSettings, ref BoundingBoxD, ref MatrixD, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TestVoxelPlacement.html">static TestVoxelPlacement(MyCubeBlockDefinition, MyGridPlacementSettings, bool, MatrixD, BoundingBoxD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TransformMountPoints.html">static TransformMountPoints(List<MountPoint>, MyCubeBlockDefinition, MountPoint[], ref MyBlockOrientation)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TryPasteGrid_Implementation.html">static TryPasteGrid_Implementation(MyPasteGridParameters)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TryRayCastGrid.html">static TryRayCastGrid(ref LineD, out MyCubeGrid, out Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetCubeBlockParent.html">static GetCubeBlockParent(MyEntity)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ActivatePhysics.html">ActivatePhysics()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@AddDirtyBone.html">AddDirtyBone(Vector3I, Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@AnnounceRemoveSplit.html">AnnounceRemoveSplit(List<MySlimBlock>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ApplyDestructionDeformation.html">ApplyDestructionDeformation(MySlimBlock, float, MyHitInfo?, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ApplyLastControls.html">ApplyLastControls()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BuildBlockRequestInternal.html">BuildBlockRequestInternal(MyBlockVisuals, MyBlockLocation, MyObjectBuilder_CubeBlock, long, bool, long, ulong, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BuildBlocks.html">BuildBlocks(ref MyBlockBuildArea, long, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BuildBlocks.html">BuildBlocks(Vector3, MyStringHash, HashSet<MyBlockLocation>, long, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BuildBlocksClient.html">BuildBlocksClient(MyBlockVisuals, HashSet<MyBlockLocation>, long, bool, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BuildBlocksFailedNotify.html">BuildBlocksFailedNotify()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BuildBlockSucess.html">BuildBlockSucess(MyBlockVisuals, MyBlockLocation, MyObjectBuilder_CubeBlock, long, bool, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@BuildGeneratedBlock.html">BuildGeneratedBlock(MyBlockLocation, Vector3, MyStringHash)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CalculateMergeTransform.html">CalculateMergeTransform(MyCubeGrid, Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CanAddCube.html">CanAddCube(Vector3I, MyBlockOrientation?, MyCubeBlockDefinition, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CanAddCubes.html">CanAddCubes(Vector3I, Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CanBeTeleported.html">CanBeTeleported(MyGridJumpDriveSystem, out MyJumpFailReason)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CanHavePhysics.html">CanHavePhysics()</a></td>
+<td>Returns true when grid have at least one block which has physics (e.g. interior lights have no physics)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CanMergeCubes.html">CanMergeCubes(MyCubeGrid, Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CanPlaceBlock.html">CanPlaceBlock(Vector3I, Vector3I, MyBlockOrientation, MyCubeBlockDefinition, ulong, int?, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CanPlaceBlock.html">CanPlaceBlock(Vector3I, Vector3I, MyBlockOrientation, MyCubeBlockDefinition, ref MyGridPlacementSettings, ulong, int?, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ChangeColorAndSkin.html">ChangeColorAndSkin(MySlimBlock, Vector3?, MyStringHash?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ChangeDisplayNameRequest.html">ChangeDisplayNameRequest(string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ChangeGridOwner.html">ChangeGridOwner(long, MyOwnershipShareModeEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ChangeGridOwnership.html">ChangeGridOwnership(long, MyOwnershipShareModeEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ChangeOwner.html">ChangeOwner(MyCubeBlock, long, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ChangeOwnerRequest.html">ChangeOwnerRequest(MyCubeGrid, MyCubeBlock, long, MyOwnershipShareModeEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ChangePowerProducerState.html">ChangePowerProducerState(MyMultipleEnabledEnum, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ChangePowerProducerStateInternal.html">ChangePowerProducerStateInternal(MyMultipleEnabledEnum, long, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CheckPredictionFlagScheduling.html">CheckPredictionFlagScheduling()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ClearSymmetries.html">ClearSymmetries()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ClientPredictionStaticCheck.html">ClientPredictionStaticCheck()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ColorBlocks.html">ColorBlocks(Vector3I, Vector3I, Vector3, bool)</a></td>
+<td>Color block in area. Verry slow.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ColorGrid.html">ColorGrid(Vector3, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ColorGridOrBlockRequestValidation.html">ColorGridOrBlockRequestValidation()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CompetetiveContainerOpened.html">CompetetiveContainerOpened(long, int, Color)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ContainerOpened.html">ContainerOpened(long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ConvertToStatic.html">ConvertToStatic()</a></td>
+<td>Conversion to Unsupported station. For generic conversion to static use physics component. Sets up the Unsupported station state.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CreateSplit_Implementation.html">CreateSplit_Implementation(List<Vector3I>, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CreateSplits_Implementation.html">CreateSplits_Implementation(List<Vector3I>, List<Group>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@CubeExists.html">CubeExists(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DepressurizeEffect.html">DepressurizeEffect(Vector3I, Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DepressurizeEffect_Implementation.html">DepressurizeEffect_Implementation(Vector3I, Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DeSchedule.html">DeSchedule(UpdateQueue, Action)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DeserializeControls.html">DeserializeControls(BitStream, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DetectDisconnectsAfterFrame.html">DetectDisconnectsAfterFrame()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DetectMerge.html">DetectMerge(MySlimBlock, MyCubeGrid, List<MyEntity>, bool)</a></td>
+<td>Tries to merge this grid with any other grid Merges grids only when both are static Returns the merged grid (which does not necessarily have to be this grid)</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DismountAllCockpits.html">DismountAllCockpits()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@DoDamage.html">DoDamage(float, MyHitInfo, Vector3?, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@EnqueueDestroyedBlock.html">EnqueueDestroyedBlock(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@EnqueueDestructionDeformationBlock.html">EnqueueDestructionDeformationBlock(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@EnqueueRemovedBlock.html">EnqueueRemovedBlock(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@EnqueueRemovedBlockWithId.html">EnqueueRemovedBlockWithId(Vector3I, ushort?)</a></td>
+<td>Server method, adds removed block with compound id into queue</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@FindBlocksBuiltByID.html">FindBlocksBuiltByID(long)</a></td>
+<td>Find all blocks built by a specific player..</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@FindBlocksBuiltByID.html">FindBlocksBuiltByID(long, HashSet<MySlimBlock>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@FixSkeleton.html">FixSkeleton(MySlimBlock, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@FixTargetCube.html">FixTargetCube(out Vector3I, Vector3)</a></td>
+<td>Iterate over all the neighbors of the cube and return when one of them exists.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@FixTargetCubeLite.html">FixTargetCubeLite(out Vector3I, Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetBiggestGridInGroup.html">GetBiggestGridInGroup()</a></td>
+<td>Returns biggest grid in physical group by AABB volume</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetBlocks.html">GetBlocks()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetBlocksForTool.html">GetBlocksForTool(ref BoundingSphereD, HashSet<MySlimBlock>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetBlocksInsideSphere.html">GetBlocksInsideSphere(ref BoundingSphereD, HashSet<MySlimBlock>, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetBlocksInsideSphereInternal.html">GetBlocksInsideSphereInternal(ref BoundingSphereD, HashSet<MySlimBlock>, GridQueryAccuracy, bool, HashSet<Vector3I>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetBlocksInsideSpheres.html">GetBlocksInsideSpheres(ref BoundingSphereD, ref BoundingSphereD, ref BoundingSphereD, HashSet<MySlimBlock>, HashSet<MySlimBlock>, HashSet<MySlimBlock>, bool, float, ref MatrixD)</a></td>
+<td>Optimized version where spheres are sorted from smallest to largest</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetBlocksIntersectingOBB.html">GetBlocksIntersectingOBB(ref BoundingBoxD, ref MatrixD, List<MySlimBlock>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetClosestCorner.html">GetClosestCorner(Vector3I, Vector3)</a></td>
+<td>Returns cube corner which is closest to position</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetConnectedGrids.html">GetConnectedGrids(GridLinkTypeEnum, List<MyCubeGrid>)</a></td>
+<td>Get all grids connected to this grid</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetConnectedGrids.html">GetConnectedGrids(GridLinkTypeEnum, Action<MyCubeGrid>)</a></td>
+<td>Iterate over all grids connected to this grid</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetCubeBlock.html">GetCubeBlock(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetCurrentMass.html">GetCurrentMass(GridLinkTypeEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetCurrentMass.html">GetCurrentMass(out float, out float, GridLinkTypeEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetDebugUpdateInfo.html">GetDebugUpdateInfo(List<DebugUpdateRecord>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetExistingCubeForBoneDeformations.html">GetExistingCubeForBoneDeformations(ref Vector3I, ref MyDamageInformation)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetExistingCubes.html">GetExistingCubes(Vector3I, Vector3I, Dictionary&lt;Vector3I, MySlimBlock&gt;, MyDamageInformation?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetFatBlockCount%7BT%7D.html">GetFatBlockCount<T>()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetFatBlocks.html">GetFatBlocks()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetFatBlocks%7BT%7D.html">GetFatBlocks<T>()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetFirstBlockOfType%7BT%7D.html">GetFirstBlockOfType<T>()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetGridGroup.html">GetGridGroup(GridLinkTypeEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetIntersectionWithLine.html">GetIntersectionWithLine(ref LineD, out MyIntersectionResultLineTriangleEx?, IntersectionFlags)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetIntersectionWithLine.html">GetIntersectionWithLine(ref LineD, ref MyCubeGridHitInfo, IntersectionFlags)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetIntersectionWithSphere.html">GetIntersectionWithSphere(ref BoundingSphereD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetLineIntersectionExactAll.html">GetLineIntersectionExactAll(ref LineD, out double, out MySlimBlock)</a></td>
+<td>Returns closest line (in world space) intersection with all cubes.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetLineIntersectionExactGrid.html">GetLineIntersectionExactGrid(ref LineD, ref Vector3I, ref double)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetLineIntersectionExactGrid.html">GetLineIntersectionExactGrid(ref LineD, ref Vector3I, ref double, HitInfo?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetMaxThrustInDirection.html">GetMaxThrustInDirection(Direction)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetObjectBuilder.html">GetObjectBuilder(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetOwnerLoginTimeSeconds.html">GetOwnerLoginTimeSeconds()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetOwnerLogoutTimeSeconds.html">GetOwnerLogoutTimeSeconds()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetPhysicalGroupAABB.html">GetPhysicalGroupAABB()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetShapesFromPosition.html">GetShapesFromPosition(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetTargetedBlock.html">GetTargetedBlock(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GetTargetedBlockLite.html">GetTargetedBlockLite(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridIntegerToWorld.html">GridIntegerToWorld(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GridIntegerToWorld.html">GridIntegerToWorld(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@GunShooting.html">GunShooting()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@HasMainCockpit.html">HasMainCockpit()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@HasMainRemoteControl.html">HasMainRemoteControl()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@HasStandAloneBlocks.html">HasStandAloneBlocks()</a></td>
+<td>Returns true when grid have at least one stand alone block</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@HierarchyUpdated.html">HierarchyUpdated(MyCubeGrid)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Init.html">Init(MyObjectBuilder_EntityBase)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@InvokeDepressurizeEffect.html">InvokeDepressurizeEffect(Vector3I, Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsConnectedTo.html">IsConnectedTo(MyCubeGrid, GridLinkTypeEnum)</a></td>
+<td>Checks if 2 grids are connected</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsDirty.html">IsDirty()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsGizmoDrawingEnabled.html">IsGizmoDrawingEnabled()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsInSameLogicalGroupAs.html">IsInSameLogicalGroupAs(IMyCubeGrid)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsMainCockpit.html">IsMainCockpit(MyTerminalBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsMainRemoteControl.html">IsMainRemoteControl(MyTerminalBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsRoomAtPositionAirtight.html">IsRoomAtPositionAirtight(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsSameConstructAs.html">IsSameConstructAs(IMyCubeGrid)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@IsTouchingAnyNeighbor.html">IsTouchingAnyNeighbor(Vector3I, Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@JumpWithWheels.html">JumpWithWheels(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@LocalToGridInteger.html">LocalToGridInteger(Vector3)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@LogHierarchy.html">LogHierarchy()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@MarkAsTrash.html">MarkAsTrash()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@MechanicalConnectionBlockAttachUpdateStatusChanged.html">MechanicalConnectionBlockAttachUpdateStatusChanged(MyMechanicalConnectionBlockBase)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@MergeGrid_MergeBlock.html">MergeGrid_MergeBlock(MyCubeGrid, Vector3I, bool)</a></td>
+<td>Called from MergeBlock to initialte merge of two grids</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ModifyGroup.html">ModifyGroup(MyBlockGroup)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@MultiplyBlockSkeleton.html">MultiplyBlockSkeleton(MySlimBlock, float, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnAddedToScene.html">OnAddedToScene(object)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnClosedMessageBox.html">OnClosedMessageBox(ResultEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnConvertedToStationRequest.html">OnConvertedToStationRequest()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnConvertToDynamic.html">OnConvertToDynamic()</a></td>
+<td>Conversion from Unsupported station. For generic conversion to dynamic use physics component. Sets up the Unsupported station state.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnGridPresenceUpdate.html">OnGridPresenceUpdate(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnIntegrityChanged.html">OnIntegrityChanged(MySlimBlock, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnLogHierarchy.html">OnLogHierarchy()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnRemovedFromScene.html">OnRemovedFromScene(object)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnReplicationEnded.html">OnReplicationEnded()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnReplicationStarted.html">OnReplicationStarted()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@OnTerminalOpened.html">OnTerminalOpened()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@PasteBlocksToGrid.html">PasteBlocksToGrid(List&lt;MyObjectBuilder_CubeGrid&gt;, long, bool, List<ulong>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@PlayParticleBroadcast.html">PlayParticleBroadcast(string, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@PrepareForDraw.html">PrepareForDraw()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RaiseGridChanged.html">RaiseGridChanged()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RaisePhysicsChanged.html">RaisePhysicsChanged()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RayCastBlocks.html">RayCastBlocks(Vector3D, Vector3D)</a></td>
+<td>Obtains position of first hit block.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RayCastCells.html">RayCastCells(Vector3D, Vector3D, List<Vector3I>, Vector3I?, bool, bool)</a></td>
+<td>Obtains positions of grid cells regardless of whether these cells are taken up by blocks or not.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RazeBlock.html">RazeBlock(Vector3I, ulong)</a></td>
+<td>user is used only if called on server, when called from client, sender steam id will be used</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RazeBlocks.html">RazeBlocks(ref Vector3I, ref Vector3UByte, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RazeBlocks.html">RazeBlocks(List<Vector3I>, long, ulong)</a></td>
+<td>Razes blocks (unbuild) user is used only if locally invoked, if invoked from client, sender steam id is used</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RazeBlocksClient.html">RazeBlocksClient(List<Vector3I>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RazeBlocksDelayed.html">RazeBlocksDelayed(ref Vector3I, ref Vector3UByte, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RazeBlocksRequest.html">RazeBlocksRequest(List<Vector3I>, long, ulong)</a></td>
+<td>user is used only if locally invoked, if invoked from client, sender steam id is used</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RazeGeneratedBlocks.html">RazeGeneratedBlocks(List<Vector3I>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RazeGeneratedBlocks.html">RazeGeneratedBlocks(List<MySlimBlock>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RecalculateGravity.html">RecalculateGravity()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RecalculateOwners.html">RecalculateOwners()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ReceiveHandbrakeRequestResult.html">ReceiveHandbrakeRequestResult(HandbrakeToggleResult, string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ReceiveParkRequestResult.html">ReceiveParkRequestResult(HandbrakeToggleResult, string)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RegisterDecoy.html">RegisterDecoy(MyDecoy)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RegisterInventory.html">RegisterInventory(MyCubeBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RegisterOccupiedBlock.html">RegisterOccupiedBlock(MyCockpit)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RegisterUnsafeBlock.html">RegisterUnsafeBlock(MyCubeBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RemoveBlock.html">RemoveBlock(MySlimBlock, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RemoveBlocksBuiltByIDs.html">RemoveBlocksBuiltByIDs(List<long>)</a></td>
+<td>Remove all blocks from the grid built by specific player</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RemoveBlockWithId.html">RemoveBlockWithId(MySlimBlock, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RemoveBlockWithId.html">RemoveBlockWithId(Vector3I, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RemoveContainerDropComponent.html">RemoveContainerDropComponent(long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RemoveDestroyedBlock.html">RemoveDestroyedBlock(MySlimBlock, long)</a></td>
+<td>Removes destroyed block, applies damage and deformation to close blocks Won't update physics!</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RemoveNPCBlocks.html">RemoveNPCBlocks()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RequestConversionToShip.html">RequestConversionToShip(Action)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RequestConversionToStation.html">RequestConversionToStation()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RequestFillStockpile.html">RequestFillStockpile(Vector3I, MyInventory)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@RequestJump.html">RequestJump(Vector3D, long, float, long?)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ResetBlockSkeleton.html">ResetBlockSkeleton(MySlimBlock, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ResetControls.html">ResetControls()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Schedule.html">Schedule(UpdateQueue, Action, int, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SendAbortJump.html">SendAbortJump()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SendGridCloseRequest.html">SendGridCloseRequest()</a></td>
+<td>Use only for cut request</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SendIntegrityChanged.html">SendIntegrityChanged(MySlimBlock, MyIntegrityChangeEnum, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SendReflectorState.html">SendReflectorState(MyMultipleEnabledEnum)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SendRemovedBlocks.html">SendRemovedBlocks()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SendRemovedBlocksWithIds.html">SendRemovedBlocksWithIds()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SendStockpileChanged.html">SendStockpileChanged(MySlimBlock, List<MyStockpileItem>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SerializeControls.html">SerializeControls(BitStream)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SetBlockDirty.html">SetBlockDirty(MySlimBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SetCubeDirty.html">SetCubeDirty(Vector3I)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SetMainCockpit.html">SetMainCockpit(MyTerminalBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SetMainRemoteControl.html">SetMainRemoteControl(MyTerminalBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SetSolarOcclusion.html">SetSolarOcclusion(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SkinBlocks.html">SkinBlocks(Vector3I, Vector3I, Vector3?, MyStringHash?, bool)</a></td>
+<td>Skin block in area. Verry slow.</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SkinGrid.html">SkinGrid(Vector3, MyStringHash, bool, bool, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SplitByPlane.html">SplitByPlane(PlaneD)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@StartReplay.html">StartReplay()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@StopReplay.html">StopReplay()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@StopSmoke.html">StopSmoke()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@SwitchPower.html">SwitchPower()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TargetingAddId.html">TargetingAddId(long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TargetingCanAttackGrid.html">TargetingCanAttackGrid(long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TargetingRemoveId.html">TargetingRemoveId(long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TargetingSetWhitelist.html">TargetingSetWhitelist(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@Teleport.html">Teleport(MatrixD, object, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ToggleHandbrakeRequest.html">ToggleHandbrakeRequest()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ToggleParkStateRequest.html">ToggleParkStateRequest()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@ToString.html">ToString()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TransferBlockLimitsBuiltByID.html">TransferBlockLimitsBuiltByID(long, MyBlockLimits, MyBlockLimits)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TransferBlocksBuiltByID.html">TransferBlocksBuiltByID(long, long)</a></td>
+<td>Transfer all blocks built by a specific player to another player</td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TransferBlocksBuiltByIDClient.html">TransferBlocksBuiltByIDClient(long, long)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@TryGetCube.html">TryGetCube(Vector3I, out MyCube)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UnregisterDecoy.html">UnregisterDecoy(MyDecoy)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UnregisterInventory.html">UnregisterInventory(MyCubeBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UnregisterOccupiedBlock.html">UnregisterOccupiedBlock(MyCockpit)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UnregisterUnsafeBlock.html">UnregisterUnsafeBlock(MyCubeBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateAfterSimulation.html">UpdateAfterSimulation()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateAfterSimulation10.html">UpdateAfterSimulation10()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateAfterSimulation100.html">UpdateAfterSimulation100()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateAfterSimulationParallel.html">UpdateAfterSimulationParallel()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateBeforeSimulation.html">UpdateBeforeSimulation()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateBeforeSimulation10.html">UpdateBeforeSimulation10()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateBeforeSimulation100.html">UpdateBeforeSimulation100()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateBeforeSimulationParallel.html">UpdateBeforeSimulationParallel()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateBlockNeighbours.html">UpdateBlockNeighbours(MySlimBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateDirty.html">UpdateDirty(Action, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateDirtyInternal.html">UpdateDirtyInternal()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateInstanceData.html">UpdateInstanceData()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateOnceBeforeFrame.html">UpdateOnceBeforeFrame()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateOwnership.html">UpdateOwnership(long, bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateParticleContactPoint.html">UpdateParticleContactPoint(long, ref Vector3, ref Vector3, ref Vector3, float, float, ContactPointDataTypes)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdatePredictionFlag.html">UpdatePredictionFlag()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@UpdateTimeOnClients.html">UpdateTimeOnClients(int)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@WillRemoveBlockSplitGrid.html">WillRemoveBlockSplitGrid(MySlimBlock)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@WorldToGridInteger.html">WorldToGridInteger(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.MyCubeGrid@WorldToGridScaledLocal.html">WorldToGridScaledLocal(Vector3D)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@AddBlock.html">AddBlock(MyObjectBuilder_CubeBlock, bool)</a></td>
+<td>Add a cubeblock to the grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@AddDebugRenderComponent.html">AddDebugRenderComponent(MyDebugRenderComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@AddToGamePruningStructure.html">AddToGamePruningStructure()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@AfterPaste.html">AfterPaste()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@ApplyDeformation.html">ApplyDeformation(float, float, float, Vector3, Vector3, MyStringHash, out int, float, float, long)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@ApplyDestructionDeformation.html">ApplyDestructionDeformation(IMySlimBlock)</a></td>
+<td>Applies random deformation to given block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@ApplyLastControls.html">ApplyLastControls()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@BeforePaste.html">BeforePaste()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@BeforeSave.html">BeforeSave()</a></td>
+<td>Called before method GetObjectBuilder, when saving sector<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@BeforeSave.html">BeforeSave()</a></td>
+<td>Called before method GetObjectBuilder, when saving sector<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@CalculateMergeTransform.html">CalculateMergeTransform(IMyCubeGrid, Vector3I)</a></td>
+<td>Transformation matrix that has to be applied to grid blocks to correctly merge it used because ie. ships can be turned 90 degrees along X axis when being merged<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@CanAddCube.html">CanAddCube(Vector3I)</a></td>
+<td>Tests if a cubeblock can be added at the specific location<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@CanAddCubes.html">CanAddCubes(Vector3I, Vector3I)</a></td>
+<td>Test if the range of positions are not occupied by any blocks<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@CanMergeCubes.html">CanMergeCubes(IMyCubeGrid, Vector3I)</a></td>
+<td>Determines if merge between grids is possible with given offset<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@ChangeGridOwnership.html">ChangeGridOwnership(long, MyOwnershipShareModeEnum)</a></td>
+<td>Changes owner of all blocks on grid Call only on server!<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@ClearDebugRenderComponents.html">ClearDebugRenderComponents()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@ClearSymmetries.html">ClearSymmetries()</a></td>
+<td>Clears symmetry planes<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a></td>
+<td>This method marks this entity for close which means, that Close will be called after all entities are updated<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Close.html">Close()</a></td>
+<td>This method marks this entity for close which means, that Close will be called after all entities are updated<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@ColorBlocks.html">ColorBlocks(Vector3I, Vector3I, Vector3)</a></td>
+<td>Sets given color mask to range of blocks<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@ContainsDebugRenderComponent.html">ContainsDebugRenderComponent(Type)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@CreateSync.html">CreateSync()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@CubeExists.html">CubeExists(Vector3I)</a></td>
+<td>Returns true if there is any block occupying given position<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DebugDraw.html">DebugDraw()</a></td>
+<td>Calls debug draw of entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@DebugDraw.html">DebugDraw()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DebugDrawInvalidTriangles.html">DebugDrawInvalidTriangles()</a></td>
+<td>Calls special debug draw, that highlighting invalid triangles in model<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@DebugDrawInvalidTriangles.html">DebugDrawInvalidTriangles()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@DebugDrawPhysics.html">DebugDrawPhysics()</a></td>
+<td>Draw physical representation of entity<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Delete.html">Delete()</a></td>
+<td>Performs real cleaning of entity. Should be called by game. Modders should prefer <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a> method.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Delete.html">Delete()</a></td>
+<td>Every object must have this method, but not every phys object must necessarily have something to cleanup<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@DeserializeControls.html">DeserializeControls(BitStream, bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@DoOverlapSphereTest.html">DoOverlapSphereTest(float, Vector3D)</a></td>
+<td>Checks if intersects Works only with <a href="VRage.ModAPI.IMyVoxelBase.html">IMyVoxelBase</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@DoOverlapSphereTest.html">DoOverlapSphereTest(float, Vector3D)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@EnableColorMaskForSubparts.html">EnableColorMaskForSubparts(bool)</a></td>
+<td>Allows subparts have different color than their parent<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@FixTargetCube.html">FixTargetCube(out Vector3I, Vector3)</a></td>
+<td>Clamps fractional grid position to nearest cell (prefers neighboring occupied cell before empty)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetBaseEntity.html">GetBaseEntity()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GetBlocks.html">GetBlocks(List<IMySlimBlock>, Func&lt;IMySlimBlock, bool&gt;)</a></td>
+<td>Returns blocks in grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GetBlocksInsideSphere.html">GetBlocksInsideSphere(ref BoundingSphereD)</a></td>
+<td>Returns blocks intersects with given sphere (world space)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetChildren.html">GetChildren(List<IMyEntity>, Func&lt;IMyEntity, bool&gt;)</a></td>
+<td>Gets children of entity. Child - entity, who's <a href="VRage.ModAPI.IMyEntity@Parent.html">Parent</a> is this entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GetClosestCorner.html">GetClosestCorner(Vector3I, Vector3)</a></td>
+<td>Gets position of closest cell corner<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@GetCubeBlock.html">GetCubeBlock(Vector3I)</a></td>
+<td>Get cube block at given position<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GetCubeBlock.html">GetCubeBlock(Vector3I)</a></td>
+<td>Get cube block at given position<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetDiffuseColor.html">GetDiffuseColor()</a></td>
+<td>Gets render diffuse color<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetDistanceBetweenCameraAndBoundingSphere.html">GetDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td>Distance from camera to bounding sphere of this phys object. Result is always positive, even if camera is inside the sphere. (in meters)<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetDistanceBetweenCameraAndBoundingSphere.html">GetDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetDistanceBetweenCameraAndPosition.html">GetDistanceBetweenCameraAndPosition()</a></td>
+<td>Distance from camera to position of entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetDistanceBetweenCameraAndPosition.html">GetDistanceBetweenCameraAndPosition()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetDistanceBetweenPlayerPositionAndBoundingSphere.html">GetDistanceBetweenPlayerPositionAndBoundingSphere()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GetFatBlocks%7BT%7D.html">GetFatBlocks<T>()</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetFriendlyName.html">GetFriendlyName()</a></td>
+<td>Not used. Actually not a friendly name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetFriendlyName.html">GetFriendlyName()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GetGridGroup.html">GetGridGroup(GridLinkTypeEnum)</a></td>
+<td>Gets grid group of grids connected by provided link type<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetHudParams.html">GetHudParams(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithAABB.html">GetIntersectionWithAABB(ref BoundingBoxD)</a></td>
+<td>Return true if object intersects specified bounding box.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetIntersectionWithAABB.html">GetIntersectionWithAABB(ref BoundingBoxD)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithLine.html">GetIntersectionWithLine(ref LineD, out MyIntersectionResultLineTriangleEx?, IntersectionFlags)</a></td>
+<td>Get intersection of model with provided line<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetIntersectionWithLine.html">GetIntersectionWithLine(ref LineD, out Vector3D?, bool, IntersectionFlags)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetIntersectionWithLine.html">GetIntersectionWithLine(ref LineD, out MyIntersectionResultLineTriangleEx?, IntersectionFlags)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithLineAndBoundingSphere.html">GetIntersectionWithLineAndBoundingSphere(ref LineD, float)</a></td>
+<td>Calculates intersection of line with any bounding sphere in this model instance. Center of the bounding sphere will be returned. It takes boundingSphereRadiusMultiplier argument which serves for extending the influence (radius) for interaction with line.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetIntersectionWithLineAndBoundingSphere.html">GetIntersectionWithLineAndBoundingSphere(ref LineD, float)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetIntersectionWithSphere.html">GetIntersectionWithSphere(ref BoundingSphereD)</a></td>
+<td>Return true if object intersects specified sphere.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetIntersectionWithSphere.html">GetIntersectionWithSphere(ref BoundingSphereD)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetInventory.html">GetInventory()</a></td>
+<td>Simply get the MyInventoryBase component stored in this entity.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetInventory.html">GetInventory(int)</a></td>
+<td>Search for inventory component with maching index.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetInventory.html">GetInventory()</a></td>
+<td>Simply get the MyInventoryBase component stored in this entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetInventory.html">GetInventory(int)</a></td>
+<td>Search for inventory component with matching index.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetInventoryBase.html">GetInventoryBase(int)</a></td>
+<td>Search for inventory component with maching index.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetInventoryBase.html">GetInventoryBase()</a></td>
+<td>Simply get the MyInventoryBase component stored in this entity.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetLargestDistanceBetweenCameraAndBoundingSphere.html">GetLargestDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td>Largest distance from camera to bounding sphere of this phys object. Result is always positive, even if camera is inside the sphere. It's actually distance between camera and opposite side of the sphere<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetLargestDistanceBetweenCameraAndBoundingSphere.html">GetLargestDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GetLineIntersectionExactAll.html">GetLineIntersectionExactAll(ref LineD, out double, out IMySlimBlock)</a></td>
+<td>Returns point of intersection with line<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GetLineIntersectionExactGrid.html">GetLineIntersectionExactGrid(ref LineD, ref Vector3I, ref double)</a></td>
+<td>Same as GetLineIntersectionExactAll just without intersected block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@GetMaxThrustInDirection.html">GetMaxThrustInDirection(Direction)</a></td>
+<td><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetObjectBuilder.html">GetObjectBuilder(bool)</a></td>
+<td>Returns object builder - object representing block state, and allows restore it. Used in game save, or syncing over network.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetObjectBuilder.html">GetObjectBuilder(bool)</a></td>
+<td>Gets object builder from object.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyEntity@GetPosition.html">GetPosition()</a></td>
+<td>Gets position in world coordinates<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetSmallestDistanceBetweenCameraAndBoundingSphere.html">GetSmallestDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td>Smallest distance between camera and bounding sphere of this phys object. Result is always positive, even if camera is inside the sphere.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetSmallestDistanceBetweenCameraAndBoundingSphere.html">GetSmallestDistanceBetweenCameraAndBoundingSphere()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetSubpart.html">GetSubpart(string)</a></td>
+<td>Gets subpart by subpart name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetSubpart.html">GetSubpart(string)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetTopMostParent.html">GetTopMostParent(Type)</a></td>
+<td>Gets top most <a href="VRage.ModAPI.IMyEntity@Parent.html">Parent</a> of specified type. Top most is entity that doesn't have parent (of specified type)<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetTopMostParent.html">GetTopMostParent(Type)</a></td>
+<td>Return top most parent of this entity<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetTrianglesIntersectingSphere.html">GetTrianglesIntersectingSphere(ref BoundingSphere, Vector3?, float?, List&lt;MyTriangle_Vertex_Normals&gt;, int)</a></td>
+<td>Return list of triangles intersecting specified sphere. Angle between every triangleVertexes normal vector and 'referenceNormalVector' is calculated, and if more than 'maxAngle', we ignore such triangleVertexes. Triangles are returned in 'retTriangles', and this list must be preallocated! IMPORTANT: Sphere must be in model space, so don't transform it!<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetTrianglesIntersectingSphere.html">GetTrianglesIntersectingSphere(ref BoundingSphere, Vector3?, float?, List&lt;MyTriangle_Vertex_Normals&gt;, int)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a></td>
+<td>Get normalized, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetWorldMatrixNormalizedInv.html">GetWorldMatrixNormalizedInv()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@GetViewMatrix.html">GetViewMatrix()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@GetWorldMatrixNormalizedInv.html">GetWorldMatrixNormalizedInv()</a></td>
+<td>Get normalized, inverted world matrix. Same as <a href="VRage.ModAPI.IMyEntity@GetViewMatrix.html">GetViewMatrix()</a> , <a href="VRage.ModAPI.IMyEntity@WorldMatrixNormalizedInv.html">WorldMatrixNormalizedInv</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@GridIntegerToWorld.html">GridIntegerToWorld(Vector3I)</a></td>
+<td>Converts grid coordinates to world space<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Init.html">Init(MyObjectBuilder_EntityBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Init.html">Init(StringBuilder, string, MyEntity, float?, string)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@InitComponents.html">InitComponents()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@InitComponentsForTesting.html">InitComponentsForTesting()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@InvokeDepressurizeEffect.html">InvokeDepressurizeEffect(Vector3I, Vector3I)</a></td>
+<td>Invokes de-pressurize effect on clients<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@IsInSameLogicalGroupAs.html">IsInSameLogicalGroupAs(IMyCubeGrid)</a></td>
+<td>Determines whether this grid is in the same logical group as the other, meaning they're connected either mechanically or via blocks like connectors. Be aware that using merge blocks combines grids into one, so this function will not filter out grids connected that way.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@IsRoomAtPositionAirtight.html">IsRoomAtPositionAirtight(Vector3I)</a></td>
+<td>Is room at specified position airtight<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@IsSameConstructAs.html">IsSameConstructAs(IMyCubeGrid)</a></td>
+<td>Determines whether this grid is <a href="VRage.Game.ModAPI.GridLinkTypeEnum@Mechanical.html">Mechanical</a> connected to the other. This is any grid connected with rotors or pistons or other mechanical devices, but not things like connectors. This will in most cases constitute your complete construct.<br /><br />Be aware that using merge blocks combines grids into one, so this function will not filter out grids connected that way. Also be aware that detaching the heads of pistons and rotors will cause this connection to change.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@IsSameConstructAs.html">IsSameConstructAs(IMyCubeGrid)</a></td>
+<td>Determines whether this grid is mechanically connected to the other. This is any grid connected with rotors or pistons or other mechanical devices, but not things like connectors. This will in most cases constitute your complete construct.<br /><br />Be aware that using merge blocks combines grids into one, so this function will not filter out grids connected that way. Also be aware that detaching the heads of pistons and rotors will cause this connection to change.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@IsTouchingAnyNeighbor.html">IsTouchingAnyNeighbor(Vector3I, Vector3I)</a></td>
+<td>Finds out if given area has any neighboring block Checking only cube sides. Example: for vectors Min (0,0,0) and Max (10,10,10), Space (1,1,1)-(9,9,9) won't be checked<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@IsVisible.html">IsVisible()</a></td>
+<td>Gets or result of function <a href="VRage.Game.Components.MyRenderComponentBase@IsVisible.html">IsVisible()</a> . Function inside check for <a href="VRage.ModAPI.IMyEntities@IsVisible.html">IsVisible(IMyEntity)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@MergeGrid_MergeBlock.html">MergeGrid_MergeBlock(IMyCubeGrid, Vector3I)</a></td>
+<td>Merge used by merge blocks<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnAddedToScene.html">OnAddedToScene(object)</a></td>
+<td>Adds entity to scene: init updates, render physics<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnAddedToScene.html">OnAddedToScene(object)</a></td>
+<td>Called when [activated] which for entity means that was added to scene.<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@OnRemovedFromScene.html">OnRemovedFromScene(object)</a></td>
+<td>Remove entity and it's children from scene: stops updates and render, deactivates physics. Usually called when entity deleted<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnRemovedFromScene.html">OnRemovedFromScene(object)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnReplicationEnded.html">OnReplicationEnded()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@OnReplicationStarted.html">OnReplicationStarted()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Pin.html">Pin()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@PrepareForDraw.html">PrepareForDraw()</a></td>
+<td>Method is called defacto from Update, preparation fo Draw<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@RaisePhysicsChanged.html">RaisePhysicsChanged()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@RayCastBlocks.html">RayCastBlocks(Vector3D, Vector3D)</a></td>
+<td>Obtains first block position intersected with line.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@RayCastCells.html">RayCastCells(Vector3D, Vector3D, List<Vector3I>, Vector3I?, bool)</a></td>
+<td>Obtains positions of grid cellsof whether these cells are taken up by blocks or not.<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@RazeBlock.html">RazeBlock(Vector3I)</a></td>
+<td>Remove block at given position<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@RazeBlocks.html">RazeBlocks(ref Vector3I, ref Vector3UByte)</a></td>
+<td>Remove blocks in given area<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@RazeBlocks.html">RazeBlocks(List<Vector3I>)</a></td>
+<td>Remove blocks at given positions<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@RefreshModels.html">RefreshModels(string, string)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@RemoveBlock.html">RemoveBlock(IMySlimBlock, bool)</a></td>
+<td>Removes given block<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@RemoveDebugRenderComponent.html">RemoveDebugRenderComponent(Type)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@RemoveDebugRenderComponent.html">RemoveDebugRenderComponent(MyDebugRenderComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@RemoveDestroyedBlock.html">RemoveDestroyedBlock(IMySlimBlock)</a></td>
+<td>Removes block and deformates neighboring blocks<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@RemoveFromGamePruningStructure.html">RemoveFromGamePruningStructure()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@ResetControls.html">ResetControls()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@SerializeControls.html">SerializeControls(BitStream)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetColorMaskForSubparts.html">SetColorMaskForSubparts(Vector3)</a></td>
+<td>Sets subparts custom col<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetEmissiveParts.html">SetEmissiveParts(string, Color, float)</a></td>
+<td>Sets the emissive value of a specific emissive material on entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@SetEmissiveParts.html">SetEmissiveParts(string, Color, float)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetEmissivePartsForSubparts.html">SetEmissivePartsForSubparts(string, Color, float)</a></td>
+<td>Sets the emissive value of a specific emissive material on all entity subparts.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@SetEmissivePartsForSubparts.html">SetEmissivePartsForSubparts(string, Color, float)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@SetFadeOut.html">SetFadeOut(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetLocalMatrix.html">SetLocalMatrix(Matrix, object)</a></td>
+<td>Sets local matrix. When entity, has parent, it's world coordinates are calculated from localMatrix and parent world matrix<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetPosition.html">SetPosition(Vector3D)</a></td>
+<td>Set WorldMatrix's <a href="VRageMath.MatrixD@Translation.html">Translation</a> . Moves entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetTextureChangesForSubparts.html">SetTextureChangesForSubparts(Dictionary&lt;MyStringId, MyTextureChange&gt;)</a></td>
+<td>Sets subparts custom skinning. Copy values from <a href="VRage.Game.Components.MyRenderComponentBase@TextureChanges.html">TextureChanges</a> , then change needed keys. You can retrieve values for exact skin with following code:<code>csharp&lt;br /&gt;MyDefinitionManager.Static.GetAssetModifierDefinitionForRender(skinId);&lt;br /&gt;&lt;br /&gt;</code><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetWorldMatrix.html">SetWorldMatrix(MatrixD, object)</a></td>
+<td>Sets world matrix of entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Simulate.html">Simulate()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@SkinBlocks.html">SkinBlocks(Vector3I, Vector3I, Vector3?, string)</a></td>
+<td>Sets given skin to range of blocks<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@Split.html">Split(List<IMySlimBlock>, bool)</a></td>
+<td>Split grid<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@SplitByPlane.html">SplitByPlane(PlaneD)</a></td>
+<td>Split grid along a plane<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@Teleport.html">Teleport(MatrixD, object, bool)</a></td>
+<td>When moving entity over large distances or when entity has children, using this method preferred over <a href="VRage.ModAPI.IMyEntity@SetPosition.html">SetPosition(Vector3D)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Teleport.html">Teleport(MatrixD, object, bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@ToString.html">ToString()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@TryGetDebugRenderComponent%7BT%7D.html">TryGetDebugRenderComponent<T>(out T)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@TryGetSubpart.html">TryGetSubpart(string, out MyEntitySubpart)</a></td>
+<td>Gets subpart by subpart name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@TryGetSubpart.html">TryGetSubpart(string, out MyEntitySubpart)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@Unpin.html">Unpin()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateAfterSimulation.html">UpdateAfterSimulation()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateAfterSimulation10.html">UpdateAfterSimulation10()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateAfterSimulation100.html">UpdateAfterSimulation100()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyParallelUpdateable@UpdateAfterSimulationParallel.html">UpdateAfterSimulationParallel()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyParallelUpdateable.html">IMyParallelUpdateable</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateBeforeSimulation.html">UpdateBeforeSimulation()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateBeforeSimulation10.html">UpdateBeforeSimulation10()</a></td>
+<td>Called each 10th frame if registered for update10<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateBeforeSimulation100.html">UpdateBeforeSimulation100()</a></td>
+<td>Called each 100th frame if registered for update100<br /><br /><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.Entities.IMyParallelUpdateable@UpdateBeforeSimulationParallel.html">UpdateBeforeSimulationParallel()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.Entities.IMyParallelUpdateable.html">IMyParallelUpdateable</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@UpdateBlockNeighbours.html">UpdateBlockNeighbours(IMySlimBlock)</a></td>
+<td>Refreshes block neighbors (checks connections)<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@UpdateGamePruningStructure.html">UpdateGamePruningStructure()</a></td>
+<td>Update position of entity in MyGamePruningStructure. Calls:<code>csharp&lt;br /&gt;MyGamePruningStructure.Move(this)&lt;br /&gt;&lt;br /&gt;</code><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateGamePruningStructure.html">UpdateGamePruningStructure()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateOnceBeforeFrame.html">UpdateOnceBeforeFrame()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@UpdateOwnership.html">UpdateOwnership(long, bool)</a></td>
+<td>Called when functional block lost or gained owner. Triggers, grid ownership recalculation<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdateSoundContactPoint.html">UpdateSoundContactPoint(long, Vector3, Vector3, Vector3, float)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Entity.MyEntity@UpdatingStopped.html">UpdatingStopped()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@WillRemoveBlockSplitGrid.html">WillRemoveBlockSplitGrid(IMySlimBlock)</a></td>
+<td>Checks if removing a block will cause the grid to split<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid@WorldToGridInteger.html">WorldToGridInteger(Vector3D)</a></td>
+<td>Converts world coordinates to grid space cell coordinates<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@AddToGamePruningStructure.html">AddToGamePruningStructure()</a></td>
+<td><em><strong>Obsolete:</strong> Only used during Sandbox removal.</em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyCubeGrid@OnConvertToDynamic.html">OnConvertToDynamic()</a></td>
+<td><em><strong>Obsolete:</strong> Use IMyCubeGrid.Static instead.</em><br /><br />Converts station to ship<br /><br /><em>Inherited from <a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@RemoveFromGamePruningStructure.html">RemoveFromGamePruningStructure()</a></td>
+<td><em><strong>Obsolete:</strong> Only used during Sandbox removal.</em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntity@SetTextureChangesForSubparts.html">SetTextureChangesForSubparts(Dictionary&lt;string, MyTextureChange&gt;)</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br />This calling is obsolete, use another version.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritance:</strong>   <a href="VRage.Game.Entity.MyEntity.html">MyEntity</a></p>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.ModAPI.IMyCubeGrid.html">IMyCubeGrid</a></li>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyCubeGrid.html">IMyCubeGrid</a></li>
+<li><a href="VRage.ModAPI.IMyEntity.html">IMyEntity</a></li>
+<li><a href="VRage.Game.ModAPI.Ingame.IMyEntity.html">IMyEntity</a></li>
+<li>IMyEventOwner <sub>prohibited</sub></li>
+<li><a href="VRage.Network.IMyEventProxy.html">IMyEventProxy</a></li>
+<li>IMyGridConnectivityTest <sub>prohibited</sub></li>
+<li><a href="Sandbox.Game.Entities.IMyParallelUpdateable.html">IMyParallelUpdateable</a></li>
+<li><a href="Sandbox.ModAPI.IMyShootOrigin.html">IMyShootOrigin</a></li>
+<li>IMySyncedEntity <sub>prohibited</sub></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

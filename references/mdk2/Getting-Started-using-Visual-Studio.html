@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started using Visual Studio - MDK2 Documentation - MDK2 Documentation</title>
+    <link rel="stylesheet" href="docs-styles.css?v=0547896f3fc5">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn header-btn-api" title="Programmable Block API">
+                <span class="api-label"><strong>PB</strong><br><small>api</small></span>
+            </a>
+            <a href="../modapi/index.html" class="header-btn header-btn-api header-btn-compact" title="Mod API">
+                <span class="api-label"><strong>MOD</strong><br><small>api</small></span>
+            </a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">MDK2 Documentation</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+<a href="index.html">Home</a>
+<h3>Getting Started</h3>
+<ul>
+    <li><a href="Getting-Started-using-Jetbrains-Rider.html">Getting Started using Jetbrains Rider</a></li>
+    <li><a href="Getting-Started-using-Visual-Studio.html">Getting Started using Visual Studio</a></li>
+    <li><a href="Getting-Started-using-VSCode.html">Getting Started using VSCode</a></li>
+</ul>
+<h3>Configuration</h3>
+<ul>
+    <li><a href="Controlling-File-Order-in-MDK²-Projects.html">Controlling File Order in MDK² Projects</a></li>
+    <li><a href="MDK²-Project-Configuration-Guide.html">MDK² Project Configuration Guide</a></li>
+    <li><a href="Mixin-Projects.html">Mixin Projects</a></li>
+    <li><a href="Programmable-Block-Scripts.html">Programmable Block Scripts</a></li>
+    <li><a href="Using-the-Minifier-and-Preserve-Regions-in-MDK².html">Using the Minifier and Preserve Regions in MDK²</a></li>
+</ul>
+<h3>Updates</h3>
+<ul>
+    <li><a href="Updating-the-MDK2-Nuget-packages-using-Jetbrains-Rider.html">Updating the MDK2 Nuget packages using Jetbrains Rider</a></li>
+    <li><a href="Updating-the-MDK2-Nuget-packages-using-Visual-Studio.html">Updating the MDK2 Nuget packages using Visual Studio</a></li>
+    <li><a href="Updating-the-MDK2-Nuget-packages-using-VSCode-or-command-line.html">Updating the MDK2 Nuget packages using VSCode or command line</a></li>
+    <li><a href="Updating-the-MDK2-templates.html">Updating the MDK2 templates</a></li>
+</ul>
+<h3>Platform Support</h3>
+<ul>
+    <li><a href="Running-MDK-on-Linux-(functional,-but-unsupported).html">Running MDK on Linux (functional, but unsupported)</a></li>
+</ul>
+
+        </nav>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <main class="content">
+        <article class="docs-content">
+<h2 id="prerequisites">Prerequisites</h2>
+<div class="markdown-alert markdown-alert-warning">
+<p class="markdown-alert-title"><svg viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>Warning</p>
+<p>If you have the original MDK installed, you should uninstall it. MDK² works quite differently, and keeping the original around might interfere or at the very least
+can throw unrelated and therefore confusing errors.</p>
+</div>
+<ol>
+<li><p>Make sure your Visual Studio is at least version <code>17.10</code>.</p>
+<ul>
+<li>Open Visual Studio.</li>
+<li>Open the <code>Help</code> menu and select <code>About Microsoft Visual Studio</code>.</li>
+</ul>
+<p><img src="https://github.com/malforge/mdk2/assets/4653628/c69eab80-09d6-4d4c-b168-eb7380efa7aa" alt="Visual Studio help menu highlighting the About item" /></p>
+<p><img src="https://github.com/malforge/mdk2/assets/4653628/cbdaf733-5bf9-4300-b26e-b505bcc095e5" alt="Visual Studio About screen showing version highlighted" /></p>
+</li>
+<li><p>Make sure you have installed the .NET desktop development workload.</p>
+<ul>
+<li>Open Visual Studio Installer.</li>
+<li>Select <code>Modify</code> on your Visual Studio 2022 installation</li>
+</ul>
+<p><img src="https://github.com/user-attachments/assets/46648330-8f26-4277-90d1-f26b2338f8e4" alt="image" /></p>
+<ul>
+<li>In the <code>Workloads</code> tab, Find <code>.NET desktop development workload</code> and make sure it is checked.</li>
+</ul>
+<p><img src="https://github.com/user-attachments/assets/685e435d-5ca4-4d83-bb27-68155568596a" alt="image" /></p>
+<ul>
+<li>If changes are necessary, press the <code>Modify</code> button in the lower right. Once it has done its thing, your copy should be ready for MDK.</li>
+</ul>
+<p><img src="https://github.com/user-attachments/assets/029698b1-453a-4ca7-9fb3-6ddf69cecadb" alt="image" /></p>
+</li>
+<li><p>Make sure you have installed DotNet 9.</p>
+<ul>
+<li>Make sure to close Visual Studio before this step.</li>
+<li>Open a Terminal window by pressing the Windows/Start button and typing <code>Terminal</code> (or <code>Command Prompt</code> if you prefer)</li>
+</ul>
+<p><img src="https://github.com/malforge/mdk2/assets/4653628/f6d70f83-3869-4aa6-9cf1-fbe8d68510f1" alt="Start menu showing Terminal and Command Prompt highlighted" /></p>
+<ul>
+<li>Type <code>dotnet --list-sdks</code> and press <code>enter</code>.</li>
+</ul>
+<p><img src="https://github.com/user-attachments/assets/c81cbc52-b297-423c-82a2-3bac7b2f591b" alt="image" /></p>
+<p>If you do not have any .NET 9 versions, you need to go to <a href="https://dotnet.microsoft.com/en-us/download">https://dotnet.microsoft.com/en-us/download</a>.</p>
+</li>
+</ol>
+<h2 id="installing-mdk">Installing MDK</h2>
+<ol>
+<li><p>Install the DotNet New template package.</p>
+<ul>
+<li>Make sure to close Visual Studio before this step.</li>
+<li>Open a Terminal window by pressing the Windows/Start button and typing <code>Terminal</code> (or <code>Command Prompt</code> if you prefer)</li>
+</ul>
+<p><img src="https://github.com/malforge/mdk2/assets/4653628/f6d70f83-3869-4aa6-9cf1-fbe8d68510f1" alt="Start menu showing Terminal and Command Prompt highlighted" /></p>
+<ul>
+<li>Type <code>dotnet new install Mal.Mdk2.ScriptTemplates</code> and press <code>enter</code></li>
+</ul>
+<p><img src="https://github.com/malforge/mdk2/assets/4653628/09ad40eb-3dc8-45ac-af50-f4157e89cb83" alt="image" /></p>
+</li>
+</ol>
+<div class="markdown-alert markdown-alert-note">
+<p class="markdown-alert-title"><svg viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p>Some people get this message:</p>
+<p><img src="https://github.com/user-attachments/assets/0e3a164c-1740-4ae7-a01e-b173e7f2bb14" alt="image" /></p>
+<p>This usually means that for whatever reason, the nuget primary package source has not been added to your nuget package manager. You can
+double check this by typing <code>dotnet nuget list source</code>. If everything is as it should, it should at least list an entry with the official
+nuget source:</p>
+<p><img src="https://github.com/user-attachments/assets/e8df7247-f76d-4222-8af9-634896aa810f" alt="image" /></p>
+<p>If it doesn't, you can add it by typing in <code>dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org</code>.
+After this, you can try adding the template package again.</p>
+</div>
+<div class="markdown-alert markdown-alert-note">
+<p class="markdown-alert-title"><svg viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p>Some people were not able to run the install command before restarting their computer after installing DotNet 9 or Visual Studio.</p>
+</div>
+<ol start="2">
+<li><p>Open Visual Studio again. Press &quot;Create a new project&quot;.
+When you search for MDK now, you will find these two projects.</p>
+<p><img src="https://github.com/user-attachments/assets/3fe49151-0b47-4606-8df3-7d7add38018e" alt="image" /></p>
+<p>PS: The URL you see in the image (<a href="https://github.com/malware-dev/MDK-SE">https://github.com/malware-dev/MDK-SE</a>) has been superceded by <a href="https://github.com/malforge/mdk2">https://github.com/malforge/mdk2</a>.</p>
+</li>
+</ol>
+<div class="markdown-alert markdown-alert-note">
+<p class="markdown-alert-title"><svg viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p>Make sure you select the Script project and not the Mixin project when starting your new script.</p>
+</div>
+
+        </article>
+    </main>
+    <script src="docs.js?v=0547896f3fc5"></script>
+</body>
+</html>

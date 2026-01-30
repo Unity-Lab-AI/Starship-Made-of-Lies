@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.MyEntitiesHelper_ModAPI - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.MyEntitiesHelper_ModAPI" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:51Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI</div>
+                <h1>MyEntitiesHelper&#160;ModAPI</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyEntitiesHelper_ModAPI: IMyEntities
+</code></pre>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@OnCloseAll.html">OnCloseAll</a></td>
+<td>Called when session unloads, before grids are closed<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@OnEntityAdd.html">OnEntityAdd</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntities@AddEntity.html">AddEntity(IMyEntity, bool)</a> called on entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@OnEntityNameSet.html">OnEntityNameSet</a></td>
+<td>Called when entity gets <a href="VRage.ModAPI.IMyEntity@Name.html">Name</a> . First string - old name, Second - new name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@OnEntityRemove.html">OnEntityRemove</a></td>
+<td>Called when <a href="VRage.ModAPI.IMyEntities@RemoveEntity.html">RemoveEntity(IMyEntity)</a> called on entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.MyEntitiesHelper_ModAPI@.ctor.html">MyEntitiesHelper_ModAPI()</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@AddEntity.html">AddEntity(IMyEntity, bool)</a></td>
+<td>Registers entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@CreateFromObjectBuilder.html">CreateFromObjectBuilder(MyObjectBuilder_EntityBase)</a></td>
+<td>Create entity from object builder<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@CreateFromObjectBuilderAndAdd.html">CreateFromObjectBuilderAndAdd(MyObjectBuilder_EntityBase)</a></td>
+<td>Create entity from object builder, and then call <a href="VRage.ModAPI.IMyEntities@AddEntity.html">AddEntity(IMyEntity, bool)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@CreateFromObjectBuilderNoinit.html">CreateFromObjectBuilderNoinit(MyObjectBuilder_EntityBase)</a></td>
+<td>Create new entity from objectBuilder, but doesn't call<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@CreateFromObjectBuilderParallel.html">CreateFromObjectBuilderParallel(MyObjectBuilder_EntityBase, bool, Action<IMyEntity>)</a></td>
+<td>Creates and asynchronously initializes and entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@EnableEntityBoundingBoxDraw.html">EnableEntityBoundingBoxDraw(IMyEntity, bool, Vector4?, float, Vector3?)</a></td>
+<td>Draw bounding box around entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@EntityExists.html">EntityExists(string)</a></td>
+<td>Returns if entity with provided name exists<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@EntityExists.html">EntityExists(long)</a></td>
+<td>Returns if entity with provided name exists<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@EntityExists.html">EntityExists(long?)</a></td>
+<td>Returns if entity with provided name exists<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@Exist.html">Exist(IMyEntity)</a></td>
+<td>Checks if entity is registered entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@FindFreePlace.html">FindFreePlace(Vector3D, float, int, int, float)</a></td>
+<td>Use to find place that doesn't have any voxels, grids, or physical bodies. If original position can't fill check sphere, new position in some distance is picked. Distance grows each testsPerDistance attempts. Maximum distance from BasePos that can be used is calculated by formula: maxTestCount / testsPerDistance * radius * stepSize<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetElementsInBox.html">GetElementsInBox(ref BoundingBoxD)</a></td>
+<td>Returns list of entities that intersects with BoundingBox. This function will return CubeBlocks. This function works slower than <a href="VRage.ModAPI.IMyEntities@GetTopMostEntitiesInBox.html">GetTopMostEntitiesInBox(ref BoundingBoxD)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetEntities.html">GetEntities(HashSet<IMyEntity>, Func&lt;IMyEntity, bool&gt;)</a></td>
+<td>Get all entities matching condition<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetEntitiesInAABB.html">GetEntitiesInAABB(ref BoundingBoxD)</a></td>
+<td>Returns list of entities that intersects with BoundingBox. This function will return CubeBlocks. This function works slower than <a href="VRage.ModAPI.IMyEntities@GetTopMostEntitiesInBox.html">GetTopMostEntitiesInBox(ref BoundingBoxD)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetEntitiesInSphere.html">GetEntitiesInSphere(ref BoundingSphereD)</a></td>
+<td>Returns list of entities that intersects with sphere. This function will return CubeBlocks. This function works slower than <a href="VRage.ModAPI.IMyEntities@GetTopMostEntitiesInSphere.html">GetTopMostEntitiesInSphere(ref BoundingSphereD)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetEntity.html">GetEntity(Func&lt;IMyEntity, bool&gt;)</a></td>
+<td>Get first entity that matching condition<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetEntityById.html">GetEntityById(long)</a></td>
+<td>Returns entity with provided entityId<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetEntityById.html">GetEntityById(long?)</a></td>
+<td>Returns entity with provided entityId<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetEntityByName.html">GetEntityByName(string)</a></td>
+<td>Returns entity with provided name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetInflatedPlayerBoundingBox.html">GetInflatedPlayerBoundingBox(ref BoundingBoxD, float)</a></td>
+<td>Making playerBox include all connected players<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetIntersectionWithSphere.html">GetIntersectionWithSphere(ref BoundingSphereD)</a></td>
+<td>Returns first found (not closest) entity that intersects with sphere<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetIntersectionWithSphere.html">GetIntersectionWithSphere(ref BoundingSphereD, IMyEntity, IMyEntity)</a></td>
+<td>Returns first found (not closest) entity that intersects with sphere<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetIntersectionWithSphere.html">GetIntersectionWithSphere(ref BoundingSphereD, IMyEntity, IMyEntity, bool, bool, bool, bool, bool)</a></td>
+<td>Returns first found (not closest) entity that intersects with sphere<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetIntersectionWithSphere.html">GetIntersectionWithSphere(ref BoundingSphereD, IMyEntity, IMyEntity, bool, bool)</a></td>
+<td>Returns list of entities that intersects with sphere<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetTopMostEntitiesInBox.html">GetTopMostEntitiesInBox(ref BoundingBoxD)</a></td>
+<td>Returns list of <code>TopMost</code> entities that intersects with bounding box. This function won't return CubeBlocks. Use <a href="VRage.ModAPI.IMyEntities@GetElementsInBox.html">GetElementsInBox(ref BoundingBoxD)</a> to retrieve CubeBlocks also.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetTopMostEntitiesInSphere.html">GetTopMostEntitiesInSphere(ref BoundingSphereD)</a></td>
+<td>Returns list of <code>TopMost</code> entities that intersects with sphere. This function won't return CubeBlocks. Use <a href="VRage.ModAPI.IMyEntities@GetEntitiesInSphere.html">GetEntitiesInSphere(ref BoundingSphereD)</a> to retrieve CubeBlocks also.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@IsInsideVoxel.html">IsInsideVoxel(Vector3D, Vector3D, out Vector3D)</a></td>
+<td>Return true if line between pos and hintPosition doesn't intersect any voxel, or intersects it even number of times Does inside physical ray casting inside<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@IsInsideWorld.html">IsInsideWorld(Vector3D)</a></td>
+<td>Returns true if distance from 0,0,0 to provided position is less than <a href="VRage.ModAPI.IMyEntities@WorldHalfExtent.html">WorldHalfExtent()</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@IsNameExists.html">IsNameExists(IMyEntity, string)</a></td>
+<td>Checks if registered name belongs to this entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@IsRaycastBlocked.html">IsRaycastBlocked(Vector3D, Vector3D)</a></td>
+<td>Returns true if raycast hits anything (with raycast layer=0)<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@IsSpherePenetrating.html">IsSpherePenetrating(ref BoundingSphereD)</a></td>
+<td>Checks if sphere hits any <code>HkRigidBody</code><sub>prohibited</sub><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@IsTypeHidden.html">IsTypeHidden(Type)</a></td>
+<td>Gets whether entities that inherit type is visible or not. Example:<code>csharp&lt;br /&gt;IsTypeHidden(typeof (IMyCubeGrid))&lt;br /&gt;&lt;br /&gt;</code><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@IsVisible.html">IsVisible(IMyEntity)</a></td>
+<td>Gets whether entity is visible or not because of <a href="VRage.ModAPI.IMyEntities@SetTypeHidden.html">SetTypeHidden(Type, bool)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@IsWorldLimited.html">IsWorldLimited()</a></td>
+<td>Return whether world has limited size in kilometers<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@MarkForClose.html">MarkForClose(IMyEntity)</a></td>
+<td>Mark entity as closed. Soon it would be deleted. Doesn't call <a href="VRage.ModAPI.IMyEntity@Close.html">Close()</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@RegisterForDraw.html">RegisterForDraw(IMyEntity)</a></td>
+<td>Make entity receive PrepareForDraw and sending to it's Render Draw call<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@RegisterForUpdate.html">RegisterForUpdate(IMyEntity)</a></td>
+<td>Make entity receive UpdateBeforeSimulation, UpdateBefore10Simulation, UpdateBefore100Simulation, UpdateAfterSimulation, UpdateAfter10Simulation, UpdateAfter100Simulation, Simulate, UpdateBeforeNextFrame depending on it's <a href="VRage.ModAPI.IMyEntity@NeedsUpdate.html">NeedsUpdate</a> flags. Physics are still simulated<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@RemapObjectBuilder.html">RemapObjectBuilder(MyObjectBuilder_EntityBase)</a></td>
+<td>Remaps this entity's <a href="VRage.ModAPI.IMyEntity@EntityId.html">EntityId</a> and <a href="VRage.ModAPI.IMyEntity@Name.html">Name</a> to a new values.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@RemapObjectBuilderCollection.html">RemapObjectBuilderCollection(IEnumerable&lt;MyObjectBuilder_EntityBase&gt;)</a></td>
+<td>Remaps this entity's <a href="VRage.ModAPI.IMyEntity@EntityId.html">EntityId</a> and <a href="VRage.ModAPI.IMyEntity@Name.html">Name</a> to a new values.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@RemoveEntity.html">RemoveEntity(IMyEntity)</a></td>
+<td>Unregisters entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@RemoveFromClosedEntities.html">RemoveFromClosedEntities(IMyEntity)</a></td>
+<td>Remove entity from lists of closed entities<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@RemoveName.html">RemoveName(IMyEntity)</a></td>
+<td>Removes registered name from entity.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@SetEntityName.html">SetEntityName(IMyEntity, bool)</a></td>
+<td>Apply <a href="VRage.ModAPI.IMyEntity@Name.html">Name</a> for entity<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@SetTypeHidden.html">SetTypeHidden(Type, bool)</a></td>
+<td>Entities that inherit that type would be visible/invisible.<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@TryGetEntityById.html">TryGetEntityById(long, out IMyEntity)</a></td>
+<td>Returns entity with provided id<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@TryGetEntityById.html">TryGetEntityById(long?, out IMyEntity)</a></td>
+<td>Returns entity with provided id<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@TryGetEntityByName.html">TryGetEntityByName(string, out IMyEntity)</a></td>
+<td>Returns entity with provided name<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@UnhideAllTypes.html">UnhideAllTypes()</a></td>
+<td>Revert all changes to default. Make all entities visible, that were hidden because of <a href="VRage.ModAPI.IMyEntities@SetTypeHidden.html">SetTypeHidden(Type, bool)</a><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@UnregisterForDraw.html">UnregisterForDraw(IMyEntity)</a></td>
+<td>Unregistering entity from PrepareForDraw events and it Render from Draw calls. Entity may still be rendered<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@UnregisterForUpdate.html">UnregisterForUpdate(IMyEntity, bool)</a></td>
+<td>Unregistering entity from following updates: UpdateBeforeSimulation, UpdateBefore10Simulation, UpdateBefore100Simulation, UpdateAfterSimulation, UpdateAfter10Simulation, UpdateAfter100Simulation, Simulate, UpdateBeforeNextFrame Physics are still simulated<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@WorldHalfExtent.html">WorldHalfExtent()</a></td>
+<td>Returns shortest distance (i.e. axis-aligned) to the world border from the world center. Will be 0 if world is borderless<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@WorldSafeHalfExtent.html">WorldSafeHalfExtent()</a></td>
+<td>Returns shortest distance (i.e. axis-aligned) to the world border from the world center, minus 600m to make spawning somewhat safer. Will be 0 if world is borderless<br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@GetInflatedPlayerBoundingBox.html">GetInflatedPlayerBoundingBox(ref BoundingBox, float)</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.ModAPI.IMyEntities@IsInsideVoxel.html">IsInsideVoxel(Vector3, Vector3, out Vector3)</a></td>
+<td><em><strong>Obsolete</strong></em><br /><br /><em>Inherited from <a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.ModAPI.IMyEntities.html">IMyEntities</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControlOnOffSwitch - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControlOnOffSwitch" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:51Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.ModAPI.Interfaces.Terminal</div>
+                <h1>IMyTerminalControlOnOffSwitch</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Common.dll</p>
+<pre><code class="language-csharp">public interface IMyTerminalControlOnOffSwitch: IMyTerminalControl, IMyTerminalValueControl&lt;bool&gt;, ITerminalProperty, IMyTerminalControlTitleTooltip
+</code></pre>
+<p>This is an on / off switch or toggle button. It gives two options that a user can toggled between.</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControlOnOffSwitch@OffText.html">OffText</a></td>
+<td>The label for the &quot;off&quot; switch</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControlOnOffSwitch@OnText.html">OnText</a></td>
+<td>The label for the &quot;on&quot; switch</td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl@Enabled.html">Enabled</a></td>
+<td>Allows you to set if the control is enabled<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl.html">IMyTerminalControl</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.ITerminalProperty@Id.html">Id</a></td>
+<td>Property Id (value name)<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Interfaces.ITerminalProperty.html">ITerminalProperty</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl@Id.html">Id</a></td>
+<td>Identifier of control<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl.html">IMyTerminalControl</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl@SupportsMultipleBlocks.html">SupportsMultipleBlocks</a></td>
+<td>Allows you to set if the control is visible when the block is selected as a group<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl.html">IMyTerminalControl</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControlTitleTooltip@Title.html">Title</a></td>
+<td>Allows you to get or set the Label that appears on the control<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControlTitleTooltip.html">IMyTerminalControlTitleTooltip</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControlTitleTooltip@Tooltip.html">Tooltip</a></td>
+<td>Allows you to get or set the tooltip that appears when you hover over the control<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControlTitleTooltip.html">IMyTerminalControlTitleTooltip</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.ITerminalProperty@TypeName.html">TypeName</a></td>
+<td>Property type (bool - <a href="https://docs.microsoft.com/en-us/dotnet/api/system.boolean?view=netframework-4.6">bool</a> , float - <a href="https://docs.microsoft.com/en-us/dotnet/api/system.single?view=netframework-4.6">float</a> , color - <a href="VRageMath.Color.html">Color</a> )<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Interfaces.ITerminalProperty.html">ITerminalProperty</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl@Visible.html">Visible</a></td>
+<td>Allows you to set if the control is visible<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl.html">IMyTerminalControl</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl@RedrawControl.html">RedrawControl()</a></td>
+<td>Recreates the control GUI. This allows you to update the Title of some controls.<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl.html">IMyTerminalControl</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl@UpdateVisual.html">UpdateVisual()</a></td>
+<td>This updates a control that is currently displayed, allowing you to refresh it's state<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl.html">IMyTerminalControl</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControl.html">IMyTerminalControl</a></li>
+<li><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalControlTitleTooltip.html">IMyTerminalControlTitleTooltip</a></li>
+<li><a href="Sandbox.ModAPI.Interfaces.Terminal.IMyTerminalValueControl%7BBoolean%7D.html">IMyTerminalValueControl<bool></a></li>
+<li><a href="Sandbox.ModAPI.Interfaces.ITerminalProperty.html">ITerminalProperty</a></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

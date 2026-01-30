@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox.Game.EntityComponents.MyPathRecorderComponent - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="Sandbox.Game.EntityComponents.MyPathRecorderComponent" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:49Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">Sandbox.Game.EntityComponents</div>
+                <h1>MyPathRecorderComponent</h1>
+            </div>
+<p><strong>Assembly:</strong> Sandbox.Game.dll</p>
+<pre><code class="language-csharp">public class MyPathRecorderComponent: MyEventProxyEntityComponent, IMyComponentBase, IMyEntityComponentBase, IMyEventProxy, IMyEventOwner, IMyTerminalControlsProviderComponent, IMyPathRecorderComponent, IMyPathRecorderComponent
+</code></pre>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@DetailedInfo.html">DetailedInfo</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@ErrorsInTerminal.html">ErrorsInTerminal</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@Waypoints.html">Waypoints</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEventProxyEntityComponent@SyncType.html">SyncType</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.EntityComponents.MyEventProxyEntityComponent.html">MyEventProxyEntityComponent</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnAfterAddedToContainer.html">static OnAfterAddedToContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@IsPlayingChanged.html">IsPlayingChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@IsRecordingChanged.html">IsRecordingChanged</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@BeforeRemovedFromContainer.html">BeforeRemovedFromContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@BeforeRemovedFromContainer.html">BeforeRemovedFromContainer</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyPathRecorderComponent@IsPlayingChanged.html">IsPlayingChanged</a></td>
+<td>Event triggered when IsPlaying changes<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyPathRecorderComponent@IsRecordingChanged.html">IsRecordingChanged</a></td>
+<td>Event triggered when IsRecording changes<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@BeaconDisplayText.html">BeaconDisplayText</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@BeaconWorldPosition.html">BeaconWorldPosition</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@IsPlaying.html">IsPlaying</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@IsPowered.html">IsPowered</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@IsRecording.html">IsRecording</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@MinimalDistance.html">MinimalDistance</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@RecordInterval.html">RecordInterval</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@RepeatPath.html">RepeatPath</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@ShowPath.html">ShowPath</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@ShowSelectedPoints.html">ShowSelectedPoints</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@TerminalControlCreationPriority.html">TerminalControlCreationPriority</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEventProxyEntityComponent@AttachSyncToEntity.html">AttachSyncToEntity</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.EntityComponents.MyEventProxyEntityComponent.html">MyEventProxyEntityComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@AttachSyncToEntity.html">AttachSyncToEntity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@BeaconDisplayText.html">BeaconDisplayText</a></td>
+<td>Gets Beacon display text<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@BeaconEntityId.html">BeaconEntityId</a></td>
+<td>Entity of beacon in which the waypoints are in relation to<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@BeaconWorldPosition.html">BeaconWorldPosition</a></td>
+<td>Gets BeaconWorldPosition<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@ComponentTypeDebugString.html">ComponentTypeDebugString</a></td>
+<td>Name of the base component type for debug purposes (e.g.: &quot;Position&quot;)<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@Container.html">Container</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@Container.html">Container</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@ContainerBase.html">ContainerBase</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@ContainerBase.html">ContainerBase</a></td>
+<td>This cannot be named Container to not conflict with the definition of Container in MyEntityComponentBase.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase@Entity.html">Entity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@Entity.html">Entity</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@FailedOnSceneAdd.html">FailedOnSceneAdd</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@IsPlaying.html">IsPlaying</a></td>
+<td>Gets bool if the PR block is playing<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@IsRecording.html">IsRecording</a></td>
+<td>Get bool if the PR block is recording<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@MinimalDistance.html">MinimalDistance</a></td>
+<td>Gets/sets minimal distance between waypoints for automatic recording to record new waypoint<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@RecordInterval.html">RecordInterval</a></td>
+<td>Gets/sets record interval. Sets how often the block tries to records its position as a waypoint. Operates every 100 frames<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@RemoveExistingComponentOnNewInsert.html">RemoveExistingComponentOnNewInsert</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@RemoveExistingComponentOnNewInsert.html">RemoveExistingComponentOnNewInsert</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@RepeatPath.html">RepeatPath</a></td>
+<td>Repeat path toggle<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@ShowPath.html">ShowPath</a></td>
+<td>Gets/sets if block is showing path on clients screen<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@ShowSelectedPoints.html">ShowSelectedPoints</a></td>
+<td>Gets/sets if block is showing points, selected by client on his screen<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="constructors">Constructors</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@.ctor.html">MyPathRecorderComponent()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEventProxyEntityComponent@.ctor.html">MyEventProxyEntityComponent()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.EntityComponents.MyEventProxyEntityComponent.html">MyEventProxyEntityComponent</a></em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@AddWaypoint.html">AddWaypoint(IMyAutopilotWaypoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@CreateTerminalControls%7BT%7D.html">CreateTerminalControls<T>()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@DrawPath.html">DrawPath()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@GetWaypoints.html">GetWaypoints(List<IMyAutopilotWaypoint>)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@Init.html">Init(MyComponentDefinitionBase)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@IsPathShown.html">IsPathShown()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@IsSerialized.html">IsSerialized()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@OnRemovedFromScene.html">OnRemovedFromScene()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@Play.html">Play()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@Record.html">Record()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@RefreshErrors.html">RefreshErrors(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@RemoveBeacon.html">RemoveBeacon()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@RemoveWaypoint.html">RemoveWaypoint(IMyAutopilotWaypoint)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@ReverseOrder.html">ReverseOrder()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@Serialize.html">Serialize(bool)</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@StopPlay.html">StopPlay()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@StopRecord.html">StopRecord()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyPathRecorderComponent@UpdateAfterSimulation100.html">UpdateAfterSimulation100()</a></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyPathRecorderComponent@AddWaypoint.html">AddWaypoint(IMyAutopilotWaypoint)</a></td>
+<td>Adds a waypoint unless the waypoint limit is already reached<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyPathRecorderComponent@DeleteAllWaypoints.html">DeleteAllWaypoints()</a></td>
+<td>Deletes all waypoints<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Deserialize.html">Deserialize(MyObjectBuilder_ComponentBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@GetAs%7BT%7D.html">GetAs<T>()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@GetAs%7BT%7D.html">GetAs<T>()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyPathRecorderComponent@GetWaypoints.html">GetWaypoints(List<IMyAutopilotWaypoint>)</a></td>
+<td>Gets list of waypoints in this component<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Init.html">Init(MyComponentDefinitionBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Init.html">Init(MyComponentDefinitionBase)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@IsSerialized.html">IsSerialized()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@IsSerialized.html">IsSerialized()</a></td>
+<td>Tells the component container serializer whether this component should be saved<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnAddedToContainer.html">OnAddedToContainer()</a></td>
+<td>Gets called after the container of this component changes<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnAddedToScene.html">OnAddedToScene()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnAddedToScene.html">OnAddedToScene()</a></td>
+<td>CH: TOOD: Be careful! This does not get called if the component is added to a container that is in the scene already!<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.Game.EntityComponents.MyEventProxyEntityComponent@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td><em>Inherited from <a href="Sandbox.Game.EntityComponents.MyEventProxyEntityComponent.html">MyEventProxyEntityComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyEntityComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnBeforeRemovedFromContainer.html">OnBeforeRemovedFromContainer()</a></td>
+<td>Gets called before the removal of this component from a container<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@OnRemovedFromScene.html">OnRemovedFromScene()</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@OnRemovedFromScene.html">OnRemovedFromScene()</a></td>
+<td>CH: TOOD: Be careful! This does not get called if the component is removed from a container that is still in the scene!<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@Play.html">Play()</a></td>
+<td>Starts playing current waypoints<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@Record.html">Record()</a></td>
+<td>Starts recording<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@RemoveBeacon.html">RemoveBeacon()</a></td>
+<td>Sets BeaconEntityId = 0<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyPathRecorderComponent@RemoveWaypoint.html">RemoveWaypoint(IMyAutopilotWaypoint)</a></td>
+<td>Removes waypoint<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.IMyPathRecorderComponent@ReverseOrder.html">ReverseOrder()</a></td>
+<td>Reverses order of waypoints<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@Serialize.html">Serialize(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@Serialize.html">Serialize(bool)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.Interfaces.IMyComponentBase@SetContainer.html">SetContainer(IMyComponentContainer)</a></td>
+<td><em>Inherited from <a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="VRage.Game.Components.MyComponentBase@SetContainer.html">SetContainer(IMyComponentContainer)</a></td>
+<td>Sets the container of this component. Note that the component is not added to the container here! Therefore, use MyComponentContainer.Add(...) method and it will in turn call this method. Actually, you should seldom have the need to call this method yourself.<br /><br /><em>Inherited from <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@StopPlay.html">StopPlay()</a></td>
+<td>Stops playing current waypoints<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+<tr>
+<td><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent@StopRecord.html">StopRecord()</a></td>
+<td>Stops recording<br /><br /><em>Inherited from <a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Inheritance:</strong>   <a href="VRage.Game.Components.MyComponentBase.html">MyComponentBase</a> ˃ <a href="VRage.Game.Components.MyEntityComponentBase.html">MyEntityComponentBase</a> ˃ <a href="Sandbox.Game.EntityComponents.MyEventProxyEntityComponent.html">MyEventProxyEntityComponent</a></p>
+<p><strong>Implements:</strong></p>
+<ul>
+<li><a href="VRage.Game.Components.Interfaces.IMyComponentBase.html">IMyComponentBase</a></li>
+<li><a href="VRage.Game.Components.Interfaces.IMyEntityComponentBase.html">IMyEntityComponentBase</a></li>
+<li>IMyEventOwner <sub>prohibited</sub></li>
+<li><a href="VRage.Network.IMyEventProxy.html">IMyEventProxy</a></li>
+<li><a href="Sandbox.ModAPI.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></li>
+<li><a href="Sandbox.ModAPI.Ingame.IMyPathRecorderComponent.html">IMyPathRecorderComponent</a></li>
+<li>IMyTerminalControlsProviderComponent <sub>prohibited</sub></li>
+</ul>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>

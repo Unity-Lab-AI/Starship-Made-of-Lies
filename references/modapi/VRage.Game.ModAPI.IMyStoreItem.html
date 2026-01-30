@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRage.Game.ModAPI.IMyStoreItem - API Reference</title>
+    <link rel="stylesheet" href="styles.css?v=54480b3351e0">
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ff6b6b; color: white; padding: 1em; text-align: center; z-index: 10000; font-family: Arial, sans-serif;">
+            <strong>JavaScript Required:</strong> This documentation site requires JavaScript to function. Please enable JavaScript in your browser to view the navigation and search features.
+        </div>
+    </noscript>
+    <header class="top-header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="header-nav">
+            <a href="index.html" class="header-btn" title="Home">
+                <span>🏠</span>
+            </a>
+            <a href="https://spaceengineers.wiki.gg/" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="Space Engineers Wiki">
+                <img src="wiki.png" alt="Wiki" class="header-icon">
+            </a>
+            <a href="https://github.com/malforge/mdk2" target="_blank" rel="noopener" class="header-btn header-btn-icon" title="MDK2 - Malware's Development Kit">
+                <img src="mdk2.png" alt="MDK2" class="header-icon">
+            </a>
+            <a href="../pbapi/index.html" class="header-btn api-switcher" title="Switch to PB API">🔄 PB API</a>
+        </nav>
+    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search API..." autocomplete="off">
+                <button id="clear-search" style="display: none;">&times;</button>
+                <div class="search-hint">Prefix: T: for types, M: for members</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" data-current-page="VRage.Game.ModAPI.IMyStoreItem" data-cache-buster="54480b3351e0" data-api-type="mod">
+            <button id="sidebar-scroll-top" class="sidebar-scroll-top" aria-label="Scroll to top">↑ Back to top</button>
+            <div class="sidebar-loading">Loading navigation...</div>
+        </nav>
+        <div class="sidebar-footer"><span class="generation-timestamp" data-utc="2025-12-16T21:25:53Z">Generated 2025-12-16 21:25 UTC</span></div>
+        <div class="sidebar-resize-handle"></div>
+    </aside>
+    <div id="search-results" style="display: none;"></div>
+    <main class="content">
+            <div class="page-header">
+                <div class="page-namespace">VRage.Game.ModAPI</div>
+                <h1>IMyStoreItem</h1>
+            </div>
+<p><strong>Assembly:</strong> VRage.Game.dll</p>
+<pre><code class="language-csharp">public interface IMyStoreItem
+</code></pre>
+<h2 id="events">Events</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@OnCancel.html">OnCancel</a></td>
+<td>When owner of store block cancels order/offer regarding this item</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@OnTransaction.html">OnTransaction</a></td>
+<td>When player makes an transaction regarding this item int - amount sold int - amount remaining int - price of transaction long - owner of block long - buyer/seller</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@Amount.html">Amount</a></td>
+<td>The amount of the item that is available for purchase in the store</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@Id.html">Id</a></td>
+<td>The entity id of the store item</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@IsActive.html">IsActive</a></td>
+<td>Determines if Amount is greater than 0</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@IsCustomStoreItem.html">IsCustomStoreItem</a></td>
+<td>Determines if the item should behave similar to how store items in Vanilla Economy Stations work (eg: doesn't require physical inventory). This is required when adding Gas / Grid items to a store.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@Item.html">Item</a></td>
+<td>Definition Id of the item</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@ItemType.html">ItemType</a></td>
+<td>The type of item. eg: PhysicalItem, Grid, etc</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@PrefabName.html">PrefabName</a></td>
+<td>The name of the Prefab Definition SubtypeId if the item is a Grid</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@PrefabTotalPcu.html">PrefabTotalPcu</a></td>
+<td>The PCU value of a Grid item</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@PricePerUnit.html">PricePerUnit</a></td>
+<td>The individual cost of a single item.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@PricePerUnitDiscount.html">PricePerUnitDiscount</a></td>
+<td>This governs the tooltip that appears when you hover your cursor over the price in the store (eg: 0.5 for 50% discount). This doesn't actually affect the price, use Amount to adjust that.</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@RemovedAmount.html">RemovedAmount</a></td>
+<td>The amount that has been removed from the item through purchases (ie: Purchased Amount)</td>
+</tr>
+<tr>
+<td><a href="VRage.Game.ModAPI.IMyStoreItem@StoreItemType.html">StoreItemType</a></td>
+<td>Defines whether the item is an Offer (store is selling to you) or an Order (store is buying from you)</td>
+</tr>
+</tbody>
+</table>
+
+    </main>
+    <script src="api-index.js?v=54480b3351e0"></script>
+</body>
+</html>
