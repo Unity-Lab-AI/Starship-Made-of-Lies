@@ -440,7 +440,7 @@ Timeout handling:
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| Unity Boot | ~450 | 30,372 | 100,000 | OK (69.6% margin) |
+| Unity Boot | ~450 | ~35,764 | 100,000 | OK (64.2% margin) |
 
 ---
 

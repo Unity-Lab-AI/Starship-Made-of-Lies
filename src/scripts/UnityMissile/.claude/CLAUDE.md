@@ -213,7 +213,7 @@ Phase|DistToTarget|Velocity|PosX,PosY,PosZ|Altitude|Fuel%|Status
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityMissile | ~1,165 | ~44,563 | 100,000 | OK (55.4% margin) |
+| UnityMissile | ~1,300 | ~69,712 | 100,000 | OK (30.3% margin) |
 
 *Note: Character count increased with satellite laser mesh networking, grid tracking, and SAT_INTERCEPT phase.*
 

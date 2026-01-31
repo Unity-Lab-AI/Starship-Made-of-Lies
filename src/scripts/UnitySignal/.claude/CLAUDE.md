@@ -238,7 +238,7 @@ Auto-detected when any `[CTRLCAMS]` LCD exists on grid.
 
 | Script | Deployed | Budget | Status |
 |--------|----------|--------|--------|
-| UnitySignal | ~47,118 | 100,000 | OK (52.9% margin) |
+| UnitySignal | ~52,182 | 100,000 | OK (47.8% margin) |
 
 ---
 

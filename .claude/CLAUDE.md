@@ -606,14 +606,14 @@ IMyEntity
 
 | Script | Lines | MDK Deployed | Budget | Status |
 |--------|-------|--------------|--------|--------|
-| Unity Boot | ~450 | ~30,372 | 100,000 | OK (69.6% margin) |
-| UnityPad | ~2,400 | ~96,265 | 100,000 | **TIGHT (3.7% margin)** |
-| UnityMissile | ~1,300 | ~44,563 | 100,000 | OK (55.4% margin) |
+| Unity Boot | ~450 | ~35,764 | 100,000 | OK (64.2% margin) |
+| UnityPad | ~2,500 | ~99,963 | 100,000 | **CRITICAL (0.04% margin)** |
+| UnityMissile | ~1,300 | ~69,712 | 100,000 | OK (30.3% margin) |
 | UnityInventory | ~1,700 | ~99,897 | 100,000 | **CRITICAL (0.1% margin)** |
-| UnityBeacon | ~300 | ~16,600 | 100,000 | OK (83.4% margin) |
-| UnitySignal | ~430 | ~47,118 | 100,000 | OK (52.9% margin) |
+| UnityBeacon | ~300 | ~15,407 | 100,000 | OK (84.6% margin) |
+| UnitySignal | ~430 | ~52,182 | 100,000 | OK (47.8% margin) |
 
-**WARNING:** UnityInventory at 99.6% - virtually no room for additions. UnityPad at 96.3%. Boot grew significantly with multi-pad setup commands.
+**WARNING:** UnityPad at 99.96% — virtually NO room (37 chars). UnityInventory at 99.9%. Any additions to either script require offsetting char savings elsewhere.
 
 ### Character Count Commands
 
@@ -642,8 +642,8 @@ IMyEntity
 |---------|--------|----------|---------|-----------------|
 | `UNITY_MSL` | Missile | Signal, Pad | Telemetry broadcast + camera info | No |
 | `UNITY_MSL_CMD` | Pad | Missile | Commands (DETONATE:{padID}, RESET:{padID}, MERGE) | Yes — padID-qualified only (bare DETONATE removed) |
-| `UNITY_PAD_CMD` | Controller | Slaves | Mass commands | Yes — `fromPad==padID` filtering |
-| `UNITY_PAD_STATUS` | All Pads | Controller | Status updates | No |
+| `UNITY_PAD_CMD` | Controller | Slaves | Mass commands (TGT, BUILD, ARM, LAUNCH, ABORT) — LAUNCH supports targeted `\|{targetPad}` for staggered salvo, TGT supports `\|{targetPad}` for per-pad GPS | Yes — `fromPad==padID` filtering |
+| `UNITY_PAD_STATUS` | All Pads | Controller | Status updates + missile outcome in err field | No |
 | `UNITY_SAT_RELAY` | Satellite | Satellite | Inter-satellite mesh | No |
 | `UNITY_SAT_RELAY_STATUS` | Satellite | Signal | Status with grid position, laser links | No |
 | `UNITY_SAT_INTERCEPT` | Satellite | Signal | Intercept/detonation messages | No |
@@ -684,6 +684,12 @@ IMyEntity
 - **PB Commands:** UP, DOWN, APPLY, LAUNCH, ARM, DISARM, ABORT, REFUEL, PRINT, STOP, SETUP, SETUPMOD, SETUPFORCE, RESCAN, NAMEPAD, NAMEMSL, RESET, SETPADCONTROL, ABORTALL, etc.
 - **ABORT Command:** Direct PB argument sends DETONATE:{padID} via IGC to in-flight missile; queues if in blackout
 - **Satellite Array Management:** Grid position tracking, spiral expansion, intercept handling, auto-replacement
+- **Salvo Stagger:** 15-second interval between launches via targeted LAUNCH commands (`{padID}|LAUNCH|{targetPad}`) — only the targeted pad fires
+- **Per-Pad Targeting:** Auto-fire assigns different GPS waypoints to each pad (controller=WP[N], PAD2=WP[N+1], PAD3=WP[N+2]) using targeted TGT messages (`{padID}|TGT|x,y,z|{targetPad}`)
+- **Outcome Broadcast:** Status broadcast includes missile outcome (TARGET HIT, PROBABLE HIT, SIGNAL LOST, ABORTED) in the err field for controller LCD display
+- **Auto-Clear ACK:** Controller sends BUILD to slave pads stuck in GONE state to clear outcomes and restart build cycle
+- **Emo Con/LCD Ownership:** Pad-side mslLCDs/mslEmos only discovered when NOT merged (`!isMerged` guard) — missile PB writes all while docked, pad takes over pad-side after launch
+- **Telemetry Persistence:** `mslLnch`/`hasTlm` flags survive GONE→IDLE→PRINT transitions — tracks in-flight missile while building next
 - **Ready Flag:** Writes `pad_ready=true` to Me.CustomData on compile
 - **Boot Check:** Reads `boot_complete=true` from bootPB.CustomData
 
@@ -715,6 +721,7 @@ IMyEntity
 - **CheckBootComplete:** Verifies `boot_for_session` matches `pad_session` to prevent stale boot detection
 - **FindBlocks on Boot:** Calls `FindBlocks(); ConfigSensors(); ConfigCameras();` when bootComplete transitions true
 - **CMD Listener:** Handles `DETONATE:{padID}`, `RESET:{padID}`, `MERGE` on `UNITY_MSL_CMD` channel
+- **Emo Con/LCD Ownership:** While docked, missile PB writes to ALL emo cons and LCDs (both missile-side and pad-side). After launch, pad-side blocks drop off (different CubeGrid) and pad PB takes over pad-side displays via telemetry
 
 ### UnityBeacon.cs (Fleet Tracker)
 - **PB Name:** `[PAD1] [BEACON] Unity Beacon` (includes pad ID for multi-pad filtering)
@@ -1148,8 +1155,22 @@ When a pad is set as controller via `SETPADCONTROL`, it gains mass-command capab
 | `ARMALL` | Arms all pads that are in READY state |
 | `LAUNCHALL` | Launches all armed pads (salvo) |
 | `ABORTALL` | Aborts all active launches |
+| `COPYTGT` | Sends controller's current GPS target to all slave pads |
 
 Commands flow over `UNITY_PAD_CMD` with `fromPad==padID` filtering so each pad only executes commands from its own controller.
+
+### Auto Fire (Salvo Mode)
+
+Auto Fire (`ToggleAutoSalvo()`) cycles through GPS waypoints, assigning different targets to each pad per salvo round:
+
+1. **Phase 0:** Assign per-pad targets from waypoint list, broadcast BUILD to all
+2. **Phase 1:** Wait for pads to reach READY, then ARM all and trigger salvo
+3. **Phase 2:** Wait for all missiles away (no ARM/LAUNCH states), auto-clear GONE pads via BUILD
+4. **Phase 3:** Cooldown (`asCoolSec`, default 15s), then advance targets by pad count and repeat
+
+**Stagger:** `UpdateSalvo()` sends targeted LAUNCH commands at 15-second intervals (`svInt=15`) so missiles don't intersect in flight. Each LAUNCH includes the target pad ID — only the addressed pad fires.
+
+**Outcome Display:** Controller LCD7 (FLIGHT STATUS) shows outcomes from all pads — TARGET HIT (green), PROBABLE HIT (yellow), SIGNAL LOST (yellow), ABORTED (red). Outcomes are transmitted via the status broadcast `err` field.
 
 ### Topology Example
 

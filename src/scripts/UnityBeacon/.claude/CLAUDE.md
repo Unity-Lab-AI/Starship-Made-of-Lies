@@ -318,7 +318,7 @@ PAM is a fantastic autonomous mining script that handles pathfinding, mining ope
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityBeacon | ~300 | ~16,600 | 100,000 | OK (83% margin) |
+| UnityBeacon | ~300 | ~15,407 | 100,000 | OK (84.6% margin) |
 
 **NOTE:** mdk.ini MUST have `minify=full` for proper compression!
 

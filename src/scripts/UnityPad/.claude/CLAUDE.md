@@ -389,7 +389,7 @@ UnityPad manages the satellite mesh network with UnitySignal as the data source:
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityPad | ~2,300 | ~96,265 | 100,000 | **CRITICAL (3.7% margin)** |
+| UnityPad | ~2,500 | ~99,963 | 100,000 | **CRITICAL (0.04% margin — 37 chars left)** |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 *Personal equipment tracking removed - UnityInventory handles all tools, weapons, ammo, bottles.*
