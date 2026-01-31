@@ -362,7 +362,7 @@ namespace IngameScript
         if(tick%10==0&&cNd.Count>6){bldScroll=(bldScroll+1)%(cNd.Count-5);}
         if(cS!=S.IDLE&&cS!=S.GONE)UpdateMissileLights();
         else ResetPadLights();
-        if(hasTlm)UpdateMslLCDs();
+        if(hasTlm&&!merged)UpdateMslLCDs();
         }
         
         void CheckTelemetry(){
@@ -470,7 +470,7 @@ namespace IngameScript
         if((fromPad==padID)!=isCtl)continue;
         string cmd=parts[1];
         if(cmd=="TGT"&&parts.Length>=3){int tp=0;if(parts.Length>=4)int.TryParse(parts[3],out tp);if(tp==0||tp==padID){var coords=parts[2].Split(',');if(coords.Length==3){double x,y,z;if(double.TryParse(coords[0],out x)&&double.TryParse(coords[1],out y)&&double.TryParse(coords[2],out z)){tgtGPS=new Vector3D(x,y,z);tgtSet=true;tgtName="CTRL TGT";}}}}
-        else if(cmd=="BUILD"&&!mslFound&&!printing)StartPrint();
+        else if(cmd=="BUILD"){if(cS==S.GONE)AckOutcome();if(!mslFound&&!printing)StartPrint();}
         else if(cmd=="ARM"&&cS==S.READY&&mslFound)ArmMissile();
         else if(cmd=="LAUNCH"){if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}}
         else if(cmd=="ABORT"&&cS==S.GONE){if(mslBO){abtQ=true;}else{RemoteDetonate(true);abtS=true;abtT=DT;}}
@@ -481,6 +481,7 @@ namespace IngameScript
         if(parts.Length>=4){
         if(parts[3]=="GRID"&&parts.Length>=5){var gp=parts[4].Split(',');int gx,gz;if(gp.Length==2&&int.TryParse(gp[0],out gx)&&int.TryParse(gp[1],out gz)){satLaunchGridX=gx;satLaunchGridZ=gz;}}
         else{var coords=parts[3].Split(',');if(coords.Length==3){double x,y,z;if(double.TryParse(coords[0],out x)&&double.TryParse(coords[1],out y)&&double.TryParse(coords[2],out z))satLaunchTgt=new Vector3D(x,y,z);}}}
+        if(cS==S.GONE)AckOutcome();
         if(cS==S.READY&&mslFound)ArmMissile();
         else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}
         else if(!mslFound&&!printing)StartPrint();
@@ -522,10 +523,10 @@ namespace IngameScript
         if(!printing&&!mslFound)StartPrint();
         }
         else if(cS==S.READY)ArmMissile();
-        else if(cS==S.GONE&&shwOut){
+        else if(cS==S.GONE){
         asFired++;
         AckOutcome();
-        asCooling=true;asCoolT=DT;
+        AdvanceAutoTarget();
         }
         }
         int asCtrlPh=0;
@@ -806,11 +807,11 @@ namespace IngameScript
         case"CLAIM":if(padID==0){padID=GetNextPadID();UpdatePadTag();}break;
         case"SETPADCONTROL":isCtl=!isCtl;if(isCtl){ctrlSel=0;viewLCD=0;cM=M.MAIN;}break;
         case"COPYTGT":if(isCtl)BroadcastCommand("TGT",tgtGPS);break;
-        case"BUILDALL":if(isCtl)BroadcastCommand("BUILD","");break;
-        case"ARMALL":if(isCtl)BroadcastCommand("ARM","");break;
-        case"LAUNCHALL":if(isCtl)BroadcastCommand("LAUNCH","");break;
+        case"BUILDALL":if(isCtl){if(cS==S.GONE)AckOutcome();if(!mslFound&&!printing)StartPrint();BroadcastCommand("BUILD","");}break;
+        case"ARMALL":if(isCtl){if(cS==S.READY&&mslFound)ArmMissile();BroadcastCommand("ARM","");}break;
+        case"LAUNCHALL":if(isCtl){if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}BroadcastCommand("LAUNCH","");}break;
         case"ABORT":if(cS==S.GONE){if(abtS)break;if(mslBO){abtQ=true;}else{RemoteDetonate(true);abtS=true;abtT=DT;}}break;
-        case"ABORTALL":if(isCtl)BroadcastCommand("ABORT","");break;
+        case"ABORTALL":if(isCtl){if(cS==S.GONE&&!abtS){if(mslBO)abtQ=true;else{RemoteDetonate(true);abtS=true;abtT=DT;}}BroadcastCommand("ABORT","");}break;
         case"STARTSALVO":if(isCtl){svAct=true;salvoIdx=0;lastSalvo=DT;}break;
         case"STOPSALVO":if(isCtl)svAct=false;break;
         case"CARPET":if(isCtl)StartCarpetBomb();break;
@@ -902,8 +903,8 @@ namespace IngameScript
         if(b is IMyMedicalRoom){string st=b.BlockDefinition.SubtypeId;if(st.Contains("Survival")||st.Contains("Kit"))padSurvCount++;else padMedCount++;}
         if(b is IMyCockpit&&b.BlockDefinition.SubtypeId.Contains("Cryo"))padCryoCount++;
         if(b is IMyLightingBlock&&!b.CustomName.Contains("Missile"))padLts.Add(b as IMyLightingBlock);
-        if(b is IMyTextPanel&&b.CustomName.Contains("Missile")&&b.CustomName.Contains("LCD"))mslLCDs.Add(b as IMyTextPanel);
-        if(b.BlockDefinition.SubtypeId.Contains("EmotionController")&&(b.CustomName.Contains("Missile")||b.CustomName.Contains($"[PAD{padID}]")))mslEmos.Add(b as IMyFunctionalBlock);
+        if(b is IMyTextPanel&&b.CustomName.Contains($"[PAD{padID}]")&&!b.CustomName.Contains(":")&&b.CustomName.Contains("LCD")&&!b.CustomName.Contains("Missile"))mslLCDs.Add(b as IMyTextPanel);
+        if(b.BlockDefinition.SubtypeId.Contains("EmotionController")&&b.CustomName.Contains($"[PAD{padID}]")&&!b.CustomName.Contains("Missile"))mslEmos.Add(b as IMyFunctionalBlock);
         }
         var allBlk=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(allBlk);
         foreach(var x in allBlk){if(IsMslBlock(x))continue;if(x is IMyBatteryBlock){var bb=x as IMyBatteryBlock;if(!padBat.Contains(bb))padBat.Add(bb);}else if(x is IMySolarPanel&&x.IsSameConstructAs(Me)){var sp=x as IMySolarPanel;if(!padSolar.Contains(sp))padSolar.Add(sp);}else if(x is IMyReactor){var rr=x as IMyReactor;if(!padReact.Contains(rr))padReact.Add(rr);}else if(x is IMyGasGenerator){var gg=x as IMyGasGenerator;if(!padGen.Contains(gg))padGen.Add(gg);}else if(x is IMyGasTank){var tt=x as IMyGasTank;if(tt.BlockDefinition.SubtypeId.Contains("Hydrogen")){if(!padH2.Contains(tt))padH2.Add(tt);}else{if(!padO2.Contains(tt))padO2.Add(tt);}}else if(x is IMyCargoContainer&&x.IsSameConstructAs(Me)){var cc=x as IMyCargoContainer;if(!padCargo.Contains(cc)){padCargo.Add(cc);string st=cc.BlockDefinition.SubtypeId;if(st.Contains("LargeContainer"))padCargoL.Add(cc);else if(st.Contains("MediumContainer"))padCargoM.Add(cc);else padCargoS.Add(cc);}}else if(x is IMyRefinery){var rf=x as IMyRefinery;if(!padRef.Contains(rf))padRef.Add(rf);}else if(x is IMyAssembler){var am=x as IMyAssembler;if(!padAsm.Contains(am))padAsm.Add(am);}else if(x is IMyPowerProducer){var pp=x as IMyPowerProducer;if(pp.BlockDefinition.SubtypeId.Contains("Wind")&&!padWind.Contains(pp))padWind.Add(pp);}}
@@ -1393,53 +1394,17 @@ namespace IngameScript
         sf.ContentType=ContentType.SCRIPT;sf.Script="";sf.ScriptBackgroundColor=cBg;
         var f=sf.DrawFrame();float y=20;
         SH(f,y,"UNITY MISSILE SYSTEM",cAcc);y+=40;
-        if(showSig){
-        ST(f,256,y,"SIGNAL SCRIPT COMPILED",cOK,0.7f,tAC);y+=40;
-        SBx(f,30,y,452,80,cBg,cSec);y+=15;
+        string cH=sigReady?"SIGNAL SCRIPT COMPILED":invReady?"INVENTORY SCRIPT COMPILED":"PAD SCRIPT COMPILED";
+        string cN=sigReady?"Compile BOOT script":invReady?"Compile SIGNAL script":"Compile INVENTORY script";
+        string cS2=sigReady?(showSig?"PAD [OK] | INV [OK] | SIG [OK] <<<<":"PAD [OK] | INV [OK] | SIG [OK]"):invReady?(showInv?"PAD [OK] | INV [OK] <<<<":"PAD [OK] | INV [OK]"):"PAD [OK]";
+        ST(f,256,y,cH,cOK,0.7f,tAC);y+=40;
+        SBx(f,30,y,452,sigReady?80:invReady?80:100,cBg,cSec);y+=15;
         ST(f,50,y,"NEXT STEP:",cPri,0.5f);y+=22;
-        ST(f,50,y,"Compile BOOT script",cTxt,0.5f);y+=40;
-        SBx(f,30,y,452,90,cBg,cBdr);y+=12;
+        ST(f,50,y,cN,cTxt,0.5f);if(!sigReady&&!invReady){y+=22;ST(f,50,y,"Then SIGNAL, then BOOT",cTxt,0.45f);}y+=40;
+        SBx(f,30,y,452,sigReady?90:60,cBg,cBdr);y+=12;
         ST(f,50,y,"COMPILE ORDER:",cSec,0.45f);y+=20;
         ST(f,50,y,"PAD > INV > SIGNAL > BOOT",cAcc,0.4f);y+=20;
-        ST(f,50,y,"PAD [OK] | INV [OK] | SIG [OK] <<<< COMPILED",cOK,0.4f);
-        }else if(invReady&&sigReady){
-        ST(f,256,y,"SIGNAL SCRIPT COMPILED",cOK,0.7f,tAC);y+=40;
-        SBx(f,30,y,452,80,cBg,cSec);y+=15;
-        ST(f,50,y,"NEXT STEP:",cPri,0.5f);y+=22;
-        ST(f,50,y,"Compile BOOT script",cTxt,0.5f);y+=40;
-        SBx(f,30,y,452,90,cBg,cBdr);y+=12;
-        ST(f,50,y,"COMPILE ORDER:",cSec,0.45f);y+=20;
-        ST(f,50,y,"PAD > INV > SIGNAL > BOOT",cAcc,0.4f);y+=20;
-        ST(f,50,y,"PAD [OK] | INV [OK] | SIG [OK]",cOK,0.4f);
-        }else if(showInv){
-        ST(f,256,y,"INVENTORY SCRIPT COMPILED",cOK,0.7f,tAC);y+=40;
-        SBx(f,30,y,452,80,cBg,cSec);y+=15;
-        ST(f,50,y,"NEXT STEP:",cPri,0.5f);y+=22;
-        ST(f,50,y,"Compile SIGNAL script",cTxt,0.5f);y+=40;
-        SBx(f,30,y,452,90,cBg,cBdr);y+=12;
-        ST(f,50,y,"COMPILE ORDER:",cSec,0.45f);y+=20;
-        ST(f,50,y,"PAD > INV > SIGNAL > BOOT",cAcc,0.4f);y+=20;
-        ST(f,50,y,"PAD [OK] | INV [OK] <<<< COMPILED",cOK,0.4f);
-        }else if(invReady){
-        ST(f,256,y,"INVENTORY SCRIPT COMPILED",cOK,0.7f,tAC);y+=40;
-        SBx(f,30,y,452,80,cBg,cSec);y+=15;
-        ST(f,50,y,"NEXT STEP:",cPri,0.5f);y+=22;
-        ST(f,50,y,"Compile SIGNAL script",cTxt,0.5f);y+=40;
-        SBx(f,30,y,452,60,cBg,cBdr);y+=12;
-        ST(f,50,y,"COMPILE ORDER:",cSec,0.45f);y+=20;
-        ST(f,50,y,"PAD > INV > SIGNAL > BOOT",cAcc,0.4f);y+=20;
-        ST(f,50,y,"PAD [OK] | INV [OK]",cOK,0.4f);
-        }else{
-        ST(f,256,y,"PAD SCRIPT COMPILED",cOK,0.7f,tAC);y+=40;
-        SBx(f,30,y,452,100,cBg,cSec);y+=15;
-        ST(f,50,y,"NEXT STEP:",cPri,0.5f);y+=22;
-        ST(f,50,y,"Compile INVENTORY script",cTxt,0.5f);y+=22;
-        ST(f,50,y,"Then SIGNAL, then BOOT",cTxt,0.45f);y+=40;
-        SBx(f,30,y,452,60,cBg,cBdr);y+=12;
-        ST(f,50,y,"COMPILE ORDER:",cSec,0.45f);y+=20;
-        ST(f,50,y,"PAD > INV > SIGNAL > BOOT",cAcc,0.4f);y+=20;
-        ST(f,50,y,"PAD [OK]",cOK,0.4f);
-        }
+        ST(f,50,y,cS2,cOK,0.4f);
         f.Dispose();
         }}
         

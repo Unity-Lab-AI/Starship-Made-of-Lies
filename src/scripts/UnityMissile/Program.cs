@@ -182,7 +182,7 @@ namespace IngameScript
         if(docked&&!CheckPrintComplete()){waitingForPrint=true;}
         tgtGPS=Vector3D.Zero;mode=T.GPS;bootComplete=false;startupDone=false;startupCheck=0;gpsAnnounced=false;}
         }
-        public void Save(){Storage=$"{(int)phase}|{(int)mode}|{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}|{(warheadsArmed?"1":"0")}|{launchPos.X},{launchPos.Y},{launchPos.Z}|{(blackoutConverted?"1":"0")}";}
+        public void Save(){Storage=$"{(int)phase}|{(int)mode}|{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}|{(warheadsArmed?"1":"0")}|{launchPos.X},{launchPos.Y},{launchPos.Z}|{(blackoutConverted?"1":"0")}|{satGridX}|{satGridZ}";}
         void LoadState(){
         if(string.IsNullOrEmpty(Storage))return;
         var p=Storage.Split('|');
@@ -194,6 +194,8 @@ namespace IngameScript
         warheadsArmed=p[3]=="1";
         var l=p[4].Split(',');if(l.Length==3){double x,y,z;if(double.TryParse(l[0],out x)&&double.TryParse(l[1],out y)&&double.TryParse(l[2],out z))launchPos=new Vector3D(x,y,z);}
         if(p.Length>=6)blackoutConverted=p[5]=="1";
+        if(p.Length>=7)int.TryParse(p[6],out satGridX);
+        if(p.Length>=8)int.TryParse(p[7],out satGridZ);
         if(phase!=F.IDLE)Runtime.UpdateFrequency=UpdateFrequency.Update10;
         }}
         
@@ -717,7 +719,8 @@ namespace IngameScript
         
         void UpdateDistances(){
         distFromPad=Vector3D.Distance(Me.GetPosition(),launchPos);
-        if(mode!=T.LIDAR)distToTgt=Vector3D.Distance(Me.GetPosition(),tgtGPS);
+        if(isSatellite){if(phase==F.SAT_CLIMB||phase==F.SAT_BRAKE){double alt=0;if(rc!=null)rc.TryGetPlanetElevation(MyPlanetElevation.Sealevel,out alt);distToTgt=Math.Max(0,satTargetAlt-alt);}else if(phase==F.SAT_INTERCEPT)distToTgt=Vector3D.Distance(Me.GetPosition(),interceptTarget);else distToTgt=0;}
+        else if(mode!=T.LIDAR)distToTgt=Vector3D.Distance(Me.GetPosition(),tgtGPS);
         }
         
         void BroadcastPos(){
@@ -725,7 +728,11 @@ namespace IngameScript
         foreach(var a in antennas){if(!a.Enabled||!a.EnableBroadcasting){a.Enabled=true;a.EnableBroadcasting=true;a.Radius=75000f;}}
         wasInBlackout=inBlackout;
         bool willBlackout=distFromPad>antennaRange*0.95;
-        inBlackout=distFromPad>antennaRange;
+        bool outOfRadio=distFromPad>antennaRange;
+        bool hasLaser=false;
+        if(laserPad!=null&&laserPad.Status==MyLaserAntennaStatus.Connected)hasLaser=true;
+        if(!hasLaser){foreach(var l in lasers)if(l.Status==MyLaserAntennaStatus.Connected){hasLaser=true;break;}}
+        inBlackout=outOfRadio&&!hasLaser;
         string status=phase.ToString();
         if(!wasInBlackout&&willBlackout&&!inBlackout)status="ENTERING_BLACKOUT";
         else if(wasInBlackout&&!inBlackout){status="CONTACT_RESTORED";blackoutTicks=0;targetVelSamples=0;lastTargetVel=Vector3D.Zero;}
@@ -816,6 +823,7 @@ namespace IngameScript
         gyros.Clear();thrusters.Clear();warheads.Clear();sensors.Clear();cameras.Clear();antennas.Clear();lasers.Clear();batteries.Clear();h2tanks.Clear();generators.Clear();lights.Clear();lcds.Clear();
         var all=new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid);
+        string mTag=mslNumber>0?$"Missile #{mslNumber}":"Missile";
         foreach(var b in all){
         string nm=b.CustomName.ToUpper();
         if((nm.Contains("[PAD")&&!nm.Contains("MISSILE"))||nm.Contains("[CONTROLLER")||nm.Contains("-PRINT]"))continue;
@@ -837,10 +845,15 @@ namespace IngameScript
         if(b is IMyGasTank){var t=b as IMyGasTank;if(t.BlockDefinition.SubtypeId.Contains("Hydrogen"))h2tanks.Add(t);}
         if(b is IMyGasGenerator)generators.Add(b as IMyGasGenerator);
         if(b is IMyLightingBlock)lights.Add(b as IMyLightingBlock);
-        if(b is IMyTextPanel)lcds.Add(b as IMyTextPanel);
+        if(b is IMyTextPanel&&b.CustomName.Contains(mTag))lcds.Add(b as IMyTextPanel);
         if(b is IMyShipMergeBlock&&merge==null)merge=b as IMyShipMergeBlock;
         if(b is IMyShipConnector&&b.CustomName.Contains("[AMMO]"))ammoConnector=b as IMyShipConnector;
-        if(b.BlockDefinition.SubtypeId.Contains("EmotionController"))emotionCtrls.Add(b as IMyFunctionalBlock);
+        if(b.BlockDefinition.SubtypeId.Contains("EmotionController")&&b.CustomName.Contains(mTag))emotionCtrls.Add(b as IMyFunctionalBlock);
+        }
+        if(merge!=null&&merge.IsConnected){
+        Vector3D mp=merge.GetPosition(),pp=mp+merge.WorldMatrix.Forward*5;
+        lcds.RemoveAll(l=>Vector3D.Distance(l.GetPosition(),pp)<Vector3D.Distance(l.GetPosition(),mp));
+        emotionCtrls.RemoveAll(e=>Vector3D.Distance(e.GetPosition(),pp)<Vector3D.Distance(e.GetPosition(),mp));
         }
         foreach(var g in gyros){g.Enabled=true;g.GyroOverride=true;}
         }
