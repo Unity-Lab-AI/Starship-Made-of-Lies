@@ -420,6 +420,22 @@ foreach(var a in padAsm){
 }
 ```
 
+### QueueProduction Assembler Mode Guard
+`QueueProduction()` no longer force-sets assemblers to Assembly mode if they're in Disassembly. This prevents the production loop from overriding `RecycleExcess()` every tick:
+```csharp
+for(int i=0;i<padAsm.Count-1;i++){
+    var a=padAsm[i];
+    if(a.Mode!=MyAssemblerMode.Disassembly) a.Mode=MyAssemblerMode.Assembly;
+}
+```
+
+### FeedRefineries Empty-Only Restocking
+`FeedRefineries()` only restocks refineries when they are **completely empty** of all ore (totOre==0). This prevents the refinery from being stuck refining the same ore type indefinitely due to constant restocking:
+- Checks `totOre > 0` — if the refinery has ANY ore, skip entirely
+- When empty, feeds a flat 1000 of each ore type in one pass
+- Refinery works through all ore types, then gets refilled when fully empty
+- Previous behavior topped up per-ore-type whenever stock dropped below 1000, which locked refineries on a single ore type
+
 ---
 
 ## S-10 AMMO ROUTING
@@ -646,7 +662,7 @@ S-10 pistol ammo is the default missile loading ammo, hence the higher target.
 
 | Script | Raw .cs | Deployed | Budget | Status |
 |--------|---------|----------|--------|--------|
-| UnityInventory | ~1,700 | ~99,582 | 100,000 | **CRITICAL (0.4% margin)** |
+| UnityInventory | ~1,700 | ~99,897 | 100,000 | **CRITICAL (0.1% margin)** |
 
 *Note: Boot code removed in v01.00. Boot functionality moved to Unity Boot.*
 *Handles ALL personal equipment: tools, weapons, ammo, bottles (removed from UnityPad).*
@@ -654,8 +670,9 @@ S-10 pistol ammo is the default missile loading ammo, hence the higher target.
 *2026-01-26: Added bottle counting via GetItemAmount(), ammoTypeIdx sync, mslAmmoTarget minimum enforcement.*
 *2026-01-28: Personal ammo counting via GetItemAmount(), FUEL connector detection, code compression, BOOT_REQ padID filtering.*
 *2026-01-29: Fixed S-10 double-recycling (paEx skips mslAmmoKey), disassembler output excess guards, FeedAssemblers skips disassembly-mode assemblers, ammo LCD sign display fix, config key .ToLower() fix.*
+*2026-01-30: QueueProduction no longer force-overrides assemblers in Disassembly mode (prevents fighting with RecycleExcess). FeedRefineries now only restocks when refinery is completely empty (prevents ore type lock-in).*
 
-**WARNING:** At 99,582 chars deployed, we have basically ZERO room. Any additions need equal or greater removals. This script is at the wall.
+**WARNING:** At 99,897 chars deployed, we have basically ZERO room (103 chars left). Any additions need equal or greater removals. This script is at the wall.
 
 ---
 

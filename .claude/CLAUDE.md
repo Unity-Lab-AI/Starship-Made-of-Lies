@@ -609,7 +609,7 @@ IMyEntity
 | Unity Boot | ~450 | ~30,372 | 100,000 | OK (69.6% margin) |
 | UnityPad | ~2,400 | ~96,265 | 100,000 | **TIGHT (3.7% margin)** |
 | UnityMissile | ~1,300 | ~44,563 | 100,000 | OK (55.4% margin) |
-| UnityInventory | ~1,700 | ~99,582 | 100,000 | **CRITICAL (0.4% margin)** |
+| UnityInventory | ~1,700 | ~99,897 | 100,000 | **CRITICAL (0.1% margin)** |
 | UnityBeacon | ~300 | ~16,600 | 100,000 | OK (83.4% margin) |
 | UnitySignal | ~430 | ~47,118 | 100,000 | OK (52.9% margin) |
 
@@ -698,6 +698,8 @@ IMyEntity
 - **Production Target:** `prodTgt = ammoTypeIdx==0 ? mslAmmoTarget : ammoTarget` (S-10 uses 50k default)
 - **Recycling System:** RecycleExcess() with excess guards — only disassembles items with actual excess > 0
 - **FeedAssemblers:** Skips assemblers in disassembly mode — prevents fighting between production and recycling
+- **QueueProduction:** Only sets assemblers to Assembly mode if not already in Disassembly — prevents overriding RecycleExcess each tick
+- **FeedRefineries:** Only restocks refineries when completely empty (totOre==0) — prevents ore type lock-in from constant per-type restocking
 - **Ammo LCD Display:** Shows `stock±diff/target` with correct sign (e.g., `91301-41301/50000`)
 - **Config Key Parsing:** Uses `.ToLower()` for case-insensitive key matching in ReadOwnSettings()
 - **S-10 Double-Recycle Fix:** paEx calculation skips `mslAmmoKey` to avoid double-counting missile ammo as personal ammo excess
@@ -728,7 +730,7 @@ IMyEntity
 - **CustomData:** Writes to `Me.CustomData` - [SIGNAL], [ANTENNAS], [LASERS], [SATELLITES], [INTERCEPTS], [CONTROLLER], [STATUS]
 - **IGC Listeners:** UNITY_MSL, MINER_BEACON, UNITY_SAT_RELAY_STATUS, UNITY_SAT_INTERCEPT, UNITY_BOOT_REQ, UNITY_SIGNAL_CMD
 - **IGC Senders:** UNITY_BOOT_RSP, UNITY_SIGNAL_RSP
-- **LCD Tags:** `[PAD#CAMS]:slot` for camera display, `[PAD#SIGNAL]` for status display, `[CTRLCAMS]:slot` for controller mode
+- **LCD Tags:** `[PAD#]CAMS:slot` for camera display, `[PAD#SIGNAL]` for status display, `[CTRLCAMS]:slot` for controller mode
 - **Features:**
   - Antenna Management: Tracks radio/laser status
   - Laser Targeting: Auto-assigns lasers to track missiles via UNITY_MSL position data

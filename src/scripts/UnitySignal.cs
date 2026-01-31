@@ -27,7 +27,7 @@ List<IMyLaserAntenna> padLasers=new List<IMyLaserAntenna>();
 int radioEnabled=0,laserConnected=0;
 
 class CamEntry{public string name;public string type;public string status;public long entityId;public int slot;public float dist;}
-class MslData{public string status;public string lastPhase;public List<long> camIds=new List<long>();public List<string> camNames=new List<string>();public int lastSeen;public Vector3D pos;public float dist;}
+class MslData{public string status;public string lastPhase;public List<long> camIds=new List<long>();public List<string> camNames=new List<string>();public int lastSeen;public Vector3D pos;public float dist;public float alt;public float spd;public float fuel;public string gyro="";public int padId;public string outcome;}
 class MinerData{public string shipName;public string status;public List<long> camIds=new List<long>();public int lastSeen;}
 Dictionary<long,int> laserAssign=new Dictionary<long,int>();
 class SatData{public int gridX,gridZ,bat,h2,links;public string status;public int lastSeen;}
@@ -39,6 +39,8 @@ List<string> conflicts=new List<string>();
 const int MAX_CONFLICTS=5;
 List<string> flightLog=new List<string>();
 const int MAX_FLIGHT_LOG=30;
+List<string> mslOutcomes=new List<string>();
+const int MAX_OUTCOMES=20;
 class DoorSet{public Dictionary<string,List<IMyDoor>> extDoors=new Dictionary<string,List<IMyDoor>>();public Dictionary<string,List<IMyDoor>> intDoors=new Dictionary<string,List<IMyDoor>>();public Dictionary<string,List<IMySensorBlock>> senExt=new Dictionary<string,List<IMySensorBlock>>();public Dictionary<string,List<IMySensorBlock>> senInt=new Dictionary<string,List<IMySensorBlock>>();public IMyAirVent vent;public int state;public int lastChange;public bool failed;}
 Dictionary<char,DoorSet> doorSets=new Dictionary<char,DoorSet>();
 class RemoteDoorData{public int padId;public int doorCount;public bool locked;public bool emergency;public float pressure;public int extOpen;public int intOpen;public int lastSeen;}
@@ -76,6 +78,7 @@ satStL=IGC.RegisterBroadcastListener("UNITY_SAT_RELAY_STATUS");
 satIntL=IGC.RegisterBroadcastListener("UNITY_SAT_INTERCEPT");
 signalCmdL=IGC.RegisterBroadcastListener("UNITY_SIGNAL_CMD");
 signalStatusL=IGC.RegisterBroadcastListener("UNITY_SIGNAL_STATUS");
+LoadSatellites();
 }
 void UpdatePadFromName(){
 string nm=Me.CustomName;
@@ -108,6 +111,7 @@ foreach(var kv in satellites){var s=kv.Value;satData+=$"sat_{kv.Key}={s.gridX},{
 string intData="";foreach(var i in intercepts)intData+=i+"\n";
 string cflData="";foreach(var c in conflicts)cflData+=c+"\n";
 string fltData="";foreach(var f in flightLog)fltData+=f+"\n";
+string outData="";foreach(var o in mslOutcomes)outData+=o+"\n";
 string failedSets="";foreach(var kv in doorSets)if(kv.Value.failed)failedSets+=kv.Key;
 string doorData=$"count={doorSets.Count}\nlocked={doorsLocked}\nemergency={doorEmergency}\nemergency_count={emergencyCount}\noverall_pressure={overallPressure:F0}\npad_vents={padVents.Count}\nlast_error={lastDoorError}\nfailed_sets={failedSets}\n";
 foreach(var kv in doorSets){var ds=kv.Value;
@@ -135,14 +139,25 @@ foreach(var wd in weapons){if(!wpnByType.ContainsKey(wd.type))wpnByType[wd.type]
 string defData=$"weapons={weapons.Count}\narmed={defenseArmed}\nfiring={weaponFiring}\nammo_containers={ammoContainers.Count}\n";
 foreach(var kv in wpnByType)defData+=$"{kv.Key.ToLower()}={kv.Value}\n";
 string ammoData="";foreach(var kv in ammoReserves)ammoData+=$"ammo_{kv.Key}={kv.Value}\n";
-Me.CustomData=$"[SIGNAL]\nsignal_ready=true\n{(sess!=""?$"signal_for_session={sess}\n":"")}{(isCtl?"mode=CONTROLLER\n":"")}\n[ANTENNAS]\nradio={radioEnabled}/{padRadios.Count}\nlaser={laserConnected}/{padLasers.Count}\n\n[LASERS]\n{lsrData}\n[SATELLITES]\n{satData}\n[INTERCEPTS]\n{intData}\n[CONFLICTS]\n{cflData}\n[FLIGHT_LOG]\n{fltData}\n[DOORS]\n{doorData}\n[DEFENSE]\n{defData}{ammoData}{ctlData}\n[STATUS]\nlast_update={tick}\nboot_complete={bootComplete}\ncameras={allCams.Count}\nmissiles={missiles.Count}\nminers={miners.Count}\nsatellites={satellites.Count}\ndoor_sets={doorSets.Count}\nweapons={weapons.Count}";}
+Me.CustomData=$"[SIGNAL]\nsignal_ready=true\n{(sess!=""?$"signal_for_session={sess}\n":"")}{(isCtl?"mode=CONTROLLER\n":"")}\n[ANTENNAS]\nradio={radioEnabled}/{padRadios.Count}\nlaser={laserConnected}/{padLasers.Count}\n\n[LASERS]\n{lsrData}\n[SATELLITES]\n{satData}\n[INTERCEPTS]\n{intData}\n[CONFLICTS]\n{cflData}\n[FLIGHT_LOG]\n{fltData}\n[OUTCOMES]\n{outData}\n[DOORS]\n{doorData}\n[DEFENSE]\n{defData}{ammoData}{ctlData}\n[STATUS]\nlast_update={tick}\nboot_complete={bootComplete}\ncameras={allCams.Count}\nmissiles={missiles.Count}\nminers={miners.Count}\nsatellites={satellites.Count}\ndoor_sets={doorSets.Count}\nweapons={weapons.Count}";}
 
+void LoadSatellites(){
+string cd=Me.CustomData;int si=cd.IndexOf("[SATELLITES]");if(si<0)return;
+int ei=cd.IndexOf("\n[",si+12);string sec=ei>0?cd.Substring(si+12,ei-si-12):cd.Substring(si+12);
+foreach(var ln in sec.Split('\n')){if(!ln.StartsWith("sat_"))continue;int eq=ln.IndexOf('=');if(eq<0)continue;
+int sid;if(!int.TryParse(ln.Substring(4,eq-4),out sid))continue;
+var pts=ln.Substring(eq+1).Split('|');if(pts.Length<2)continue;
+var gp=pts[0].Split(',');if(gp.Length<2)continue;
+var sat=new SatData();int.TryParse(gp[0],out sat.gridX);int.TryParse(gp[1],out sat.gridZ);
+if(pts.Length>=2)int.TryParse(pts[1],out sat.bat);if(pts.Length>=3)int.TryParse(pts[2],out sat.h2);
+if(pts.Length>=4)int.TryParse(pts[3],out sat.links);if(pts.Length>=5)sat.status=pts[4];
+sat.lastSeen=-1;satellites[sid]=sat;}}
 void FindPadPB(){
 if(padPB!=null)return;
 var pbs=new List<IMyProgrammableBlock>();
 GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me);
 foreach(var pb in pbs){
-if(pb.CustomName.Contains("[PAD")&&pb.CustomName.ToUpper().Contains("UNITY PAD")){padPB=pb;return;}}}
+if(pb.CustomName.Contains($"[PAD{padID}]")&&pb.CustomName.ToUpper().Contains("UNITY PAD")){padPB=pb;return;}}}
 
 void CheckBootRequest(){
 while(bootReqL.HasPendingMessage){
@@ -282,7 +297,7 @@ void FindBootPB(){
 var pbs=new List<IMyProgrammableBlock>();
 GridTerminalSystem.GetBlocksOfType(pbs,b=>b.CubeGrid==Me.CubeGrid&&b!=Me);
 foreach(var pb in pbs){
-if(pb.CustomName.Contains("[PAD")&&pb.CustomName.ToUpper().Contains("UNITY BOOT")){bootPB=pb;return;}}}
+if(pb.CustomName.Contains($"[PAD{padID}]")&&pb.CustomName.ToUpper().Contains("UNITY BOOT")){bootPB=pb;return;}}}
 
 void CheckControllerMode(){
 var lcds=new List<IMyTextPanel>();
@@ -291,6 +306,7 @@ isCtl=lcds.Count>0;}
 
 
 void ScanBlocks(){
+UpdatePadFromName();
 localCams.Clear();
 lcdsBySlot.Clear();
 signalLCDs.Clear();
@@ -312,30 +328,28 @@ foreach(var r in padRadios)if(r.Enabled&&r.EnableBroadcasting)radioEnabled++;
 foreach(var l in padLasers)if(l.Status==MyLaserAntennaStatus.Connected)laserConnected++;
 var lcds=new List<IMyTextPanel>();
 GridTerminalSystem.GetBlocksOfType(lcds,b=>b.CubeGrid==Me.CubeGrid);
-string camsTag=isCtl?"[CTRLCAMS]":$"[PAD{padID}CAMS]";
-string altTag=$"[PAD{padID}CAMS]";
+string camsTag=isCtl?"[CTRLCAMS]":$"[PAD{padID}]CAMS";
+string camsTag2=$"[PAD{padID}] CAMS";
+string altTag=$"[PAD{padID}]CAMS";
 foreach(var lcd in lcds){
-bool hasTag=lcd.CustomName.Contains(camsTag);
+bool m1=lcd.CustomName.Contains(camsTag);
+bool m2=lcd.CustomName.Contains(camsTag2);
 bool hasAlt=!isCtl?false:lcd.CustomName.Contains(altTag);
-if(!hasTag&&!hasAlt)continue;
-string useTag=hasTag?camsTag:altTag;
+if(!m1&&!m2&&!hasAlt)continue;
+string useTag=m1?camsTag:m2?camsTag2:altTag;
 int idx=lcd.CustomName.IndexOf(useTag);
 int colonIdx=lcd.CustomName.IndexOf(':',idx);
-if(colonIdx<0)continue;
-string slotStr="";
-for(int i=colonIdx+1;i<lcd.CustomName.Length;i++){
-char c=lcd.CustomName[i];
-if(char.IsDigit(c))slotStr+=c;
-else break;}
-if(string.IsNullOrEmpty(slotStr))continue;
+string slotStr="0";
+if(colonIdx>=0){slotStr="";for(int i=colonIdx+1;i<lcd.CustomName.Length;i++){char c=lcd.CustomName[i];if(char.IsDigit(c))slotStr+=c;else break;}
+if(string.IsNullOrEmpty(slotStr))slotStr="0";}
 var sf=lcd as IMyTextSurface;if(sf==null)continue;
 if(!lcdsBySlot.ContainsKey(slotStr))lcdsBySlot[slotStr]=new List<IMyTextSurface>();
 lcdsBySlot[slotStr].Add(sf);}
-string sigTag=$"[PAD{padID}SIGNAL]";
-string defTag=$"[PAD{padID}DEFENSE]";
-string satTag=$"[PAD{padID}SATS]";
-string prsTag=$"[PAD{padID}PRESSURE]";
-string fltTag=$"[PAD{padID}FLIGHT]";
+string sigTag=$"[PAD{padID}] SIGNAL";
+string defTag=$"[PAD{padID}] DEFENSE";
+string satTag=$"[PAD{padID}] SATS";
+string prsTag=$"[PAD{padID}] PRESSURE";
+string fltTag=$"[PAD{padID}] FLIGHT";
 foreach(var lcd in lcds){
 if(lcd.CustomName.Contains(sigTag)){var sf=lcd as IMyTextSurface;if(sf!=null)signalLCDs.Add(sf);}
 if(lcd.CustomName.Contains(defTag)){var sf=lcd as IMyTextSurface;if(sf!=null)defenseLCDs.Add(sf);}
@@ -443,10 +457,14 @@ weapons.Clear();ammoContainers.Clear();ammoReserves.Clear();
 var guns=new List<IMyUserControllableGun>();
 GridTerminalSystem.GetBlocksOfType(guns,b=>b.CubeGrid==Me.CubeGrid&&b.CustomName.Contains(blockTag));
 foreach(var g in guns){
-string tp="OTHER";var nm=g.CustomName.ToUpper();
-if(nm.Contains("GATLING"))tp="GATLING";else if(nm.Contains("MISSILE")||nm.Contains("ROCKET"))tp="MISSILE";
-else if(nm.Contains("INTERIOR"))tp="INTERIOR";else if(nm.Contains("ASSAULT"))tp="ASSAULT";
-else if(nm.Contains("ARTILLERY"))tp="ARTILLERY";else if(nm.Contains("RAILGUN"))tp="RAILGUN";
+string tp="OTHER";string si=g.BlockDefinition.SubtypeId.ToUpper();string nm=g.CustomName.ToUpper();
+if(si.Contains("GATLING")||nm.Contains("GATLING"))tp="GATLING";
+else if(si.Contains("MISSILE")||si.Contains("ROCKET")||nm.Contains("MISSILE")||nm.Contains("ROCKET"))tp="MISSILE";
+else if(si.Contains("INTERIOR")||nm.Contains("INTERIOR"))tp="INTERIOR";
+else if(si.Contains("ASSAULT")||nm.Contains("ASSAULT"))tp="ASSAULT";
+else if(si.Contains("AUTOCANNON")||nm.Contains("AUTOCANNON"))tp="AUTOCANNON";
+else if(si.Contains("ARTILLERY")||nm.Contains("ARTILLERY"))tp="ARTILLERY";
+else if(si.Contains("RAILGUN")||nm.Contains("RAILGUN"))tp="RAILGUN";
 weapons.Add(new WeaponData{gun=g,type=tp,name=g.CustomName,ammo=0,active=g.Enabled,firing=false});}
 var cargo=new List<IMyCargoContainer>();
 GridTerminalSystem.GetBlocksOfType(cargo,b=>{if(!b.CustomName.Contains(blockTag))return false;string up=b.CustomName.ToUpper();return !up.Contains("PAMMO");});
@@ -454,7 +472,7 @@ ammoContainers.AddRange(cargo);
 foreach(var c in ammoContainers){
 var inv=c.GetInventory();if(inv==null)continue;
 var items=new List<MyInventoryItem>();inv.GetItems(items);
-foreach(var itm in items){string nm=itm.Type.SubtypeId;
+foreach(var itm in items){if(!itm.Type.TypeId.EndsWith("AmmoMagazine"))continue;string nm=itm.Type.SubtypeId;
 if(!ammoReserves.ContainsKey(nm))ammoReserves[nm]=0;ammoReserves[nm]+=(int)itm.Amount;}}}
 
 void UpdateDefense(){
@@ -512,13 +530,13 @@ if(isCtl){while(signalStatusL!=null&&signalStatusL.HasPendingMessage){
 var msg=signalStatusL.AcceptMessage();
 if(msg.Data is string){ParseRemoteSatData((string)msg.Data);}}}
 var oldMsl=new List<long>();
-foreach(var kv in missiles)if(tick-kv.Value.lastSeen>600)oldMsl.Add(kv.Key);
+foreach(var kv in missiles){var ms=kv.Value;if(tick-ms.lastSeen>600){string st=ms.status??"";if(st!="SAT_HOLD"&&st!="SAT_BRAKE"&&st!="SAT_CLIMB"&&st!="BLACKOUT_SAT")oldMsl.Add(kv.Key);}}
 foreach(var k in oldMsl){missiles.Remove(k);laserAssign.Remove(k);}
 var oldMnr=new List<long>();
 foreach(var kv in miners)if(tick-kv.Value.lastSeen>600)oldMnr.Add(kv.Key);
 foreach(var k in oldMnr)miners.Remove(k);
 var oldSat=new List<int>();
-foreach(var kv in satellites)if(tick-kv.Value.lastSeen>600)oldSat.Add(kv.Key);
+foreach(var kv in satellites){if(kv.Value.lastSeen>=0&&tick-kv.Value.lastSeen>600){kv.Value.lastSeen=-1;kv.Value.status="OFFLINE";}}
 foreach(var k in oldSat)satellites.Remove(k);
 UpdateLaserTargets();
 }
@@ -567,32 +585,39 @@ string s=m.status?.ToUpper()??"";
 if(s=="TARGET"||s=="REENTRY"||s=="SAT_INTERCEPT")return 3;
 if(s=="ARM"||s=="COAST")return 2;
 return 1;}
+void AssignLaser(long mid,int best,Dictionary<int,List<long>> claims){
+if(claims[best].Count>0){long old=claims[best][0];laserAssign.Remove(old);
+conflicts.Insert(0,$"{tick}|L{best}:MSL-{old%10000}->MSL-{mid%10000}");
+while(conflicts.Count>MAX_CONFLICTS)conflicts.RemoveAt(conflicts.Count-1);}
+laserAssign[mid]=best;claims[best].Clear();claims[best].Add(mid);}
+int FindFreeLaser(Dictionary<int,List<long>> claims){
+for(int i=0;i<padLasers.Count;i++)if(claims[i].Count==0)return i;return-1;}
+int FindStealLaser(MslData msl,Dictionary<int,List<long>> claims){
+for(int i=0;i<padLasers.Count;i++){if(claims[i].Count==0)continue;long rival=claims[i][0];
+if(missiles.ContainsKey(rival)&&GetMslPriority(msl)>GetMslPriority(missiles[rival]))return i;}return-1;}
 void UpdateLaserTargets(){
 var claims=new Dictionary<int,List<long>>();
 for(int i=0;i<padLasers.Count;i++)claims[i]=new List<long>();
 foreach(var kv in laserAssign){if(kv.Value<padLasers.Count)claims[kv.Value].Add(kv.Key);}
 foreach(var kv in missiles){
 long mid=kv.Key;var msl=kv.Value;
-if(msl.pos==Vector3D.Zero)continue;
+if(msl.pos==Vector3D.Zero||msl.padId!=padID)continue;
 if(!laserAssign.ContainsKey(mid)){
-int best=-1;
-for(int i=0;i<padLasers.Count;i++){if(claims[i].Count==0){best=i;break;}}
-if(best<0){
-for(int i=0;i<padLasers.Count;i++){
-if(claims[i].Count==0)continue;
-long rival=claims[i][0];
-if(missiles.ContainsKey(rival)){var rm=missiles[rival];
-if(GetMslPriority(msl)>GetMslPriority(rm)){best=i;break;}}}}
-if(best>=0){
-if(claims[best].Count>0){long old=claims[best][0];laserAssign.Remove(old);
-conflicts.Insert(0,$"{tick}|L{best}:MSL-{old%10000}->MSL-{mid%10000}");
-while(conflicts.Count>MAX_CONFLICTS)conflicts.RemoveAt(conflicts.Count-1);}
-laserAssign[mid]=best;claims[best].Clear();claims[best].Add(mid);}}}
+int best=FindFreeLaser(claims);
+if(best<0)best=FindStealLaser(msl,claims);
+if(best>=0)AssignLaser(mid,best,claims);}}
+foreach(var kv in missiles){
+long mid=kv.Key;var msl=kv.Value;
+if(msl.pos==Vector3D.Zero||msl.padId==padID)continue;
+if(!laserAssign.ContainsKey(mid)){
+int best=FindFreeLaser(claims);
+if(best>=0)AssignLaser(mid,best,claims);}}
 foreach(var kv in laserAssign){
 if(!missiles.ContainsKey(kv.Key))continue;
 var msl=missiles[kv.Key];int idx=kv.Value;
 if(idx<padLasers.Count){var lsr=padLasers[idx];
-lsr.SetTargetCoords($"{msl.pos.X:F0},{msl.pos.Y:F0},{msl.pos.Z:F0}");}}}
+lsr.SetTargetCoords($"GPS:MSL-{kv.Key%10000}:{msl.pos.X:F0}:{msl.pos.Y:F0}:{msl.pos.Z:F0}:");
+if(lsr.Status!=MyLaserAntennaStatus.Connected)lsr.Connect();}}}
 
 void ParseMslBroadcast(string data,MslData msl){
 msl.camNames.Clear();msl.camIds.Clear();
@@ -601,6 +626,11 @@ if(parts.Length>=4){
 double x,y,z;
 if(double.TryParse(parts[0],out x)&&double.TryParse(parts[1],out y)&&double.TryParse(parts[2],out z))msl.pos=new Vector3D(x,y,z);
 float d;if(float.TryParse(parts[3],out d))msl.dist=d;}
+if(parts.Length>=8){float a;if(float.TryParse(parts[7],out a))msl.alt=a;}
+if(parts.Length>=9){float s;if(float.TryParse(parts[8],out s))msl.spd=s;}
+if(parts.Length>=10){float f;if(float.TryParse(parts[9],out f))msl.fuel=f;}
+if(parts.Length>=11)msl.gyro=parts[10];
+int pi=data.IndexOf("|PAD:");if(pi>=0){int pe=data.IndexOf('|',pi+5);string pv=pe>0?data.Substring(pi+5,pe-pi-5):data.Substring(pi+5);int tp;if(int.TryParse(pv,out tp))msl.padId=tp;}
 string newPhase=parts.Length>=5?parts[4]:"UNKNOWN";
 if(msl.lastPhase!=null&&msl.lastPhase!=newPhase){
 long mslId=0;foreach(var kv in missiles)if(kv.Value==msl){mslId=kv.Key;break;}
@@ -608,6 +638,17 @@ string logEntry=$"T{tick}|MSL-{mslId%10000}|{msl.lastPhase}>{newPhase}";
 flightLog.Insert(0,logEntry);
 while(flightLog.Count>MAX_FLIGHT_LOG)flightLog.RemoveAt(flightLog.Count-1);}
 msl.lastPhase=newPhase;msl.status=newPhase;
+if(msl.gyro=="FINAL"&&msl.outcome==null){
+long oid=0;foreach(var kv in missiles)if(kv.Value==msl){oid=kv.Key;break;}
+string oc=newPhase;if(oc=="IMPACT")oc="TARGET HIT";else if(oc=="BLACKOUT_SAT")oc="SAT DEPLOY";else if(oc=="SAFE_RESET")oc="RESET";
+msl.outcome=oc;
+mslOutcomes.Insert(0,$"T{tick}|MSL-{oid%10000}|P{msl.padId}|{oc}|{msl.dist:F0}m");
+while(mslOutcomes.Count>MAX_OUTCOMES)mslOutcomes.RemoveAt(mslOutcomes.Count-1);}
+if(newPhase=="SAT_HOLD"&&msl.outcome==null){
+long oid=0;foreach(var kv in missiles)if(kv.Value==msl){oid=kv.Key;break;}
+msl.outcome="DEPLOYED";
+mslOutcomes.Insert(0,$"T{tick}|MSL-{oid%10000}|P{msl.padId}|DEPLOYED|orbit");
+while(mslOutcomes.Count>MAX_OUTCOMES)mslOutcomes.RemoveAt(mslOutcomes.Count-1);}
 int camsIdx=data.IndexOf("|CAMS:");
 if(camsIdx<0)return;
 string camPart=data.Substring(camsIdx+6);
@@ -768,6 +809,14 @@ f.Add(new MySprite(SpriteType.TEXT,$"L{i}: {tgt}",new Vector2(30*s+(i%2)*(w/2-40
 y+=50*ys;
 f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));
 y+=15*ys;
+int flAct=0,flDep=0;foreach(var mv in missiles.Values){string ms=mv.status??"";if(ms=="SAT_HOLD"||ms=="SAT_BRAKE")flDep++;else if(ms!="IDLE"&&ms!="UNKNOWN"&&(tick-mv.lastSeen)<50)flAct++;}
+f.Add(new MySprite(SpriteType.TEXT,"FLIGHTS",new Vector2(20*s,y),null,cAcc,"Monospace",TextAlignment.LEFT,0.5f*fs));
+y+=20*ys;
+Color flCol=flAct>0?cWrn:flDep>0?cOK:cSec;
+f.Add(new MySprite(SpriteType.TEXT,$"Active:{flAct} Deployed:{flDep} Outcomes:{mslOutcomes.Count}",new Vector2(30*s,y),null,flCol,"Monospace",TextAlignment.LEFT,0.35f*fs));
+y+=25*ys;
+f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));
+y+=15*ys;
 int satActive=0,satInt=0;foreach(var sv in satellites.Values){if(sv.status=="SAT_HOLD"||sv.status=="ACTIVE")satActive++;if(sv.status=="SAT_INTERCEPT")satInt++;}
 f.Add(new MySprite(SpriteType.TEXT,"SATELLITES",new Vector2(20*s,y),null,cAcc,"Monospace",TextAlignment.LEFT,0.5f*fs));
 f.Add(new MySprite(SpriteType.TEXT,$"{satellites.Count} total",new Vector2(w-30*s,y),null,cTxt,"Monospace",TextAlignment.RIGHT,0.4f*fs));
@@ -906,6 +955,12 @@ f.Add(new MySprite(SpriteType.TEXT,$"#{kv.Key} ({sat.gridX},{sat.gridZ})",new Ve
 f.Add(new MySprite(SpriteType.TEXT,$"B:{sat.bat}% H:{sat.h2}% {lnk}",new Vector2(cx,y+12*ys),null,cTxt,"Monospace",TextAlignment.LEFT,0.28f*fs));
 col++;if(col>=cols){col=0;y+=rowH;}
 shown++;}
+if(intercepts.Count>0&&y<h*0.75f){
+y+=5*ys;f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));y+=10*ys;
+f.Add(new MySprite(SpriteType.TEXT,"INTERCEPTS",new Vector2(20*s,y),null,cErr,"Monospace",TextAlignment.LEFT,0.4f*fs));y+=18*ys;
+for(int ii=0;ii<Math.Min(3,intercepts.Count);ii++){
+string it=intercepts[ii];if(it.Length>45)it=it.Substring(0,42)+"...";
+f.Add(new MySprite(SpriteType.TEXT,it,new Vector2(20*s,y),null,cWrn,"Monospace",TextAlignment.LEFT,0.26f*fs));y+=14*ys;}}
 float footY=h-22*ys;
 f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,footY-8*ys),new Vector2(w-20*s,2),cSec));
 f.Add(new MySprite(SpriteType.TEXT,$"Page {satPage+1}/{totalPages} | Auto-cycle",new Vector2(w/2,footY),null,cSec,"Monospace",TextAlignment.CENTER,0.35f*fs));
@@ -1036,39 +1091,53 @@ float s=w/512f,ys=h/512f,fs=Math.Max(0.6f,(s+ys)/2f);
 var f=sf.DrawFrame();
 f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,h/2),new Vector2(w,h),cBg));
 float y=10*ys;
-f.Add(new MySprite(SpriteType.TEXT,$"FLIGHT RECORDER - PAD {padID}",new Vector2(w/2,y),null,cPri,"White",TextAlignment.CENTER,0.7f*fs));
-y+=28*ys;
-f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));
-y+=12*ys;
-int mslActive=0;foreach(var m in missiles.Values)if(m.status!="IDLE"&&m.status!="UNKNOWN")mslActive++;
-f.Add(new MySprite(SpriteType.TEXT,$"MISSILES: {missiles.Count}  |  ACTIVE: {mslActive}  |  LOG: {flightLog.Count}",new Vector2(w/2,y),null,cTxt,"Monospace",TextAlignment.CENTER,0.35f*fs));
-y+=22*ys;
-f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));
-y+=15*ys;
-float rowH=18*ys;
-int maxRows=(int)((h-y-30*ys)/rowH);
-if(maxRows<1)maxRows=1;
+int mslActive=0,mslDeployed=0;var actMsl=new List<KeyValuePair<long,MslData>>();
+foreach(var kv in missiles){var ms=kv.Value;string st=ms.status??"";bool alive=st!="IDLE"&&st!="UNKNOWN"&&(tick-ms.lastSeen)<50;bool isSat=st=="SAT_HOLD"||st=="SAT_BRAKE"||st=="SAT_CLIMB"||st=="SAT_INTERCEPT";if(alive||isSat){actMsl.Add(kv);if(isSat)mslDeployed++;else if(alive)mslActive++;}}
+Color hCol=mslActive>0?cWrn:mslDeployed>0?cOK:cPri;
+f.Add(new MySprite(SpriteType.TEXT,$"FLIGHT COMMAND - PAD {padID}",new Vector2(w/2,y),null,hCol,"White",TextAlignment.CENTER,0.7f*fs));
+y+=26*ys;
+f.Add(new MySprite(SpriteType.TEXT,$"FLY:{mslActive} SAT:{mslDeployed} LOG:{flightLog.Count} OUT:{mslOutcomes.Count}",new Vector2(w/2,y),null,cTxt,"Monospace",TextAlignment.CENTER,0.32f*fs));
+y+=18*ys;
+f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));y+=8*ys;
+if(actMsl.Count>0){
+int shown=0;foreach(var kv in actMsl){
+var m=kv.Value;long mid=kv.Key;string st=m.status??"";
+bool isSat=st=="SAT_HOLD"||st=="SAT_BRAKE"||st=="SAT_CLIMB"||st=="SAT_INTERCEPT";
+Color sc=isSat?(st=="SAT_INTERCEPT"?cErr:cOK):st=="TARGET"||st=="REENTRY"?cWrn:st=="DETONATE"?cErr:st=="CLIMB"||st=="ARM"?cOK:cPri;
+string pid=m.padId>0?$"P{m.padId} ":"";
+string label=isSat?$"{pid}SAT-{mid%10000} {st}":$"{pid}MSL-{mid%10000} {st}";
+f.Add(new MySprite(SpriteType.TEXT,label,new Vector2(20*s,y),null,sc,"Monospace",TextAlignment.LEFT,0.3f*fs));
+string info=isSat?$"G:({m.alt:F0}) B:{m.fuel:F0}%":$"D:{m.dist:F0} A:{m.alt:F0} S:{m.spd:F0} F:{m.fuel:F0}%";
+f.Add(new MySprite(SpriteType.TEXT,info,new Vector2(20*s,y+13*ys),null,cTxt,"Monospace",TextAlignment.LEFT,0.25f*fs));
+y+=28*ys;shown++;if(shown>=6||y>h*0.45f)break;}
+if(actMsl.Count>shown)f.Add(new MySprite(SpriteType.TEXT,$"+{actMsl.Count-shown} more",new Vector2(20*s,y),null,cSec,"Monospace",TextAlignment.LEFT,0.25f*fs));
+y+=6*ys;}
+if(mslOutcomes.Count>0){
+f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));y+=8*ys;
+f.Add(new MySprite(SpriteType.TEXT,"OUTCOMES",new Vector2(20*s,y),null,cAcc,"Monospace",TextAlignment.LEFT,0.3f*fs));y+=14*ys;
+for(int i=0;i<Math.Min(4,mslOutcomes.Count);i++){
+var op=mslOutcomes[i].Split('|');string oTxt=mslOutcomes[i];
+Color oc=cTxt;if(oTxt.Contains("TARGET HIT"))oc=cOK;else if(oTxt.Contains("DEPLOYED"))oc=cPri;else if(oTxt.Contains("SAT DEPLOY"))oc=cOK;else if(oTxt.Contains("RESET"))oc=cWrn;else oc=cErr;
+f.Add(new MySprite(SpriteType.TEXT,oTxt.Length>50?oTxt.Substring(0,47)+"...":oTxt,new Vector2(20*s,y),null,oc,"Monospace",TextAlignment.LEFT,0.24f*fs));
+y+=14*ys;}}
+f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));y+=8*ys;
+f.Add(new MySprite(SpriteType.TEXT,"EVENT LOG",new Vector2(20*s,y),null,cAcc,"Monospace",TextAlignment.LEFT,0.3f*fs));y+=14*ys;
+float rowH=14*ys;int maxRows=(int)((h-y-30*ys)/rowH);if(maxRows<1)maxRows=1;
 for(int i=0;i<Math.Min(maxRows,flightLog.Count);i++){
-string log=flightLog[i];
-var pts=log.Split('|');
-string tStr=pts.Length>0?pts[0]:"";
-string mslStr=pts.Length>1?pts[1]:"";
-string phStr=pts.Length>2?pts[2]:"";
+string log=flightLog[i];var pts=log.Split('|');
+string tStr=pts.Length>0?pts[0]:"";string mslStr=pts.Length>1?pts[1]:"";string phStr=pts.Length>2?pts[2]:"";
 Color phCol=cTxt;
 if(phStr.Contains("DETONATE")||phStr.Contains("INTERCEPT"))phCol=cErr;
 else if(phStr.Contains("TARGET")||phStr.Contains("REENTRY"))phCol=cWrn;
 else if(phStr.Contains("ARM")||phStr.Contains("COAST"))phCol=cAcc;
 else if(phStr.Contains("CLIMB")||phStr.Contains("SAT_"))phCol=cOK;
-f.Add(new MySprite(SpriteType.TEXT,tStr,new Vector2(20*s,y),null,cSec,"Monospace",TextAlignment.LEFT,0.28f*fs));
-f.Add(new MySprite(SpriteType.TEXT,mslStr,new Vector2(100*s,y),null,cPri,"Monospace",TextAlignment.LEFT,0.28f*fs));
-f.Add(new MySprite(SpriteType.TEXT,phStr,new Vector2(200*s,y),null,phCol,"Monospace",TextAlignment.LEFT,0.28f*fs));
+f.Add(new MySprite(SpriteType.TEXT,$"{tStr} {mslStr} {phStr}",new Vector2(20*s,y),null,phCol,"Monospace",TextAlignment.LEFT,0.24f*fs));
 y+=rowH;}
-if(flightLog.Count==0){
-f.Add(new MySprite(SpriteType.TEXT,"No flight events recorded",new Vector2(w/2,h/2),null,cSec,"Monospace",TextAlignment.CENTER,0.45f*fs));
-f.Add(new MySprite(SpriteType.TEXT,"Launch a missile to begin logging",new Vector2(w/2,h/2+25*ys),null,cSec,"Monospace",TextAlignment.CENTER,0.35f*fs));}
+if(flightLog.Count==0&&actMsl.Count==0&&mslOutcomes.Count==0)
+f.Add(new MySprite(SpriteType.TEXT,"No flight activity",new Vector2(w/2,h/2),null,cSec,"Monospace",TextAlignment.CENTER,0.45f*fs));
 float footY=h-22*ys;
 f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,footY-8*ys),new Vector2(w-20*s,2),cSec));
-f.Add(new MySprite(SpriteType.TEXT,$"Tick:{tick} | Max:{MAX_FLIGHT_LOG}",new Vector2(w/2,footY),null,cSec,"Monospace",TextAlignment.CENTER,0.35f*fs));
+f.Add(new MySprite(SpriteType.TEXT,$"T:{tick} Sats:{satellites.Count} Lasers:{laserAssign.Count}",new Vector2(w/2,footY),null,cSec,"Monospace",TextAlignment.CENTER,0.3f*fs));
 f.Dispose();}
 
 void UpdateEcho(){

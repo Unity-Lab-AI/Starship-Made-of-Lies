@@ -159,7 +159,7 @@ bool docked=false;foreach(var m in allMerge){if(m.IsConnected){docked=true;break
 if(docked&&!CheckPrintComplete()){waitingForPrint=true;}
 tgtGPS=Vector3D.Zero;mode=T.GPS;bootComplete=false;startupDone=false;startupCheck=0;gpsAnnounced=false;}
 }
-public void Save(){Storage=$"{(int)phase}|{(int)mode}|{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}|{(warheadsArmed?"1":"0")}|{launchPos.X},{launchPos.Y},{launchPos.Z}|{(blackoutConverted?"1":"0")}";}
+public void Save(){Storage=$"{(int)phase}|{(int)mode}|{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}|{(warheadsArmed?"1":"0")}|{launchPos.X},{launchPos.Y},{launchPos.Z}|{(blackoutConverted?"1":"0")}|{satGridX}|{satGridZ}";}
 void LoadState(){
 if(string.IsNullOrEmpty(Storage))return;
 var p=Storage.Split('|');
@@ -171,6 +171,8 @@ var g=p[2].Split(',');if(g.Length==3){double x,y,z;if(double.TryParse(g[0],out x
 warheadsArmed=p[3]=="1";
 var l=p[4].Split(',');if(l.Length==3){double x,y,z;if(double.TryParse(l[0],out x)&&double.TryParse(l[1],out y)&&double.TryParse(l[2],out z))launchPos=new Vector3D(x,y,z);}
 if(p.Length>=6)blackoutConverted=p[5]=="1";
+if(p.Length>=7)int.TryParse(p[6],out satGridX);
+if(p.Length>=8)int.TryParse(p[7],out satGridZ);
 if(phase!=F.IDLE)Runtime.UpdateFrequency=UpdateFrequency.Update10;
 }}
 
@@ -434,15 +436,15 @@ Vector3D grav=rc.GetNaturalGravity();
 currentGrav=grav.Length();
 double alt=0;
 rc.TryGetPlanetElevation(MyPlanetElevation.Sealevel,out alt);
-if(alt>=satTargetAlt||currentGrav<0.05){
+double climbRef=alt>0?alt:distFromPad;
+if(climbRef>=satTargetAlt){
 satPosition=Me.GetPosition();
 satVelocity=rc.GetShipVelocities().LinearVelocity;
 phase=F.SAT_BRAKE;
 return;
 }
-Vector3D up=Vector3D.Normalize(-grav);
+Vector3D up=currentGrav>0.01?Vector3D.Normalize(-grav):Vector3D.Normalize(Me.GetPosition()-launchPos);
 AimAtUp(up);
-EnableThrust(true);
 }
 
 void DoSatBrake(){
@@ -694,7 +696,8 @@ IGC.SendBroadcastMessage(satRelayTag+"_STATUS",status);
 
 void UpdateDistances(){
 distFromPad=Vector3D.Distance(Me.GetPosition(),launchPos);
-if(mode!=T.LIDAR)distToTgt=Vector3D.Distance(Me.GetPosition(),tgtGPS);
+if(isSatellite){if(phase==F.SAT_CLIMB||phase==F.SAT_BRAKE){double alt=0;if(rc!=null)rc.TryGetPlanetElevation(MyPlanetElevation.Sealevel,out alt);distToTgt=Math.Max(0,satTargetAlt-alt);}else if(phase==F.SAT_INTERCEPT)distToTgt=Vector3D.Distance(Me.GetPosition(),interceptTarget);else distToTgt=0;}
+else if(mode!=T.LIDAR)distToTgt=Vector3D.Distance(Me.GetPosition(),tgtGPS);
 }
 
 void BroadcastPos(){
@@ -702,7 +705,11 @@ if(antennas.Count==0)return;
 foreach(var a in antennas){if(!a.Enabled||!a.EnableBroadcasting){a.Enabled=true;a.EnableBroadcasting=true;a.Radius=75000f;}}
 wasInBlackout=inBlackout;
 bool willBlackout=distFromPad>antennaRange*0.95;
-inBlackout=distFromPad>antennaRange;
+bool outOfRadio=distFromPad>antennaRange;
+bool hasLaser=false;
+if(laserPad!=null&&laserPad.Status==MyLaserAntennaStatus.Connected)hasLaser=true;
+if(!hasLaser){foreach(var l in lasers)if(l.Status==MyLaserAntennaStatus.Connected){hasLaser=true;break;}}
+inBlackout=outOfRadio&&!hasLaser;
 string status=phase.ToString();
 if(!wasInBlackout&&willBlackout&&!inBlackout)status="ENTERING_BLACKOUT";
 else if(wasInBlackout&&!inBlackout){status="CONTACT_RESTORED";blackoutTicks=0;targetVelSamples=0;lastTargetVel=Vector3D.Zero;}
@@ -724,7 +731,7 @@ double bat=0;foreach(var b in batteries)bat+=b.CurrentStoredPower/b.MaxStoredPow
 if(phase==F.TARGET&&(h2<0.15||bat<0.15))status="LOW_FUEL";
 string camInfo="";if(cameras.Count>0){foreach(var c in cameras)camInfo+=(camInfo.Length>0?";":"")+c.EntityId.ToString()+":"+c.CustomName.Replace("|","").Replace(",","").Replace(":","").Replace(";","");}
 string lcdInfo=curLine1.Replace("|","").Replace("~","")+$"~{curLine2.Replace("|","").Replace("~","")}~{curEmo}";
-string msg=$"{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0},{distToTgt:F0},{status},{currentGrav:F2},{distFromPad:F0},{currentAltitude:F0},{spd:F0},{h2*100:F0},{(gyrosLocked?"LOCK":"CTRL")}|CAMS:{camInfo}|LCD:{lcdInfo}";
+string msg=$"{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0},{distToTgt:F0},{status},{currentGrav:F2},{distFromPad:F0},{currentAltitude:F0},{spd:F0},{h2*100:F0},{(gyrosLocked?"LOCK":"CTRL")}|PAD:{padID}|CAMS:{camInfo}|LCD:{lcdInfo}";
 IGC.SendBroadcastMessage(broadcastTag,msg);
 if(useLaser&&lasers.Count>0){foreach(var l in lasers){if(l.Status!=MyLaserAntennaStatus.Connected)l.Connect();}}
 }
@@ -793,9 +800,10 @@ rc=null;merge=null;ammoConnector=null;laserPad=null;laserNorth=null;laserSouth=n
 gyros.Clear();thrusters.Clear();warheads.Clear();sensors.Clear();cameras.Clear();antennas.Clear();lasers.Clear();batteries.Clear();h2tanks.Clear();generators.Clear();lights.Clear();lcds.Clear();
 var all=new List<IMyTerminalBlock>();
 GridTerminalSystem.GetBlocksOfType(all,b=>b.CubeGrid==Me.CubeGrid);
+string mTag=mslNumber>0?$"Missile #{mslNumber}":"Missile";
 foreach(var b in all){
 string nm=b.CustomName.ToUpper();
-if((nm.Contains("[PAD")&&!nm.Contains("MISSILE"))||nm.Contains("[CONTROLLER")||nm.Contains("-PRINT]"))continue;
+if((nm.Contains("[PAD")&&!nm.Contains("MISSILE")&&!nm.Contains("EMOTIONCONTROLLER")&&!nm.Contains("LCD"))||nm.Contains("[CONTROLLER")||nm.Contains("-PRINT]"))continue;
 if(b is IMyRemoteControl&&rc==null)rc=b as IMyRemoteControl;
 if(b is IMyGyro)gyros.Add(b as IMyGyro);
 if(b is IMyThrust)thrusters.Add(b as IMyThrust);
@@ -814,7 +822,7 @@ if(b is IMyBatteryBlock)batteries.Add(b as IMyBatteryBlock);
 if(b is IMyGasTank){var t=b as IMyGasTank;if(t.BlockDefinition.SubtypeId.Contains("Hydrogen"))h2tanks.Add(t);}
 if(b is IMyGasGenerator)generators.Add(b as IMyGasGenerator);
 if(b is IMyLightingBlock)lights.Add(b as IMyLightingBlock);
-if(b is IMyTextPanel)lcds.Add(b as IMyTextPanel);
+if(b is IMyTextPanel&&(b.CustomName.Contains(mTag)||(b.CustomName.Contains("LCD")&&!b.CustomName.Contains(":"))))lcds.Add(b as IMyTextPanel);
 if(b is IMyShipMergeBlock&&merge==null)merge=b as IMyShipMergeBlock;
 if(b is IMyShipConnector&&b.CustomName.Contains("[AMMO]"))ammoConnector=b as IMyShipConnector;
 if(b.BlockDefinition.SubtypeId.Contains("EmotionController"))emotionCtrls.Add(b as IMyFunctionalBlock);

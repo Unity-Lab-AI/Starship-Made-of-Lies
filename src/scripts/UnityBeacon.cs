@@ -94,7 +94,8 @@ string a=arg.ToUpper();
 if(a=="SETHOME"&&rc!=null){homePos=rc.GetPosition();SaveConfig();Echo($"Home set: {homePos.X:F0},{homePos.Y:F0},{homePos.Z:F0}");}
 else if(a=="SETUP"){Scan();Echo("SETUP: Blocks scanned");}
 else if(a=="RESCAN")Scan();
-else if(a=="RESET"){Reset();return;}}
+else if(a=="RESET"){Reset();return;}
+else if(a.StartsWith("SETPAD:")){int np;if(int.TryParse(a.Substring(7),out np)&&np>0){SwapPadTag(padID,np);padID=np;SaveConfig();Echo($"Pad tags updated to PAD{np}");}}}
 Echo("Unity Missile System");
 Echo($"UnityBeacon [{shipName}]");
 Echo("---");
@@ -129,6 +130,15 @@ Scan();
 Echo("RESET COMPLETE\nConfig cleared\nLCD cleared\nRun SETUP to reconfigure");}
 
 
+void SwapPadTag(int oldID,int newID){
+string o1=$"[PAD{oldID}]",n1=$"[PAD{newID}]";
+string o2=$"[PAD{oldID}-",n2=$"[PAD{newID}-";
+string o3=$"[PAD{oldID}:",n3=$"[PAD{newID}:";
+var aB=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(aB,b=>b.IsSameConstructAs(Me));
+foreach(var b in aB){string nm=b.CustomName;
+if(nm.Contains(o1))b.CustomName=nm.Replace(o1,n1);
+else if(nm.Contains(o2))b.CustomName=nm.Replace(o2,n2);
+else if(nm.Contains(o3))b.CustomName=nm.Replace(o3,n3);}}
 void SaveConfig(){
 Me.CustomData=$"[MINER_BEACON]\nShipName={shipName}\nChannel={bcTag}\nBlockTag={blockTag}\nPadID={padID}\nHomeGPS={homePos.X:F0},{homePos.Y:F0},{homePos.Z:F0}\n\n=== SETUP ===\nTag these blocks with {blockTag}:\n- 1x Remote Control (required)\n- 1x Connector (for docking)\n- 1x Antenna (for broadcast)\n- 1x LCD (optional status display)\n\nCameras will be auto-named [PAD{padID}] {shipName} Cam\n\nCommands: SETUP, RESCAN, SETHOME, RESET";}
 

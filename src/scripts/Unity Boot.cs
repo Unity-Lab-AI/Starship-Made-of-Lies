@@ -57,6 +57,8 @@ if(p.Length>=1)int.TryParse(p[0],out padID);
 }
 public void Save(){Storage=$"{padID}";}
 void UpdatePadTag(){
+string nm=Me.CustomName;int idx=nm.IndexOf("[PAD");
+if(idx>=0){int end=nm.IndexOf("]",idx);if(end>idx+4){string num=nm.Substring(idx+4,end-idx-4);int id;if(int.TryParse(num,out id)&&id>0)padID=id;}}
 if(padID==0)padID=1;
 padTag=$"[PAD{padID}";
 Me.CustomName=$"[PAD{padID}] UNITY BOOT";
@@ -85,6 +87,7 @@ Me.CustomData=cd;
 
 public void Main(string a,UpdateType u){
 tick++;
+if(!string.IsNullOrEmpty(a)&&a.StartsWith("SETPAD:")){int np;if(int.TryParse(a.Substring(7),out np)&&np>0){int old=padID;padID=np;UpdatePadTag();Save();SwapPadTag(old,np);WriteSetupStatus($"SETPAD:{np}");Echo($"Renamed PAD{old} -> PAD{np}. Recompile all scripts.");}return;}
 if(CheckSetupCommands())return;
 if(bootDone){
 Runtime.UpdateFrequency=UpdateFrequency.Update100;
@@ -124,16 +127,16 @@ void ScanBlocks(){
 lcd1=lcd2=lcd3=lcd4=lcd5=lcd6=lcd7=lcd8=lcd9=lcd10=lcd11=null;btn=null;con1=con2=null;bootAnt.Clear();camLCDs.Clear();signalLCDs.Clear();airVents.Clear();mslLCDs.Clear();
 var blks=new List<IMyTerminalBlock>();
 GridTerminalSystem.GetBlocksOfType(blks,b=>b.CustomName.Contains(padTag)||b.CubeGrid==Me.CubeGrid);
-string sigTag=$"[PAD{padID}SIGNAL]",defTag=$"[PAD{padID}DEFENSE]",satTag=$"[PAD{padID}SATS]",prsTag=$"[PAD{padID}PRESSURE]";
+string sigTag=$"[PAD{padID}] SIGNAL",defTag=$"[PAD{padID}] DEFENSE",satTag=$"[PAD{padID}] SATS",prsTag=$"[PAD{padID}] PRESSURE",fltTag=$"[PAD{padID}] FLIGHT";
 foreach(var b in blks){
 if(b is IMyButtonPanel&&b.CustomName.ToLower().Contains("control")&&btn==null)btn=b as IMyButtonPanel;
-if(b is IMyShipConnector){string nm=b.CustomName;if(nm.Contains("-CON1"))con1=b as IMyShipConnector;else if(nm.Contains("-CON2"))con2=b as IMyShipConnector;}
+if(b is IMyShipConnector&&b.CubeGrid==Me.CubeGrid){string nm=b.CustomName;if(nm.Contains("-CON1"))con1=b as IMyShipConnector;else if(nm.Contains("-CON2"))con2=b as IMyShipConnector;}
 if(b is IMyRadioAntenna)bootAnt.Add(b as IMyRadioAntenna);
 if(b is IMyAirVent)airVents.Add(b as IMyAirVent);
 if(b is IMyTextSurface||b is IMyTextPanel){string nm=b.CustomName;if(!nm.Contains(padTag)&&!nm.Contains($"[PAD{padID}"))continue;
 IMyTextSurface ts=b is IMyTextSurface?(IMyTextSurface)b:((IMyTextPanel)b);
 if(nm.ToUpper().Contains("CAMS")){if(!camLCDs.Contains(ts))camLCDs.Add(ts);continue;}
-if(nm.Contains(sigTag)||nm.Contains(defTag)||nm.Contains(satTag)||nm.Contains(prsTag)){if(!signalLCDs.Contains(ts))signalLCDs.Add(ts);continue;}
+if(nm.Contains(sigTag)||nm.Contains(defTag)||nm.Contains(satTag)||nm.Contains(prsTag)||nm.Contains(fltTag)){if(!signalLCDs.Contains(ts))signalLCDs.Add(ts);continue;}
 if(nm.Contains(":11")&&lcd11==null)lcd11=ts;
 else if(nm.Contains(":10")&&lcd10==null)lcd10=ts;
 else if(nm.Contains(":1")&&!nm.Contains(":10")&&!nm.Contains(":11")&&lcd1==null)lcd1=ts;
@@ -146,7 +149,7 @@ else if(nm.Contains(":7")&&lcd7==null)lcd7=ts;
 else if(nm.Contains(":8")&&lcd8==null)lcd8=ts;
 else if(nm.Contains(":9")&&lcd9==null)lcd9=ts;
 }}
-var mslPnl=new List<IMyTextPanel>();GridTerminalSystem.GetBlocksOfType(mslPnl,b=>b.IsSameConstructAs(Me)&&b.CustomName.Contains("Missile")&&b.CustomName.Contains("LCD"));foreach(var p in mslPnl)mslLCDs.Add(p);
+var mslPnl=new List<IMyTextPanel>();GridTerminalSystem.GetBlocksOfType(mslPnl,b=>b.IsSameConstructAs(Me)&&b.CustomName.Contains("LCD")&&(b.CustomName.Contains("Missile")||(b.CubeGrid==Me.CubeGrid&&b.CustomName.Contains($"[PAD{padID}]")&&!b.CustomName.Contains(":"))));foreach(var p in mslPnl)mslLCDs.Add(p);
 if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn,b=>b.CubeGrid==Me.CubeGrid);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
 if(btn==null){var allBtn=new List<IMyButtonPanel>();GridTerminalSystem.GetBlocksOfType(allBtn);foreach(var bp in allBtn)if(bp.CustomName.ToLower().Contains("control")&&btn==null)btn=bp;}
 foreach(var a in bootAnt){a.Enabled=true;a.EnableBroadcasting=true;}
@@ -499,7 +502,8 @@ string data=msg.Data.ToString();
 if(data==$"SETUPMOD|{padID}"){SetupModule(false);WriteSetupStatus("SETUPMOD");handled=true;}
 else if(data==$"SETUPFORCE|{padID}"){SetupModule(true);WriteSetupStatus("SETUPFORCE");handled=true;}
 else if(data==$"NAMEPAD|{padID}"){NamePadParts();WriteSetupStatus("NAMEPAD");handled=true;}
-else if(data==$"NAMEMSL|{padID}"){IncrementBldNum();NameMissileParts();AutoNameConnectors();WriteSetupStatus("NAMEMSL");handled=true;}}
+else if(data==$"NAMEMSL|{padID}"){IncrementBldNum();NameMissileParts();AutoNameConnectors();WriteSetupStatus("NAMEMSL");handled=true;}
+}
 if(handled){Echo("UNITY BOOT - Setup Complete");Echo("Blocks renamed. Please recompile all scripts.");}
 return handled;
 }
@@ -551,6 +555,26 @@ string num=n.Substring(idx+4,end-idx-4);
 int id;if(int.TryParse(num,out id)&&id>0&&!ids.Contains(id))ids.Add(id);}}}
 return ids;
 }
+void SwapPadTag(int oldID,int newID){
+string oldTag=$"[PAD{oldID}";
+var excludeGrids=new HashSet<long>();
+var pbs=new List<IMyProgrammableBlock>();
+GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me&&b.CustomName.ToUpper().Contains("UNITY BOOT"));
+foreach(var pb in pbs)excludeGrids.Add(pb.CubeGrid.EntityId);
+var mechs=new List<IMyMechanicalConnectionBlock>();
+GridTerminalSystem.GetBlocksOfType(mechs,m=>m.IsSameConstructAs(Me));
+bool ch=true;while(ch){ch=false;foreach(var m in mechs){
+if(excludeGrids.Contains(m.CubeGrid.EntityId)&&m.Top!=null&&excludeGrids.Add(m.Top.CubeGrid.EntityId))ch=true;
+if(m.Top!=null&&excludeGrids.Contains(m.Top.CubeGrid.EntityId)&&excludeGrids.Add(m.CubeGrid.EntityId))ch=true;}}
+var aB=new List<IMyTerminalBlock>();
+GridTerminalSystem.GetBlocksOfType(aB,b=>b.IsSameConstructAs(Me)&&!excludeGrids.Contains(b.CubeGrid.EntityId));
+foreach(var b in aB){string nm=b.CustomName;if(!nm.Contains(oldTag))continue;
+b.CustomName=nm.Replace(oldTag,$"[PAD{newID}");}}
+bool HasPadIDConflict(){
+var pbs=new List<IMyProgrammableBlock>();
+GridTerminalSystem.GetBlocksOfType(pbs,b=>b.IsSameConstructAs(Me)&&b!=Me&&b.CubeGrid!=Me.CubeGrid&&b.CustomName.ToUpper().Contains("UNITY BOOT"));
+foreach(var pb in pbs){string n=pb.CustomName;int i=n.IndexOf("[PAD");if(i>=0){int e=n.IndexOf("]",i);if(e>i+4){string num=n.Substring(i+4,e-i-4);int id;if(int.TryParse(num,out id)&&id==padID)return true;}}}
+return false;}
 int GetNextPadID(){
 var taken=DiscoverSiblingPads();
 int next=1;
@@ -558,29 +582,32 @@ while(taken.Contains(next))next++;
 return next;
 }
 void SetupModule(bool force){
-if(padID==0){padID=GetNextPadID();UpdatePadTag();}
+bool conflict=HasPadIDConflict();
+if(padID==0||(conflict&&!bootDone)){padID=GetNextPadID();UpdatePadTag();Save();}
 string tg=$"[PAD{padID}]",pt=$"[PAD{padID}-PRINT]";
 Vector3D mp=Me.GetPosition();
 var aB=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(aB);
 var pB=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(pB,b=>b.CubeGrid==Me.CubeGrid);
 IMyShipMergeBlock pm=null;double pd=999;
 foreach(var b in pB)if(b is IMyShipMergeBlock){double d=VD(b.GetPosition(),mp);if(d<pd){pm=b as IMyShipMergeBlock;pd=d;}}
-Vector3D mP=pm!=null?pm.GetPosition():mp;
-IMyShipMergeBlock om=null;bool iM=pm!=null&&pm.IsConnected;
-if(iM){var aM=new List<IMyShipMergeBlock>();GridTerminalSystem.GetBlocksOfType(aM,m=>m.IsConnected&&m!=pm);if(aM.Count>0)om=aM[0];}
-Vector3D mD=Vector3D.Zero;if(iM&&om!=null)mD=VN(om.GetPosition()-mP);
-var sG=new HashSet<long>();
-foreach(var b in pB)if(b is IMyPistonBase){var p=b as IMyPistonBase;if(p.Top!=null&&VD(b.GetPosition(),mp)<50)sG.Add(p.Top.CubeGrid.EntityId);}
+var sG=new HashSet<long>();sG.Add(Me.CubeGrid.EntityId);
+var _mc=new List<IMyMechanicalConnectionBlock>();GridTerminalSystem.GetBlocksOfType(_mc,m=>m.IsSameConstructAs(Me));
+bool _ch=true;while(_ch){_ch=false;foreach(var m in _mc){if(sG.Contains(m.CubeGrid.EntityId)&&m.Top!=null&&sG.Add(m.Top.CubeGrid.EntityId))_ch=true;if(m.Top!=null&&sG.Contains(m.Top.CubeGrid.EntityId)&&sG.Add(m.CubeGrid.EntityId))_ch=true;}}
+sG.Remove(Me.CubeGrid.EntityId);
 int li=1,vi=1,hi=1,wi=1,ci=1;
 Action<IMyTerminalBlock>T=b=>b.CustomName=$"{tg} {BT(b)}";
 Func<string,string>Strip=n=>{int i=n.IndexOf("[PAD");if(i>=0){int e=n.IndexOf("]",i);if(e>i)n=n.Remove(i,e-i+1).Trim();}return n;};
+Func<string,string>StripPrint=n=>{int i=n.IndexOf("[PAD");if(i>=0){int e=n.IndexOf("-PRINT]",i);if(e>i){n=n.Remove(i,e-i+7).Trim();}else{int e2=n.IndexOf("]",i);if(e2>i){n=n.Remove(i,e2-i+1).Trim();}}}int dp=n.IndexOf("-PRINT");if(dp>=0){int ep=dp;while(ep<n.Length&&n[ep]!=']'&&n[ep]!=' ')ep++;n=n.Remove(dp,ep-dp).Trim();}return n;};
 foreach(var b in pB){
-if(b.CustomName.Contains("Missile #")||b.CustomName.Contains("-PRINT")||b==Me)continue;
-double d=VD(b.GetPosition(),mp);if(d>80)continue;
-if(iM&&mD!=Vector3D.Zero&&Vector3D.Dot(b.GetPosition()-mP,mD)>1)continue;
+if(b==Me)continue;
 string nm=b.CustomName;
+bool isPrt=nm.Contains("-PRINT]")||(nm.Contains("[PAD")&&nm.Contains("]-PRINT"));
+if(isPrt){nm=StripPrint(nm);b.CustomName=$"{pt} {nm}".Trim();continue;}
+if(nm.Contains("Missile #")){nm=Strip(nm);b.CustomName=$"{tg} {nm}".Trim();continue;}
 if(force&&nm.Contains("[PAD")&&!nm.Contains($"[PAD{padID}"))nm=Strip(nm);
-if(nm.Contains("[PRINT]")&&!nm.Contains("-PRINT]")){b.CustomName=nm.Replace("[PRINT]",pt);continue;}
+if(nm.Contains("[PRINT]")&&!nm.Contains("-PRINT")){b.CustomName=nm.Replace("[PRINT]",pt);continue;}
+string nmU=nm.ToUpper();bool hasCams=nmU.Contains("CAMS");bool hasSig=nmU.Contains("SIGNAL");bool hasDef=nmU.Contains("DEFENSE");bool hasFlt=nmU.Contains("FLIGHT");
+if(hasCams||hasSig||hasDef||hasFlt){nm=Strip(nm);string stg=hasCams?"CAMS":hasSig?"SIGNAL":hasDef?"DEFENSE":"FLIGHT";int si=nm.ToUpper().IndexOf(stg);if(si>=0)nm=nm.Substring(si);b.CustomName=$"[PAD{padID}] {nm}".Trim();continue;}
 if(!force&&nm.Contains($"[PAD{padID}]"))continue;
 if(nm.Contains("[PAD")&&!nm.Contains($"[PAD{padID}"))nm=Strip(nm);
 if(b is IMyShipMergeBlock&&b==pm)b.CustomName=$"{tg} Merge";
@@ -590,7 +617,8 @@ else if(b is IMyPistonBase){var ps=b as IMyPistonBase;if(Math.Abs(Vector3D.Dot(p
 else if(b is IMyShipWelder){b.CustomName=$"{pt} W{wi}";wi++;}
 else if(b is IMyProjector)b.CustomName=$"{pt} Proj";
 else if(b is IMyButtonPanel)b.CustomName=$"{tg} Btn";
-else if(b is IMyBatteryBlock||b is IMyGasTank||b is IMyCargoContainer||b is IMyRefinery||b is IMyAssembler||b is IMyRadioAntenna||b is IMyLaserAntenna||b is IMyReactor||b is IMySolarPanel||b is IMyGasGenerator||b is IMyGyro||b is IMyThrust||b is IMySensorBlock||b is IMyCameraBlock||b is IMyRemoteControl||b is IMyCockpit||b is IMyMedicalRoom)T(b);
+else if(b is IMyCargoContainer){string lo=nm.ToLower();string sfx="";string[]stags={"-ore","-ingot","-comp","-tools","-ammo","-pammo","-bottle","-food","-data","-misc"};foreach(var s in stags)if(lo.Contains(s)){sfx=$" {s}";break;}b.CustomName=$"{tg} {BT(b)}{sfx}";}
+else if(b is IMyBatteryBlock||b is IMyGasTank||b is IMyRefinery||b is IMyAssembler||b is IMyRadioAntenna||b is IMyLaserAntenna||b is IMyReactor||b is IMySolarPanel||b is IMyGasGenerator||b is IMyGyro||b is IMyThrust||b is IMySensorBlock||b is IMyCameraBlock||b is IMyRemoteControl||b is IMyCockpit||b is IMyMedicalRoom)T(b);
 else if(b is IMyDoor)b.CustomName=$"{tg} Dr";
 else if(b is IMyLightingBlock)b.CustomName=$"{tg} Lt";
 else if(b is IMyConveyorSorter)b.CustomName=$"{tg} Srt";
@@ -604,10 +632,33 @@ else if(b is IMyGravityGenerator)b.CustomName=$"{tg} Grv";
 else if(b is IMyJumpDrive)b.CustomName=$"{tg} Jmp";
 else{string bt=BT(b);if(!string.IsNullOrEmpty(bt)&&bt.Length<30)b.CustomName=$"{tg} {bt}";}}
 foreach(var b in aB){
-if(b.CubeGrid==Me.CubeGrid||!sG.Contains(b.CubeGrid.EntityId)||b.CustomName.Contains("[PAD")||b.CustomName.Contains("Missile #")||b.CustomName.Contains("-PRINT"))continue;
+if(b.CubeGrid==Me.CubeGrid||!sG.Contains(b.CubeGrid.EntityId))continue;
+string snm=b.CustomName;
+bool sPrt=snm.Contains("-PRINT]")||(snm.Contains("[PAD")&&snm.Contains("]-PRINT"));
+if(sPrt){snm=StripPrint(snm);b.CustomName=$"{pt} {snm}".Trim();continue;}
+if(snm.Contains("Missile #")){snm=Strip(snm);b.CustomName=$"{tg} {snm}".Trim();continue;}
+if(snm.Contains("[PAD"))snm=Strip(snm);
 if(b is IMyShipWelder){b.CustomName=$"{pt} W{wi}";wi++;}
-else if(b is IMyProjector&&!b.CustomName.Contains("-PRINT]"))b.CustomName=$"{pt} Proj";
-else if(b is IMyCockpit)T(b);}
+else if(b is IMyProjector&&!b.CustomName.Contains("-PRINT"))b.CustomName=$"{pt} Proj";
+else if(b is IMyCockpit)T(b);
+else{string bt=BT(b);if(!string.IsNullOrEmpty(bt)&&bt.Length<30)b.CustomName=$"{tg} {bt}";}}
+var cG=new HashSet<long>();
+var padPBs=new HashSet<long>();
+var pbList=new List<IMyProgrammableBlock>();
+GridTerminalSystem.GetBlocksOfType(pbList,p=>p.CustomName.ToUpper().Contains("UNITY BOOT")||p.CustomName.ToUpper().Contains("UNITY PAD"));
+foreach(var p in pbList)if(p.CubeGrid!=Me.CubeGrid)padPBs.Add(p.CubeGrid.EntityId);
+var padCons=new List<IMyShipConnector>();
+GridTerminalSystem.GetBlocksOfType(padCons,c=>c.CubeGrid==Me.CubeGrid&&c.Status==MyShipConnectorStatus.Connected);
+foreach(var c in padCons){var oc=c.OtherConnector;if(oc!=null&&!sG.Contains(oc.CubeGrid.EntityId)&&!padPBs.Contains(oc.CubeGrid.EntityId)&&oc.CubeGrid!=Me.CubeGrid)cG.Add(oc.CubeGrid.EntityId);}
+foreach(var b in aB){
+if(!cG.Contains(b.CubeGrid.EntityId))continue;
+string cnm=b.CustomName;
+bool cPrt=cnm.Contains("-PRINT]")||(cnm.Contains("[PAD")&&cnm.Contains("]-PRINT"));
+if(cPrt){cnm=StripPrint(cnm);b.CustomName=$"{pt} {cnm}".Trim();continue;}
+if(cnm.Contains("Missile #")){cnm=Strip(cnm);b.CustomName=$"{tg} {cnm}".Trim();continue;}
+if(cnm.Contains("[PAD"))cnm=Strip(cnm);
+if(b is IMyProgrammableBlock)b.CustomName=$"{tg} {cnm}".Trim();
+else{string bt=BT(b);if(!string.IsNullOrEmpty(bt)&&bt.Length<30)b.CustomName=$"{tg} {bt}";else b.CustomName=$"{tg} {cnm}".Trim();}}
 RenameSiblingPBs();
 }
 void RenameSiblingPBs(){
@@ -628,30 +679,27 @@ Action<IMyTerminalBlock>N=x=>{if(!HasSysTag(x)&&!x.CustomName.StartsWith("[PAD]"
 foreach(var b in pB){
 if(b is IMyBatteryBlock||b is IMyGasTank||b is IMyCargoContainer||b is IMyRefinery||b is IMyAssembler||b is IMyRadioAntenna||b is IMyLaserAntenna||b is IMyReactor||b is IMySolarPanel||b is IMyGasGenerator||b is IMyGyro||b is IMyThrust||b is IMySensorBlock||b is IMyCameraBlock)N(b);}}
 void NameMissileParts(){
-IMyShipMergeBlock padMrg=null,mslMrg=null;
 var merges=new List<IMyShipMergeBlock>();
 GridTerminalSystem.GetBlocksOfType(merges,m=>m.CubeGrid==Me.CubeGrid&&m.CustomName.Contains($"[PAD{padID}]"));
-if(merges.Count>0)padMrg=merges[0];
-if(padMrg==null||!padMrg.IsConnected)return;
-var allMerges=new List<IMyShipMergeBlock>();
-GridTerminalSystem.GetBlocksOfType(allMerges,m=>m.IsConnected&&m!=padMrg);
-foreach(var m in allMerges){if(VD(m.GetPosition(),padMrg.GetPosition())<3){mslMrg=m;break;}}
+if(merges.Count==0)return;
+var padMrg=merges[0];if(!padMrg.IsConnected)return;
+IMyShipMergeBlock mslMrg=null;
+var allM=new List<IMyShipMergeBlock>();
+GridTerminalSystem.GetBlocksOfType(allM,m=>m.IsConnected&&m!=padMrg&&VD(m.GetPosition(),padMrg.GetPosition())<3);
+if(allM.Count>0)mslMrg=allM[0];
 if(mslMrg==null)return;
 Vector3D padPos=padMrg.GetPosition();
 Vector3D mslDir=VN(mslMrg.GetPosition()-padPos);
 int bldNum=GetMslBuildNum();
 string t=$"[PAD{padID}] Missile #{bldNum}";
 var allBlks=new List<IMyTerminalBlock>();
-GridTerminalSystem.GetBlocksOfType(allBlks);
+GridTerminalSystem.GetBlocksOfType(allBlks,b=>!b.CustomName.Contains("-PRINT")&&b!=Me&&!b.CustomName.Contains($"[PAD{padID}:")&&Vector3D.Dot(b.GetPosition()-padPos,mslDir)>0&&VD(b.GetPosition(),padPos)<50);
 foreach(var b in allBlks){
-string nm=b.CustomName;
-if(nm.Contains("-PRINT")||b==Me)continue;
-if(nm.Contains($"[PAD{padID}]")&&!nm.Contains("Missile"))continue;
+string nm=b.CustomName;string nu=nm.ToUpper();
 if(nm.Contains("[PAD")&&!nm.Contains("Missile"))continue;
-Vector3D toB=b.GetPosition()-padPos;
-if(Vector3D.Dot(toB,mslDir)<=0)continue;
+if(nu.Contains("FUEL")||nu.Contains("-CON1")||nu.Contains("-CON2"))continue;
 if(b is IMyProgrammableBlock)b.CustomName=$"{t} Program";
-else b.CustomName=$"{t} {BT(b)}";}}
+else{string suf="";if(nm.Contains("[DOCK]"))suf=" [DOCK]";else if(nm.Contains("[AMMO]"))suf=" [AMMO]";b.CustomName=$"{t} {BT(b)}{suf}";}}}
 int GetMslBuildNum(){
 if(padPB==null)FindSiblingPBs();
 if(padPB==null)return 1;
@@ -664,38 +712,29 @@ int n;if(int.TryParse(v,out n))return n;
 return 1;
 }
 void AutoNameConnectors(){
-IMyShipMergeBlock padMerge=null,mslMerge=null;
-IMyShipConnector padCon=null;
 var merges=new List<IMyShipMergeBlock>();
 GridTerminalSystem.GetBlocksOfType(merges,m=>m.CubeGrid==Me.CubeGrid&&m.CustomName.Contains($"[PAD{padID}]"));
-if(merges.Count>0)padMerge=merges[0];
-if(padMerge==null||!padMerge.IsConnected)return;
-var allMerges=new List<IMyShipMergeBlock>();
-GridTerminalSystem.GetBlocksOfType(allMerges,m=>m.IsConnected&&m!=padMerge);
-foreach(var m in allMerges){if(VD(m.GetPosition(),padMerge.GetPosition())<3){mslMerge=m;break;}}
-if(mslMerge==null)return;
+if(merges.Count==0)return;
+var padMrg=merges[0];if(!padMrg.IsConnected)return;
+IMyShipMergeBlock mslMrg=null;
+var allM=new List<IMyShipMergeBlock>();
+GridTerminalSystem.GetBlocksOfType(allM,m=>m.IsConnected&&m!=padMrg&&VD(m.GetPosition(),padMrg.GetPosition())<3);
+if(allM.Count>0)mslMrg=allM[0];
+if(mslMrg==null)return;
+Vector3D padPos=padMrg.GetPosition();
+Vector3D mslDir=VN(mslMrg.GetPosition()-padPos);
+int bldNum=GetMslBuildNum();
+IMyShipConnector padCon=null;
+var pCons=new List<IMyShipConnector>();
+GridTerminalSystem.GetBlocksOfType(pCons,c=>c.CustomName.Contains($"[PAD{padID}-CON"));
+if(pCons.Count>0)padCon=pCons[0];
+Vector3D refPos=padCon!=null?padCon.GetPosition():padPos;
 var cons=new List<IMyShipConnector>();
-GridTerminalSystem.GetBlocksOfType(cons,c=>c.CubeGrid==Me.CubeGrid&&c.CustomName.Contains($"[PAD{padID}-CON"));
-if(cons.Count>0)padCon=cons[0];
-Vector3D mslMergePos=mslMerge.GetPosition();
-Vector3D padMergePos=padMerge.GetPosition();
-Vector3D mslDir=VN(mslMergePos-padMergePos);
-var allCons=new List<IMyShipConnector>();
-GridTerminalSystem.GetBlocksOfType(allCons);
-var mslCons=new List<IMyShipConnector>();
-foreach(var c in allCons){
-if(c==padCon)continue;
-string nm=c.CustomName;
-if(nm.Contains("[PAD")||nm.ToUpper().Contains("ORE"))continue;
-Vector3D toBlock=c.GetPosition()-padMergePos;
-double dot=Vector3D.Dot(toBlock,mslDir);
-if(dot>0)mslCons.Add(c);}
-if(mslCons.Count==0)return;
+GridTerminalSystem.GetBlocksOfType(cons,c=>c!=padCon&&!c.CustomName.Contains($"[PAD{padID}-CON")&&!c.CustomName.ToUpper().Contains("ORE")&&!c.CustomName.ToUpper().Contains("FUEL")&&Vector3D.Dot(c.GetPosition()-padPos,mslDir)>0&&VD(c.GetPosition(),padPos)<50);
+if(cons.Count==0)return;
 IMyShipConnector dockCon=null,ammoCon=null;
 double minD=double.MaxValue,maxD=0;
-Vector3D refPos=padCon!=null?padCon.GetPosition():padMergePos;
-int bldNum=GetMslBuildNum();
-foreach(var c in mslCons){
+foreach(var c in cons){
 double d=VD(c.GetPosition(),refPos);
 if(d<minD){minD=d;dockCon=c;}
 if(d>maxD){maxD=d;ammoCon=c;}}
