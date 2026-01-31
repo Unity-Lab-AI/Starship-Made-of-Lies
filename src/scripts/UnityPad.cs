@@ -512,7 +512,7 @@ if(kPads.Count==0)return;
 if(aRS){AutoSalvoSat();return;}
 if(asCtrlPh==0){
 if(tM==T.GPS&&wpts.Count>0){tgtGPS=wpts[asIdx].Coords;tgtName=wpts[asIdx].Name;tgtSet=true;}
-BroadcastCommand("TGT",tgtGPS);BroadcastCommand("BUILD","");asCtrlPh=1;
+BroadcastCommand("TGT",$"{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}");BroadcastCommand("BUILD","");asCtrlPh=1;
 }else if(asCtrlPh==1){
 int rdy=0;foreach(int pid in kPads){if(pRdy.ContainsKey(pid)&&pRdy[pid])rdy++;}
 if(rdy>0){BroadcastCommand("ARM","");svAct=true;salvoIdx=0;lastSalvo=DT;asCtrlPh=2;asFired+=rdy;}
@@ -783,7 +783,7 @@ case"RESET":asCycle=false;cS=S.IDLE;mslLnch=false;hasTlm=false;abtQ=false;abtS=f
 case"ACK":case"OK":case"CLEAR":if(shwOut)AckOutcome();break;
 case"CLAIM":if(padID==0){padID=GetNextPadID();UpdatePadTag();}break;
 case"SETPADCONTROL":isCtl=!isCtl;if(isCtl){ctrlSel=0;viewLCD=0;cM=M.MAIN;}break;
-case"COPYTGT":if(isCtl)BroadcastCommand("TGT",tgtGPS);break;
+case"COPYTGT":if(isCtl)BroadcastCommand("TGT",$"{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}");break;
 case"BUILDALL":if(isCtl){if(cS==S.GONE){shwOut=false;mslOutcome="";cS=S.IDLE;}if(!mslFound&&!printing)StartPrint();BroadcastCommand("BUILD","");}break;
 case"ARMALL":if(isCtl){if(cS==S.READY&&mslFound)ArmMissile();BroadcastCommand("ARM","");}break;
 case"LAUNCHALL":if(isCtl){if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}BroadcastCommand("LAUNCH","");}break;
@@ -1479,10 +1479,10 @@ else{ST(f,256,y,"No satellites deployed",cSec,0.55f,tAC);y+=25;ST(f,256,y,"Use S
 f.Dispose();}
 void DoControllerApply(){
 switch(ctrlSel){
-case 0:BroadcastCommand("TGT",tgtGPS);break;
+case 0:BroadcastCommand("TGT",$"{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}");break;
 case 1:if(cS==S.GONE){shwOut=false;mslOutcome="";cS=S.IDLE;}if(!mslFound&&!printing)StartPrint();BroadcastCommand("BUILD","");break;
 case 2:if(cS==S.READY&&mslFound)ArmMissile();BroadcastCommand("ARM","");break;
-case 3:BroadcastCommand("TGT",tgtGPS);if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}BroadcastCommand("LAUNCH","");break;
+case 3:BroadcastCommand("TGT",$"{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}");if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}BroadcastCommand("LAUNCH","");break;
 case 4:svAct=!svAct;if(svAct){salvoIdx=0;lastSalvo=DT;}break;
 case 5:cPat=(cPat+1)%3;break;
 case 6:aAtk=!aAtk;if(aAtk){dTgt.Clear();StartCarpetBomb();}break;
