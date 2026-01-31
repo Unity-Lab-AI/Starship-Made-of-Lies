@@ -826,7 +826,7 @@ namespace IngameScript
         string mTag=mslNumber>0?$"Missile #{mslNumber}":"Missile";
         foreach(var b in all){
         string nm=b.CustomName.ToUpper();
-        if((nm.Contains("[PAD")&&!nm.Contains("MISSILE"))||nm.Contains("[CONTROLLER")||nm.Contains("-PRINT]"))continue;
+        if((nm.Contains("[PAD")&&!nm.Contains("MISSILE")&&!nm.Contains("EMOTIONCONTROLLER")&&!nm.Contains("LCD"))||nm.Contains("[CONTROLLER")||nm.Contains("-PRINT]"))continue;
         if(b is IMyRemoteControl&&rc==null)rc=b as IMyRemoteControl;
         if(b is IMyGyro)gyros.Add(b as IMyGyro);
         if(b is IMyThrust)thrusters.Add(b as IMyThrust);
@@ -845,15 +845,10 @@ namespace IngameScript
         if(b is IMyGasTank){var t=b as IMyGasTank;if(t.BlockDefinition.SubtypeId.Contains("Hydrogen"))h2tanks.Add(t);}
         if(b is IMyGasGenerator)generators.Add(b as IMyGasGenerator);
         if(b is IMyLightingBlock)lights.Add(b as IMyLightingBlock);
-        if(b is IMyTextPanel&&b.CustomName.Contains(mTag))lcds.Add(b as IMyTextPanel);
+        if(b is IMyTextPanel&&(b.CustomName.Contains(mTag)||(b.CustomName.Contains("LCD")&&!b.CustomName.Contains(":"))))lcds.Add(b as IMyTextPanel);
         if(b is IMyShipMergeBlock&&merge==null)merge=b as IMyShipMergeBlock;
         if(b is IMyShipConnector&&b.CustomName.Contains("[AMMO]"))ammoConnector=b as IMyShipConnector;
-        if(b.BlockDefinition.SubtypeId.Contains("EmotionController")&&b.CustomName.Contains(mTag))emotionCtrls.Add(b as IMyFunctionalBlock);
-        }
-        if(merge!=null&&merge.IsConnected){
-        Vector3D mp=merge.GetPosition(),pp=mp+merge.WorldMatrix.Forward*5;
-        lcds.RemoveAll(l=>Vector3D.Distance(l.GetPosition(),pp)<Vector3D.Distance(l.GetPosition(),mp));
-        emotionCtrls.RemoveAll(e=>Vector3D.Distance(e.GetPosition(),pp)<Vector3D.Distance(e.GetPosition(),mp));
+        if(b.BlockDefinition.SubtypeId.Contains("EmotionController"))emotionCtrls.Add(b as IMyFunctionalBlock);
         }
         foreach(var g in gyros){g.Enabled=true;g.GyroOverride=true;}
         }

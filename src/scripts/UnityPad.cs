@@ -1480,9 +1480,9 @@ f.Dispose();}
 void DoControllerApply(){
 switch(ctrlSel){
 case 0:BroadcastCommand("TGT",tgtGPS);break;
-case 1:BroadcastCommand("BUILD","");break;
-case 2:BroadcastCommand("ARM","");break;
-case 3:BroadcastCommand("LAUNCH","");break;
+case 1:if(cS==S.GONE)AckOutcome();if(!mslFound&&!printing)StartPrint();BroadcastCommand("BUILD","");break;
+case 2:if(cS==S.READY&&mslFound)ArmMissile();BroadcastCommand("ARM","");break;
+case 3:BroadcastCommand("TGT",tgtGPS);if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}BroadcastCommand("LAUNCH","");break;
 case 4:svAct=!svAct;if(svAct){salvoIdx=0;lastSalvo=DT;}break;
 case 5:cPat=(cPat+1)%3;break;
 case 6:aAtk=!aAtk;if(aAtk){dTgt.Clear();StartCarpetBomb();}break;

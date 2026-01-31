@@ -718,8 +718,9 @@ namespace IngameScript
         var allBlks=new List<IMyTerminalBlock>();
         GridTerminalSystem.GetBlocksOfType(allBlks,b=>!b.CustomName.Contains("-PRINT")&&b!=Me&&!b.CustomName.Contains($"[PAD{padID}:")&&Vector3D.Dot(b.GetPosition()-padPos,mslDir)>0&&VD(b.GetPosition(),padPos)<50);
         foreach(var b in allBlks){
-        string nm=b.CustomName;
+        string nm=b.CustomName;string nu=nm.ToUpper();
         if(nm.Contains("[PAD")&&!nm.Contains("Missile"))continue;
+        if(nu.Contains("FUEL")||nu.Contains("-CON1")||nu.Contains("-CON2"))continue;
         if(b is IMyProgrammableBlock)b.CustomName=$"{t} Program";
         else{string suf="";if(nm.Contains("[DOCK]"))suf=" [DOCK]";else if(nm.Contains("[AMMO]"))suf=" [AMMO]";b.CustomName=$"{t} {BT(b)}{suf}";}}}
         int GetMslBuildNum(){
@@ -752,7 +753,7 @@ namespace IngameScript
         if(pCons.Count>0)padCon=pCons[0];
         Vector3D refPos=padCon!=null?padCon.GetPosition():padPos;
         var cons=new List<IMyShipConnector>();
-        GridTerminalSystem.GetBlocksOfType(cons,c=>c!=padCon&&!c.CustomName.Contains($"[PAD{padID}-CON")&&!c.CustomName.ToUpper().Contains("ORE")&&Vector3D.Dot(c.GetPosition()-padPos,mslDir)>0&&VD(c.GetPosition(),padPos)<50);
+        GridTerminalSystem.GetBlocksOfType(cons,c=>c!=padCon&&!c.CustomName.Contains($"[PAD{padID}-CON")&&!c.CustomName.ToUpper().Contains("ORE")&&!c.CustomName.ToUpper().Contains("FUEL")&&Vector3D.Dot(c.GetPosition()-padPos,mslDir)>0&&VD(c.GetPosition(),padPos)<50);
         if(cons.Count==0)return;
         IMyShipConnector dockCon=null,ammoCon=null;
         double minD=double.MaxValue,maxD=0;
