@@ -427,7 +427,7 @@ namespace IngameScript
         }}
         }}
         void CheckTelemetryTimeout(){
-        if(cS==S.GONE&&mslLnch&&!shwOut){
+        if(mslLnch&&!shwOut){
         bool laserLinked=false;foreach(var l in padLsr)if(l.Status==MyLaserAntennaStatus.Connected)laserLinked=true;
         int sinceLastTel=(int)(DT-lTlm).TotalSeconds;
         int boT=fltMd==1?30:fltMd==0?15:10,lostT=fltMd==1?120:fltMd==0?60:30;
@@ -470,7 +470,7 @@ namespace IngameScript
         if((fromPad==padID)!=isCtl)continue;
         string cmd=parts[1];
         if(cmd=="TGT"&&parts.Length>=3){int tp=0;if(parts.Length>=4)int.TryParse(parts[3],out tp);if(tp==0||tp==padID){var coords=parts[2].Split(',');if(coords.Length==3){double x,y,z;if(double.TryParse(coords[0],out x)&&double.TryParse(coords[1],out y)&&double.TryParse(coords[2],out z)){tgtGPS=new Vector3D(x,y,z);tgtSet=true;tgtName="CTRL TGT";}}}}
-        else if(cmd=="BUILD"){if(cS==S.GONE)AckOutcome();if(!mslFound&&!printing)StartPrint();}
+        else if(cmd=="BUILD"){if(cS==S.GONE){shwOut=false;mslOutcome="";cS=S.IDLE;}if(!mslFound&&!printing)StartPrint();}
         else if(cmd=="ARM"&&cS==S.READY&&mslFound)ArmMissile();
         else if(cmd=="LAUNCH"){if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}}
         else if(cmd=="ABORT"&&cS==S.GONE){if(mslBO){abtQ=true;}else{RemoteDetonate(true);abtS=true;abtT=DT;}}
@@ -481,7 +481,7 @@ namespace IngameScript
         if(parts.Length>=4){
         if(parts[3]=="GRID"&&parts.Length>=5){var gp=parts[4].Split(',');int gx,gz;if(gp.Length==2&&int.TryParse(gp[0],out gx)&&int.TryParse(gp[1],out gz)){satLaunchGridX=gx;satLaunchGridZ=gz;}}
         else{var coords=parts[3].Split(',');if(coords.Length==3){double x,y,z;if(double.TryParse(coords[0],out x)&&double.TryParse(coords[1],out y)&&double.TryParse(coords[2],out z))satLaunchTgt=new Vector3D(x,y,z);}}}
-        if(cS==S.GONE)AckOutcome();
+        if(cS==S.GONE){shwOut=false;mslOutcome="";cS=S.IDLE;}
         if(cS==S.READY&&mslFound)ArmMissile();
         else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}
         else if(!mslFound&&!printing)StartPrint();
@@ -525,7 +525,7 @@ namespace IngameScript
         else if(cS==S.READY)ArmMissile();
         else if(cS==S.GONE){
         asFired++;
-        AckOutcome();
+        shwOut=false;mslOutcome="";cS=S.IDLE;
         AdvanceAutoTarget();
         }
         }
@@ -807,7 +807,7 @@ namespace IngameScript
         case"CLAIM":if(padID==0){padID=GetNextPadID();UpdatePadTag();}break;
         case"SETPADCONTROL":isCtl=!isCtl;if(isCtl){ctrlSel=0;viewLCD=0;cM=M.MAIN;}break;
         case"COPYTGT":if(isCtl)BroadcastCommand("TGT",tgtGPS);break;
-        case"BUILDALL":if(isCtl){if(cS==S.GONE)AckOutcome();if(!mslFound&&!printing)StartPrint();BroadcastCommand("BUILD","");}break;
+        case"BUILDALL":if(isCtl){if(cS==S.GONE){shwOut=false;mslOutcome="";cS=S.IDLE;}if(!mslFound&&!printing)StartPrint();BroadcastCommand("BUILD","");}break;
         case"ARMALL":if(isCtl){if(cS==S.READY&&mslFound)ArmMissile();BroadcastCommand("ARM","");}break;
         case"LAUNCHALL":if(isCtl){if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}BroadcastCommand("LAUNCH","");}break;
         case"ABORT":if(cS==S.GONE){if(abtS)break;if(mslBO){abtQ=true;}else{RemoteDetonate(true);abtS=true;abtT=DT;}}break;
@@ -903,8 +903,8 @@ namespace IngameScript
         if(b is IMyMedicalRoom){string st=b.BlockDefinition.SubtypeId;if(st.Contains("Survival")||st.Contains("Kit"))padSurvCount++;else padMedCount++;}
         if(b is IMyCockpit&&b.BlockDefinition.SubtypeId.Contains("Cryo"))padCryoCount++;
         if(b is IMyLightingBlock&&!b.CustomName.Contains("Missile"))padLts.Add(b as IMyLightingBlock);
-        if(b is IMyTextPanel&&b.CustomName.Contains($"[PAD{padID}]")&&!b.CustomName.Contains(":")&&b.CustomName.Contains("LCD")&&!b.CustomName.Contains("Missile"))mslLCDs.Add(b as IMyTextPanel);
-        if(b.BlockDefinition.SubtypeId.Contains("EmotionController")&&b.CustomName.Contains($"[PAD{padID}]")&&!b.CustomName.Contains("Missile"))mslEmos.Add(b as IMyFunctionalBlock);
+        if(!isMerged&&b is IMyTextPanel&&b.CustomName.Contains($"[PAD{padID}]")&&!b.CustomName.Contains(":")&&b.CustomName.Contains("LCD")&&!b.CustomName.Contains("Missile"))mslLCDs.Add(b as IMyTextPanel);
+        if(!isMerged&&b.BlockDefinition.SubtypeId.Contains("EmotionController")&&b.CustomName.Contains($"[PAD{padID}]")&&!b.CustomName.Contains("Missile"))mslEmos.Add(b as IMyFunctionalBlock);
         }
         var allBlk=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(allBlk);
         foreach(var x in allBlk){if(IsMslBlock(x))continue;if(x is IMyBatteryBlock){var bb=x as IMyBatteryBlock;if(!padBat.Contains(bb))padBat.Add(bb);}else if(x is IMySolarPanel&&x.IsSameConstructAs(Me)){var sp=x as IMySolarPanel;if(!padSolar.Contains(sp))padSolar.Add(sp);}else if(x is IMyReactor){var rr=x as IMyReactor;if(!padReact.Contains(rr))padReact.Add(rr);}else if(x is IMyGasGenerator){var gg=x as IMyGasGenerator;if(!padGen.Contains(gg))padGen.Add(gg);}else if(x is IMyGasTank){var tt=x as IMyGasTank;if(tt.BlockDefinition.SubtypeId.Contains("Hydrogen")){if(!padH2.Contains(tt))padH2.Add(tt);}else{if(!padO2.Contains(tt))padO2.Add(tt);}}else if(x is IMyCargoContainer&&x.IsSameConstructAs(Me)){var cc=x as IMyCargoContainer;if(!padCargo.Contains(cc)){padCargo.Add(cc);string st=cc.BlockDefinition.SubtypeId;if(st.Contains("LargeContainer"))padCargoL.Add(cc);else if(st.Contains("MediumContainer"))padCargoM.Add(cc);else padCargoS.Add(cc);}}else if(x is IMyRefinery){var rf=x as IMyRefinery;if(!padRef.Contains(rf))padRef.Add(rf);}else if(x is IMyAssembler){var am=x as IMyAssembler;if(!padAsm.Contains(am))padAsm.Add(am);}else if(x is IMyPowerProducer){var pp=x as IMyPowerProducer;if(pp.BlockDefinition.SubtypeId.Contains("Wind")&&!padWind.Contains(pp))padWind.Add(pp);}}
@@ -1070,7 +1070,7 @@ namespace IngameScript
         if(!mslFound){if(prtProj!=null)prtProj.Enabled=true;bldCmp=false;return;}
         if(prtProj!=null)prtProj.Enabled=false;
         if(!bldCmp){cS=S.BUILD;return;}
-        if(merged){if(!pNmd){bldNum++;IGC.SendBroadcastMessage("UNITY_NAME_CMD",$"NAMEMSL|{padID}");pNmd=true;}if(padCon!=null)padCon.Enabled=true;WriteMslPrintFlag();cS=S.DOCK;hasTlm=false;}
+        if(merged){if(!pNmd){bldNum++;IGC.SendBroadcastMessage("UNITY_NAME_CMD",$"NAMEMSL|{padID}");pNmd=true;}if(padCon!=null)padCon.Enabled=true;WriteMslPrintFlag();cS=S.DOCK;if(!mslLnch)hasTlm=false;}
         break;
         case S.BUILD:
         if(prtProj!=null&&prtProj.RemainingBlocks>0&&!prtStopped){bldCmp=false;return;}
@@ -1503,7 +1503,7 @@ namespace IngameScript
         void DoControllerApply(){
         switch(ctrlSel){
         case 0:BroadcastCommand("TGT",tgtGPS);break;
-        case 1:if(cS==S.GONE)AckOutcome();if(!mslFound&&!printing)StartPrint();BroadcastCommand("BUILD","");break;
+        case 1:if(cS==S.GONE){shwOut=false;mslOutcome="";cS=S.IDLE;}if(!mslFound&&!printing)StartPrint();BroadcastCommand("BUILD","");break;
         case 2:if(cS==S.READY&&mslFound)ArmMissile();BroadcastCommand("ARM","");break;
         case 3:BroadcastCommand("TGT",tgtGPS);if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}BroadcastCommand("LAUNCH","");break;
         case 4:svAct=!svAct;if(svAct){salvoIdx=0;lastSalvo=DT;}break;
