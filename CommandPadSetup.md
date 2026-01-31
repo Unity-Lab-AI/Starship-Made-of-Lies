@@ -340,6 +340,125 @@ After SETPAD renames all blocks, you must recompile all 4 scripts. `FindSiblingP
 
 ---
 
+## Satellite Array Operations
+
+Satellites are missiles launched in SATELLITE targeting mode. Instead of attacking a target, they climb to orbit (62,000m), station-keep, scan for enemies, and auto-intercept threats. The entire satellite constellation is managed through the pad's LCD menu system and controller mode.
+
+### Deploying Satellites
+
+There is no dedicated "deploy satellite" PB command. Deployment works through the normal launch flow:
+
+1. **Set targeting mode to SATELLITE** — cycle through modes on the Pad's LCD menu (LCD 1, MAIN menu) until it shows `SATELLITE`
+2. **ARM and LAUNCH normally** — the missile detects SATELLITE mode and enters the satellite flight path: `SAT_CLIMB → SAT_BRAKE → SAT_HOLD`
+
+On launch, UnityPad automatically:
+- Assigns the next grid slot via `AdvanceGridSlot()` (spiral pattern outward from 0,0)
+- Generates a unique satellite ID (`buildNumber * 100 + padID`)
+- Writes satellite config to the missile's CustomData: `SatID`, `SatGridX`, `SatGridZ`, `GridSpacing` (5000m default), `SatAlt` (62,000m), `InterceptDist` (10m)
+
+### Satellite Flight Phases (UnityMissile)
+
+| Phase | Description |
+|-------|-------------|
+| `SAT_CLIMB` | Ascending to 62,000m orbital altitude |
+| `SAT_BRAKE` | Decelerating to station-keeping velocity |
+| `SAT_HOLD` | Station-keeping at grid position, scanning for enemies via sensors |
+| `SAT_INTERCEPT` | Enemy detected — chasing target, detonates within 10m |
+
+### Grid Position System
+
+Satellites are placed on a grid with 5,000m spacing. `AdvanceGridSlot()` assigns positions in a spiral pattern expanding outward from the pad:
+
+```
+Grid slot assignment order (spiral):
+        (-1,1)  (0,1)  (1,1)
+        (-1,0)  (0,0)  (1,0)
+        (-1,-1) (0,-1) (1,-1)
+```
+
+Each satellite broadcasts its grid position via `UNITY_SAT_RELAY_STATUS`. UnitySignal tracks the constellation and writes status to its CustomData `[SATELLITES]` section. UnityPad reads this data via `ReadSignalSatData()` and displays the satellite grid on LCD 8.
+
+### Satellite Mesh Networking
+
+Deployed satellites form a 5-laser mesh network:
+- Each satellite attempts laser links to neighbors (N, S, E, W) and the pad
+- Link status broadcast via `UNITY_SAT_MESH` IGC channel
+- Mesh connectivity shown on the satellite grid LCD display
+
+### Auto-Intercept
+
+When a satellite's sensors detect an enemy:
+1. Satellite switches to `SAT_INTERCEPT` phase
+2. Chases the target, broadcasting position via `UNITY_SAT_INTERCEPT`
+3. Detonates within 10m of target
+4. Broadcasts `DETONATE` message with its grid position
+
+### Auto-Replacement (Controller Mode)
+
+When a satellite is destroyed (intercept or low power):
+1. `UNITY_SAT_INTERCEPT` broadcast includes the satellite's grid position
+2. UnityPad's `CheckSatIntercept()` captures the position and queues it in `satReplaceQueue`
+3. If auto-replace is enabled (`aRS`), the controller automatically sends `SATLAUNCH` to the next available slave pad with the destroyed satellite's grid coordinates
+4. The replacement satellite launches to the exact same grid slot
+
+### Satellite Commands
+
+**PB argument commands (run on Pad PB):**
+
+| Command | Where | What It Does |
+|---------|-------|--------------|
+| `ABORT` | Pad PB (any pad) | Sends `DETONATE:{padID}` — destroys this pad's in-flight missile/satellite |
+| `ABORTALL` | Controller Pad PB | Sends abort to ALL active missiles/satellites across all pads |
+
+**IGC commands (sent to satellites via `UNITY_MSL_CMD`):**
+
+| Command | What It Does |
+|---------|--------------|
+| `DETONATE:{padID}` | Destroys the satellite (broadcasts its grid position for replacement) |
+| `DEORBIT:{padID}` | Commands satellite to leave orbit and attack its original GPS target |
+
+**Signal PB argument commands:**
+
+| Command | What It Does |
+|---------|--------------|
+| `SAT:RESCAN` | Clears all satellite tracking data in UnitySignal (forces re-discovery from broadcasts) |
+| `RESCAN` | Full Signal block rescan (includes satellite LCD refresh) |
+
+### Satellite LCD Displays
+
+| LCD Tag | Script | Content |
+|---------|--------|---------|
+| `[PAD#] SATS` | UnitySignal | Satellite constellation overview — count, status, battery, H2 per satellite |
+| LCD 8 (Pad) | UnityPad | Satellite grid map — visual grid showing satellite positions, status colors, mesh links |
+| `[PAD#] SIGNAL` | UnitySignal | Includes satellite count in the signal status overview |
+
+### Controller Mode Satellite Operations
+
+In controller mode, the satellite system gains additional automation:
+
+| Feature | Description |
+|---------|-------------|
+| Auto-replacement | Destroyed satellites automatically queued for replacement launch on next available slave pad |
+| SATLAUNCH broadcast | Controller sends `SATLAUNCH` via `UNITY_PAD_CMD` to slave pads with specific grid coordinates |
+| Grid tracking | Controller aggregates satellite positions from all pads via Signal's CustomData |
+| AUTOATTACK | When enabled, controller auto-launches at enemy positions reported by satellite intercepts |
+
+### Typical Satellite Deployment Sequence
+
+```
+1. Set targeting mode to SATELLITE (LCD menu)
+2. ARM → LAUNCH (normal launch flow)
+   → Missile climbs to 62,000m, takes grid slot (0,0)
+3. Print next missile, ARM → LAUNCH
+   → Takes grid slot (1,0)
+4. Repeat for desired constellation size
+5. (Optional) Enable SETPADCONTROL for auto-replacement
+6. Satellites auto-intercept enemies and report back
+7. Destroyed satellites auto-replaced via controller
+```
+
+---
+
 ## Quick Reference: Complete Setup Sequence
 
 ```

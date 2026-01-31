@@ -27,7 +27,7 @@ List<IMyLaserAntenna> padLasers=new List<IMyLaserAntenna>();
 int radioEnabled=0,laserConnected=0;
 
 class CamEntry{public string name;public string type;public string status;public long entityId;public int slot;public float dist;}
-class MslData{public string status;public string lastPhase;public List<long> camIds=new List<long>();public List<string> camNames=new List<string>();public int lastSeen;public Vector3D pos;public float dist;}
+class MslData{public string status;public string lastPhase;public List<long> camIds=new List<long>();public List<string> camNames=new List<string>();public int lastSeen;public Vector3D pos;public float dist;public float alt;public float spd;public float fuel;public string gyro="";public int padId;}
 class MinerData{public string shipName;public string status;public List<long> camIds=new List<long>();public int lastSeen;}
 Dictionary<long,int> laserAssign=new Dictionary<long,int>();
 class SatData{public int gridX,gridZ,bat,h2,links;public string status;public int lastSeen;}
@@ -600,6 +600,11 @@ if(parts.Length>=4){
 double x,y,z;
 if(double.TryParse(parts[0],out x)&&double.TryParse(parts[1],out y)&&double.TryParse(parts[2],out z))msl.pos=new Vector3D(x,y,z);
 float d;if(float.TryParse(parts[3],out d))msl.dist=d;}
+if(parts.Length>=8){float a;if(float.TryParse(parts[7],out a))msl.alt=a;}
+if(parts.Length>=9){float s;if(float.TryParse(parts[8],out s))msl.spd=s;}
+if(parts.Length>=10){float f;if(float.TryParse(parts[9],out f))msl.fuel=f;}
+if(parts.Length>=11)msl.gyro=parts[10];
+int pi=data.IndexOf("|PAD:");if(pi>=0){int pe=data.IndexOf('|',pi+5);string pv=pe>0?data.Substring(pi+5,pe-pi-5):data.Substring(pi+5);int tp;if(int.TryParse(pv,out tp))msl.padId=tp;}
 string newPhase=parts.Length>=5?parts[4]:"UNKNOWN";
 if(msl.lastPhase!=null&&msl.lastPhase!=newPhase){
 long mslId=0;foreach(var kv in missiles)if(kv.Value==msl){mslId=kv.Key;break;}
@@ -1039,35 +1044,41 @@ f.Add(new MySprite(SpriteType.TEXT,$"FLIGHT RECORDER - PAD {padID}",new Vector2(
 y+=28*ys;
 f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));
 y+=12*ys;
-int mslActive=0;foreach(var m in missiles.Values)if(m.status!="IDLE"&&m.status!="UNKNOWN")mslActive++;
-f.Add(new MySprite(SpriteType.TEXT,$"MISSILES: {missiles.Count}  |  ACTIVE: {mslActive}  |  LOG: {flightLog.Count}",new Vector2(w/2,y),null,cTxt,"Monospace",TextAlignment.CENTER,0.35f*fs));
-y+=22*ys;
+int mslActive=0;var actMsl=new List<KeyValuePair<long,MslData>>();
+foreach(var kv in missiles){if(kv.Value.status!="IDLE"&&kv.Value.status!="UNKNOWN"&&(tick-kv.Value.lastSeen)<50){mslActive++;actMsl.Add(kv);}}
+f.Add(new MySprite(SpriteType.TEXT,$"ACTIVE: {mslActive}  |  TRACKED: {missiles.Count}  |  LOG: {flightLog.Count}",new Vector2(w/2,y),null,cTxt,"Monospace",TextAlignment.CENTER,0.35f*fs));
+y+=20*ys;
+if(actMsl.Count>0){
+f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));y+=8*ys;
+foreach(var kv in actMsl){
+var m=kv.Value;long mid=kv.Key;
+Color sc=m.status=="TARGET"||m.status=="REENTRY"?cWrn:m.status=="DETONATE"?cErr:m.status=="CLIMB"||m.status=="ARM"?cOK:cPri;
+string pid=m.padId>0?$"P{m.padId}":"";
+f.Add(new MySprite(SpriteType.TEXT,$"{pid}MSL-{mid%10000} {m.status}",new Vector2(20*s,y),null,sc,"Monospace",TextAlignment.LEFT,0.32f*fs));
+f.Add(new MySprite(SpriteType.TEXT,$"D:{m.dist:F0}m A:{m.alt:F0}m S:{m.spd:F0}m/s F:{m.fuel:F0}%",new Vector2(20*s,y+14*ys),null,cTxt,"Monospace",TextAlignment.LEFT,0.28f*fs));
+y+=32*ys;if(y>h*0.55f)break;}}
 f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,y),new Vector2(w-20*s,2),cSec));
-y+=15*ys;
-float rowH=18*ys;
+y+=10*ys;
+f.Add(new MySprite(SpriteType.TEXT,"EVENT LOG",new Vector2(20*s,y),null,cAcc,"Monospace",TextAlignment.LEFT,0.32f*fs));
+y+=16*ys;
+float rowH=16*ys;
 int maxRows=(int)((h-y-30*ys)/rowH);
 if(maxRows<1)maxRows=1;
 for(int i=0;i<Math.Min(maxRows,flightLog.Count);i++){
-string log=flightLog[i];
-var pts=log.Split('|');
-string tStr=pts.Length>0?pts[0]:"";
-string mslStr=pts.Length>1?pts[1]:"";
-string phStr=pts.Length>2?pts[2]:"";
+string log=flightLog[i];var pts=log.Split('|');
+string tStr=pts.Length>0?pts[0]:"";string mslStr=pts.Length>1?pts[1]:"";string phStr=pts.Length>2?pts[2]:"";
 Color phCol=cTxt;
 if(phStr.Contains("DETONATE")||phStr.Contains("INTERCEPT"))phCol=cErr;
 else if(phStr.Contains("TARGET")||phStr.Contains("REENTRY"))phCol=cWrn;
 else if(phStr.Contains("ARM")||phStr.Contains("COAST"))phCol=cAcc;
 else if(phStr.Contains("CLIMB")||phStr.Contains("SAT_"))phCol=cOK;
-f.Add(new MySprite(SpriteType.TEXT,tStr,new Vector2(20*s,y),null,cSec,"Monospace",TextAlignment.LEFT,0.28f*fs));
-f.Add(new MySprite(SpriteType.TEXT,mslStr,new Vector2(100*s,y),null,cPri,"Monospace",TextAlignment.LEFT,0.28f*fs));
-f.Add(new MySprite(SpriteType.TEXT,phStr,new Vector2(200*s,y),null,phCol,"Monospace",TextAlignment.LEFT,0.28f*fs));
+f.Add(new MySprite(SpriteType.TEXT,$"{tStr} {mslStr} {phStr}",new Vector2(20*s,y),null,phCol,"Monospace",TextAlignment.LEFT,0.26f*fs));
 y+=rowH;}
-if(flightLog.Count==0){
-f.Add(new MySprite(SpriteType.TEXT,"No flight events recorded",new Vector2(w/2,h/2),null,cSec,"Monospace",TextAlignment.CENTER,0.45f*fs));
-f.Add(new MySprite(SpriteType.TEXT,"Launch a missile to begin logging",new Vector2(w/2,h/2+25*ys),null,cSec,"Monospace",TextAlignment.CENTER,0.35f*fs));}
+if(flightLog.Count==0&&actMsl.Count==0){
+f.Add(new MySprite(SpriteType.TEXT,"No flight activity",new Vector2(w/2,h/2),null,cSec,"Monospace",TextAlignment.CENTER,0.45f*fs));}
 float footY=h-22*ys;
 f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(w/2,footY-8*ys),new Vector2(w-20*s,2),cSec));
-f.Add(new MySprite(SpriteType.TEXT,$"Tick:{tick} | Max:{MAX_FLIGHT_LOG}",new Vector2(w/2,footY),null,cSec,"Monospace",TextAlignment.CENTER,0.35f*fs));
+f.Add(new MySprite(SpriteType.TEXT,$"Tick:{tick} | Sats:{satellites.Count}",new Vector2(w/2,footY),null,cSec,"Monospace",TextAlignment.CENTER,0.35f*fs));
 f.Dispose();}
 
 void UpdateEcho(){

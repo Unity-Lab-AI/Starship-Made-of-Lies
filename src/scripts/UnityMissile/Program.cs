@@ -457,15 +457,15 @@ namespace IngameScript
         currentGrav=grav.Length();
         double alt=0;
         rc.TryGetPlanetElevation(MyPlanetElevation.Sealevel,out alt);
-        if(alt>=satTargetAlt||currentGrav<0.05){
+        double climbRef=alt>0?alt:distFromPad;
+        if(climbRef>=satTargetAlt){
         satPosition=Me.GetPosition();
         satVelocity=rc.GetShipVelocities().LinearVelocity;
         phase=F.SAT_BRAKE;
         return;
         }
-        Vector3D up=Vector3D.Normalize(-grav);
+        Vector3D up=currentGrav>0.01?Vector3D.Normalize(-grav):Vector3D.Normalize(Me.GetPosition()-launchPos);
         AimAtUp(up);
-        EnableThrust(true);
         }
         
         void DoSatBrake(){
@@ -747,7 +747,7 @@ namespace IngameScript
         if(phase==F.TARGET&&(h2<0.15||bat<0.15))status="LOW_FUEL";
         string camInfo="";if(cameras.Count>0){foreach(var c in cameras)camInfo+=(camInfo.Length>0?";":"")+c.EntityId.ToString()+":"+c.CustomName.Replace("|","").Replace(",","").Replace(":","").Replace(";","");}
         string lcdInfo=curLine1.Replace("|","").Replace("~","")+$"~{curLine2.Replace("|","").Replace("~","")}~{curEmo}";
-        string msg=$"{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0},{distToTgt:F0},{status},{currentGrav:F2},{distFromPad:F0},{currentAltitude:F0},{spd:F0},{h2*100:F0},{(gyrosLocked?"LOCK":"CTRL")}|CAMS:{camInfo}|LCD:{lcdInfo}";
+        string msg=$"{Me.GetPosition().X:F0},{Me.GetPosition().Y:F0},{Me.GetPosition().Z:F0},{distToTgt:F0},{status},{currentGrav:F2},{distFromPad:F0},{currentAltitude:F0},{spd:F0},{h2*100:F0},{(gyrosLocked?"LOCK":"CTRL")}|PAD:{padID}|CAMS:{camInfo}|LCD:{lcdInfo}";
         IGC.SendBroadcastMessage(broadcastTag,msg);
         if(useLaser&&lasers.Count>0){foreach(var l in lasers){if(l.Status!=MyLaserAntennaStatus.Connected)l.Connect();}}
         }
