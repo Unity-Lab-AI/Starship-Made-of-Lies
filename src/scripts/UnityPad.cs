@@ -115,7 +115,7 @@ IMyBroadcastListener pCmdL;
 IMyBroadcastListener pStL;
 string pCTag="UNITY_PAD_CMD";
 string pStTag="UNITY_PAD_STATUS";
-int svInt=3;
+int svInt=15;
 int salvoIdx=0;
 bool svAct=false;
 int cSpd=50;
@@ -432,7 +432,7 @@ IGC.SendBroadcastMessage(pCTag,msg);
 void BroadcastStatus(){
 if(padID==0)return;
 string err="";
-if(padMerge==null)err="NO_MERGE";else if(padCon==null)err="NO_CON";else if(cS==S.READY&&!tgtSet&&tM==T.GPS)err="NO_TGT";else if(mslBO)err="BLACKOUT";
+if(padMerge==null)err="NO_MERGE";else if(padCon==null)err="NO_CON";else if(cS==S.READY&&!tgtSet&&tM==T.GPS)err="NO_TGT";else if(mslBO)err="BLACKOUT";else if(mslOutcome!="")err=mslOutcome;
 string st=$"{padID}|STATUS|{SN(cS)}|{(mslFound?"1":"0")}|{(cS==S.ARM?"1":"0")}|{(cS==S.READY?"1":"0")}|{(printing?"1":"0")}|{tgtGPS.X:F0}|{tgtGPS.Y:F0}|{tgtGPS.Z:F0}|{err}";
 IGC.SendBroadcastMessage(pStTag,st);
 }
@@ -449,7 +449,7 @@ string cmd=parts[1];
 if(cmd=="TGT"&&parts.Length>=3){int tp=0;if(parts.Length>=4)int.TryParse(parts[3],out tp);if(tp==0||tp==padID){var coords=parts[2].Split(',');if(coords.Length==3){double x,y,z;if(double.TryParse(coords[0],out x)&&double.TryParse(coords[1],out y)&&double.TryParse(coords[2],out z)){tgtGPS=new Vector3D(x,y,z);tgtSet=true;tgtName="CTRL TGT";}}}}
 else if(cmd=="BUILD"){if(cS==S.GONE){shwOut=false;mslOutcome="";cS=S.IDLE;}if(!mslFound&&!printing)StartPrint();}
 else if(cmd=="ARM"&&cS==S.READY&&mslFound)ArmMissile();
-else if(cmd=="LAUNCH"){if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}}
+else if(cmd=="LAUNCH"){int lp=0;if(parts.Length>=3)int.TryParse(parts[2],out lp);if(lp!=0&&lp!=padID){}else{if(cS==S.READY&&mslFound)ArmMissile();else if(cS==S.ARM){int el=(int)(DT-armTime).TotalSeconds;if(cntDn==0||el>=cntDn)StartLaunch();}}}
 else if(cmd=="ABORT"&&cS==S.GONE){if(mslBO){abtQ=true;}else{RemoteDetonate(true);abtS=true;abtT=DT;}}
 else if(cmd=="SATLAUNCH"){
 int targetPad;if(parts.Length>=3&&int.TryParse(parts[2],out targetPad)&&targetPad==padID){
@@ -511,17 +511,20 @@ void AutoSalvoCtrl(){
 if(kPads.Count==0)return;
 if(aRS){AutoSalvoSat();return;}
 if(asCtrlPh==0){
-if(tM==T.GPS&&wpts.Count>0){tgtGPS=wpts[asIdx].Coords;tgtName=wpts[asIdx].Name;tgtSet=true;}
-BroadcastCommand("TGT",$"{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}");BroadcastCommand("BUILD","");asCtrlPh=1;
+if(tM==T.GPS&&wpts.Count>0){tgtGPS=wpts[asIdx].Coords;tgtName=wpts[asIdx].Name;tgtSet=true;
+int wi=asIdx;foreach(int pid in kPads){if(pid!=padID){wi=(wi+1)%wpts.Count;var c=wpts[wi].Coords;IGC.SendBroadcastMessage(pCTag,$"{padID}|TGT|{c.X},{c.Y},{c.Z}|{pid}");}}}
+else BroadcastCommand("TGT",$"{tgtGPS.X},{tgtGPS.Y},{tgtGPS.Z}");
+BroadcastCommand("BUILD","");asCtrlPh=1;
 }else if(asCtrlPh==1){
 int rdy=0;foreach(int pid in kPads){if(pRdy.ContainsKey(pid)&&pRdy[pid])rdy++;}
 if(rdy>0){BroadcastCommand("ARM","");svAct=true;salvoIdx=0;lastSalvo=DT;asCtrlPh=2;asFired+=rdy;}
 }else if(asCtrlPh==2){
-bool any=false;foreach(int pid in kPads){if(pStat.ContainsKey(pid)){string s=pStat[pid];if(s=="GONE"||s=="ARM"||s=="LAUNCH")any=true;}}
-if(!any){asCooling=true;asCoolT=DT;asCtrlPh=3;}
+bool firing=false;bool anyGone=false;foreach(int pid in kPads){if(pStat.ContainsKey(pid)){string s=pStat[pid];if(s=="ARM"||s=="LAUNCH")firing=true;if(s=="GONE")anyGone=true;}}
+if(!firing&&!anyGone){asCooling=true;asCoolT=DT;asCtrlPh=3;}
+else if(!firing&&anyGone){BroadcastCommand("BUILD","");if(cS==S.GONE){shwOut=false;mslOutcome="";cS=S.IDLE;}asCooling=true;asCoolT=DT;asCtrlPh=3;}
 }else if(asCtrlPh==3){
 int el=(int)(DT-asCoolT).TotalSeconds;
-if(el>=asCoolSec){asCooling=false;asCtrlPh=0;AdvanceAutoTarget();}
+if(el>=asCoolSec){asCooling=false;asCtrlPh=0;for(int ai=0;ai<kPads.Count;ai++)AdvanceAutoTarget();}
 }
 }
 void AutoSalvoSat(){
@@ -1459,9 +1462,10 @@ int inFlight=0;foreach(int pid in kPads){if(pStat.ContainsKey(pid)&&pStat[pid]==
 SH(f,y,"FLIGHT STATUS",inFlight>0?cErr:cPri);y+=35;
 ST(f,20,y,$"In Flight: {inFlight} missiles",inFlight>0?cErr:cTxt,0.55f);y+=28;
 if(hasTlm){bool _sC=mslPhase.StartsWith("SAT");SBx(f,15,y,482,80,cBg,_sC?cPri:cErr);y+=10;ST(f,25,y,"THIS PAD",_sC?cPri:cErr,0.5f);y+=22;ST(f,25,y,$"Phase: {mslPhase}",cPri,0.5f);y+=20;ST(f,25,y,_sC?$"Alt: {mslAlt:F0}m":$"Distance: {mslDTT:F0}m",cTxt,0.5f);y+=20;ST(f,25,y,$"Speed: {mslSpeed:F0}m/s",cTxt,0.5f);}
+else if(mslOutcome!=""){Color oc=mslOutcome.Contains("HIT")?cOK:mslOutcome=="ABORTED"?cErr:cWrn;ST(f,25,y,$"PAD{padID}: {mslOutcome}",oc,0.5f);}
 else if(cS==S.GONE){ST(f,256,y,mslBO?"BLACKOUT":"NO SIGNAL",cWrn,0.6f,tAC);}
 else{ST(f,256,y,"No active flight",cSec,0.55f,tAC);}
-y+=10;foreach(int pid in kPads){if(!pStat.ContainsKey(pid)||pStat[pid]!="GONE")continue;if(pid==padID&&hasTlm)continue;ST(f,25,y,$"PAD{pid}: IN FLIGHT",cErr,0.45f);y+=16;}
+y+=10;foreach(int pid in kPads){if(pid==padID)continue;string pe=pErr.ContainsKey(pid)?pErr[pid]:"";bool gn=pStat.ContainsKey(pid)&&pStat[pid]=="GONE";if(!gn&&pe=="")continue;Color ec=pe.Contains("HIT")?cOK:(pe=="ABORTED"||gn)?cErr:cWrn;ST(f,25,y,$"PAD{pid}: {(pe!=""?pe:"IN FLIGHT")}",ec,0.45f);y+=16;}
 f.Dispose();}
 void UpdateControllerLCD8(){
 if(lcd8==null)return;var sf=lcd8 as IMyTextSurface;if(sf==null)return;
