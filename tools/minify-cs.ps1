@@ -1,4 +1,4 @@
-# Unity Missile System - C# Pre-Minifier
+# Starship Made of Lies - C# Pre-Minifier
 # Minifies C# source code before MDK processing for smaller deployed scripts
 #
 # Transformations:

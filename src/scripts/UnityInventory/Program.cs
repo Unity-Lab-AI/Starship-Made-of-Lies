@@ -234,7 +234,7 @@ namespace IngameScript
         ReadPadSettings();
         LoadMissileAmmo();
         if(tick%2==0)UpdateLCDs();
-        Echo("Unity Missile System");
+        Echo("Starship Made of Lies");
         Echo($"UnityInventory [PAD{padID}]");
         Echo("---");
         string btnSt=btn!=null?"Connected":"MISSING";

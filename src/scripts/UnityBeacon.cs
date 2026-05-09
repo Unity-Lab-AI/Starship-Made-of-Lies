@@ -96,7 +96,7 @@ else if(a=="SETUP"){Scan();Echo("SETUP: Blocks scanned");}
 else if(a=="RESCAN")Scan();
 else if(a=="RESET"){Reset();return;}
 else if(a.StartsWith("SETPAD:")){int np;if(int.TryParse(a.Substring(7),out np)&&np>0){SwapPadTag(padID,np);padID=np;SaveConfig();Echo($"Pad tags updated to PAD{np}");}}}
-Echo("Unity Missile System");
+Echo("Starship Made of Lies");
 Echo($"UnityBeacon [{shipName}]");
 Echo("---");
 if(!setupDone){Echo($"SETUP INCOMPLETE\nRemote Control: {(rc!=null?"Found":"MISSING")}\nAntenna: {(ant!=null?"Found":"MISSING")}\nRun SETUP command");return;}

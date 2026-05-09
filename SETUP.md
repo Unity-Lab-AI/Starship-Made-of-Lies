@@ -1,6 +1,6 @@
-# Unity Missile System - Complete Setup Guide
+# Starship Made of Lies - Complete Setup Guide
 
-**Location:** `Space Engineers/Unity Missile System/`
+**Location:** `Space Engineers/Starship Made of Lies/`
 **Version:** v01.00 | 2026-01-29
 
 ---
@@ -25,7 +25,7 @@
 
 ## Overview
 
-The Unity Missile System consists of 6 scripts that work together:
+The Starship Made of Lies consists of 6 scripts that work together:
 
 | Component | Script | Purpose |
 |-----------|--------|---------|

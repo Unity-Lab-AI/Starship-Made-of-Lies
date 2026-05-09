@@ -1,4 +1,4 @@
-# Unity Missile System - Script Wrapper for MDK2
+# Starship Made of Lies - Script Wrapper for MDK2
 # Usage:
 #   tools/wrap-scripts.ps1                - Wrap only
 #   tools/wrap-scripts.ps1 -Minify        - Wrap with pre-minification
@@ -94,7 +94,7 @@ function Wrap-Script {
     return $true
 }
 
-Write-Host "`n=== Unity Missile System Wrapper ===" -ForegroundColor Yellow
+Write-Host "`n=== Starship Made of Lies Wrapper ===" -ForegroundColor Yellow
 
 # Wrap all scripts first
 $success = $true

@@ -17,3 +17,6 @@ symbol.map
 # OS files
 .DS_Store
 Thumbs.db
+
+# Proprietary Unity AI Lab .claude/ workflow system — public repo, NEVER commit
+.claude/

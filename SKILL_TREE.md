@@ -1,4 +1,4 @@
-# UNITY MISSILE SYSTEM - Skill Tree
+# STARSHIP MADE OF LIES - Skill Tree
 
 *Last Updated: 2026-01-29*
 *Unity AI Lab - Missile Systems Division*
@@ -7,7 +7,7 @@
 
 ## Overview
 
-Complete capability map for the Unity Missile System (6 scripts). Organized by domain, complexity, and priority to help understand what the system can do and what's still on the roadmap.
+Complete capability map for the Starship Made of Lies (6 scripts). Organized by domain, complexity, and priority to help understand what the system can do and what's still on the roadmap.
 
 **Scripts:** Unity Boot, UnityPad, UnityInventory, UnitySignal, UnityMissile, UnityBeacon
 

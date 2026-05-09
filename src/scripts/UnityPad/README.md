@@ -2,9 +2,9 @@
 
 # UnityPad v01.00
 
-Modular launch pad controller for the Unity Missile System. Manages missile printing, fueling, arming, and launch. Features sprite-based LCD rendering, multi-pad controller mode, and fleet tracking.
+Modular launch pad controller for the Starship Made of Lies. Manages missile printing, fueling, arming, and launch. Features sprite-based LCD rendering, multi-pad controller mode, and fleet tracking.
 
-**Location:** `Unity Missile System/src/scripts/UnityPad/`
+**Location:** `Starship Made of Lies/src/scripts/UnityPad/`
 **PB Name:** `[PAD1] Unity Pad`
 **Version:** v01.00 | 2026-01-24
 
@@ -45,7 +45,7 @@ UnityPad is the launch pad controller that:
 
 ## System Integration
 
-### The Unity Missile System
+### The Starship Made of Lies
 
 | Component | Script | PB Name | Purpose |
 |-----------|--------|---------|---------|
@@ -565,7 +565,7 @@ UnityPad controls missile lights to indicate status:
 ### Build Commands
 
 ```powershell
-cd "S:\FastDevelopment\SE\Unity Missile System"
+cd "S:\FastDevelopment\SE\Starship Made of Lies"
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
 dotnet build "src/scripts/UnityPad" -c Debug
 ```

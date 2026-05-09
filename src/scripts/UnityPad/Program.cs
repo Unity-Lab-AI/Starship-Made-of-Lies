@@ -1396,7 +1396,7 @@ namespace IngameScript
         var sf=lcd as IMyTextSurface;if(sf==null)continue;
         sf.ContentType=ContentType.SCRIPT;sf.Script="";sf.ScriptBackgroundColor=cBg;
         var f=sf.DrawFrame();float y=20;
-        SH(f,y,"UNITY MISSILE SYSTEM",cAcc);y+=40;
+        SH(f,y,"STARSHIP MADE OF LIES",cAcc);y+=40;
         string cH=sigReady?"SIGNAL SCRIPT COMPILED":invReady?"INVENTORY SCRIPT COMPILED":"PAD SCRIPT COMPILED";
         string cN=sigReady?"Compile BOOT script":invReady?"Compile SIGNAL script":"Compile INVENTORY script";
         string cS2=sigReady?(showSig?"PAD [OK] | INV [OK] | SIG [OK] <<<<":"PAD [OK] | INV [OK] | SIG [OK]"):invReady?(showInv?"PAD [OK] | INV [OK] <<<<":"PAD [OK] | INV [OK]"):"PAD [OK]";
@@ -1419,7 +1419,7 @@ namespace IngameScript
         if(lcd8!=null)UpdateLCD8();
         if(bbLCDs.Count>0)UpdateBlackBox();
         if(mmLCDs.Count>0)UpdateMiniMap();
-        Echo("Unity Missile System");
+        Echo("Starship Made of Lies");
         Echo($"UnityPad [PAD{padID}]");
         Echo("+------------------+");
         Echo($"| State: {cS,-9} |");

@@ -1,10 +1,10 @@
-![Unity Missile System](Unity%20Missile%20System%202.png)
+![Starship Made of Lies](Starship%20Made%20of%20Lies%202.png)
 
-# UNITY MISSILE SYSTEM v01.00
+# STARSHIP MADE OF LIES v01.00
 
 **6-Script Modular System | 11 LCD Displays | Sprite-Based Rendering | Full Automation | Multi-Pad Support | Satellite Array Mesh | Laser Networking | Auto-Intercept | Carpet Bomb | Auto-Attack | Fleet Tracking | Inventory Management**
 
-**Location:** `Space Engineers/Unity Missile System/`
+**Location:** `Space Engineers/Starship Made of Lies/`
 **Version:** v01.00 | 2026-01-29
 
 **Works on LARGE or SMALL grids (auto-detect)**
@@ -1376,7 +1376,7 @@ During missile flight (S.GONE), all LCDs switch to show:
 
 ## COMPLETE ARGUMENT REFERENCE
 
-All programmable block arguments for every script in the Unity Missile System.
+All programmable block arguments for every script in the Starship Made of Lies.
 
 ### UnityPad Arguments
 
@@ -2048,12 +2048,12 @@ Missile #1 [AMMO] Connector
 
 | Script | Location | PB Name | Purpose |
 |--------|----------|---------|---------|
-| **Unity Boot.cs** | `Unity Missile System/` | `[PAD1] UNITY BOOT` | Boot controller, 23 unified checks with real PB handshaking |
-| **UnityPad.cs** | `Unity Missile System/` | `[PAD1] Unity Pad` | Launch control, LCDs, targeting, printing |
-| **UnityMissile.cs** | `Unity Missile System/` | `[PAD1] Missile #1 Program` | Guided missile with multiple targeting modes |
-| **UnityInventory.cs** | `Unity Missile System/` | `[PAD1] Unity Inventory` | Inventory management, production, auto-sorting |
-| **UnityBeacon.cs** | `Unity Missile System/` | `[BEACON] Unity Beacon` | Broadcasts miner status to pad |
-| **UnitySignal.cs** | `Unity Missile System/` | `[PAD1] UNITY SIGNAL` | Camera display on [PAD#CAMS]:# LCDs |
+| **Unity Boot.cs** | `Starship Made of Lies/` | `[PAD1] UNITY BOOT` | Boot controller, 23 unified checks with real PB handshaking |
+| **UnityPad.cs** | `Starship Made of Lies/` | `[PAD1] Unity Pad` | Launch control, LCDs, targeting, printing |
+| **UnityMissile.cs** | `Starship Made of Lies/` | `[PAD1] Missile #1 Program` | Guided missile with multiple targeting modes |
+| **UnityInventory.cs** | `Starship Made of Lies/` | `[PAD1] Unity Inventory` | Inventory management, production, auto-sorting |
+| **UnityBeacon.cs** | `Starship Made of Lies/` | `[BEACON] Unity Beacon` | Broadcasts miner status to pad |
+| **UnitySignal.cs** | `Starship Made of Lies/` | `[PAD1] UNITY SIGNAL` | Camera display on [PAD#CAMS]:# LCDs |
 
 ---
 

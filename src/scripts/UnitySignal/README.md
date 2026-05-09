@@ -2,9 +2,9 @@
 
 # UnitySignal v01.00
 
-Central signal controller for the Unity Missile System. Manages camera display, laser antenna targeting, satellite constellation tracking, and antenna status monitoring.
+Central signal controller for the Starship Made of Lies. Manages camera display, laser antenna targeting, satellite constellation tracking, and antenna status monitoring.
 
-**Location:** `Unity Missile System/src/scripts/UnitySignal/`
+**Location:** `Starship Made of Lies/src/scripts/UnitySignal/`
 **PB Name:** `[PAD1] UNITY SIGNAL`
 **Version:** v01.00 | 2026-01-24
 
@@ -41,7 +41,7 @@ UnitySignal is the **central signal hub** that:
 
 ## System Integration
 
-### The Unity Missile System
+### The Starship Made of Lies
 
 | Component | Script | PB Name | Purpose |
 |-----------|--------|---------|---------|
@@ -316,7 +316,7 @@ Listens to `UNITY_SAT_INTERCEPT`:
 ### Build Commands
 
 ```powershell
-cd "S:\FastDevelopment\SE\Unity Missile System"
+cd "S:\FastDevelopment\SE\Starship Made of Lies"
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
 dotnet build src/scripts/UnitySignal -c Debug
 ```
@@ -352,7 +352,7 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnitySignal\sc
 
 ```powershell
 # Build
-cd "S:\FastDevelopment\SE\Unity Missile System"
+cd "S:\FastDevelopment\SE\Starship Made of Lies"
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
 dotnet build src/scripts/UnitySignal -c Debug
 

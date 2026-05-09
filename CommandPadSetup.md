@@ -1,8 +1,8 @@
-# Unity Missile System - Multi-Pad Setup Guide
+# Starship Made of Lies - Multi-Pad Setup Guide
 
 ## Overview
 
-The Unity Missile System supports multiple independent launch pads connected via connectors, all coordinated through IGC messaging. Each pad has its own set of 4 Programmable Blocks (Boot, Pad, Inventory, Signal) and operates independently with its own padID tag (e.g., `[PAD1]`, `[PAD2]`, `[PAD3]`).
+The Starship Made of Lies supports multiple independent launch pads connected via connectors, all coordinated through IGC messaging. Each pad has its own set of 4 Programmable Blocks (Boot, Pad, Inventory, Signal) and operates independently with its own padID tag (e.g., `[PAD1]`, `[PAD2]`, `[PAD3]`).
 
 One pad can be designated as the **Controller**, gaining mass-command capability over all connected slave pads.
 

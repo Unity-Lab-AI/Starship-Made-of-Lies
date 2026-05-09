@@ -2,9 +2,9 @@
 
 # UnityMissile v01.00
 
-Guided missile flight controller for the Unity Missile System. Handles all flight phases from launch to detonation with multi-mode targeting, ICBM flight profiles, satellite deployment, and advanced terminal guidance.
+Guided missile flight controller for the Starship Made of Lies. Handles all flight phases from launch to detonation with multi-mode targeting, ICBM flight profiles, satellite deployment, and advanced terminal guidance.
 
-**Location:** `Unity Missile System/src/scripts/UnityMissile/`
+**Location:** `Starship Made of Lies/src/scripts/UnityMissile/`
 **PB Name:** `[PAD1] Missile #1 Program`
 **Version:** v01.00 | 2026-01-24
 
@@ -42,7 +42,7 @@ UnityMissile is the missile flight controller that:
 
 ## System Integration
 
-### The Unity Missile System
+### The Starship Made of Lies
 
 | Component | Script | PB Name | Purpose |
 |-----------|--------|---------|---------|
@@ -513,7 +513,7 @@ Lights blink to indicate phase:
 ### Build Commands
 
 ```powershell
-cd "S:\FastDevelopment\SE\Unity Missile System"
+cd "S:\FastDevelopment\SE\Starship Made of Lies"
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
 dotnet build "src/scripts/UnityMissile" -c Debug
 ```

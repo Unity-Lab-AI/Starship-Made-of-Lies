@@ -2,11 +2,11 @@
 
 # UnityBeacon v01.00
 
-Miner status broadcaster for the Unity Missile System. Broadcasts fleet status via IGC so UnityPad can track your mining fleet whether docked or flying. Features sprite-based LCD rendering for crisp status displays.
+Miner status broadcaster for the Starship Made of Lies. Broadcasts fleet status via IGC so UnityPad can track your mining fleet whether docked or flying. Features sprite-based LCD rendering for crisp status displays.
 
 **Designed to work with [PAM] Path Auto Miner by Keks** - the fantastic autonomous mining script from the Steam Workshop.
 
-**Location:** `Unity Missile System/src/scripts/UnityBeacon/`
+**Location:** `Starship Made of Lies/src/scripts/UnityBeacon/`
 **PB Name:** `[BEACON] Unity Beacon`
 **Version:** v01.00 | 2026-01-24
 
@@ -46,7 +46,7 @@ Miner status broadcaster for the Unity Missile System. Broadcasts fleet status v
 
 ## System Integration
 
-### The Unity Missile System
+### The Starship Made of Lies
 
 | Component | Script | PB Name | Purpose |
 |-----------|--------|---------|---------|
@@ -287,7 +287,7 @@ Broadcasts include PadID so receivers can filter by pad ownership:
 
 ## The Complete System
 
-UnityBeacon is part of the Unity Missile System:
+UnityBeacon is part of the Starship Made of Lies:
 
 | Component | Script | Location | Purpose |
 |-----------|--------|----------|---------|
@@ -310,7 +310,7 @@ UnityBeacon is part of the Unity Missile System:
 ## Files
 
 ```
-Unity Missile System/
+Starship Made of Lies/
 ├── tools/
 │   └── wrap-scripts.ps1         # Wraps all raw .cs to Program.cs
 ├── src/scripts/
@@ -339,8 +339,8 @@ Unity Missile System/
 ## Building
 
 ```powershell
-# From Unity Missile System folder:
-cd "S:\FastDevelopment\SE\Unity Missile System"
+# From Starship Made of Lies folder:
+cd "S:\FastDevelopment\SE\Starship Made of Lies"
 
 # Step 1: Wrap raw .cs files into Program.cs (MANDATORY)
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
@@ -387,7 +387,7 @@ C:\Users\gfour\AppData\Roaming\SpaceEngineers\IngameScripts\local\UnityBeacon\sc
 
 ```powershell
 # Build and deploy
-cd "S:\FastDevelopment\SE\Unity Missile System"
+cd "S:\FastDevelopment\SE\Starship Made of Lies"
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
 dotnet build src/scripts/UnityBeacon -c Debug
 

@@ -1220,7 +1220,7 @@ namespace IngameScript
         string ev=inSpace?"SPACE":"GRAV";
         string hdr=isSatellite?"SATELLITE RELAY":"MISSILE GUIDANCE";
         string mslId=mslNumber>0?$"PAD{padID} MSL#{mslNumber}":"UNASSIGNED";
-        string s=$"Unity Missile System\nUnityMissile [{hdr}]\n+-------------------+\n";
+        string s=$"Starship Made of Lies\nUnityMissile [{hdr}]\n+-------------------+\n";
         s+=$"| PB: {mslId,-13} |\n";
         s+=$"| Phase: {ph,-10} |\n| Mode:  {md,-6} {ev,-4}|\n";
         s+=$"+-------------------+\n";

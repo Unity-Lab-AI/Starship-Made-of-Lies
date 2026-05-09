@@ -1,4 +1,4 @@
-# Unity Missile System - NuGet Package Updater
+# Starship Made of Lies - NuGet Package Updater
 # Updates all MDK2 packages to latest versions before building
 # Run this periodically or before builds to stay current
 $ErrorActionPreference = "Continue"
@@ -8,7 +8,7 @@ $root = Split-Path -Parent $toolsDir
 $scriptsDir = Join-Path $root "src\scripts"
 $modsDir = Join-Path $root "src\mods"
 
-Write-Host "`n=== Unity Missile System Package Updater ===" -ForegroundColor Yellow
+Write-Host "`n=== Starship Made of Lies Package Updater ===" -ForegroundColor Yellow
 
 # MDK2 packages for PB scripts
 # Note: Mal.Mdk2.References uses MSBuild imports and can't be updated via 'dotnet add'

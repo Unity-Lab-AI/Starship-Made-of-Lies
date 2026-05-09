@@ -2,9 +2,9 @@
 
 # Unity Boot v01.00
 
-Centralized boot controller for the Unity Missile System. Uses real PB-to-PB IGC handshaking and per-PB CustomData architecture to verify all systems are running before releasing LCD control.
+Centralized boot controller for the Starship Made of Lies. Uses real PB-to-PB IGC handshaking and per-PB CustomData architecture to verify all systems are running before releasing LCD control.
 
-**Location:** `Unity Missile System/src/scripts/Unity Boot/`
+**Location:** `Starship Made of Lies/src/scripts/Unity Boot/`
 **PB Name:** `[PAD1] UNITY BOOT`
 **Version:** v01.00 | 2026-01-24
 
@@ -47,7 +47,7 @@ Unity Boot is a dedicated boot controller that:
 
 ## System Integration
 
-### The Unity Missile System
+### The Starship Made of Lies
 
 | Component | Script | PB Name | Purpose |
 |-----------|--------|---------|---------|
@@ -323,7 +323,7 @@ cTxt = Light (220,220,220)   // General text
 
 ### Boot Screen Elements
 
-- Title: "UNITY MISSILE SYSTEM"
+- Title: "STARSHIP MADE OF LIES"
 - Version: "v01.00"
 - Module indicator: "PAD CONTROLLER" or "INVENTORY MODULE"
 - Progress bar with percentage
@@ -412,7 +412,7 @@ Timeout handling:
 ### Build Commands
 
 ```powershell
-cd "S:\FastDevelopment\SE\Unity Missile System"
+cd "S:\FastDevelopment\SE\Starship Made of Lies"
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
 dotnet build "src/scripts/Unity Boot" -c Debug
 ```

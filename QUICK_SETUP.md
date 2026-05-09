@@ -1,6 +1,6 @@
-# UNITY MISSILE SYSTEM - Quick Setup Guide
+# STARSHIP MADE OF LIES - Quick Setup Guide
 
-**Location:** `Space Engineers/Unity Missile System/`
+**Location:** `Space Engineers/Starship Made of Lies/`
 **Version:** v01.00 | 2026-01-29
 
 ---
@@ -307,7 +307,7 @@ Connect a printer/projector/welder setup for auto-rebuilding:
 
 ### Build Commands
 ```powershell
-cd "S:\FastDevelopment\SE\Unity Missile System"
+cd "S:\FastDevelopment\SE\Starship Made of Lies"
 
 # CRITICAL: Sync source files first!
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
@@ -379,7 +379,7 @@ The 4 scripts on the pad grid MUST compile in order: PAD → INVENTORY → SIGNA
 ## FILE STRUCTURE
 
 ```
-Unity Missile System/
+Starship Made of Lies/
 ├── tools/
 │   ├── wrap-scripts.ps1     # Wraps all raw .cs to Program.cs
 │   └── check-chars.ps1      # Character count utility

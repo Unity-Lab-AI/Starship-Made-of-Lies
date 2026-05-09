@@ -276,7 +276,7 @@ namespace IngameScript
         if(!preBootDone){
         if(!padReady||!invReady||!signalReady){
         DrawWaitingScreen();
-        Echo("UNITY MISSILE SYSTEM");
+        Echo("STARSHIP MADE OF LIES");
         Echo("Waiting for scripts...");
         Echo($"Boot: OK | Pad: {(padReady?"OK":"wait")} | Inv: {(invReady?"OK":"wait")} | Sig: {(signalReady?"OK":"wait")}");
         return;
@@ -304,7 +304,7 @@ namespace IngameScript
         foreach(var lcd in camLCDs){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,true);}
         foreach(var lcd in signalLCDs){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,true);}
         foreach(var lcd in mslLCDs){if(lcd!=null)DrawBootScreen(lcd,1f,"All Systems Operational",totalSteps-1,totalSteps,true);}
-        Echo("UNITY MISSILE SYSTEM");
+        Echo("STARSHIP MADE OF LIES");
         Echo("ALL SYSTEMS OPERATIONAL");
         Echo($"[{totalSteps}/{totalSteps}] Success!");
         return;
@@ -313,7 +313,7 @@ namespace IngameScript
         WriteBlockData();
         waitingForAck=true;
         ackWaitTicks=0;
-        Echo("UNITY MISSILE SYSTEM");
+        Echo("STARSHIP MADE OF LIES");
         Echo("BOOT COMPLETE - Awaiting ACKs");
         Echo("Waiting for PAD and INVENTORY...");
         return;
@@ -332,7 +332,7 @@ namespace IngameScript
         foreach(var lcd in camLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,true);}
         foreach(var lcd in signalLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,true);}
         foreach(var lcd in mslLCDs){if(lcd!=null)DrawBootScreen(lcd,pct,curCheck,bootStep,totalSteps,true);}
-        Echo("UNITY MISSILE SYSTEM");
+        Echo("STARSHIP MADE OF LIES");
         Echo("Boot Controller Active");
         Echo($"[{Math.Min(bootStep+1,totalSteps)}/{totalSteps}] {curCheck}");
         if(bootError!="")Echo($"ERROR: {bootError}");
@@ -346,7 +346,7 @@ namespace IngameScript
         Vector2 sz=s.SurfaceSize;lcdW=sz.X;lcdH=sz.Y;lcdS=Math.Min(lcdW/512f,lcdH/512f);
         float cx=lcdW/2,cy=lcdH/2;
         f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,cy),sz,cBg));
-        f.Add(new MySprite(SpriteType.TEXT,"UNITY MISSILE SYSTEM",new Vector2(cx,40*lcdS),null,cPri,null,TextAlignment.CENTER,1.2f*lcdS));
+        f.Add(new MySprite(SpriteType.TEXT,"STARSHIP MADE OF LIES",new Vector2(cx,40*lcdS),null,cPri,null,TextAlignment.CENTER,1.2f*lcdS));
         f.Add(new MySprite(SpriteType.TEXT,"v01.00",new Vector2(cx,75*lcdS),null,cSec,null,TextAlignment.CENTER,0.5f*lcdS));
         f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,100*lcdS),new Vector2(lcdW-60*lcdS,2*lcdS),cSec));
         string mod=isPad?"PAD CONTROLLER":"INVENTORY MODULE";
@@ -504,7 +504,7 @@ namespace IngameScript
         Vector2 sz=s.SurfaceSize;lcdW=sz.X;lcdH=sz.Y;lcdS=Math.Min(lcdW/512f,lcdH/512f);
         float cx=lcdW/2;
         f.Add(new MySprite(SpriteType.TEXTURE,"SquareSimple",new Vector2(cx,lcdH/2),sz,cBg));
-        f.Add(new MySprite(SpriteType.TEXT,"UNITY MISSILE SYSTEM",new Vector2(cx,40*lcdS),null,cPri,null,TextAlignment.CENTER,1.2f*lcdS));
+        f.Add(new MySprite(SpriteType.TEXT,"STARSHIP MADE OF LIES",new Vector2(cx,40*lcdS),null,cPri,null,TextAlignment.CENTER,1.2f*lcdS));
         f.Add(new MySprite(SpriteType.TEXT,"WAITING FOR SCRIPTS",new Vector2(cx,120*lcdS),null,cWrn,null,TextAlignment.CENTER,0.7f*lcdS));
         float ly=180*lcdS;
         f.Add(new MySprite(SpriteType.TEXT,$"[OK] Boot Controller",new Vector2(30*lcdS,ly),null,cOK,null,TextAlignment.LEFT,0.4f*lcdS));ly+=22*lcdS;

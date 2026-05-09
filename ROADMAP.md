@@ -1,4 +1,4 @@
-# UNITY MISSILE SYSTEM - Roadmap
+# STARSHIP MADE OF LIES - Roadmap
 
 *Last Updated: 2026-01-29*
 *Unity AI Lab - Missile Systems Division*
@@ -274,7 +274,7 @@ A complete guided missile system for Space Engineers with:
 
 ```powershell
 # Build all scripts
-cd "S:\FastDevelopment\SE\Unity Missile System"
+cd "S:\FastDevelopment\SE\Starship Made of Lies"
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
 dotnet build "src/scripts/Unity Boot" -c Debug
 dotnet build src/scripts/UnityPad -c Debug

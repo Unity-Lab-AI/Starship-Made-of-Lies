@@ -2,9 +2,9 @@
 
 # UnityInventory v01.00
 
-Inventory management system for the Unity Missile System. Handles LCDs 4, 5, 6, 9, 10, 11 with sprite rendering, auto-production, miner fleet tracking, and recycling.
+Inventory management system for the Starship Made of Lies. Handles LCDs 4, 5, 6, 9, 10, 11 with sprite rendering, auto-production, miner fleet tracking, and recycling.
 
-**Location:** `Unity Missile System/src/scripts/UnityInventory/`
+**Location:** `Starship Made of Lies/src/scripts/UnityInventory/`
 **PB Name:** `[PAD1] Unity Inventory`
 **Version:** v01.00 | 2026-01-28
 
@@ -48,7 +48,7 @@ UnityInventory is the inventory controller that:
 
 ## System Integration
 
-### The Unity Missile System
+### The Starship Made of Lies
 
 | Component | Script | PB Name | Purpose |
 |-----------|--------|---------|---------|
@@ -554,7 +554,7 @@ Settings stored in Me.CustomData [CONFIG] section:
 ### Build Commands
 
 ```powershell
-cd "S:\FastDevelopment\SE\Unity Missile System"
+cd "S:\FastDevelopment\SE\Starship Made of Lies"
 powershell -ExecutionPolicy Bypass -File tools/wrap-scripts.ps1
 dotnet build src/scripts/UnityInventory -c Debug
 ```
