@@ -1,6 +1,155 @@
-# STARSHIP MADE OF LIES - Roadmap
+# STARSHIP MADE OF LIES — Roadmap
 
-*Last Updated: 2026-01-29*
+*Last Updated: 2026-05-09*
+*Project: SMoL (Starship Made of Lies) — formerly Unity Missile System (Space Engineers)*
+*Unity AI Lab*
+
+---
+
+## SMoL — CURRENT PROJECT
+
+### Project Vision
+
+A top-down emoji-driven civilization-building game where you trick your own citizens into boarding "starships" that are actually colonization missiles aimed at other civilizations on the map. Set in an industrial-future dystopia. Dark comedy. Win by conquering the galaxy.
+
+- **Platform:** web + desktop + mobile + native (cross-platform single codebase)
+- **Tech stack:** TypeScript + React + Three.js + Vite + Tauri + Capacitor + WebSocket
+- **Multiplayer:** Real-time, 1-12 players (humans + AI mix), fog of war
+- **Map:** Procedural planet-scale, 100-1000 planets per match (host config), true sphere geometry, great-circle missile trajectories
+- **Setting:** Industrial-future dystopian (no stone age — starts mid-future)
+- **Aesthetic:** Complete-emoji game, masterfully curated, NOT overdone
+- **Deception:** Random per-civ government themes (Theocracy / Corporate / Surveillance State / Eugenics / AI-Overlord / etc.) drive propaganda style + UI skin + audio per civ
+- **Win conditions:** Host-configurable combination at lobby (map control / tech apex / last-civ-standing / score-based)
+- **Tone:** Dark comedy. The player is "like the god in the sky." Citizens never chose their government — they were born into it.
+
+### Current Status
+
+| Metric | Value |
+|--------|-------|
+| **Phase** | PRE-DEVELOPMENT (PHASE 0 = UMS Reference Inventory + Extraction) |
+| **TODO** | `.claude/TODO.md` — PHASE 0-15, ~250+ tasks |
+| **Reference docs** | `.claude/SMOL_REFERENCE_*.md` (PHASE 0 deliverables) |
+| **UMS source** | PRESERVED in repo as reference material until PHASE 15 |
+| **Repo** | `https://github.com/Unity-Lab-AI/Starship-Made-of-Lies` (public; `.claude/` proprietary, gitignored) |
+
+### SMoL Phase Milestones (cross-reference `.claude/TODO.md` PHASE 0-15)
+
+| Phase | Milestone | Key Deliverables |
+|-------|-----------|------------------|
+| **0** | UMS Reference Inventory + Extraction | `SMOL_REFERENCE_*.md` per subsystem (Pad, Missile, Inventory, Boot, Signal, Beacon, graphs/panels, IGC protocol, trajectory, printing, mod, tooling); `.claude/SMOL_REFERENCE_MAP.md` index; optional UMS quarantine into `_ums-reference/` subfolder |
+| **1** | SMoL Project Skeleton | `client/`, `server/`, `shared/`, `assets/themes/`, Tauri + Capacitor scaffolds; pnpm workspaces + Vite + Colyseus; build scripts; SMoL-specific `.claude/agents/smol-*.md` |
+| **2** | Core Game Systems | Galaxy + planet generators (sphere, hex tiles, biomes); free-form-on-tile + 3D zoom-in placement; emoji resource system (no animal emojis, products only); population + workforce model (food + housing + happiness/subterfuge with priority sliders) |
+| **3** | Tech Tree & Research | Future-only branching tree; Mainstream / Suppressed / Forbidden tiers; conquest-gated Suppressed/Forbidden; planetary-coverage scaling; ≥10 planet apex gate; scientists 🥼 + conquest tech-loot + resource-loot |
+| **4** | Government Theme System | 15-20+ themes catalog (Theocracy / Corporate / Junta / Surveillance / Climate-Refugee / Eugenics / AI-Overlord / Anarcho-Cap / Hereditary / Eco-Cult / Hivemind / Game-Show / Cyberpunk / Gerontocracy / Memetic / etc.); per-theme assets (UI skin, music, SFX, propaganda, building emojis, dialog); per-civ random distribution; theme inheritance on colonies; theme-gated diplomacy rules |
+| **5** | Deception / Subterfuge | Propaganda buildings (TV 📺 / school 🏫 / church ⛪) + active campaigns + direct conscription; faction model (loyal / skeptic / dissident); performance-degradation discovery model ("they just won't do things as well"); gradual-reveal UI ("for the greater good" framing) |
+| **6** | Missile System (UMS feature carryover, "exactly like unity missile system works") | Multi-pad coordination; salvo stagger; saved-target locations; build/print/dock/fuel/ammo/ready/arm/launch/gone state machine; configurable payloads × tech-tier-scaled; great-circle planet-sphere trajectory; mines + counter-missiles defense; colonization landing (planet-LOCAL inventory + universal tech transfer) |
+| **7** | UMS Visual / Telemetry Carryover | LCD-style telemetry panels; build queues; production graphs; planet beacon system; signaling system (radar/sensor tech tier reveals incoming earlier); boot/init sequence (26-check carryover, dystopian-flavored); multiplayer message protocol (IGC channel carryover) |
+| **8** | 3D Multi-Level Zoom + Camera | Galaxy → planet → region → base → building continuous LOD; WASD + QE rotate + mousewheel + drag-pan camera; cinematic moments (missile launch swoop, colony land, victory) |
+| **9** | AI Players | Background-process AI per civ (visible to humans, no cheats); personality archetypes (Builder / Warmonger / Researcher / Trickster) × difficulty (Easy / Medium / Hard / Brutal); co-op vs computer mode |
+| **10** | Multiplayer Server | Authoritative WebSocket server; fog-of-war enforcement server-side; lobby (host configures 1-12 players, 100-1000 planets, blitz/standard/epic match length, any combination of win conditions, AI mix, biomes available, co-op mode toggle); auto-save host-side, resume on host return |
+| **11** | Persistence + Meta-progression | Optional account (anonymous OR signed-in); multi-category Hall of Champions (Most Planets / Fastest Tech Apex / Most Deceptive / Theme Specialist / Most Ruthless); achievements per match outcome; lifetime stats; "scores achievments all fo it hall of champions" |
+| **12** | Audio System | Per-theme soundtracks (4 tracks × 15+ themes = 60+ tracks); per-theme UI SFX; universal SFX (UI clicks, building complete, missile launch, citizen cheer); audio mixer (master / music / SFX / voice) |
+| **13** | Cross-Platform Packaging | Web (Vite, Cloudflare Pages / Vercel / self-host); Desktop (Tauri Win/Mac/Linux + auto-updater); Mobile (Capacitor iOS + Android with touch UX adaptations); CDN for assets; app store assets + submission flows |
+| **14** | Polish + Launch Readiness | "No help, learn or die" onboarding (UI must be self-explanatory); accessibility (color-blind palettes, HC theme, UI scaling, keyboard nav); performance (60fps target at 1000-planet galaxy view, 12-player stress test); final balance pass per theme + per AI personality |
+| **15** | FINAL NUKE (only after project complete + verified) | NOT calendar-gated. Fires when: PHASES 1-14 done + shipped + playtested + UMS-mechanics-verified-in-SMoL + user explicitly approves with verbatim "the project is complete, nuke UMS". Single `rm -rf _ums-reference/` if quarantined; per-file deletes if in-place. Settings + .gitignore + extraction-docs cleanup |
+
+### Cross-Reference
+
+| Doc | Purpose |
+|-----|---------|
+| `.claude/TODO.md` | Granular task list per phase (~250+ tasks, ready to be picked up) |
+| `.claude/FINALIZED.md` | UMS sunset entry (2026-05-09) + future SMoL completions appended |
+| `.claude/SMOL_REFERENCE_MAP.md` (PHASE 0 deliverable) | Master index mapping UMS source → SMoL replication phase + extraction doc + status |
+| `.claude/SMOL_REFERENCE_PAD.md` (PHASE 0 deliverable) | UnityPad subsystem extraction (state machine, salvo, controller mode, telemetry, GPS, multi-pad coord) |
+| `.claude/SMOL_REFERENCE_MISSILE.md` (PHASE 0 deliverable) | UnityMissile subsystem extraction (flight phases, targeting modes, satellite branch, trajectory math) |
+| `.claude/SMOL_REFERENCE_INVENTORY.md` (PHASE 0 deliverable) | UnityInventory subsystem extraction (production system, recycling, item handling, ammo type sync) |
+| `.claude/SMOL_REFERENCE_BOOT.md` (PHASE 0 deliverable) | Unity Boot subsystem extraction (26 checks, IGC handshake, sibling discovery) |
+| `.claude/SMOL_REFERENCE_SIGNAL.md` (PHASE 0 deliverable) | UnitySignal subsystem extraction (antennas, lasers, satellite tracking, camera display) |
+| `.claude/SMOL_REFERENCE_BEACON.md` (PHASE 0 deliverable) | UnityBeacon subsystem extraction (fleet broadcast, status inference) |
+| `.claude/SMOL_REFERENCE_GRAPHS_PANELS.md` (PHASE 0 deliverable) | LCD output / production graph / build queue / telemetry panel rendering patterns |
+| `.claude/SMOL_REFERENCE_IGC_PROTOCOL.md` (PHASE 0 deliverable) | Full IGC channel + message inventory (17+ channels) |
+| `.claude/SMOL_REFERENCE_TRAJECTORY.md` (PHASE 0 deliverable) | Missile trajectory math + intercept geometry (great-circle, mine intercept, counter-missile, SAT_HOLD orbital) |
+| `.claude/SMOL_REFERENCE_PRINTING.md` (PHASE 0 deliverable) | Missile printing pipeline (UNITY_PRINTER IGC, PRINT/BUILD state transitions, Auto-Build cycle) |
+| `.claude/SMOL_REFERENCE_MOD.md` (PHASE 0 deliverable) | UMS Mod (DeMergeSession, Plugin) — informs missile-body-separation concept |
+| `.claude/SMOL_REFERENCE_TOOLING.md` (PHASE 0 deliverable) | UMS tooling patterns (wrap-scripts, char-budget validation, dependency-bump) |
+
+### Decision Log (SMoL)
+
+| Date | Decision | Rationale (verbatim user words preserved per LAW #0) |
+|------|----------|-----------------------------------------------------|
+| 2026-05-09 | Pivot from UMS to SMoL | "We are no longer doing the UMS we are doing SMoL a top down civiliation build where the ultipate goal is to launch missiles at other civiliazations on the map and concour the map" |
+| 2026-05-09 | UMS code preserved as reference until project complete + verified | "we nuke nothing but track it all.. we only nuke once we are done using it for refrence for coping all the graphs panels items hasndling and trajectory and opertions and pringting of missiles all of it" |
+| 2026-05-09 | PHASE 0 extracts subsystem reference docs NOW (not later) | "thast you wont be able to remembre once we are at pohase 14 like shit" — future-Claude context across resets |
+| 2026-05-09 | Optional quarantine of UMS into `_ums-reference/` subfolder | "if u need to stick it all the whole UMS in a subfolder in root" |
+| 2026-05-09 | TS + React + Three.js + Tauri + Capacitor stack | User said "all of the above" for platform + "recommended option for our specific use case" for stack |
+| 2026-05-09 | 100-1000 planets, planet-scale procedural | "Procedural + planet-scale" + "100-1000 planets based on setting host sets up" |
+| 2026-05-09 | Deception is INTERNAL only (player tricks own citizens), AI civs always hostile | "ther is only tricking your colonists and fuck it only is coop set is there deplomacy and ais are alway no diplomacy has to be set in game setup" |
+| 2026-05-09 | "No help, learn or die" onboarding | User directive for trial-by-fire onboarding philosophy |
+| 2026-05-09 | Per-civ random government theme inherited at creation | "totally a rendom theme you get that you cant choose and the game plays out that governmental theme... peopel dont get to chose their govenment their born into it... lol and the player is like the god in the sky" |
+| 2026-05-09 | Tech apex requires ≥10 planets controlled | "they dont max out befoer getting cvontrol of atleast like 10 planets" |
+| 2026-05-09 | Suppressed/Forbidden tech tiers conquest-gated | "tecxh teirs should some require rewards from attacking" |
+| 2026-05-09 | All planets habitable; hostile biomes need tech to colonize | "all planets are habitable with differnt but plentifle resources... but to advance big shapships with better tech u need to go else where and concure" + "tech advancement to surive more hostile places" |
+| 2026-05-09 | Missile system "exactly like UMS works" — multi-pad, mines, saved targets, panels, graphs, salvo stagger | "exactly like unity missile system works with mines targertin save locations the panels the graphs jsut differnt resources nad storage and use of those storages universally" |
+| 2026-05-09 | Missiles = colonization vehicles, planet-LOCAL inventory, universal tech transfer | "they can set up new civiliazations on other planets and even on the same planet" + "inventory is via planet only too expensive to ship goods between planets" |
+| 2026-05-09 | Faction loyalty model (loyal / skeptic / dissident); performance-degradation discovery (no violent revolt) | "Faction split (loyal/skeptic/dissident)" + "they just wont do things as well" |
+| 2026-05-09 | Hall of Champions multi-category + achievements; optional account | "scores achievments all fo it hall of champions" + "Optional account (anonymous OR signed-in)" |
+
+### Risk Assessment (SMoL)
+
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|------------|------------|
+| Future-Claude loses UMS context | HIGH | HIGH | PHASE 0 extracts structured `SMOL_REFERENCE_*.md` specs NOW while context is fresh |
+| 1000-planet galaxy view performance | HIGH | Medium | LOD swap, asset streaming, fog-of-war as render-saver, performance budget per zoom level |
+| 60+ per-theme music tracks content load | Medium | High | Procedural ambient layer + curated stingers as fallback option (PHASE 12) |
+| Multiplayer server scaling for 12-player matches | Medium | Medium | Server-authoritative state, delta sync, tick-rate tuning |
+| Cross-platform UI (web + desktop + mobile) divergence | Medium | High | Single TS codebase + responsive UI; platform-specific UX layers thin |
+| Theme-gated diplomacy balance | Low | Medium | Co-op mode is the only diplomacy surface; tunable in lobby |
+| User loses UMS reference before SMoL replication complete | HIGH | Low | PHASE 15 is project-completion-gated, NOT calendar-gated; user-controlled trigger |
+
+### Timeline (SMoL — phases not calendar-gated, work-product-gated)
+
+```
+2026-05-09  ████  PHASE 0 — UMS Reference Inventory (extraction docs) [START]
+            ▼
+PHASE 1     ████  SMoL Project Skeleton
+PHASE 2     ████  Core Game Systems
+PHASE 3     ████  Tech Tree & Research
+PHASE 4     ████  Government Theme System
+PHASE 5     ████  Deception / Subterfuge
+PHASE 6     ████  Missile System (UMS carryover)
+PHASE 7     ████  UMS Visual / Telemetry Carryover
+PHASE 8     ████  3D Multi-Level Zoom + Camera
+PHASE 9     ████  AI Players
+PHASE 10    ████  Multiplayer Server
+PHASE 11    ████  Persistence + Meta-progression
+PHASE 12    ████  Audio System
+PHASE 13    ████  Cross-Platform Packaging
+PHASE 14    ████  Polish + Launch Readiness — SHIP
+            ▼
+            (project shipped, stabilizes, user verifies UMS-mechanic parity)
+            ▼
+PHASE 15    ████  FINAL NUKE — UMS reference retired
+```
+
+### Next Actions (Immediate)
+
+1. User reviews this updated ROADMAP and confirms structure
+2. Begin PHASE 0.1: Create `.claude/SMOL_REFERENCE_MAP.md` index
+3. Begin PHASE 0.2-0.7: Extract per-script reference docs in 600-line chunks (UnityPad, UnityMissile, UnityInventory, Unity Boot, UnitySignal, UnityBeacon)
+4. Begin PHASE 0.8-0.10: Cross-cutting extraction docs (graphs/panels, IGC, trajectory, printing, mod, tooling)
+5. PHASE 0 exit criteria: User reviews extraction docs and confirms detail sufficient before greenlighting PHASE 1
+
+---
+
+## LEGACY UMS REFERENCE — Preserved Verbatim (Sunset 2026-05-09)
+
+> The Unity Missile System (Space Engineers PB scripts + SE mod) was sunset 2026-05-09 when the project pivoted to SMoL. The UMS roadmap below is preserved as reference material — its STRUCTURAL PATTERN (Phases → Milestones → Features → Decision Log → Timeline → Quick Commands) is the template SMoL's roadmap above follows. The CONTENT below is the historical record of what UMS was. UMS source code remains preserved in the repo as reference material until PHASE 15.
+
+[ORIGINAL UMS ROADMAP CONTENT BELOW — PRESERVED VERBATIM, NOT MODIFIED]
+
+# STARSHIP MADE OF LIES - Roadmap [LEGACY UMS]
+
+*Original Last Updated: 2026-01-29*
 *Unity AI Lab - Missile Systems Division*
 
 ---
