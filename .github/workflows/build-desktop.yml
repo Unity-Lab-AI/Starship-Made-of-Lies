@@ -1,0 +1,83 @@
+name: Build — Desktop (Tauri Win/Mac/Linux)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['release/**']
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src-tauri/**'
+      - '.github/workflows/build-desktop.yml'
+
+jobs:
+  build-desktop:
+    name: ${{ matrix.config.os }} (${{ matrix.config.target }})
+    runs-on: ${{ matrix.config.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: linux
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos
+            runner: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows
+            runner: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.config.target }}
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: cargo-${{ matrix.config.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: cargo-${{ matrix.config.os }}-
+
+      - name: Install Linux deps
+        if: matrix.config.os == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libssl-dev pkg-config
+
+      - name: Install pnpm dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri bundle
+        run: pnpm run build:desktop -- --target ${{ matrix.config.target }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smol-desktop-${{ matrix.config.os }}-${{ github.sha }}
+          path: |
+            src-tauri/target/${{ matrix.config.target }}/release/bundle/**/*
+          retention-days: 14
+          if-no-files-found: warn
