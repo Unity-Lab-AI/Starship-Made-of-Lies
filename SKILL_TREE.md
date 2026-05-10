@@ -25,7 +25,7 @@
 #### 2. 3D Rendering (`client/3d/`, Three.js)
 | Skill | Phase | Status | Complexity | Priority |
 |-------|-------|--------|------------|----------|
-| Three.js scene + renderer setup | 1 | ⬜ planned | Basic | P0 |
+| 2D hex-grid renderer (TilePlacementGrid) | 1 | ✅ shipped | Basic | P0 — alpha. 3D Three.js scene deferred to v1.5+ |
 | Multi-level LOD swap (galaxy → planet → region → base → building) | 8 | ⬜ planned | Expert | P0 |
 | Planet-sphere mesh + hex-tile geodesic projection | 2 | ⬜ planned | Advanced | P0 |
 | WASD + QE rotate + mousewheel zoom + drag-pan camera | 8 | ⬜ planned | Intermediate | P0 |
