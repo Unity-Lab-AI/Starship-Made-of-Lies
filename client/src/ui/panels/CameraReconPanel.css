@@ -1,0 +1,165 @@
+.recon-panel {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--fg-primary, #e6edf3);
+  padding: 0.4rem 0.5rem;
+}
+
+.recon-panel__empty {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.recon-panel__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.recon-panel__row {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left-width: 3px;
+  border-radius: 3px;
+  padding: 0.45rem 0.55rem;
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.recon-panel__row--green {
+  border-left-color: #6bd968;
+}
+.recon-panel__row--amber {
+  border-left-color: var(--lcd-glow, #d4a13a);
+}
+.recon-panel__row--red {
+  border-left-color: #ff5e74;
+}
+.recon-panel__row--blue {
+  border-left-color: #b3d9ff;
+}
+
+.recon-panel__row-head {
+  display: grid;
+  grid-template-columns: 7rem 1fr auto;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.recon-panel__ship {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.recon-panel__target {
+  font-weight: 600;
+  color: var(--lcd-glow, #d4a13a);
+}
+
+.recon-panel__ago {
+  font-size: 0.65rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.recon-panel__row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.recon-panel__biome {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+.recon-panel__hostility {
+  margin-left: auto;
+  font-size: 0.65rem;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.recon-panel__resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.recon-panel__resources-empty {
+  font-size: 0.65rem;
+  opacity: 0.55;
+  font-style: italic;
+}
+
+.recon-panel__hotspot {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 2px;
+  font-size: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.recon-panel__hotspot--low {
+  opacity: 0.7;
+}
+
+.recon-panel__hotspot--mid {
+  border-color: rgba(212, 161, 58, 0.4);
+}
+
+.recon-panel__hotspot--high {
+  border-color: rgba(212, 161, 58, 0.8);
+  color: var(--lcd-glow, #d4a13a);
+  text-shadow: 0 0 3px var(--lcd-glow, #d4a13a);
+}
+
+.recon-panel__intel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  font-size: 0.65rem;
+  opacity: 0.85;
+}
+
+.recon-panel__civ {
+  color: #b3d9ff;
+}
+
+.recon-panel__tech {
+  color: #d4d4a1;
+}
+
+.recon-panel__threat {
+  margin-left: auto;
+  font-weight: 600;
+}
+
+.recon-panel__threat--green {
+  color: #6bd968;
+}
+.recon-panel__threat--amber {
+  color: var(--lcd-glow, #d4a13a);
+}
+.recon-panel__threat--red {
+  color: #ff5e74;
+  text-shadow: 0 0 3px rgba(255, 94, 116, 0.5);
+}
+.recon-panel__threat--blue {
+  color: #b3d9ff;
+}

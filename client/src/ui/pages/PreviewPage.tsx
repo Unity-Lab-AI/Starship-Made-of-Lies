@@ -47,12 +47,28 @@ import {
   type TechId,
   tileId as tileIdValue,
 } from '@smol/shared'
+import {
+  type AchievementProgress,
+  type ProductionHistory,
+  type ProductionTickSample,
+  type ScoreEntry,
+  RESOURCE_FOOD as PRODUCTION_RES_FOOD,
+  RESOURCE_INGOTS as PRODUCTION_RES_INGOTS,
+  RESOURCE_PLANKS as PRODUCTION_RES_PLANKS,
+  accountId as accountIdValue,
+  newProductionHistory,
+  pushProductionSample,
+} from '@smol/shared'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
+import { AchievementsPanel } from '../panels/AchievementsPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
 import { BootSequencePanel } from '../panels/BootSequencePanel'
+import { CameraReconPanel, type ScoutReport } from '../panels/CameraReconPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
+import { HallOfChampionsPanel, type CategoryBoardSnapshot } from '../panels/HallOfChampionsPanel'
 import { LaunchPadPanel } from '../panels/LaunchPadPanel'
+import { ProductionGraphPanel } from '../panels/ProductionGraphPanel'
 import { TechTreePanel } from '../panels/TechTreePanel'
 import { ResourcesPanel } from '../panels/ResourcesPanel'
 import { TilePlacementGrid } from '../panels/TilePlacementGrid'
@@ -173,6 +189,192 @@ export function PreviewPage() {
     return [scout, pilgrim]
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startingPlanet.id])
+
+  const productionHistory = useMemo<ProductionHistory>(() => {
+    const history = newProductionHistory(60)
+    for (let t = 0; t < 60; t++) {
+      const sample: ProductionTickSample = {
+        tick: 60 + t,
+        produced: [
+          { resourceId: PRODUCTION_RES_FOOD, amount: 12 + Math.round(Math.sin(t / 5) * 4) },
+          { resourceId: PRODUCTION_RES_PLANKS, amount: 8 + Math.round(Math.cos(t / 7) * 3) },
+          { resourceId: PRODUCTION_RES_INGOTS, amount: 6 + Math.round(Math.sin(t / 4) * 2) },
+        ],
+        consumed: [
+          { resourceId: PRODUCTION_RES_FOOD, amount: 9 },
+          { resourceId: PRODUCTION_RES_PLANKS, amount: 4 },
+          { resourceId: PRODUCTION_RES_INGOTS, amount: 7 + Math.round(Math.sin(t / 6) * 3) },
+        ],
+        idledBuildingCount: 0,
+      }
+      pushProductionSample(history, sample)
+    }
+    return history
+  }, [])
+
+  const scoutReports = useMemo<ReadonlyArray<ScoutReport>>(
+    () => [
+      {
+        id: 'scout-r-1',
+        shipKind: 'scout',
+        targetLabel: 'PLANET-04',
+        biomeLabel: 'Verdant',
+        biomeEmoji: '🌳',
+        hostilityTier: 0,
+        resourceHotspots: [
+          { resourceLabel: 'Food', emoji: '🍞', density: 'high' },
+          { resourceLabel: 'Planks', emoji: '🪵', density: 'mid' },
+        ],
+        threatLevel: 'clear',
+        observedCivLabel: null,
+        observedTechSignature: null,
+        arrivedAtTick: 116,
+      },
+      {
+        id: 'surveyor-r-1',
+        shipKind: 'surveyor',
+        targetLabel: 'PLANET-12',
+        biomeLabel: 'Volcanic',
+        biomeEmoji: '🌋',
+        hostilityTier: 2,
+        resourceHotspots: [
+          { resourceLabel: 'Metals', emoji: '⚙️', density: 'high' },
+          { resourceLabel: 'Ingots', emoji: '🔩', density: 'mid' },
+        ],
+        threatLevel: 'moderate',
+        observedCivLabel: 'CHOSEN-2',
+        observedTechSignature: 'Tier-2 (industrial+spacefaring)',
+        arrivedAtTick: 105,
+      },
+      {
+        id: 'probe-r-1',
+        shipKind: 'probe',
+        targetLabel: 'PLANET-31',
+        biomeLabel: 'Toxic',
+        biomeEmoji: '☣️',
+        hostilityTier: 3,
+        resourceHotspots: [{ resourceLabel: 'Antimatter', emoji: '☢️', density: 'low' }],
+        threatLevel: 'hostile',
+        observedCivLabel: 'RED-ARM-7',
+        observedTechSignature: 'Tier-3 (forbidden detected)',
+        arrivedAtTick: 92,
+      },
+    ],
+    [],
+  )
+
+  const leaderboardBoards = useMemo<ReadonlyArray<CategoryBoardSnapshot>>(() => {
+    const mockEntry = (
+      name: string,
+      handle: string,
+      civSuffix: string,
+      score: number,
+      tick: number,
+    ): ScoreEntry => ({
+      accountId: accountIdValue(`mock-${handle}`),
+      displayName: name,
+      handle,
+      civId: civId(`civ-${civSuffix}`),
+      themeId: theme.id,
+      score,
+      recordedAtTick: tick,
+      matchId: 'mock-match',
+    })
+    return [
+      {
+        categoryId: 'mostPlanetsControlled',
+        themeLabel: null,
+        topEntries: [
+          mockEntry('Gee', 'gee14', 'gee', 38, 5400),
+          mockEntry('Sponge', 'sponge', 'sponge', 27, 4900),
+          mockEntry('Mills', 'mills', 'mills', 22, 4200),
+          mockEntry('Red', 'red', 'red', 18, 3800),
+        ],
+      },
+      {
+        categoryId: 'fastestTechApex',
+        themeLabel: null,
+        topEntries: [
+          mockEntry('Sponge', 'sponge', 'sponge', 1640, 1640),
+          mockEntry('Gee', 'gee14', 'gee', 1820, 1820),
+          mockEntry('Mills', 'mills', 'mills', 2100, 2100),
+        ],
+      },
+      {
+        categoryId: 'mostDeceptive',
+        themeLabel: null,
+        topEntries: [
+          mockEntry('Mills', 'mills', 'mills', 78.5, 5500),
+          mockEntry('Gee', 'gee14', 'gee', 72.1, 5100),
+        ],
+      },
+      {
+        categoryId: 'mostRuthless',
+        themeLabel: null,
+        topEntries: [
+          mockEntry('Red', 'red', 'red', 7, 5200),
+          mockEntry('Gee', 'gee14', 'gee', 5, 4900),
+          mockEntry('Sponge', 'sponge', 'sponge', 3, 4400),
+        ],
+      },
+      {
+        categoryId: 'themeSpecialist',
+        themeLabel: theme.name,
+        topEntries: [
+          mockEntry('Gee', 'gee14', 'gee', 9420, 5800),
+          mockEntry('Mills', 'mills', 'mills', 7180, 5300),
+        ],
+      },
+    ]
+  }, [theme.id, theme.name])
+
+  const achievementProgress = useMemo<ReadonlyArray<AchievementProgress>>(
+    () => [
+      {
+        achievementId: 'first-colony',
+        unlockedAtTick: 80,
+        unlockedInMatchId: 'mock-match',
+        progress: 1,
+        progressTarget: 1,
+      },
+      {
+        achievementId: 'first-ship-launched',
+        unlockedAtTick: 60,
+        unlockedInMatchId: 'mock-match',
+        progress: 1,
+        progressTarget: 1,
+      },
+      {
+        achievementId: 'first-victory',
+        unlockedAtTick: 110,
+        unlockedInMatchId: 'mock-match',
+        progress: 1,
+        progressTarget: 1,
+      },
+      {
+        achievementId: 'ten-planet-empire',
+        unlockedAtTick: null,
+        unlockedInMatchId: null,
+        progress: 6,
+        progressTarget: 10,
+      },
+      {
+        achievementId: 'first-civ-eliminated',
+        unlockedAtTick: 95,
+        unlockedInMatchId: 'mock-match',
+        progress: 1,
+        progressTarget: 1,
+      },
+      {
+        achievementId: 'mass-deception',
+        unlockedAtTick: null,
+        unlockedInMatchId: null,
+        progress: 0,
+        progressTarget: 1,
+      },
+    ],
+    [],
+  )
 
   const aiSnapshots = useMemo<ReadonlyArray<AIPlayerSnapshot>>(
     () => [
@@ -316,6 +518,17 @@ export function PreviewPage() {
         <BeaconPanel beacon={beacon} currentTick={120} />
         <BootSequencePanel theme={theme} />
         <AIPlayerPanel snapshots={aiSnapshots} />
+        <ProductionGraphPanel history={productionHistory} />
+        <CameraReconPanel reports={scoutReports} currentTick={120} />
+        <HallOfChampionsPanel
+          boards={leaderboardBoards}
+          highlightCategoryId="mostPlanetsControlled"
+        />
+        <AchievementsPanel
+          progressList={achievementProgress}
+          currentTick={120}
+          showHidden={false}
+        />
       </div>
     </div>
   )

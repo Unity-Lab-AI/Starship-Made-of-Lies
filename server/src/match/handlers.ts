@@ -12,6 +12,8 @@ import {
   type PingMessage,
   type PlaceBuildingMessage,
   type PongMessage,
+  type RequestLeaderboardMessage,
+  type RequestProfileMessage,
   type ServerToClientMessage,
   type StartMatchMessage,
   type StartResearchMessage,
@@ -76,6 +78,10 @@ export function dispatchClientMessage(
       return handleChat(ctx, msg)
     case 'PING':
       return handlePing(msg)
+    case 'REQUEST_PROFILE':
+      return handleRequestProfile(ctx, msg)
+    case 'REQUEST_LEADERBOARD':
+      return handleRequestLeaderboard(ctx, msg)
   }
 }
 
@@ -228,4 +234,15 @@ function handlePing(msg: PingMessage): HandlerOutcome {
     t: msg.t,
   }
   return { broadcast: [], direct: [pong], error: null }
+}
+
+function handleRequestProfile(_ctx: HandlerContext, _msg: RequestProfileMessage): HandlerOutcome {
+  return EMPTY_OUTCOME
+}
+
+function handleRequestLeaderboard(
+  _ctx: HandlerContext,
+  _msg: RequestLeaderboardMessage,
+): HandlerOutcome {
+  return EMPTY_OUTCOME
 }

@@ -4,6 +4,9 @@ import { type TechId } from '../sim/tech'
 import { type CitizenTier } from '../sim/population'
 import { type CampaignArchetype } from '../sim/deception'
 import { type WorkforceCategory } from '../sim/workforce'
+import { type AccountId } from '../sim/account'
+import { type AchievementId } from '../sim/achievements'
+import { type LeaderboardCategory, type ScoreEntry } from '../sim/leaderboard'
 
 export type ProtocolVersion = 1
 export const PROTOCOL_VERSION: ProtocolVersion = 1
@@ -21,6 +24,8 @@ export type ClientToServerMessageType =
   | 'SET_WORKFORCE_SLIDER'
   | 'CHAT'
   | 'PING'
+  | 'REQUEST_PROFILE'
+  | 'REQUEST_LEADERBOARD'
 
 export type ServerToClientMessageType =
   | 'LOBBY_STATE'
@@ -39,6 +44,9 @@ export type ServerToClientMessageType =
   | 'MATCH_STATE_SYNC'
   | 'BEACON_ALERT'
   | 'AI_PLAYER_STATE'
+  | 'ACHIEVEMENT_UNLOCKED'
+  | 'PROFILE_STATE'
+  | 'LEADERBOARD_UPDATE'
   | 'CHAT'
   | 'PONG'
   | 'ERROR'
@@ -108,6 +116,16 @@ export interface PingMessage extends BaseMessage<'PING'> {
   readonly t: number
 }
 
+export interface RequestProfileMessage extends BaseMessage<'REQUEST_PROFILE'> {
+  readonly accountId: AccountId
+}
+
+export interface RequestLeaderboardMessage extends BaseMessage<'REQUEST_LEADERBOARD'> {
+  readonly category: LeaderboardCategory
+  readonly themeId?: ThemeId
+  readonly topN?: number
+}
+
 export type ClientToServerMessage =
   | JoinLobbyMessage
   | LeaveLobbyMessage
@@ -121,6 +139,8 @@ export type ClientToServerMessage =
   | SetWorkforceSliderMessage
   | ChatClientMessage
   | PingMessage
+  | RequestProfileMessage
+  | RequestLeaderboardMessage
 
 export interface LobbyStateMessage extends BaseMessage<'LOBBY_STATE'> {
   readonly players: ReadonlyArray<{
@@ -255,6 +275,35 @@ export interface AIPlayerStateMessage extends BaseMessage<'AI_PLAYER_STATE'> {
   readonly lastDecidedTick: number
 }
 
+export interface AchievementUnlockedMessage extends BaseMessage<'ACHIEVEMENT_UNLOCKED'> {
+  readonly accountId: AccountId
+  readonly achievementId: AchievementId
+  readonly atTick: number
+  readonly matchId: string
+}
+
+export interface ProfileStateMessage extends BaseMessage<'PROFILE_STATE'> {
+  readonly accountId: AccountId
+  readonly displayName: string
+  readonly handle: string
+  readonly matchesPlayed: number
+  readonly matchesWon: number
+  readonly winRate: number
+  readonly themesPlayedCount: number
+  readonly fastestApexTicks: number | null
+  readonly achievementsUnlocked: number
+  readonly achievementsTotal: number
+  readonly badgeIds: ReadonlyArray<string>
+  readonly cosmeticUnlocks: ReadonlyArray<string>
+}
+
+export interface LeaderboardUpdateMessage extends BaseMessage<'LEADERBOARD_UPDATE'> {
+  readonly category: LeaderboardCategory
+  readonly themeId: ThemeId | null
+  readonly topEntries: ReadonlyArray<ScoreEntry>
+  readonly capturedAtTick: number
+}
+
 export interface ChatServerMessage extends BaseMessage<'CHAT'> {
   readonly fromCivId: CivId
   readonly fromName: string
@@ -287,6 +336,9 @@ export type ServerToClientMessage =
   | MatchStateSyncMessage
   | BeaconAlertMessage
   | AIPlayerStateMessage
+  | AchievementUnlockedMessage
+  | ProfileStateMessage
+  | LeaderboardUpdateMessage
   | ChatServerMessage
   | PongMessage
   | ErrorMessage
@@ -314,6 +366,8 @@ const CLIENT_TO_SERVER_TYPES: ReadonlySet<string> = new Set<ClientToServerMessag
   'SET_WORKFORCE_SLIDER',
   'CHAT',
   'PING',
+  'REQUEST_PROFILE',
+  'REQUEST_LEADERBOARD',
 ])
 
 const SERVER_TO_CLIENT_TYPES: ReadonlySet<string> = new Set<ServerToClientMessageType>([
@@ -333,6 +387,9 @@ const SERVER_TO_CLIENT_TYPES: ReadonlySet<string> = new Set<ServerToClientMessag
   'MATCH_STATE_SYNC',
   'BEACON_ALERT',
   'AI_PLAYER_STATE',
+  'ACHIEVEMENT_UNLOCKED',
+  'PROFILE_STATE',
+  'LEADERBOARD_UPDATE',
   'CHAT',
   'PONG',
   'ERROR',

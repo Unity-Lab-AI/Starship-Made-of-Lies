@@ -48,6 +48,12 @@ export function shouldDeliverToObserver(msg: ServerToClientMessage, ctx: FogOfWa
       return ctx.observableCivIds.has(msg.defeatedCivId)
     case 'AI_PLAYER_STATE':
       return ctx.observableCivIds.has(msg.civId) || msg.civId === ctx.observerCivId
+    case 'ACHIEVEMENT_UNLOCKED':
+      return true
+    case 'PROFILE_STATE':
+      return true
+    case 'LEADERBOARD_UPDATE':
+      return true
     default:
       return true
   }
@@ -86,6 +92,9 @@ function isServerToClient(msg: AnyProtocolMessage): msg is ServerToClientMessage
     case 'CIVIL_FACTION_SHIFT':
     case 'MATCH_STATE_SYNC':
     case 'RESOURCE_TICK':
+    case 'ACHIEVEMENT_UNLOCKED':
+    case 'PROFILE_STATE':
+    case 'LEADERBOARD_UPDATE':
     case 'PONG':
     case 'ERROR':
       return true
