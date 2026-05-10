@@ -205,12 +205,7 @@ export function PreviewPage() {
   const keybindMapInitial = useMemo(() => loadKeybindMap(), [])
 
   const mockAccount = useMemo<Account>(() => {
-    const account = newAnonymousAccount(
-      accountIdValue('mock-account-gfourteen'),
-      'GFourteen',
-      'gfourteen',
-      0,
-    )
+    const account = newAnonymousAccount(accountIdValue('mock-account-gee'), 'Gee', 'Gee', 0)
     account.stats.matchesPlayed = 47
     account.stats.matchesWon = 22
     account.stats.totalPlanetsControlledPeak = 38
@@ -235,8 +230,8 @@ export function PreviewPage() {
         {
           slotIndex: 0,
           kind: 'human',
-          civId: civId('civ-gfourteen'),
-          displayName: 'GFourteen',
+          civId: civId('civ-gee'),
+          displayName: 'Gee',
           themeId: theme.id,
           themeLocked: true,
           ready: true,
@@ -247,8 +242,8 @@ export function PreviewPage() {
         {
           slotIndex: 1,
           kind: 'human',
-          civId: civId('civ-spongebong'),
-          displayName: 'SpongeBong',
+          civId: civId('civ-sponge'),
+          displayName: 'Sponge',
           themeId: theme.id,
           themeLocked: false,
           ready: true,
@@ -404,44 +399,44 @@ export function PreviewPage() {
         categoryId: 'mostPlanetsControlled',
         themeLabel: null,
         topEntries: [
-          mockEntry('GFourteen', 'gfourteen', 'gfourteen', 38, 5400),
-          mockEntry('SpongeBong', 'hackall360', 'spongebong', 27, 4900),
-          mockEntry('Alfreddo', 'alfredo', 'alfreddo', 22, 4200),
-          mockEntry('Red', 'red', 'red', 18, 3800),
+          mockEntry('Gee', 'Gee', 'gee', 38, 5400),
+          mockEntry('Sponge', 'Sponge', 'sponge', 27, 4900),
+          mockEntry('Alfreddo', 'Alfreddo', 'alfreddo', 22, 4200),
+          mockEntry('Red', 'Red', 'red', 18, 3800),
         ],
       },
       {
         categoryId: 'fastestTechApex',
         themeLabel: null,
         topEntries: [
-          mockEntry('SpongeBong', 'hackall360', 'spongebong', 1640, 1640),
-          mockEntry('GFourteen', 'gfourteen', 'gfourteen', 1820, 1820),
-          mockEntry('Alfreddo', 'alfredo', 'alfreddo', 2100, 2100),
+          mockEntry('Sponge', 'Sponge', 'sponge', 1640, 1640),
+          mockEntry('Gee', 'Gee', 'gee', 1820, 1820),
+          mockEntry('Alfreddo', 'Alfreddo', 'alfreddo', 2100, 2100),
         ],
       },
       {
         categoryId: 'mostDeceptive',
         themeLabel: null,
         topEntries: [
-          mockEntry('Alfreddo', 'alfredo', 'alfreddo', 78.5, 5500),
-          mockEntry('GFourteen', 'gfourteen', 'gfourteen', 72.1, 5100),
+          mockEntry('Alfreddo', 'Alfreddo', 'alfreddo', 78.5, 5500),
+          mockEntry('Gee', 'Gee', 'gee', 72.1, 5100),
         ],
       },
       {
         categoryId: 'mostRuthless',
         themeLabel: null,
         topEntries: [
-          mockEntry('Red', 'red', 'red', 7, 5200),
-          mockEntry('GFourteen', 'gfourteen', 'gfourteen', 5, 4900),
-          mockEntry('SpongeBong', 'hackall360', 'spongebong', 3, 4400),
+          mockEntry('Red', 'Red', 'red', 7, 5200),
+          mockEntry('Gee', 'Gee', 'gee', 5, 4900),
+          mockEntry('Sponge', 'Sponge', 'sponge', 3, 4400),
         ],
       },
       {
         categoryId: 'themeSpecialist',
         themeLabel: theme.name,
         topEntries: [
-          mockEntry('GFourteen', 'gfourteen', 'gfourteen', 9420, 5800),
-          mockEntry('Alfreddo', 'alfredo', 'alfreddo', 7180, 5300),
+          mockEntry('Gee', 'Gee', 'gee', 9420, 5800),
+          mockEntry('Alfreddo', 'Alfreddo', 'alfreddo', 7180, 5300),
         ],
       },
     ]

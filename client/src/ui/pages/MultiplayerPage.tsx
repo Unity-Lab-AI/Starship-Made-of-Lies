@@ -28,7 +28,7 @@ interface MockRoom {
 const MOCK_ROOMS: ReadonlyArray<MockRoom> = [
   {
     code: 'PILGRIM-7',
-    hostName: 'GFourteen',
+    hostName: 'Gee',
     playerCount: 3,
     maxPlayers: 8,
     themeId: THEME_THEOCRACY,
@@ -37,7 +37,7 @@ const MOCK_ROOMS: ReadonlyArray<MockRoom> = [
   },
   {
     code: 'IRON-DRUM',
-    hostName: 'SpongeBong',
+    hostName: 'Sponge',
     playerCount: 5,
     maxPlayers: 8,
     themeId: THEME_MILITARY_JUNTA,

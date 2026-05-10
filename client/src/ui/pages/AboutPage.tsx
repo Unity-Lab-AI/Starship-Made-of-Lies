@@ -13,17 +13,17 @@ interface Member {
 
 const TEAM: ReadonlyArray<Member> = [
   {
-    key: 'spongebong',
-    name: 'SpongeBong',
-    handle: 'hackall360',
+    key: 'sponge',
+    name: 'Sponge',
+    handle: 'Sponge',
     title: 'Co-founder · Engineer',
     bio: 'Started Unity. Owns the infrastructure, the prompt archive, and the on-call pager. If something is held together by a shell script, there is a fair chance he wrote it.',
     roles: ['Developer', 'Ethical Hacker', 'Sys Admin', 'Founder'],
   },
   {
-    key: 'gfourteen',
-    name: 'GFourteen',
-    handle: 'gfourteen',
+    key: 'gee',
+    name: 'Gee',
+    handle: 'Gee',
     title: 'Co-founder · Engineer',
     bio: "The other half of Unity's spine. Brings finance discipline to a lab that would otherwise spend every dollar on GPUs and regret nothing.",
     roles: ['Developer', 'Founder', 'Financial Advisor'],
@@ -31,7 +31,7 @@ const TEAM: ReadonlyArray<Member> = [
   {
     key: 'alfreddo',
     name: 'Alfreddo',
-    handle: 'alfredo',
+    handle: 'Alfreddo',
     title: 'Engineer · Agentic systems',
     bio: 'Lives inside the planner / executor / critic loop. When the agent stack does something nobody expected, Alfreddo can usually tell you why before you finish asking.',
     roles: ['Developer', 'Agentic Systems', 'Researcher'],

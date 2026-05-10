@@ -97,45 +97,39 @@ export function AchievementsPage() {
         categoryId: 'mostPlanetsControlled',
         themeLabel: null,
         topEntries: [
-          entry('GFourteen', 'gfourteen', 38, 5400),
-          entry('SpongeBong', 'hackall360', 27, 4900),
-          entry('Alfreddo', 'alfredo', 22, 4200),
-          entry('Red', 'red', 18, 3800),
+          entry('Gee', 'Gee', 38, 5400),
+          entry('Sponge', 'Sponge', 27, 4900),
+          entry('Alfreddo', 'Alfreddo', 22, 4200),
+          entry('Red', 'Red', 18, 3800),
         ],
       },
       {
         categoryId: 'fastestTechApex',
         themeLabel: null,
         topEntries: [
-          entry('SpongeBong', 'hackall360', 1640, 1640),
-          entry('GFourteen', 'gfourteen', 1820, 1820),
-          entry('Alfreddo', 'alfredo', 2100, 2100),
+          entry('Sponge', 'Sponge', 1640, 1640),
+          entry('Gee', 'Gee', 1820, 1820),
+          entry('Alfreddo', 'Alfreddo', 2100, 2100),
         ],
       },
       {
         categoryId: 'mostDeceptive',
         themeLabel: null,
-        topEntries: [
-          entry('Alfreddo', 'alfredo', 78, 5500),
-          entry('GFourteen', 'gfourteen', 72, 5100),
-        ],
+        topEntries: [entry('Alfreddo', 'Alfreddo', 78, 5500), entry('Gee', 'Gee', 72, 5100)],
       },
       {
         categoryId: 'mostRuthless',
         themeLabel: null,
         topEntries: [
-          entry('Red', 'red', 7, 5200),
-          entry('GFourteen', 'gfourteen', 5, 4900),
-          entry('SpongeBong', 'hackall360', 3, 4400),
+          entry('Red', 'Red', 7, 5200),
+          entry('Gee', 'Gee', 5, 4900),
+          entry('Sponge', 'Sponge', 3, 4400),
         ],
       },
       {
         categoryId: 'themeSpecialist',
         themeLabel: theme.name,
-        topEntries: [
-          entry('GFourteen', 'gfourteen', 9420, 5800),
-          entry('Alfreddo', 'alfredo', 7180, 5300),
-        ],
+        topEntries: [entry('Gee', 'Gee', 9420, 5800), entry('Alfreddo', 'Alfreddo', 7180, 5300)],
       },
     ]
   }, [theme.id, theme.name])
