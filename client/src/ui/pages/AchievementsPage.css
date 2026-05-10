@@ -1,0 +1,37 @@
+.achievements-page__theme {
+  margin-left: auto;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.achievements-page__theme select {
+  padding: 0.4rem 0.6rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 4px;
+  color: var(--text-soft);
+  font-family: inherit;
+}
+
+.achievements-page__content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.achievements-page__intro {
+  margin-bottom: 1.5rem;
+  color: var(--text-soft);
+  max-width: 70ch;
+}
+
+.achievements-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 1.5rem;
+}

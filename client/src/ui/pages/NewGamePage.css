@@ -1,0 +1,125 @@
+.new-game-page__content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(380px, 2fr);
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.new-game-page__form {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  align-self: start;
+}
+
+.new-game-page__form h2 {
+  margin-top: 0;
+}
+
+.new-game-page__field {
+  display: grid;
+  grid-template-columns: 130px 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+}
+
+.new-game-page__field > span:first-child {
+  font-weight: 600;
+  color: var(--text-hero);
+}
+
+.new-game-page__field select,
+.new-game-page__field input[type='range'] {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 4px;
+  color: var(--text-soft);
+  padding: 0.4rem 0.6rem;
+  font-family: inherit;
+}
+
+.new-game-page__field-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-glow, #d4a13a);
+  font-weight: 700;
+  min-width: 2ch;
+  text-align: right;
+}
+
+.new-game-page__field-hint {
+  font-size: 0.8rem;
+  color: var(--text-mute);
+  font-style: italic;
+}
+
+.new-game-page__theme-note {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(212, 161, 58, 0.06);
+  border-left: 3px solid var(--ui-glow, #d4a13a);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.new-game-page__cta {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+}
+
+.new-game-page__start {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  background: var(--ui-glow, #d4a13a);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.new-game-page__start:not(:disabled):hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.new-game-page__start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.new-game-page__cta-hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-mute);
+  font-style: italic;
+}
+
+.new-game-page__preview {
+  align-self: start;
+}
+
+.new-game-page__preview h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 900px) {
+  .new-game-page__content {
+    grid-template-columns: 1fr;
+  }
+}

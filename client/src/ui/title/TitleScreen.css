@@ -10,7 +10,7 @@
 .hero-background {
   position: absolute;
   inset: 0;
-  background-image: url('/assets/keyart.png');
+  background-image: url('/assets/keyart.jpg');
   background-size: cover;
   background-position: center;
   z-index: 0;

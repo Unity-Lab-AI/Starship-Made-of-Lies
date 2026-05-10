@@ -38,14 +38,12 @@ export function TitleScreen() {
       </div>
 
       <main className="title-content">
-        <h1 className="title-hero">Starship Made of Lies</h1>
-        <p className="title-tagline">Conquer the galaxy.</p>
         <MainMenu />
       </main>
 
       <footer className="utility-bar utility-bar--bottom">
         <nav className="utility-links" aria-label="Bottom utility">
-          <a href="https://discord.gg/unityailab" target="_blank" rel="noreferrer noopener">
+          <a href="https://discord.gg/YWYk4CBr" target="_blank" rel="noreferrer noopener">
             Discord
           </a>
           <a
@@ -56,7 +54,7 @@ export function TitleScreen() {
             GitHub
           </a>
         </nav>
-        <span className="version">v0.1.0 · © Unity AI Lab</span>
+        <span className="version">v0.01.0 · © Unity AI Lab</span>
       </footer>
     </div>
   )
