@@ -1,0 +1,58 @@
+{
+  "name": "starship-made-of-lies",
+  "version": "0.0.0",
+  "description": "SMoL — Starship Made of Lies. Top-down emoji civilization-building game where you trick your own citizens into boarding colony ships aimed at other civilizations. Unity AI Lab.",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "homepage": "https://www.unityailab.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Unity-Lab-AI/Starship-Made-of-Lies.git"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "pnpm -r run lint",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "prepare": "husky",
+    "dev": "pnpm --filter @smol/client dev",
+    "dev:tauri": "tauri dev",
+    "dev:android": "cap run android",
+    "dev:ios": "cap run ios",
+    "build:web": "pnpm --filter @smol/client build",
+    "build:desktop": "tauri build",
+    "build:mobile:android": "cap build android",
+    "build:mobile:ios": "cap build ios",
+    "tauri": "tauri",
+    "cap": "cap"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@eslint/js": "^9.17.0",
+    "@tauri-apps/cli": "^2.1.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
+    "prettier": "^3.4.2",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.18.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --max-warnings 0",
+      "prettier --write"
+    ],
+    "*.{json,yaml,yml,html,css,md}": [
+      "prettier --write"
+    ]
+  }
+}

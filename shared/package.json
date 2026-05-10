@@ -1,0 +1,13 @@
+{
+  "name": "@smol/shared",
+  "version": "0.0.0",
+  "description": "SMoL cross-cutting types + game rules constants + WebSocket message protocol (TypeScript). Imported by both client and server. Galaxy/planet generators, tile/building model, resource manifest, population model, citizen tier system, tech tree, theme catalog, faction model, colony ship state machine, trajectory math.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --check .",
+    "format:write": "prettier --write ."
+  }
+}

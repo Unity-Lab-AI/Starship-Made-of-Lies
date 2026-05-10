@@ -18,5 +18,21 @@ symbol.map
 .DS_Store
 Thumbs.db
 
+# SMoL build outputs (additive 2026-05-09 per PHASE 0.11 policy — UMS entries above PRESERVED until PHASE 15)
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.vite/
+.pnpm-store/
+.eslintcache
+.prettiercache
+*.log
+.env
+.env.local
+.env.*.local
+src-tauri/target/
+src-tauri/Cargo.lock
+
 # Proprietary Unity AI Lab .claude/ workflow system — public repo, NEVER commit
 .claude/
