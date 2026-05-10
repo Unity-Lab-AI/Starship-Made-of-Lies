@@ -1,7 +1,7 @@
 {
   "name": "@smol/client",
   "version": "0.01.0",
-  "description": "SMoL client — TypeScript + React + Three.js frontend bundle. Per-government-theme UI skin via CSS variables. Cross-platform (web + desktop via Tauri + mobile via Capacitor). 2D rendering layer (Canvas/Pixi/Three.js orthographic) deferred to PHASE 2 spike per ARCHITECTURE.md TBD.",
+  "description": "SMoL client — TypeScript + React + Vite frontend bundle. Per-government-theme UI skin via CSS variables. Cross-platform (web + desktop via Tauri + mobile via Capacitor). 2D hex-grid rendering for alpha; 3D zoom deferred to v1.5+.",
   "private": true,
   "type": "module",
   "scripts": {

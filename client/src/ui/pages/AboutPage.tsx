@@ -112,7 +112,7 @@ export function AboutPage() {
           <ul>
             <li>TypeScript (strict) — client + server + shared, single language</li>
             <li>React + Vite — client UI + bundler</li>
-            <li>Three.js — 3D galaxy / planet / region zoom (PHASE 8 in progress)</li>
+            <li>2D hex grid (TilePlacementGrid) — alpha. 3D zoom deferred to v1.5+.</li>
             <li>Colyseus — server-authoritative multiplayer</li>
             <li>Tauri — Win/Mac/Linux desktop binaries</li>
             <li>Capacitor — iOS + Android shells</li>
