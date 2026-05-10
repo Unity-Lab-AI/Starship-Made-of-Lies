@@ -30,6 +30,7 @@ import { ResourcesPanel } from '../panels/ResourcesPanel'
 import { ShipBuildPanel } from '../panels/ShipBuildPanel'
 import { TechTreePanel } from '../panels/TechTreePanel'
 import { TilePlacementGrid } from '../panels/TilePlacementGrid'
+import { GalaxyView } from '../../render/scene/GalaxyView'
 import { BuildPicker } from '../play/BuildPicker'
 import { CampaignPicker } from '../play/CampaignPicker'
 import { HUDOverlay } from '../play/HUDOverlay'
@@ -88,6 +89,7 @@ export function PlayPage() {
   const [openPanels, setOpenPanels] = useState<Set<PanelId>>(() => new Set())
   const [buildMode, setBuildMode] = useState<BuildingDefId | null>(null)
   const [selectedPlanetId, setSelectedPlanetId] = useState<PlanetId | null>(null)
+  const [galaxyOpen, setGalaxyOpen] = useState(false)
   const [toasts, setToasts] = useState<ToastNotification[]>([])
   const lastSeenEventIdxRef = useRef(0)
 
@@ -293,8 +295,7 @@ export function PlayPage() {
       else if (k === 'x') togglePanel('events')
       else if (k === 'g') togglePanel('planets')
       else if (k === 'm') {
-        // Galaxy zoom — placeholder until 16.2 ships; for now opens planet picker.
-        togglePanel('planets')
+        setGalaxyOpen((v) => !v)
       } else if (k === ' ') {
         e.preventDefault()
         sim.togglePause()
@@ -342,10 +343,24 @@ export function PlayPage() {
         setSpeed={sim.setSpeed}
         openPanels={openPanels}
         togglePanel={togglePanel}
-        onGalaxyClick={() => togglePanel('planets')}
+        onGalaxyClick={() => setGalaxyOpen((v) => !v)}
         buildModeBuildingDefId={buildMode}
         onCancelBuildMode={handleCancelBuildMode}
       />
+
+      {galaxyOpen && (
+        <GalaxyView
+          galaxy={sim.state.galaxy}
+          humanCivId={String(sim.state.humanCivId)}
+          ownedPlanetIds={new Set(ownedPlanets.map((p) => p.planet.id))}
+          homePlanetId={humanCivState.homePlanetId}
+          onSelectPlanet={(id) => {
+            setSelectedPlanetId(id)
+            setGalaxyOpen(false)
+          }}
+          onClose={() => setGalaxyOpen(false)}
+        />
+      )}
 
       <Toasts toasts={toasts} onDismiss={dismissToast} />
 

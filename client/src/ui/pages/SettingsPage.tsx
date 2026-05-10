@@ -5,15 +5,17 @@ import { loadAccessibilitySettings } from '../../settings/accessibility'
 import { loadKeybindMap } from '../../settings/keybindings'
 import { AccessibilitySettingsPanel } from '../panels/AccessibilitySettingsPanel'
 import { AudioSettingsPanel } from '../panels/AudioSettingsPanel'
+import { CameraSettingsPanel } from '../panels/CameraSettingsPanel'
 import { KeybindingsPanel } from '../panels/KeybindingsPanel'
 import './SubPage.css'
 import './SettingsPage.css'
 
-type SettingsTab = 'audio' | 'accessibility' | 'keybinds' | 'about'
+type SettingsTab = 'audio' | 'accessibility' | 'camera' | 'keybinds' | 'about'
 
 const TABS: ReadonlyArray<{ id: SettingsTab; label: string; emoji: string }> = [
   { id: 'audio', label: 'Audio', emoji: '🔊' },
   { id: 'accessibility', label: 'Accessibility', emoji: '♿' },
+  { id: 'camera', label: 'Camera', emoji: '🎮' },
   { id: 'keybinds', label: 'Keybinds', emoji: '⌨️' },
   { id: 'about', label: 'About', emoji: 'ℹ️' },
 ]
@@ -50,6 +52,7 @@ export function SettingsPage() {
         <section className="settings-page__panel" role="tabpanel">
           {tab === 'audio' && <AudioSettingsPanel audioSystem={audioSystem} />}
           {tab === 'accessibility' && <AccessibilitySettingsPanel initial={accessibilityInitial} />}
+          {tab === 'camera' && <CameraSettingsPanel />}
           {tab === 'keybinds' && <KeybindingsPanel initial={keybindMapInitial} />}
           {tab === 'about' && (
             <div className="settings-page__about">
