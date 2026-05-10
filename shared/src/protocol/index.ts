@@ -34,6 +34,10 @@ export type ServerToClientMessageType =
   | 'PLANET_CAPTURED'
   | 'CIV_DEFEATED'
   | 'MATCH_ENDED'
+  | 'RESOURCE_TICK'
+  | 'CIVIL_FACTION_SHIFT'
+  | 'MATCH_STATE_SYNC'
+  | 'BEACON_ALERT'
   | 'CHAT'
   | 'PONG'
   | 'ERROR'
@@ -210,6 +214,37 @@ export interface MatchEndedMessage extends BaseMessage<'MATCH_ENDED'> {
   readonly winningCivId: CivId | null
 }
 
+export interface ResourceTickMessage extends BaseMessage<'RESOURCE_TICK'> {
+  readonly planetId: PlanetId
+  readonly produced: ReadonlyArray<{ resourceId: string; amount: number }>
+  readonly consumed: ReadonlyArray<{ resourceId: string; amount: number }>
+  readonly idledBuildingCount: number
+}
+
+export interface CivilFactionShiftMessage extends BaseMessage<'CIVIL_FACTION_SHIFT'> {
+  readonly planetId: PlanetId
+  readonly loyalDelta: number
+  readonly skepticDelta: number
+  readonly dissidentDelta: number
+  readonly cause: 'propaganda' | 'conscription' | 'campaign' | 'natural-growth' | 'event'
+}
+
+export interface MatchStateSyncMessage extends BaseMessage<'MATCH_STATE_SYNC'> {
+  readonly tick: number
+  readonly civCount: number
+  readonly aliveCivCount: number
+  readonly totalControlledPlanets: ReadonlyArray<{ civId: CivId; count: number }>
+  readonly snapshotChecksum?: string
+}
+
+export interface BeaconAlertMessage extends BaseMessage<'BEACON_ALERT'> {
+  readonly planetId: PlanetId
+  readonly observerCivId: CivId
+  readonly alertId: string
+  readonly kind: string
+  readonly summary: string
+}
+
 export interface ChatServerMessage extends BaseMessage<'CHAT'> {
   readonly fromCivId: CivId
   readonly fromName: string
@@ -237,6 +272,10 @@ export type ServerToClientMessage =
   | PlanetCapturedMessage
   | CivDefeatedMessage
   | MatchEndedMessage
+  | ResourceTickMessage
+  | CivilFactionShiftMessage
+  | MatchStateSyncMessage
+  | BeaconAlertMessage
   | ChatServerMessage
   | PongMessage
   | ErrorMessage
@@ -278,6 +317,10 @@ const SERVER_TO_CLIENT_TYPES: ReadonlySet<string> = new Set<ServerToClientMessag
   'PLANET_CAPTURED',
   'CIV_DEFEATED',
   'MATCH_ENDED',
+  'RESOURCE_TICK',
+  'CIVIL_FACTION_SHIFT',
+  'MATCH_STATE_SYNC',
+  'BEACON_ALERT',
   'CHAT',
   'PONG',
   'ERROR',

@@ -15,8 +15,11 @@ import {
   newEmpire,
   newFactionSplit,
   newLaunchPad,
+  newPlanetBeacon,
   newPlanetInventory,
+  type PlanetBeacon,
   planetId as planetIdValue,
+  pushBeaconAlert,
   RESOURCE_FOOD,
   RESOURCE_INGOTS,
   RESOURCE_METALS,
@@ -41,6 +44,8 @@ import {
   type TechId,
   tileId as tileIdValue,
 } from '@smol/shared'
+import { BeaconPanel } from '../panels/BeaconPanel'
+import { BootSequencePanel } from '../panels/BootSequencePanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
 import { LaunchPadPanel } from '../panels/LaunchPadPanel'
@@ -165,6 +170,44 @@ export function PreviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startingPlanet.id])
 
+  const beacon = useMemo<PlanetBeacon>(() => {
+    const b = newPlanetBeacon(startingPlanet.id, civId('preview-civ'))
+    pushBeaconAlert(b, {
+      id: 'a1',
+      planetId: startingPlanet.id,
+      observerCivId: civId('preview-civ'),
+      kind: 'INCOMING_HOSTILE',
+      atTick: 110,
+      summary: 'Hostile inbound from THE-CHOSEN-2 — ETA 14 ticks',
+      relatedFlightId: 'f-9001',
+    })
+    pushBeaconAlert(b, {
+      id: 'a2',
+      planetId: startingPlanet.id,
+      observerCivId: civId('preview-civ'),
+      kind: 'OUTGOING_LAUNCH',
+      atTick: 105,
+      summary: 'Outbound to TARGET-DELTA — ETA 38 ticks',
+    })
+    pushBeaconAlert(b, {
+      id: 'a3',
+      planetId: startingPlanet.id,
+      observerCivId: civId('preview-civ'),
+      kind: 'INTERCEPT_SUCCESS',
+      atTick: 92,
+      summary: 'Intercepted hostile from RED-ARM-7',
+    })
+    pushBeaconAlert(b, {
+      id: 'a4',
+      planetId: startingPlanet.id,
+      observerCivId: civId('preview-civ'),
+      kind: 'COLONY_ESTABLISHED',
+      atTick: 80,
+      summary: 'Colony established by allied-trade-2',
+    })
+    return b
+  }, [startingPlanet.id])
+
   return (
     <div className="preview-page" style={styleVars as React.CSSProperties}>
       <header className="preview-page__header">
@@ -233,6 +276,8 @@ export function PreviewPage() {
         />
         <LaunchPadPanel pad={launchPad} onAfterAction={triggerRefresh} />
         <ColonyShipFlightPanel flights={inFlightShips} onAfterAction={triggerRefresh} />
+        <BeaconPanel beacon={beacon} currentTick={120} />
+        <BootSequencePanel theme={theme} />
       </div>
     </div>
   )

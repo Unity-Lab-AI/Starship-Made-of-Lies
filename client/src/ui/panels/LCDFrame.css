@@ -1,0 +1,132 @@
+.lcd-frame {
+  --lcd-glow: var(--accent-alt, #d4a13a);
+  --lcd-bg: var(--bg-primary, #0a0e14);
+  position: relative;
+  font-family: var(--font-mono, 'Share Tech Mono', monospace);
+}
+
+.lcd-frame--amber {
+  --lcd-glow: #d4a13a;
+}
+
+.lcd-frame--green {
+  --lcd-glow: #6bd968;
+}
+
+.lcd-frame--blue {
+  --lcd-glow: #4ad7ff;
+}
+
+.lcd-frame--red {
+  --lcd-glow: #ff5e74;
+}
+
+.lcd-frame__bezel {
+  position: relative;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border: 2px solid var(--border, #30363d);
+  border-radius: 10px;
+  padding: 0.4rem 0.5rem 0.5rem;
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 0, 0, 0.6),
+    0 0 12px rgba(0, 0, 0, 0.7);
+}
+
+.lcd-frame__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.1rem 0.3rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--lcd-glow);
+  text-shadow: 0 0 4px var(--lcd-glow);
+}
+
+.lcd-frame__title {
+  font-weight: 700;
+}
+
+.lcd-frame__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.65rem;
+}
+
+.lcd-frame__status-glyph {
+  display: inline-grid;
+  place-items: center;
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 1px solid var(--lcd-glow);
+  border-radius: 50%;
+  font-size: 0.6rem;
+}
+
+.lcd-frame__screen {
+  position: relative;
+  background: var(--lcd-bg);
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 24px rgba(0, 0, 0, 0.8),
+    inset 0 0 4px rgba(0, 0, 0, 0.6);
+}
+
+.lcd-frame__scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  opacity: 0.7;
+}
+
+.lcd-frame__content {
+  position: relative;
+  z-index: 1;
+}
+
+.lcd-frame__corner {
+  position: absolute;
+  font-size: 0.7rem;
+  color: var(--lcd-glow);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.lcd-frame__corner--tl {
+  top: 0.15rem;
+  left: 0.2rem;
+}
+
+.lcd-frame__corner--tr {
+  top: 0.15rem;
+  right: 0.2rem;
+}
+
+.lcd-frame__corner--bl {
+  bottom: 0.15rem;
+  left: 0.2rem;
+}
+
+.lcd-frame__corner--br {
+  bottom: 0.15rem;
+  right: 0.2rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lcd-frame__scanlines {
+    display: none;
+  }
+}
