@@ -4,7 +4,7 @@ This doc covers prerequisites, per-platform build commands, and known blockers f
 
 **Version:** v0.01.0 — Alpha (stays at this version until explicitly bumped)
 
-**Community / Feedback:** Single channel — Discord (`https://discord.gg/unitylab-smol`). Drop bugs, ideas, weirdest match stories there. Per-build "Open Discord" button is wired into the in-app footer via `client/src/services/community.ts`.
+**Community / Feedback:** Single channel — Discord (`https://discord.gg/YWYk4CBr`). Drop bugs, ideas, weirdest match stories there. Per-build "Open Discord" button is wired into the in-app footer via `client/src/services/community.ts`.
 
 ## Prerequisites
 
@@ -127,17 +127,17 @@ Without these, the build workflows still run + emit artifacts but signing steps 
 
 ## Known blockers (non-toolchain)
 
-| Blocker                                    | Phase | Resolution                                                                                                                                                  |
-| ------------------------------------------ | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Real per-theme `.ogg` audio recordings     | 12    | Audio team / composer commission. Per-theme synth fallback ships in PHASE 14 — every theme has distinct tone arrays / LFO / waveform via `theme-polish.ts`. |
-| LLM voice AI cameo pipeline                | 14    | DEFERRED post-MVP per user directive — playback selection, generation, female/male templates, intro cameo.                                                  |
-| Citizen voice cameos                       | 12    | Voice acting sessions per theme. SfxOverrides API is the slot.                                                                                              |
-| OAuth backend (email/Discord/Google/Apple) | 11    | User picks Supabase / Firebase / self-host. All 4 providers will wire in. AccountStore interface ships today.                                               |
-| Persistent leaderboards backend            | 11    | Same backend pick. **PHASE 14 lock-in:** ONE global Hall of Champions / leaderboard (not per-server).                                                       |
-| Three.js scene + LOD + camera              | 8     | Multi-day infra build. Will gate full 3D PannerNode spatial audio + client-side state interpolation.                                                        |
-| App icons (real branding)                  | 13    | Ship icons in `src-tauri/icons/` + `client/public/icons/`. Placeholders today.                                                                              |
-| Crash + match-end telemetry endpoints      | 14    | `HttpTelemetryPipeline` interface ships in PHASE 14. POST endpoints to be configured at deploy.                                                             |
-| Real Discord invite URL                    | 14    | Placeholder `discord.gg/unitylab-smol` in `community.ts` — replace with real invite when server live.                                                       |
+| Blocker                                    | Phase  | Resolution                                                                                                                                                  |
+| ------------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Real per-theme `.ogg` audio recordings     | 12     | Audio team / composer commission. Per-theme synth fallback ships in PHASE 14 — every theme has distinct tone arrays / LFO / waveform via `theme-polish.ts`. |
+| LLM voice AI cameo pipeline                | 14     | DEFERRED post-MVP per user directive — playback selection, generation, female/male templates, intro cameo.                                                  |
+| Citizen voice cameos                       | 12     | Voice acting sessions per theme. SfxOverrides API is the slot.                                                                                              |
+| OAuth backend (email/Discord/Google/Apple) | 11     | User picks Supabase / Firebase / self-host. All 4 providers will wire in. AccountStore interface ships today.                                               |
+| Persistent leaderboards backend            | 11     | Same backend pick. **PHASE 14 lock-in:** ONE global Hall of Champions / leaderboard (not per-server).                                                       |
+| Three.js scene + LOD + camera              | 8      | Multi-day infra build. Will gate full 3D PannerNode spatial audio + client-side state interpolation.                                                        |
+| App icons (real branding)                  | 13     | Ship icons in `src-tauri/icons/` + `client/public/icons/`. Placeholders today.                                                                              |
+| Crash + match-end telemetry endpoints      | 14     | `HttpTelemetryPipeline` interface ships in PHASE 14. POST endpoints to be configured at deploy.                                                             |
+| ~~Real Discord invite URL~~                | ~~14~~ | ✅ RESOLVED 2026-05-10 — real invite `discord.gg/YWYk4CBr` wired in `community.ts` + BUILD.md.                                                              |
 
 ## PHASE 14 polish surfaces (shipped 2026-05-10)
 
