@@ -97,9 +97,9 @@ export function AchievementsPage() {
         categoryId: 'mostPlanetsControlled',
         themeLabel: null,
         topEntries: [
-          entry('Gee', 'gee14', 38, 5400),
-          entry('Sponge', 'sponge', 27, 4900),
-          entry('Mills', 'mills', 22, 4200),
+          entry('GFourteen', 'gfourteen', 38, 5400),
+          entry('SpongeBong', 'hackall360', 27, 4900),
+          entry('Alfreddo', 'alfredo', 22, 4200),
           entry('Red', 'red', 18, 3800),
         ],
       },
@@ -107,29 +107,35 @@ export function AchievementsPage() {
         categoryId: 'fastestTechApex',
         themeLabel: null,
         topEntries: [
-          entry('Sponge', 'sponge', 1640, 1640),
-          entry('Gee', 'gee14', 1820, 1820),
-          entry('Mills', 'mills', 2100, 2100),
+          entry('SpongeBong', 'hackall360', 1640, 1640),
+          entry('GFourteen', 'gfourteen', 1820, 1820),
+          entry('Alfreddo', 'alfredo', 2100, 2100),
         ],
       },
       {
         categoryId: 'mostDeceptive',
         themeLabel: null,
-        topEntries: [entry('Mills', 'mills', 78, 5500), entry('Gee', 'gee14', 72, 5100)],
+        topEntries: [
+          entry('Alfreddo', 'alfredo', 78, 5500),
+          entry('GFourteen', 'gfourteen', 72, 5100),
+        ],
       },
       {
         categoryId: 'mostRuthless',
         themeLabel: null,
         topEntries: [
           entry('Red', 'red', 7, 5200),
-          entry('Gee', 'gee14', 5, 4900),
-          entry('Sponge', 'sponge', 3, 4400),
+          entry('GFourteen', 'gfourteen', 5, 4900),
+          entry('SpongeBong', 'hackall360', 3, 4400),
         ],
       },
       {
         categoryId: 'themeSpecialist',
         themeLabel: theme.name,
-        topEntries: [entry('Gee', 'gee14', 9420, 5800), entry('Mills', 'mills', 7180, 5300)],
+        topEntries: [
+          entry('GFourteen', 'gfourteen', 9420, 5800),
+          entry('Alfreddo', 'alfredo', 7180, 5300),
+        ],
       },
     ]
   }, [theme.id, theme.name])
