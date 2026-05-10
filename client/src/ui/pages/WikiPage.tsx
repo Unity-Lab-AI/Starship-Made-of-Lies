@@ -1,9 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  type TechId,
+  type TechNode,
   type ThemeId,
+  TECH_NODES,
   THEMES,
   civId,
+  getBuildingDef,
+  getTechNode,
   getTheme,
   newEmpire,
   planetId as planetIdValue,
@@ -29,6 +34,7 @@ const SECTIONS: ReadonlyArray<{ id: WikiSection; label: string; emoji: string }>
 export function WikiPage() {
   const [section, setSection] = useState<WikiSection>('themes')
   const [selectedThemeId, setSelectedThemeId] = useState<ThemeId>(THEMES[0]!.id)
+  const [selectedTechId, setSelectedTechId] = useState<TechId | null>(null)
   const theme = getTheme(selectedThemeId)
   const styleVars = useMemo(() => themeAsCSSVars(theme), [theme])
 
@@ -40,6 +46,8 @@ export function WikiPage() {
     startResearch(e, TECH_AEROSPACE)
     return e
   }, [])
+
+  const selectedTech: TechNode | null = selectedTechId ? getTechNode(selectedTechId) : null
 
   return (
     <div className="sub-page" style={styleVars as React.CSSProperties}>
@@ -127,16 +135,34 @@ export function WikiPage() {
           )}
 
           {section === 'tech' && (
-            <div>
-              <h2>Tech tree</h2>
-              <p className="wiki-page__intro">
-                30 nodes across 5 tiers + 7 categories. Mainstream techs are visible from start;
-                Suppressed are hinted only when prereqs met; Forbidden are hidden until conquest
-                gates trigger. Two apex paths win the match: <strong>Singularity</strong>{' '}
-                (mainstream) or <strong>Reality Editing</strong> (forbidden), both gated on ≥10
-                controlled planets.
-              </p>
-              <TechTreePanel empire={empire} />
+            <div className="wiki-page__tech-layout">
+              <div className="wiki-page__tech-tree-col">
+                <h2>Tech tree</h2>
+                <p className="wiki-page__intro">
+                  {TECH_NODES.length} nodes across 5 tiers + 7 categories. Mainstream techs are
+                  visible from start; Suppressed are hinted only when prereqs met; Forbidden are
+                  hidden until conquest gates trigger. Two apex paths win the match:{' '}
+                  <strong>Singularity</strong> (mainstream) or <strong>Reality Editing</strong>{' '}
+                  (forbidden), both gated on ≥10 controlled planets.{' '}
+                  <em>Click any visible tech to see full details.</em>
+                </p>
+                <TechTreePanel
+                  empire={empire}
+                  clickableStates={['researched', 'researchable', 'hinted', 'visible']}
+                  selectedTechId={selectedTechId}
+                  onSelectTech={(id) => setSelectedTechId((cur) => (cur === id ? null : id))}
+                />
+              </div>
+              <aside className="wiki-page__tech-detail">
+                {selectedTech ? (
+                  <TechDetail node={selectedTech} />
+                ) : (
+                  <p className="wiki-page__tech-detail-empty">
+                    Click a tech node to read its description, prerequisites, cost, effects, and
+                    conquest gates.
+                  </p>
+                )}
+              </aside>
             </div>
           )}
 
@@ -206,5 +232,114 @@ export function WikiPage() {
         </section>
       </main>
     </div>
+  )
+}
+
+function TechDetail({ node }: { readonly node: TechNode }) {
+  const prereqNodes = node.prerequisites.map((id) => getTechNode(id))
+  const effects = node.effects
+  const unlockedBuildingNames = (effects.unlockBuildings ?? []).map((id) => {
+    try {
+      return getBuildingDef(id).name
+    } catch {
+      return String(id)
+    }
+  })
+  const unlockedShips = effects.unlockColonyShipVariants ?? []
+  const unlockedBiomes = effects.unlockBiomes ?? []
+
+  return (
+    <article className="wiki-page__tech-detail-card">
+      <header className="wiki-page__tech-detail-header">
+        <span className="wiki-page__tech-detail-emoji" aria-hidden>
+          {node.emoji}
+        </span>
+        <div>
+          <h3>{node.name}</h3>
+          <div className="wiki-page__tech-detail-meta">
+            <span className={`wiki-page__tech-detail-tag tag-${node.visibility}`}>
+              {node.visibility}
+            </span>
+            <span className="wiki-page__tech-detail-tag tag-tier">Tier {node.tier}</span>
+            <span className="wiki-page__tech-detail-tag tag-category">{node.category}</span>
+            <span className="wiki-page__tech-detail-tag tag-cost">{node.costPoints} pts</span>
+          </div>
+        </div>
+      </header>
+      <p className="wiki-page__tech-detail-desc">{node.description}</p>
+
+      {prereqNodes.length > 0 && (
+        <section className="wiki-page__tech-detail-section">
+          <h4>Prerequisites</h4>
+          <ul className="wiki-page__tech-detail-prereqs">
+            {prereqNodes.map((p) => (
+              <li key={String(p.id)}>
+                {p.emoji} {p.name}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {node.conquestGate && (
+        <section className="wiki-page__tech-detail-section">
+          <h4>Conquest gate</h4>
+          <ul className="wiki-page__tech-detail-gate">
+            {node.conquestGate.minDefeatedCivs !== undefined && (
+              <li>≥ {node.conquestGate.minDefeatedCivs} defeated civilization(s)</li>
+            )}
+            {node.conquestGate.minCapturedPlanets !== undefined && (
+              <li>≥ {node.conquestGate.minCapturedPlanets} captured planet(s)</li>
+            )}
+            {node.conquestGate.requiredAncientTech !== undefined && (
+              <li>≥ {node.conquestGate.requiredAncientTech} ancient tech recovered</li>
+            )}
+          </ul>
+        </section>
+      )}
+
+      {node.requiresApexCheck && (
+        <section className="wiki-page__tech-detail-section">
+          <h4>Apex check</h4>
+          <p className="wiki-page__tech-detail-apex">
+            Requires ≥ 10 controlled planets to research.
+          </p>
+        </section>
+      )}
+
+      <section className="wiki-page__tech-detail-section">
+        <h4>Effects</h4>
+        <ul className="wiki-page__tech-detail-effects">
+          {effects.researchSpeedMultiplier && (
+            <li>Research speed × {effects.researchSpeedMultiplier}</li>
+          )}
+          {effects.buildingProductionMultiplier && (
+            <li>Building production × {effects.buildingProductionMultiplier}</li>
+          )}
+          {effects.propagandaPowerMultiplier && (
+            <li>Propaganda power × {effects.propagandaPowerMultiplier}</li>
+          )}
+          {effects.citizenPromotionRateMultiplier && (
+            <li>Citizen promotion rate × {effects.citizenPromotionRateMultiplier}</li>
+          )}
+          {effects.volunteerPoolMultiplier && (
+            <li>Volunteer pool × {effects.volunteerPoolMultiplier}</li>
+          )}
+          {effects.colonyShipPayloadTier !== undefined && (
+            <li>Unlocks Tier {effects.colonyShipPayloadTier} colony ship payload</li>
+          )}
+          {unlockedBuildingNames.length > 0 && (
+            <li>Unlocks buildings: {unlockedBuildingNames.join(', ')}</li>
+          )}
+          {unlockedShips.length > 0 && <li>Unlocks ships: {unlockedShips.join(', ')}</li>}
+          {unlockedBiomes.length > 0 && (
+            <li>Unlocks colonization of biomes: {unlockedBiomes.join(', ')}</li>
+          )}
+          {effects.autoBuildEnabled && <li>Enables auto-build (no manual queue overhead)</li>}
+          {effects.disablesEnemyProduction && <li>Disables enemy production output</li>}
+          {effects.winsGame && <li className="wiki-page__tech-detail-wins">🏆 WINS THE MATCH</li>}
+        </ul>
+      </section>
+    </article>
   )
 }

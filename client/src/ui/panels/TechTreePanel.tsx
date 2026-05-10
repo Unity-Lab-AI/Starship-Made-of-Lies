@@ -11,15 +11,24 @@ import './TechTreePanel.css'
 interface TechTreePanelProps {
   readonly empire: Empire
   readonly onSelectTech?: (techId: TechNode['id']) => void
+  readonly clickableStates?: ReadonlyArray<TechRenderState>
+  readonly selectedTechId?: TechNode['id'] | null
 }
 
 const TIERS: ReadonlyArray<TechTier> = [0, 1, 2, 3, 4]
+const DEFAULT_CLICKABLE_STATES: ReadonlyArray<TechRenderState> = ['researchable']
 
-export function TechTreePanel({ empire, onSelectTech }: TechTreePanelProps) {
+export function TechTreePanel({
+  empire,
+  onSelectTech,
+  clickableStates = DEFAULT_CLICKABLE_STATES,
+  selectedTechId = null,
+}: TechTreePanelProps) {
   const visibility = describeVisibleTree(empire)
   const researchable = new Set(getResearchableTechs(empire).map((n) => n.id))
   const knownIds = new Set(visibility.knownNodes.map((n) => n.id))
   const hintedIds = new Set(visibility.hintedNodes.map((n) => n.id))
+  const clickableSet = new Set(clickableStates)
 
   return (
     <section className="tech-tree-panel" aria-label="Tech tree">
@@ -37,20 +46,25 @@ export function TechTreePanel({ empire, onSelectTech }: TechTreePanelProps) {
           <div key={tier} className="tech-tree-panel__tier-column">
             <h3 className="tech-tree-panel__tier-heading">Tier {tier}</h3>
             <ul className="tech-tree-panel__tier-list">
-              {TECH_NODES.filter((n) => n.tier === tier).map((node) => (
-                <TechNodeChip
-                  key={node.id}
-                  node={node}
-                  state={getTechState(node, empire, knownIds, hintedIds, researchable)}
-                  active={empire.activeResearchTechId === node.id}
-                  progress={
-                    node.costPoints > 0
-                      ? (empire.researchProgress.get(node.id) ?? 0) / node.costPoints
-                      : 0
-                  }
-                  onClick={() => onSelectTech?.(node.id)}
-                />
-              ))}
+              {TECH_NODES.filter((n) => n.tier === tier).map((node) => {
+                const state = getTechState(node, empire, knownIds, hintedIds, researchable)
+                return (
+                  <TechNodeChip
+                    key={node.id}
+                    node={node}
+                    state={state}
+                    active={empire.activeResearchTechId === node.id}
+                    selected={selectedTechId === node.id}
+                    clickable={clickableSet.has(state)}
+                    progress={
+                      node.costPoints > 0
+                        ? (empire.researchProgress.get(node.id) ?? 0) / node.costPoints
+                        : 0
+                    }
+                    onClick={() => onSelectTech?.(node.id)}
+                  />
+                )
+              })}
             </ul>
           </div>
         ))}
@@ -79,13 +93,22 @@ interface TechNodeChipProps {
   readonly node: TechNode
   readonly state: TechRenderState
   readonly active: boolean
+  readonly selected: boolean
+  readonly clickable: boolean
   readonly progress: number
   readonly onClick: () => void
 }
 
-function TechNodeChip({ node, state, active, progress, onClick }: TechNodeChipProps) {
-  const className = `tech-tree-panel__chip tech-tree-panel__chip--${state}${active ? ' tech-tree-panel__chip--active' : ''}`
-  const isClickable = state === 'researchable'
+function TechNodeChip({
+  node,
+  state,
+  active,
+  selected,
+  clickable,
+  progress,
+  onClick,
+}: TechNodeChipProps) {
+  const className = `tech-tree-panel__chip tech-tree-panel__chip--${state}${active ? ' tech-tree-panel__chip--active' : ''}${selected ? ' tech-tree-panel__chip--selected' : ''}`
   const display = state === 'hidden' ? '???' : `${node.emoji} ${node.name}`
   const visibilityClass = `tech-tree-panel__chip-vis tech-tree-panel__chip-vis--${node.visibility}`
   return (
@@ -94,7 +117,7 @@ function TechNodeChip({ node, state, active, progress, onClick }: TechNodeChipPr
         type="button"
         className={className}
         onClick={onClick}
-        disabled={!isClickable}
+        disabled={!clickable}
         title={state === 'hidden' ? 'Forbidden tech — conditions not met' : node.description}
       >
         <span className={visibilityClass}>{node.visibility[0]?.toUpperCase()}</span>

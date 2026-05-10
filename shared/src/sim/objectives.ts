@@ -1,4 +1,4 @@
-import { type CivId } from '../types/index'
+import { type CivId, type ResourceId } from '../types/index'
 
 export type MissionObjectiveId =
   | 'highscore_target'
@@ -58,6 +58,7 @@ export function getMissionObjective(id: MissionObjectiveId): MissionObjectiveDef
 export interface MissionObjectiveConfig {
   readonly id: MissionObjectiveId
   readonly target: number
+  readonly resource?: ResourceId
 }
 
 export interface MissionObjectiveProgress {

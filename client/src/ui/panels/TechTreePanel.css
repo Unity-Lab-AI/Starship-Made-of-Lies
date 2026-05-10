@@ -29,7 +29,7 @@
 
 .tech-tree-panel__tiers {
   display: grid;
-  grid-template-columns: repeat(5, minmax(8rem, 1fr));
+  grid-template-columns: repeat(5, minmax(10rem, 1fr));
   gap: 0.5rem;
 }
 
@@ -96,6 +96,16 @@
   outline-offset: 1px;
 }
 
+.tech-tree-panel__chip--selected {
+  outline: 2px solid var(--ui-glow, #d4a13a);
+  outline-offset: 1px;
+  background: rgba(212, 161, 58, 0.18);
+}
+
+.tech-tree-panel__chip:not(:disabled) {
+  cursor: pointer;
+}
+
 .tech-tree-panel__chip--hinted {
   border-style: dashed;
   color: var(--muted, #707f8a);
@@ -134,9 +144,9 @@
 }
 
 .tech-tree-panel__chip-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
 }
 
 .tech-tree-panel__chip-status {

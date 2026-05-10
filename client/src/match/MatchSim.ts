@@ -52,12 +52,17 @@ import {
   LAST_HOPE_LAUNCH_TICKS,
   LAST_HOPE_PACK_TICKS,
   RESOURCE_AMMUNITION,
+  RESOURCE_BRICKS,
+  RESOURCE_COMPONENTS,
+  RESOURCE_ELECTRONICS,
   RESOURCE_FOOD,
   RESOURCE_FUEL,
   RESOURCE_INGOTS,
   RESOURCE_METALS,
   RESOURCE_PLANKS,
   RESOURCE_PROPAGANDA_MATERIALS,
+  RESOURCE_STONE,
+  RESOURCE_WOOD,
   SHIP_SCOUT,
   SHIP_STANDARD,
   THEMES,
@@ -75,6 +80,7 @@ import {
   computeCrashOutcome,
   controlledPlanetCount,
   createLootDrop,
+  deathsInWindow,
   deceptionPenalties,
   defaultBuildFromShipDef,
   deriveCrashLootFromShipPayload,
@@ -125,7 +131,6 @@ import {
   tickPlanetProduction,
   tickResearch,
   tickTierPromotion,
-  totalDeaths,
   totalPopulation,
 } from '@smol/shared'
 
@@ -205,6 +210,11 @@ export interface MatchState {
   rng: () => number
 }
 
+export interface MatchAISlotConfig {
+  readonly playstyle: PlaystyleArchetype
+  readonly difficulty: AIDifficultyLevel
+}
+
 export interface MatchConfig {
   readonly seed: number
   readonly planetCount: number
@@ -214,19 +224,27 @@ export interface MatchConfig {
   readonly humanAccount: Account
   readonly objectives: ReadonlyArray<MissionObjectiveConfig>
   readonly tickCapOverride: number | null
+  readonly aiSlots?: ReadonlyArray<MatchAISlotConfig>
 }
 
 const HOME_PLANET_STARTING_POP = 1000
 const STARTING_FOOD = 1500
-const STARTING_PLANKS = 320
-const STARTING_METALS = 880
-const STARTING_INGOTS = 240
+const STARTING_WOOD = 80
+const STARTING_STONE = 80
+const STARTING_PLANKS = 200
+const STARTING_BRICKS = 50
+const STARTING_METALS = 400
+const STARTING_INGOTS = 200
+const STARTING_COMPONENTS = 60
+const STARTING_ELECTRONICS = 25
 const STARTING_PROPAGANDA = 80
-const STARTING_FUEL = 60
+const STARTING_FUEL = 80
 const STARTING_AMMO = 200
 const MAX_EVENTS = 200
 const LOOT_LIFETIME_TICKS_LOCAL = 600
 const LAST_HOPE_AUTO_CHECK_INTERVAL = 50
+const LAST_HOPE_GRACE_PERIOD_TICKS = 300
+const LAST_HOPE_DEATH_WINDOW_TICKS = 100
 const INDIGENOUS_PARLEY_INTERVAL = 60
 
 export function createMatch(config: MatchConfig): MatchState {
@@ -276,8 +294,9 @@ export function createMatch(config: MatchConfig): MatchState {
     usedThemes.add(aiTheme.id)
     const homePlanet = galaxy.planets[i + 1]
     if (!homePlanet) break
-    const playstyle = playstyles[i % playstyles.length]!
-    const difficulty = difficulties[i % difficulties.length]!
+    const slotCfg = config.aiSlots?.[i]
+    const playstyle = slotCfg?.playstyle ?? playstyles[i % playstyles.length]!
+    const difficulty = slotCfg?.difficulty ?? difficulties[i % difficulties.length]!
     const empire = newEmpire(aiId, homePlanet.id)
     civs.set(aiId, {
       civId: aiId,
@@ -361,9 +380,14 @@ export function createMatch(config: MatchConfig): MatchState {
 function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
   const inv = newPlanetInventory(planet.id)
   inv.stocks.set(RESOURCE_FOOD, STARTING_FOOD)
+  inv.stocks.set(RESOURCE_WOOD, STARTING_WOOD)
+  inv.stocks.set(RESOURCE_STONE, STARTING_STONE)
   inv.stocks.set(RESOURCE_PLANKS, STARTING_PLANKS)
+  inv.stocks.set(RESOURCE_BRICKS, STARTING_BRICKS)
   inv.stocks.set(RESOURCE_METALS, STARTING_METALS)
   inv.stocks.set(RESOURCE_INGOTS, STARTING_INGOTS)
+  inv.stocks.set(RESOURCE_COMPONENTS, STARTING_COMPONENTS)
+  inv.stocks.set(RESOURCE_ELECTRONICS, STARTING_ELECTRONICS)
   inv.stocks.set(RESOURCE_PROPAGANDA_MATERIALS, STARTING_PROPAGANDA)
   inv.stocks.set(RESOURCE_FUEL, STARTING_FUEL)
   inv.stocks.set(RESOURCE_AMMUNITION, STARTING_AMMO)
@@ -958,6 +982,7 @@ function tickLastHopeForCiv(state: MatchState, civState: MatchCivState): void {
 
   if (state.currentTick % LAST_HOPE_AUTO_CHECK_INTERVAL !== 0) return
   if (civState.lastHopeTriggered) return
+  if (state.currentTick < LAST_HOPE_GRACE_PERIOD_TICKS) return
 
   const incomingHostile = countIncomingHostileFor(state, civState.civId)
   let totalCitizens = 0
@@ -965,7 +990,9 @@ function tickLastHopeForCiv(state: MatchState, civState: MatchCivState): void {
     const ps = state.planets.get(planetId)
     if (ps) totalCitizens += totalPopulation(ps.population)
   }
-  const recentDeaths = totalDeaths(civState.deathLedger)
+  const windowStart = Math.max(0, state.currentTick - LAST_HOPE_DEATH_WINDOW_TICKS)
+  const recentEvents = deathsInWindow(civState.deathLedger, windowStart, state.currentTick)
+  const recentDeaths = recentEvents.reduce((sum, e) => sum + e.count, 0)
   const check = shouldAutoTriggerLastHope({
     controlledPlanetCount: civState.empire.controlledPlanetIds.size,
     totalCitizens,
@@ -1246,6 +1273,9 @@ function resolveMatch(state: MatchState): void {
   for (const civ of state.civs.values()) {
     if (civ.alive) aliveCivIds.push(civ.civId)
   }
+  const resourceObjective = state.objectives.find((o) => o.id === 'resource_target')
+  const targetResource = resourceObjective?.resource ?? null
+
   const civProgress = new Map<MissionObjectiveId, ReadonlyArray<{ civId: CivId; value: number }>>()
   const highscore: { civId: CivId; value: number }[] = []
   const resource: { civId: CivId; value: number }[] = []
@@ -1262,7 +1292,11 @@ function resolveMatch(state: MatchState): void {
     for (const planetId of civ.empire.controlledPlanetIds) {
       const ps = state.planets.get(planetId)
       if (!ps) continue
-      for (const amount of ps.inventory.stocks.values()) civRes += amount
+      if (targetResource) {
+        civRes += stockOf(ps.inventory, targetResource)
+      } else {
+        for (const amount of ps.inventory.stocks.values()) civRes += amount
+      }
     }
     highscore.push({ civId: id, value: civHigh })
     resource.push({ civId: id, value: civRes })
@@ -1348,13 +1382,30 @@ export function placeBuildingAction(inputs: PlaceBuildingInputs): boolean {
   const def = getBuildingDef(inputs.defId)
   if (!def) return false
   for (const cost of def.buildCost) {
-    if (stockOf(planet.inventory, cost.resource) < cost.amount) return false
+    const have = stockOf(planet.inventory, cost.resource)
+    if (have < cost.amount) {
+      pushEvent(inputs.state, {
+        atTick: inputs.state.currentTick,
+        civId: planet.civId,
+        kind: 'system',
+        message: `❌ Can't build ${def.emoji} ${def.name} — need ${cost.amount} ${String(cost.resource)} (have ${have})`,
+      })
+      return false
+    }
   }
   let tile = inputs.tileId ? planet.planet.tiles.find((t) => t.id === inputs.tileId) : null
   if (!tile) {
     tile = planet.planet.tiles.find((t) => t.ownerCivId === planet.civId && t.occupancy === 'empty')
   }
-  if (!tile || tile.occupancy !== 'empty') return false
+  if (!tile || tile.occupancy !== 'empty') {
+    pushEvent(inputs.state, {
+      atTick: inputs.state.currentTick,
+      civId: planet.civId,
+      kind: 'system',
+      message: `❌ Can't build ${def.emoji} ${def.name} — no empty owned tile available`,
+    })
+    return false
+  }
   for (const cost of def.buildCost) {
     const cur = stockOf(planet.inventory, cost.resource)
     planet.inventory.stocks.set(cost.resource, cur - cost.amount)

@@ -1,12 +1,17 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
+  type AIDifficultyLevel,
   type MissionObjectiveConfig,
-  type ThemeId,
+  type PlaystyleArchetype,
+  type ResourceId,
+  AI_DIFFICULTY_LEVELS,
+  RESOURCES,
+  RESOURCE_INGOTS,
   THEMES,
   civId,
-  getTheme,
-  themeAsCSSVars,
+  getAIDifficultyConfig,
+  getPlaystyleProfile,
 } from '@smol/shared'
 import {
   LobbyPreviewPanel,
@@ -29,6 +34,7 @@ interface ObjectiveToggleState {
   readonly highscoreTarget: number
   readonly resourceEnabled: boolean
   readonly resourceTarget: number
+  readonly resourceId: ResourceId
   readonly lastCivStandingEnabled: boolean
   readonly apexTechEnabled: boolean
 }
@@ -38,8 +44,35 @@ const DEFAULT_OBJECTIVES: ObjectiveToggleState = {
   highscoreTarget: 50000,
   resourceEnabled: false,
   resourceTarget: 100000,
+  resourceId: RESOURCE_INGOTS,
   lastCivStandingEnabled: true,
   apexTechEnabled: true,
+}
+
+interface AISlotConfig {
+  readonly playstyle: PlaystyleArchetype
+  readonly difficulty: AIDifficultyLevel
+}
+
+const PLAYSTYLES: ReadonlyArray<PlaystyleArchetype> = [
+  'builder',
+  'warmonger',
+  'researcher',
+  'trickster',
+]
+
+function defaultAISlot(idx: number): AISlotConfig {
+  return {
+    playstyle: PLAYSTYLES[idx % PLAYSTYLES.length]!,
+    difficulty: AI_DIFFICULTY_LEVELS[idx % AI_DIFFICULTY_LEVELS.length]!,
+  }
+}
+
+function randomAISlot(rng: () => number): AISlotConfig {
+  return {
+    playstyle: PLAYSTYLES[Math.floor(rng() * PLAYSTYLES.length)]!,
+    difficulty: AI_DIFFICULTY_LEVELS[Math.floor(rng() * AI_DIFFICULTY_LEVELS.length)]!,
+  }
 }
 
 export function NewGamePage() {
@@ -47,11 +80,33 @@ export function NewGamePage() {
   const [galaxySize, setGalaxySize] = useState<GalaxyPreset>('small')
   const [aiCount, setAiCount] = useState(3)
   const [coopMode, setCoopMode] = useState(false)
-  const [previewThemeId, setPreviewThemeId] = useState<ThemeId>(THEMES[0]!.id)
   const [objectives, setObjectives] = useState<ObjectiveToggleState>(DEFAULT_OBJECTIVES)
+  const [aiSlots, setAiSlots] = useState<ReadonlyArray<AISlotConfig>>(() =>
+    Array.from({ length: 3 }, (_, i) => defaultAISlot(i)),
+  )
 
-  const theme = getTheme(previewThemeId)
-  const styleVars = useMemo(() => themeAsCSSVars(theme), [theme])
+  useEffect(() => {
+    setAiSlots((current) => {
+      if (current.length === aiCount) return current
+      if (current.length > aiCount) return current.slice(0, aiCount)
+      const next = [...current]
+      for (let i = current.length; i < aiCount; i++) next.push(defaultAISlot(i))
+      return next
+    })
+  }, [aiCount])
+
+  const updateAISlot = (idx: number, patch: Partial<AISlotConfig>): void => {
+    setAiSlots((current) => current.map((slot, i) => (i === idx ? { ...slot, ...patch } : slot)))
+  }
+  const randomizeAllSlots = (): void => {
+    setAiSlots(Array.from({ length: aiCount }, () => randomAISlot(Math.random)))
+  }
+  const randomizeOneSlot = (idx: number): void => {
+    setAiSlots((current) =>
+      current.map((slot, i) => (i === idx ? randomAISlot(Math.random) : slot)),
+    )
+  }
+
   const preset = GALAXY_PRESETS[galaxySize]
 
   const matchIsTimed = objectives.highscoreEnabled || objectives.resourceEnabled
@@ -60,7 +115,11 @@ export function NewGamePage() {
     if (objectives.apexTechEnabled) parts.push('Apex Tech')
     if (objectives.lastCivStandingEnabled) parts.push('Last Civ')
     if (objectives.highscoreEnabled) parts.push(`Score → ${objectives.highscoreTarget}`)
-    if (objectives.resourceEnabled) parts.push(`Resource → ${objectives.resourceTarget}`)
+    if (objectives.resourceEnabled) {
+      const resDef = RESOURCES.find((r) => r.id === objectives.resourceId)
+      const resLabel = resDef ? `${resDef.emoji} ${resDef.name}` : String(objectives.resourceId)
+      parts.push(`${resLabel} → ${objectives.resourceTarget}`)
+    }
     if (parts.length === 0) return 'Open-ended (no end condition!)'
     return parts.join(' · ')
   })()
@@ -71,8 +130,8 @@ export function NewGamePage() {
         slotIndex: 0,
         kind: 'human',
         civId: civId('civ-local'),
-        displayName: 'You',
-        themeId: previewThemeId,
+        displayName: 'You (theme revealed at match start)',
+        themeId: null,
         themeLocked: true,
         ready: true,
         aiPlaystyle: null,
@@ -80,29 +139,18 @@ export function NewGamePage() {
         isHost: true,
       },
     ]
-    const playstyles: ReadonlyArray<'builder' | 'warmonger' | 'researcher' | 'trickster'> = [
-      'builder',
-      'warmonger',
-      'researcher',
-      'trickster',
-    ]
-    const difficulties: ReadonlyArray<'easy' | 'medium' | 'hard' | 'brutal'> = [
-      'easy',
-      'medium',
-      'hard',
-      'brutal',
-    ]
     for (let i = 0; i < aiCount; i++) {
+      const slotCfg = aiSlots[i] ?? defaultAISlot(i)
       slots.push({
         slotIndex: i + 1,
         kind: 'ai',
         civId: civId(`civ-ai-${i}`),
-        displayName: `AI · ${playstyles[i % playstyles.length]}`,
+        displayName: `AI · ${slotCfg.playstyle}`,
         themeId: THEMES[(i + 1) % THEMES.length]!.id,
         themeLocked: false,
         ready: true,
-        aiPlaystyle: playstyles[i % playstyles.length] ?? 'builder',
-        aiDifficulty: difficulties[i % difficulties.length] ?? 'medium',
+        aiPlaystyle: slotCfg.playstyle,
+        aiDifficulty: slotCfg.difficulty,
         isHost: false,
       })
     }
@@ -130,10 +178,10 @@ export function NewGamePage() {
       coopMode,
       slots,
     }
-  }, [aiCount, coopMode, preset.planetCount, previewThemeId, winConditionsLabel])
+  }, [aiCount, aiSlots, coopMode, preset.planetCount, winConditionsLabel])
 
   return (
-    <div className="sub-page" style={styleVars as React.CSSProperties}>
+    <div className="sub-page">
       <header className="sub-page-header">
         <Link to="/" className="back-link">
           ← Back
@@ -169,6 +217,78 @@ export function NewGamePage() {
             />
             <span className="new-game-page__field-value">{aiCount}</span>
           </label>
+
+          {aiCount > 0 && (
+            <details className="new-game-page__ai-config" open>
+              <summary>
+                <span>🤖 AI player config ({aiCount})</span>
+                <button
+                  type="button"
+                  className="new-game-page__ai-randomize"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    randomizeAllSlots()
+                  }}
+                  title="Randomize all AI playstyles + difficulties"
+                >
+                  🎲 Randomize all
+                </button>
+              </summary>
+              <ul className="new-game-page__ai-list">
+                {aiSlots.map((slot, idx) => {
+                  const playstyleProfile = getPlaystyleProfile(slot.playstyle)
+                  const difficultyConfig = getAIDifficultyConfig(slot.difficulty)
+                  return (
+                    <li key={idx} className="new-game-page__ai-row">
+                      <span className="new-game-page__ai-row-label">AI #{idx + 1}</span>
+                      <select
+                        className="new-game-page__ai-select"
+                        value={slot.playstyle}
+                        onChange={(e) =>
+                          updateAISlot(idx, { playstyle: e.target.value as PlaystyleArchetype })
+                        }
+                        title={playstyleProfile.description}
+                      >
+                        {PLAYSTYLES.map((p) => {
+                          const prof = getPlaystyleProfile(p)
+                          return (
+                            <option key={p} value={p}>
+                              {prof.emoji} {prof.name}
+                            </option>
+                          )
+                        })}
+                      </select>
+                      <select
+                        className="new-game-page__ai-select"
+                        value={slot.difficulty}
+                        onChange={(e) =>
+                          updateAISlot(idx, { difficulty: e.target.value as AIDifficultyLevel })
+                        }
+                        title={difficultyConfig.description}
+                      >
+                        {AI_DIFFICULTY_LEVELS.map((d) => {
+                          const cfg = getAIDifficultyConfig(d)
+                          return (
+                            <option key={d} value={d}>
+                              {cfg.emoji} {cfg.name}
+                            </option>
+                          )
+                        })}
+                      </select>
+                      <button
+                        type="button"
+                        className="new-game-page__ai-row-rand"
+                        onClick={() => randomizeOneSlot(idx)}
+                        title="Randomize this AI slot"
+                      >
+                        🎲
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </details>
+          )}
 
           <label className="new-game-page__field">
             <span>Co-op mode</span>
@@ -273,9 +393,32 @@ export function NewGamePage() {
                 />
               )}
               <span className="new-game-page__objective-hint">
-                First civ to stockpile target resource units wins.
+                First civ to stockpile target units of the picked resource wins.
               </span>
             </label>
+            {objectives.resourceEnabled && (
+              <label className="new-game-page__objective new-game-page__objective--resource-pick">
+                <span style={{ visibility: 'hidden' }}>•</span>
+                <span>Which resource:</span>
+                <select
+                  className="new-game-page__objective-resource"
+                  value={objectives.resourceId}
+                  onChange={(e) =>
+                    setObjectives({ ...objectives, resourceId: e.target.value as ResourceId })
+                  }
+                  aria-label="Resource to stockpile"
+                >
+                  {RESOURCES.map((r) => (
+                    <option key={String(r.id)} value={String(r.id)}>
+                      {r.emoji} {r.name} ({r.category})
+                    </option>
+                  ))}
+                </select>
+                <span className="new-game-page__objective-hint">
+                  Sum of this resource across all your planets is what counts toward the target.
+                </span>
+              </label>
+            )}
           </fieldset>
 
           <p className="new-game-page__match-status">
@@ -287,26 +430,10 @@ export function NewGamePage() {
             </span>
           </p>
 
-          <label className="new-game-page__field">
-            <span>Theme preview</span>
-            <select
-              value={previewThemeId}
-              onChange={(e) => setPreviewThemeId(e.target.value as ThemeId)}
-            >
-              {THEMES.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.emoji} {t.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p className="new-game-page__theme-note">
-            <strong>
-              {theme.emoji} {theme.name}:
-            </strong>{' '}
-            {theme.tagline}
-            <br />
-            <em>{theme.description}</em>
+          <p className="new-game-page__theme-note new-game-page__theme-note--blind">
+            🎭 Your government theme is rolled by fate at match start. You can&apos;t see it,
+            can&apos;t choose it, can&apos;t re-roll it. Every civilization plays the hand it&apos;s
+            dealt.
           </p>
 
           <div className="new-game-page__cta">
@@ -327,14 +454,15 @@ export function NewGamePage() {
                   cfgObjectives.push({
                     id: 'resource_target',
                     target: objectives.resourceTarget,
+                    resource: objectives.resourceId,
                   })
                 navigate('/play', {
                   state: {
                     seed: Math.floor(Math.random() * 0xffffff),
                     aiCount,
                     planetCount: preset.planetCount,
-                    humanThemeId: previewThemeId,
                     objectives: cfgObjectives,
+                    aiSlots,
                   },
                 })
               }}

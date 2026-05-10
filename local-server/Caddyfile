@@ -3,13 +3,20 @@
 # Listens on localhost:8080 — Cloudflare Tunnel terminates HTTPS upstream + tunnels
 # encrypted requests to this address from smol.unityailab.com.
 #
-# Routes:
+# DEV MODE (default — proxies / to Vite at :5173 for hot-reload):
+#   1. start-smol.bat fires all three terminals
+#   2. Public URL serves live Vite dev bundle with HMR
+#
+# PROD MODE (switch to serving client/dist/ static build):
+#   1. Run `cd client; corepack pnpm build` to generate client/dist/
+#   2. Comment out the DEV block below
+#   3. Uncomment the PROD block
+#   4. Reload Caddy
+#
+# Routes (both modes):
 #   /ws*       → Colyseus multiplayer server (port 2567)
 #   /api/*     → Local Node.js telemetry/auth endpoints (port 3001) — once #3 ships
-#   /          → Vite production bundle (client/dist/)
-#
-# Usage (foreground): caddy run --config Caddyfile --adapter caddyfile
-# Usage (Windows Service): see scripts/install-services.bat
+#   /          → DEV: Vite dev server (:5173) | PROD: client/dist/ static bundle
 
 :8080 {
 	# Multiplayer WebSocket — Colyseus on 2567
@@ -22,30 +29,39 @@
 		reverse_proxy localhost:3001
 	}
 
-	# Static-asset + SPA fallback — Vite bundle in ../client/dist
+	# === DEV MODE (default) — proxy / to Vite dev server ===
 	handle {
-		root * ../client/dist
-		try_files {path} /index.html
-		file_server
-
-		# Long cache for content-hashed bundles
-		@hashed {
-			path /chunks/* /entries/* /assets/index-* /assets/ui-panels-*
+		reverse_proxy localhost:5173 {
+			# Vite HMR uses WebSocket on the same port
+			header_up Host {host}
+			header_up X-Real-IP {remote}
 		}
-		header @hashed Cache-Control "public, max-age=31536000, immutable"
-
-		# Short cache for the HTML shell (so deploys take effect immediately)
-		@html {
-			path /index.html /
-		}
-		header @html Cache-Control "no-cache, must-revalidate"
-
-		# Service worker — never cache
-		@sw {
-			path /sw.js
-		}
-		header @sw Cache-Control "no-store"
 	}
+
+	# === PROD MODE (commented out by default) — serve static client/dist/ ===
+	# To enable: comment out the DEV handle above, uncomment this block,
+	# and make sure `pnpm build` has produced client/dist/.
+	#
+	# handle {
+	# 	root * C:/Users/gfour/Desktop/Starship Made of Lies/client/dist
+	# 	try_files {path} /index.html
+	# 	file_server
+	#
+	# 	@hashed {
+	# 		path /chunks/* /entries/* /assets/index-* /assets/ui-panels-*
+	# 	}
+	# 	header @hashed Cache-Control "public, max-age=31536000, immutable"
+	#
+	# 	@html {
+	# 		path /index.html /
+	# 	}
+	# 	header @html Cache-Control "no-cache, must-revalidate"
+	#
+	# 	@sw {
+	# 		path /sw.js
+	# 	}
+	# 	header @sw Cache-Control "no-store"
+	# }
 
 	# Compress everything text-y
 	encode zstd gzip

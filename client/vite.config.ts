@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       strictPort: true,
+      allowedHosts: ['localhost', '127.0.0.1', 'smol.unityailab.com', '.unityailab.com'],
     },
     build: {
       outDir: 'dist',
