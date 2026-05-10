@@ -125,6 +125,29 @@ Required GitHub repo secrets for full release builds:
 
 Without these, the build workflows still run + emit artifacts but signing steps fail. CI (lint/typecheck) runs without any secrets.
 
+## Deploying — local self-host (alpha)
+
+Alpha hosting runs on Gee's local Windows PC at `https://smol.unityailab.com`. Stack: Cloudflare Tunnel (public ingress) → Caddy (`:8080`) → Vite bundle / Colyseus WS / Node.js API.
+
+Full setup walkthrough: [`local-server/README.md`](local-server/README.md)
+
+Quick commands:
+
+```powershell
+# First-time scaffolding installed via:
+local-server\scripts\install-services.bat   # (run as admin, after Caddy + cloudflared installs)
+
+# Deploy a code change (rebuild + regenerate asset manifest + reload Caddy)
+pnpm deploy:local
+
+# Maintenance window — graceful shutdown order (saves all active matches per user directive)
+sc stop smol-node-server   # waits for snapshot capture
+sc stop smol-cloudflared
+sc stop smol-caddy
+```
+
+Per user directive (verbatim): _"down only for maintence with no warning saves all current games to host autosaves"_ — graceful-shutdown handler in the Node.js server snapshots all active matches before exit; on boot it resumes matches with `endedAtTick IS NULL` from Postgres `snapshots` table. (Implementation lands in PHASE 11+14 #3 backend wire-up.)
+
 ## Known blockers (non-toolchain)
 
 | Blocker                                    | Phase  | Resolution                                                                                                                                                  |

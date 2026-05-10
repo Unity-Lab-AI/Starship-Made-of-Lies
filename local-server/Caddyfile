@@ -1,0 +1,55 @@
+# SMoL Local Self-Host — Caddy Reverse Proxy
+#
+# Listens on localhost:8080 — Cloudflare Tunnel terminates HTTPS upstream + tunnels
+# encrypted requests to this address from smol.unityailab.com.
+#
+# Routes:
+#   /ws*       → Colyseus multiplayer server (port 2567)
+#   /api/*     → Local Node.js telemetry/auth endpoints (port 3001) — once #3 ships
+#   /          → Vite production bundle (client/dist/)
+#
+# Usage (foreground): caddy run --config Caddyfile --adapter caddyfile
+# Usage (Windows Service): see scripts/install-services.bat
+
+:8080 {
+	# Multiplayer WebSocket — Colyseus on 2567
+	handle /ws* {
+		reverse_proxy localhost:2567
+	}
+
+	# Local API (telemetry / auth / etc.) — Node.js on 3001 (PHASE 11+14 #3 wire-up)
+	handle /api/* {
+		reverse_proxy localhost:3001
+	}
+
+	# Static-asset + SPA fallback — Vite bundle in ../client/dist
+	handle {
+		root * ../client/dist
+		try_files {path} /index.html
+		file_server
+
+		# Long cache for content-hashed bundles
+		@hashed {
+			path /chunks/* /entries/* /assets/index-* /assets/ui-panels-*
+		}
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+
+		# Short cache for the HTML shell (so deploys take effect immediately)
+		@html {
+			path /index.html /
+		}
+		header @html Cache-Control "no-cache, must-revalidate"
+
+		# Service worker — never cache
+		@sw {
+			path /sw.js
+		}
+		header @sw Cache-Control "no-store"
+	}
+
+	# Compress everything text-y
+	encode zstd gzip
+
+	# Don't leak server header
+	header -Server
+}

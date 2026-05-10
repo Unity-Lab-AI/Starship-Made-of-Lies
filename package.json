@@ -29,6 +29,7 @@
     "build:desktop": "tauri build",
     "build:mobile:android": "cap build android",
     "build:mobile:ios": "cap build ios",
+    "deploy:local": "pnpm build:web && node tools/build-asset-manifest.cjs",
     "tauri": "tauri",
     "cap": "cap"
   },

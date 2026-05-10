@@ -1,0 +1,41 @@
+# Cloudflare Tunnel Configuration Template — SMoL Alpha Self-Host
+#
+# After running `cloudflared tunnel create smol-alpha`, Cloudflare hands back a
+# tunnel UUID + a credentials .json file (path: %USERPROFILE%\.cloudflared\<uuid>.json).
+#
+# Copy this template to:
+#   C:\Users\gfour\.cloudflared\config.yml
+#
+# Replace <TUNNEL_UUID> with the value Cloudflare gave you.
+#
+# Then run:
+#   cloudflared tunnel route dns smol-alpha smol.unityailab.com
+#   cloudflared tunnel run smol-alpha
+#
+# Once verified working, install as Windows Service:
+#   cloudflared service install
+#
+# (The service install picks up this config.yml automatically.)
+
+tunnel: <TUNNEL_UUID>
+credentials-file: C:\Users\gfour\.cloudflared\<TUNNEL_UUID>.json
+
+# Logging — `error` is quietest, `info` is helpful for first-run debugging
+loglevel: info
+transport-loglevel: warn
+
+# Auto-update on
+no-autoupdate: false
+
+ingress:
+  # Primary alpha hostname → local Caddy on 8080
+  - hostname: smol.unityailab.com
+    service: http://localhost:8080
+
+  # WebSocket subdomain (alternative path if Caddy multiplexing causes issues with
+  # Cloudflare's WebSocket handling — uncomment if you hit WS issues during testing)
+  # - hostname: ws.smol.unityailab.com
+  #   service: http://localhost:2567
+
+  # Catch-all 404 — Cloudflare requires this as the final ingress rule
+  - service: http_status:404
