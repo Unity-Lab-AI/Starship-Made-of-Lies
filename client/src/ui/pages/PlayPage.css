@@ -94,6 +94,51 @@
   min-width: 0;
 }
 
+.play-page__planet-selector {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.6rem 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+}
+
+.play-page__planet-selector-label {
+  font-size: 0.8rem;
+  color: var(--fg-secondary, #a8a8b8);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.play-page__planet-pill {
+  padding: 0.3rem 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 999px;
+  color: var(--fg-primary, #e6e6f0);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  transition: all 120ms ease;
+}
+
+.play-page__planet-pill:hover {
+  border-color: var(--accent, #d4a13a);
+}
+
+.play-page__planet-pill--on {
+  background: var(--accent, #d4a13a);
+  color: #000;
+  border-color: var(--accent, #d4a13a);
+}
+
+.play-page__build-hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  color: var(--fg-secondary, #a8a8b8);
+  font-style: italic;
+}
+
 .play-page__build-bar {
   display: flex;
   flex-wrap: wrap;

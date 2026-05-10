@@ -1,0 +1,98 @@
+.loot-drop-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+}
+
+.loot-drop-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+
+.loot-drop-panel__header h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-hero);
+}
+
+.loot-drop-panel__count {
+  background: var(--ui-glow, #d4a13a);
+  color: #000;
+  border-radius: 4px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.loot-drop-panel__empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-mute);
+  font-style: italic;
+}
+
+.loot-drop-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.loot-drop-panel__item {
+  background: rgba(212, 161, 58, 0.06);
+  border-left: 3px solid var(--ui-glow, #d4a13a);
+  border-radius: 0 4px 4px 0;
+  padding: 0.6rem 0.75rem;
+}
+
+.loot-drop-panel__title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-hero);
+}
+
+.loot-drop-panel__resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.3rem 0;
+}
+
+.loot-drop-panel__resource {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.loot-drop-panel__expires {
+  font-size: 0.75rem;
+  color: var(--text-mute);
+  font-style: italic;
+  margin-bottom: 0.4rem;
+}
+
+.loot-drop-panel__claim {
+  background: var(--ui-glow, #d4a13a);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: filter 150ms;
+}
+
+.loot-drop-panel__claim:hover {
+  filter: brightness(1.1);
+}

@@ -1,19 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { type CivId, type LootDropId } from '@smol/shared'
 import {
+  type BuildShipInputs,
+  type LaunchCampaignInputs,
+  type LaunchShipInputs,
   type MatchConfig,
   type MatchState,
   type PlaceBuildingInputs,
   type StartResearchInputs,
-  type LaunchCampaignInputs,
-  type BuildShipInputs,
-  type LaunchShipInputs,
   buildShipAction,
+  claimLootDropAction,
   createMatch,
   launchCampaignAction,
   launchShipFromPadAction,
   placeBuildingAction,
   startResearchAction,
   tickMatch,
+  triggerLastHopeManually,
 } from './MatchSim'
 
 const DEFAULT_TICK_MS = 200
@@ -30,6 +33,8 @@ export interface UseMatchSimResult {
   readonly launchCampaign: (input: Omit<LaunchCampaignInputs, 'state'>) => boolean
   readonly buildShip: (input: Omit<BuildShipInputs, 'state'>) => boolean
   readonly launchShipFromPad: (input: Omit<LaunchShipInputs, 'state'>) => boolean
+  readonly claimLoot: (dropId: LootDropId) => boolean
+  readonly triggerLastHope: (civId: CivId) => boolean
   readonly resetMatch: (newConfig?: MatchConfig) => void
 }
 
@@ -77,6 +82,16 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     if (ok) setTickCount((n) => n + 1)
     return ok
   }, [])
+  const claimLoot = useCallback((dropId: LootDropId) => {
+    const ok = claimLootDropAction({ state: stateRef.current, dropId })
+    if (ok) setTickCount((n) => n + 1)
+    return ok
+  }, [])
+  const triggerLastHope = useCallback((civId: CivId) => {
+    const ok = triggerLastHopeManually(stateRef.current, civId)
+    if (ok) setTickCount((n) => n + 1)
+    return ok
+  }, [])
   const resetMatch = useCallback(
     (newConfig?: MatchConfig) => {
       stateRef.current = createMatch(newConfig ?? initialConfig)
@@ -99,6 +114,8 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     launchCampaign,
     buildShip,
     launchShipFromPad,
+    claimLoot,
+    triggerLastHope,
     resetMatch,
   }
 }

@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { type ThemeId, THEMES, civId, getTheme, themeAsCSSVars } from '@smol/shared'
+import {
+  type MissionObjectiveConfig,
+  type ThemeId,
+  THEMES,
+  civId,
+  getTheme,
+  themeAsCSSVars,
+} from '@smol/shared'
 import {
   LobbyPreviewPanel,
   type LobbyPreviewSlot,
@@ -306,16 +313,31 @@ export function NewGamePage() {
             <button
               type="button"
               className="new-game-page__start"
-              onClick={() =>
+              onClick={() => {
+                const cfgObjectives: MissionObjectiveConfig[] = []
+                if (objectives.lastCivStandingEnabled)
+                  cfgObjectives.push({ id: 'last_civ_standing', target: 1 })
+                if (objectives.apexTechEnabled) cfgObjectives.push({ id: 'apex_tech', target: 1 })
+                if (objectives.highscoreEnabled)
+                  cfgObjectives.push({
+                    id: 'highscore_target',
+                    target: objectives.highscoreTarget,
+                  })
+                if (objectives.resourceEnabled)
+                  cfgObjectives.push({
+                    id: 'resource_target',
+                    target: objectives.resourceTarget,
+                  })
                 navigate('/play', {
                   state: {
                     seed: Math.floor(Math.random() * 0xffffff),
                     aiCount,
                     planetCount: preset.planetCount,
                     humanThemeId: previewThemeId,
+                    objectives: cfgObjectives,
                   },
                 })
-              }
+              }}
             >
               ▶ Start Match
             </button>

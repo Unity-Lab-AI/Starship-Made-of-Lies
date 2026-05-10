@@ -3,10 +3,16 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   type Account,
   type BuildingDefId,
+  type ColonyShipVariantId,
+  type LootDrop,
+  type LootDropId,
   type MissionObjectiveConfig,
+  type PlanetId,
   type ThemeId,
+  type Tile,
   THEMES,
   accountId as accountIdValue,
+  aggregateEffects,
   newAnonymousAccount,
   themeAsCSSVars,
 } from '@smol/shared'
@@ -16,8 +22,11 @@ import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
-import { LaunchPadPanel } from '../panels/LaunchPadPanel'
+import { IndigenousPanel } from '../panels/IndigenousPanel'
+import { LastHopePanel } from '../panels/LastHopePanel'
+import { LootDropPanel } from '../panels/LootDropPanel'
 import { ResourcesPanel } from '../panels/ResourcesPanel'
+import { ShipBuildPanel } from '../panels/ShipBuildPanel'
 import { TechTreePanel } from '../panels/TechTreePanel'
 import { TilePlacementGrid } from '../panels/TilePlacementGrid'
 import { MatchEndScreen } from './MatchEndScreen'
@@ -40,7 +49,13 @@ interface MatchSetupHint {
   readonly aiCount: number
   readonly planetCount: number
   readonly humanThemeId: ThemeId
+  readonly objectives?: ReadonlyArray<MissionObjectiveConfig>
 }
+
+const DEFAULT_OBJECTIVES: ReadonlyArray<MissionObjectiveConfig> = [
+  { id: 'last_civ_standing', target: 1 },
+  { id: 'apex_tech', target: 1 },
+]
 
 export function PlayPage() {
   const location = useLocation() as { state?: MatchSetupHint }
@@ -52,12 +67,8 @@ export function PlayPage() {
     const aiCount = hint?.aiCount ?? 3
     const planetCount = hint?.planetCount ?? 30
     const humanThemeId = hint?.humanThemeId ?? THEMES[Math.floor(Math.random() * THEMES.length)]!.id
+    const objectives = hint?.objectives ?? DEFAULT_OBJECTIVES
     const account: Account = newAnonymousAccount(accountIdValue('local-player'), 'You', 'gee', 0)
-    const objectives: ReadonlyArray<MissionObjectiveConfig> = [
-      { id: 'highscore_target', target: 50000 },
-      { id: 'last_civ_standing', target: 1 },
-      { id: 'apex_tech', target: 1 },
-    ]
     return {
       seed,
       planetCount,
@@ -72,10 +83,19 @@ export function PlayPage() {
 
   const sim = useMatchSim(initialConfig)
   const [selectedBuildingId, setSelectedBuildingId] = useState<string>('farm')
+  const [selectedPlanetId, setSelectedPlanetId] = useState<PlanetId | null>(null)
 
   const humanCivState = sim.state.civs.get(sim.state.humanCivId)!
-  const homePlanet = sim.state.planets.get(humanCivState.homePlanetId)!
   const humanTheme = humanCivState.theme
+
+  const ownedPlanets = [...sim.state.planets.values()].filter(
+    (p) => p.civId === sim.state.humanCivId,
+  )
+  void sim.tickCount
+  const activePlanetId = selectedPlanetId ?? humanCivState.homePlanetId
+  const activePlanet =
+    sim.state.planets.get(activePlanetId) ?? sim.state.planets.get(humanCivState.homePlanetId)!
+
   const styleVars = useMemo(() => themeAsCSSVars(humanTheme), [humanTheme])
 
   const aiSnapshots: ReadonlyArray<AIPlayerSnapshot> = [...sim.state.civs.values()]
@@ -85,37 +105,55 @@ export function PlayPage() {
       theme: c.theme,
       playstyle: c.playstyle ?? 'builder',
       difficulty: c.difficulty ?? 'medium',
-      lastDecisionLine: `tick=${sim.state.currentTick} | techs=${c.empire.researchedTechs.size} | ships=${c.deceptionLedger.colonyShipsLaunched}`,
+      lastDecisionLine: `tick=${sim.state.currentTick} | techs=${c.empire.researchedTechs.size} | ships=${c.deceptionLedger.colonyShipsLaunched} | planets=${c.empire.controlledPlanetIds.size}`,
       lastTick: sim.state.currentTick,
     }))
 
-  const otherPlanets = [...sim.state.planets.values()]
+  const otherPlanetsForLaunch = [...sim.state.planets.values()]
     .filter((p) => p.civId !== sim.state.humanCivId)
-    .map((p) => ({ id: p.planet.id, label: `${p.civId}` }))
+    .map((p) => ({
+      id: String(p.planet.id),
+      label: `${String(p.planet.id)} (${p.civId})`,
+    }))
 
-  const handleTileClick = (tileId: string): void => {
-    const tile = homePlanet.planet.tiles.find((t) => t.id === (tileId as never))
-    if (!tile) return
+  const lootDropsOnOurPlanets: LootDrop[] = []
+  for (const drop of sim.state.lootDrops.values()) {
+    const p = sim.state.planets.get(drop.planetId)
+    if (p && p.civId === sim.state.humanCivId) lootDropsOnOurPlanets.push(drop)
+  }
+
+  const indigenousOnActivePlanet = activePlanet.indigenousCivId
+    ? (sim.state.indigenousCivs.get(activePlanet.indigenousCivId) ?? null)
+    : null
+
+  const techEffects = aggregateEffects(humanCivState.empire.researchedTechs)
+
+  const firstPad = [...activePlanet.launchPads.values()][0] ?? null
+
+  const handleTileClick = (tile: Tile): void => {
     if (tile.occupancy !== 'empty') return
     sim.placeBuilding({
-      planetId: homePlanet.planet.id,
+      planetId: activePlanet.planet.id,
       tileId: tile.id,
       defId: selectedBuildingId as BuildingDefId,
     })
   }
-  void handleTileClick
 
   const handleQuickBuild = (defId: string): void => {
     setSelectedBuildingId(defId)
+  }
+
+  const handleQuickBuildPlace = (defId: string): void => {
+    setSelectedBuildingId(defId)
     sim.placeBuilding({
-      planetId: homePlanet.planet.id,
+      planetId: activePlanet.planet.id,
       defId: defId as BuildingDefId,
     })
   }
 
   const handleCampaign = (archetype: string): void => {
     sim.launchCampaign({
-      planetId: homePlanet.planet.id,
+      planetId: activePlanet.planet.id,
       archetype: archetype as never,
     })
   }
@@ -125,6 +163,27 @@ export function PlayPage() {
       ...initialConfig,
       seed: Math.floor(Math.random() * 0xffffff),
       humanThemeId: themeId,
+    })
+  }
+
+  const handleClaimLoot = (id: LootDropId): void => {
+    sim.claimLoot(id)
+  }
+
+  const handleTriggerLastHope = (): void => {
+    sim.triggerLastHope(sim.state.humanCivId)
+  }
+
+  const handleBuildShip = (variantId: ColonyShipVariantId): void => {
+    if (!firstPad) return
+    sim.buildShip({ padId: firstPad.id, variantId })
+  }
+
+  const handleLaunchShip = (targetPlanetIdStr: string): void => {
+    if (!firstPad) return
+    sim.launchShipFromPad({
+      padId: firstPad.id,
+      targetPlanetId: targetPlanetIdStr as unknown as PlanetId,
     })
   }
 
@@ -170,17 +229,34 @@ export function PlayPage() {
         </div>
       </header>
 
+      {ownedPlanets.length > 1 && (
+        <div className="play-page__planet-selector">
+          <span className="play-page__planet-selector-label">Viewing:</span>
+          {ownedPlanets.map((p) => (
+            <button
+              key={String(p.planet.id)}
+              type="button"
+              className={`play-page__planet-pill ${activePlanet.planet.id === p.planet.id ? 'play-page__planet-pill--on' : ''}`}
+              onClick={() => setSelectedPlanetId(p.planet.id)}
+            >
+              {p.planet.biome.emoji} {String(p.planet.id)}
+            </button>
+          ))}
+        </div>
+      )}
+
       <main className="play-page__layout">
         <aside className="play-page__col play-page__col--left">
           <ResourcesPanel
-            inventory={homePlanet.inventory}
-            title={`${humanTheme.emoji} Stockpile`}
+            inventory={activePlanet.inventory}
+            title={`${humanTheme.emoji} Stockpile (${String(activePlanet.planet.id)})`}
           />
           <DeceptionPanel
             theme={humanTheme}
-            faction={homePlanet.faction}
+            faction={activePlanet.faction}
             ledger={humanCivState.deceptionLedger}
           />
+          <IndigenousPanel indig={indigenousOnActivePlanet} />
           <TechTreePanel empire={humanCivState.empire} />
         </aside>
 
@@ -192,17 +268,23 @@ export function PlayPage() {
                 type="button"
                 className={`play-page__build-btn ${selectedBuildingId === b.defId ? 'play-page__build-btn--on' : ''}`}
                 onClick={() => handleQuickBuild(b.defId)}
-                title={`Build ${b.label} on next empty tile`}
+                onDoubleClick={() => handleQuickBuildPlace(b.defId)}
+                title={`Click to select. Double-click to place on next empty tile. Or click a tile.`}
               >
                 <span aria-hidden>{b.emoji}</span> {b.label}
               </button>
             ))}
           </div>
+          <p className="play-page__build-hint">
+            Click a tile to place selected building. Double-click a build button to drop on next
+            empty tile.
+          </p>
           <TilePlacementGrid
-            tiles={homePlanet.planet.tiles.slice(0, 37)}
-            biome={homePlanet.planet.biome}
+            tiles={activePlanet.planet.tiles.slice(0, 37)}
+            biome={activePlanet.planet.biome}
             civResearchedTechs={humanCivState.empire.researchedTechs}
             selectedBuildingDefId={selectedBuildingId as BuildingDefId}
+            onTileClick={handleTileClick}
           />
           <div className="play-page__campaigns">
             <h3>Propaganda</h3>
@@ -228,22 +310,31 @@ export function PlayPage() {
         </section>
 
         <aside className="play-page__col play-page__col--right">
-          {(() => {
-            const firstPad = [...homePlanet.launchPads.values()][0]
-            if (!firstPad) {
-              return (
-                <div className="play-page__pad-empty">
-                  Build a 🚀 Launch Pad to start fielding colony ships.
-                </div>
-              )
-            }
-            return <LaunchPadPanel pad={firstPad} onAfterAction={() => undefined} />
-          })()}
+          <ShipBuildPanel
+            pad={firstPad}
+            inventory={activePlanet.inventory}
+            researchedTechs={humanCivState.empire.researchedTechs}
+            maxPayloadTier={techEffects.maxPayloadTier}
+            onBuild={handleBuildShip}
+            onLaunch={handleLaunchShip}
+            otherPlanets={otherPlanetsForLaunch}
+          />
           <ColonyShipFlightPanel
             flights={[...sim.state.flights.values()]}
             onAfterAction={() => undefined}
           />
-          <BeaconPanel beacon={homePlanet.beacon} currentTick={sim.state.currentTick} />
+          <LootDropPanel
+            drops={lootDropsOnOurPlanets}
+            currentTick={sim.state.currentTick}
+            onClaim={handleClaimLoot}
+          />
+          <LastHopePanel
+            state={humanCivState.lastHopeEvac}
+            triggered={humanCivState.lastHopeTriggered}
+            canTrigger={!humanCivState.lastHopeTriggered}
+            onTrigger={handleTriggerLastHope}
+          />
+          <BeaconPanel beacon={activePlanet.beacon} currentTick={sim.state.currentTick} />
         </aside>
       </main>
 
@@ -262,8 +353,9 @@ export function PlayPage() {
           </ul>
         </details>
         <AIPlayerPanel snapshots={aiSnapshots} />
-        <p className="play-page__targets" hidden={otherPlanets.length === 0}>
-          Targetable: {otherPlanets.length} other planet{otherPlanets.length === 1 ? '' : 's'}
+        <p className="play-page__targets" hidden={otherPlanetsForLaunch.length === 0}>
+          Targetable: {otherPlanetsForLaunch.length} other planet
+          {otherPlanetsForLaunch.length === 1 ? '' : 's'}
         </p>
       </footer>
     </div>
