@@ -6,12 +6,17 @@ import {
   BLDG_MINE,
   type BuildingDefId,
   civId,
+  type ColonyShipFlight,
+  colonyShipFlightId,
   generateGalaxy,
   getTheme,
+  newColonyShipFlight,
   newDeceptionLedger,
   newEmpire,
   newFactionSplit,
+  newLaunchPad,
   newPlanetInventory,
+  planetId as planetIdValue,
   RESOURCE_FOOD,
   RESOURCE_INGOTS,
   RESOURCE_METALS,
@@ -21,6 +26,10 @@ import {
   recordConscription,
   recordEnemyCivDestroyed,
   recordVolunteers,
+  setTargetQueue,
+  SHIP_PILGRIM_VOLUNTEER,
+  SHIP_SCOUT,
+  SHIP_STANDARD,
   startResearch,
   TECH_AEROSPACE,
   TECH_COMPUTING,
@@ -30,8 +39,11 @@ import {
   type ThemeId,
   themeAsCSSVars,
   type TechId,
+  tileId as tileIdValue,
 } from '@smol/shared'
+import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
+import { LaunchPadPanel } from '../panels/LaunchPadPanel'
 import { TechTreePanel } from '../panels/TechTreePanel'
 import { ResourcesPanel } from '../panels/ResourcesPanel'
 import { TilePlacementGrid } from '../panels/TilePlacementGrid'
@@ -91,6 +103,67 @@ export function PreviewPage() {
     recordEnemyCivDestroyed(l)
     return l
   }, [])
+
+  const [, forceRefresh] = useState(0)
+  const triggerRefresh = () => forceRefresh((n) => n + 1)
+
+  const launchPad = useMemo(() => {
+    const pad = newLaunchPad(
+      tileIdValue('preview-pad-1'),
+      civId('preview-civ'),
+      startingPlanet.id,
+      true,
+    )
+    pad.state = 'READY'
+    pad.loadedShipVariantId = SHIP_STANDARD
+    pad.fuelLoaded = 60
+    pad.ammoLoaded = 10
+    pad.citizensLoaded = 200
+    setTargetQueue(pad, [
+      {
+        targetPlanetId: galaxy.planets[1]?.id ?? planetIdValue('preview-target'),
+        label: 'Target Alpha',
+      },
+    ])
+    return pad
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startingPlanet.id])
+
+  const inFlightShips = useMemo<ColonyShipFlight[]>(() => {
+    const target = galaxy.planets[1]?.position ?? { x: 1000, y: 0, z: 0 }
+    const scout = newColonyShipFlight({
+      id: colonyShipFlightId('preview-flight-1'),
+      variantId: SHIP_SCOUT,
+      launchingCivId: civId('preview-civ'),
+      fromPlanetId: startingPlanet.id,
+      targetPlanetId: galaxy.planets[1]?.id ?? planetIdValue('preview-target'),
+      fromPosition: startingPlanet.position,
+      targetPosition: target,
+      travelRadius: 1000,
+      citizensAboard: 0,
+      signalLossSeed: 12345,
+    })
+    scout.ticksFlown = Math.max(1, Math.round(scout.totalTicks * 0.4))
+    scout.phase = 'COAST'
+
+    const pilgrim = newColonyShipFlight({
+      id: colonyShipFlightId('preview-flight-2'),
+      variantId: SHIP_PILGRIM_VOLUNTEER,
+      launchingCivId: civId('preview-civ'),
+      fromPlanetId: startingPlanet.id,
+      targetPlanetId: galaxy.planets[2]?.id ?? planetIdValue('preview-target-2'),
+      fromPosition: startingPlanet.position,
+      targetPosition: galaxy.planets[2]?.position ?? { x: 800, y: 400, z: 200 },
+      travelRadius: 1000,
+      citizensAboard: 1500,
+      signalLossSeed: 67890,
+    })
+    pilgrim.ticksFlown = Math.max(1, Math.round(pilgrim.totalTicks * 0.85))
+    pilgrim.phase = 'REENTRY'
+
+    return [scout, pilgrim]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startingPlanet.id])
 
   return (
     <div className="preview-page" style={styleVars as React.CSSProperties}>
@@ -158,6 +231,8 @@ export function PreviewPage() {
           civResearchedTechs={civResearchedTechs}
           selectedBuildingDefId={selectedBuildingDefId}
         />
+        <LaunchPadPanel pad={launchPad} onAfterAction={triggerRefresh} />
+        <ColonyShipFlightPanel flights={inFlightShips} onAfterAction={triggerRefresh} />
       </div>
     </div>
   )
