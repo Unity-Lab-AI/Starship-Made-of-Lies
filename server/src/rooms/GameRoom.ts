@@ -1,25 +1,65 @@
 import { Room, type Client } from '@colyseus/core'
 import {
+  type AIPlayerStateMessage,
   type AnyProtocolMessage,
-  type ClientToServerMessage,
   type CivId,
+  type ClientToServerMessage,
   type CoopAlliance,
   type CoopMatchConfig,
+  type LobbyStateMessage,
+  type MatchStartedMessage,
+  type MatchStateSyncMessage,
+  type PlanetId,
+  type ServerToClientMessage,
+  type TickMessage,
   DEFAULT_COOP_MATCH_CONFIG,
   PROTOCOL_VERSION,
+  civId as civIdValue,
   isAIHostileToTarget,
   isClientToServerMessage,
+  planetId as planetIdValue,
+  themeIdValue,
 } from '@smol/shared'
-import { AIControllerRegistry, type AITickObservables, type AIController } from '../ai/AIController'
+import { AIController, AIControllerRegistry } from '../ai/AIController'
+import { dispatchClientMessage, type HandlerContext } from '../match/handlers'
+import {
+  type CivAssignment,
+  type MatchState,
+  controlledPlanetsByCiv,
+  newMatchState,
+} from '../match/MatchState'
+import {
+  type Lobby,
+  activeSlots,
+  addHumanToLobby,
+  matchLengthInTicks,
+  newLobby,
+  removeFromLobby,
+  rollSlotThemes,
+  transitionToInMatch,
+} from '../match/lobby'
+import { type ClientRegistry, broadcastToAll, broadcastWithFogOfWar } from '../match/broadcast'
+import { buildObservablesForCiv } from '../match/observables'
+import { InMemorySnapshotStore, captureSnapshot } from '../match/snapshot'
+import {
+  DEFAULT_DISCONNECT_DIFFICULTY,
+  DEFAULT_DISCONNECT_PLAYSTYLE,
+  buildAITakeoverController,
+  returnHumanControl,
+} from '../match/disconnect'
 
 export interface GameRoomCreateOptions {
   readonly seed?: number
   readonly maxPlayers?: number
   readonly tickIntervalMs?: number
   readonly coopConfig?: CoopMatchConfig
+  readonly autoSaveEveryNTicks?: number
+  readonly aiBroadcastEveryNTicks?: number
 }
 
 const DEFAULT_TICK_INTERVAL_MS = 100
+const DEFAULT_AUTO_SAVE_INTERVAL = 100
+const DEFAULT_AI_BROADCAST_INTERVAL = 20
 
 export class GameRoom extends Room {
   override maxClients = 8
@@ -27,29 +67,40 @@ export class GameRoom extends Room {
   private tickHandle: ReturnType<typeof setInterval> | null = null
   private readonly aiRegistry = new AIControllerRegistry()
   private readonly humanCivs = new Set<CivId>()
+  private readonly clientByCivId = new Map<CivId, Client>()
+  private readonly civIdByClient = new Map<string, CivId>()
   private alliances: CoopAlliance[] = []
   private coopConfig: CoopMatchConfig = DEFAULT_COOP_MATCH_CONFIG
+  private lobby: Lobby = newLobby()
+  private matchState: MatchState | null = null
+  private readonly snapshotStore = new InMemorySnapshotStore()
+  private autoSaveEveryNTicks = DEFAULT_AUTO_SAVE_INTERVAL
+  private aiBroadcastEveryNTicks = DEFAULT_AI_BROADCAST_INTERVAL
+  private rng: () => number = Math.random
 
   override onCreate(options: GameRoomCreateOptions): void {
     if (typeof options.maxPlayers === 'number') this.maxClients = options.maxPlayers
     if (options.coopConfig) this.coopConfig = options.coopConfig
+    if (typeof options.autoSaveEveryNTicks === 'number') {
+      this.autoSaveEveryNTicks = options.autoSaveEveryNTicks
+    }
+    if (typeof options.aiBroadcastEveryNTicks === 'number') {
+      this.aiBroadcastEveryNTicks = options.aiBroadcastEveryNTicks
+    }
+    if (typeof options.seed === 'number') {
+      this.rng = mulberry32(options.seed)
+      this.lobby.config.rollSeed = options.seed
+    }
     this.onMessage('*', (client, _type, message) => {
       if (!isProtocolMessage(message)) {
-        this.sendProtocol(client, {
-          type: 'ERROR',
-          v: PROTOCOL_VERSION,
-          code: 'PROTOCOL_INVALID',
-          detail: 'Message did not match protocol shape',
-        })
+        this.sendProtocol(client, this.errMsg('PROTOCOL_INVALID', 'Bad shape'))
         return
       }
       if (!isClientToServerMessage(message)) {
-        this.sendProtocol(client, {
-          type: 'ERROR',
-          v: PROTOCOL_VERSION,
-          code: 'PROTOCOL_DIRECTION',
-          detail: `Message type ${message.type} is server-to-client; not accepted from client.`,
-        })
+        this.sendProtocol(
+          client,
+          this.errMsg('PROTOCOL_DIRECTION', `${message.type} is server-to-client`),
+        )
         return
       }
       this.handleClientMessage(client, message)
@@ -58,12 +109,49 @@ export class GameRoom extends Room {
     this.tickHandle = setInterval(() => this.tickGame(), intervalMs)
   }
 
-  override onJoin(_client: Client, _options: unknown): void {
-    // PHASE 10 wiring: assign civ/theme + send LOBBY_STATE
+  override onJoin(client: Client, options: unknown): void {
+    const opts = (options ?? {}) as { displayName?: string; civId?: string }
+    const civId = civIdValue(opts.civId ?? `civ-${client.sessionId}`)
+    this.clientByCivId.set(civId, client)
+    this.civIdByClient.set(client.sessionId, civId)
+    this.humanCivs.add(civId)
+    if (this.lobby.phase === 'CONFIGURING') {
+      const slot = addHumanToLobby(this.lobby, {
+        civId,
+        displayName: opts.displayName ?? 'Player',
+      })
+      if (!slot) {
+        this.sendProtocol(client, this.errMsg('LOBBY_FULL', 'No empty slots.'))
+        return
+      }
+      rollSlotThemes(this.lobby, this.rng)
+      this.broadcastLobbyState()
+    } else if (this.matchState) {
+      const perCiv = this.matchState.civs.get(civId)
+      if (perCiv && perCiv.disconnected && perCiv.takenOverByAI) {
+        returnHumanControl(this.matchState, civId)
+        this.aiRegistry.unregister(civId)
+      }
+    }
   }
 
-  override onLeave(_client: Client, _consented: boolean): void | Promise<void> {
-    // PHASE 10 wiring: handle disconnects + civ-suspension policy
+  override onLeave(client: Client, _consented: boolean): void | Promise<void> {
+    const civId = this.civIdByClient.get(client.sessionId)
+    if (!civId) return
+    this.civIdByClient.delete(client.sessionId)
+    this.clientByCivId.delete(civId)
+    if (this.lobby.phase === 'CONFIGURING') {
+      removeFromLobby(this.lobby, civId)
+      this.humanCivs.delete(civId)
+      this.broadcastLobbyState()
+      return
+    }
+    if (this.matchState) {
+      const perCiv = this.matchState.civs.get(civId)
+      if (perCiv && perCiv.alive && perCiv.assignment.isHuman) {
+        this.takeOverWithAI(civId)
+      }
+    }
   }
 
   override onDispose(): void | Promise<void> {
@@ -71,15 +159,9 @@ export class GameRoom extends Room {
       clearInterval(this.tickHandle)
       this.tickHandle = null
     }
-    // PHASE 10 wiring: persist final match record to Hall of Champions
-  }
-
-  registerAIController(controller: AIController): void {
-    this.aiRegistry.register(controller)
-  }
-
-  registerHumanCiv(civId: CivId): void {
-    this.humanCivs.add(civId)
+    if (this.matchState) {
+      this.snapshotStore.save(captureSnapshot(this.matchState))
+    }
   }
 
   applyCoopConfig(config: CoopMatchConfig): void {
@@ -94,6 +176,93 @@ export class GameRoom extends Room {
     this.alliances = [...alliances]
   }
 
+  registerAIController(controller: AIController): void {
+    this.aiRegistry.register(controller)
+  }
+
+  registerHumanCiv(civId: CivId): void {
+    this.humanCivs.add(civId)
+  }
+
+  startMatch(seed: number, planetCount: number): void {
+    if (this.lobby.phase !== 'STARTING') return
+    if (this.matchState) return
+    const civAssignments: CivAssignment[] = []
+    const slots = activeSlots(this.lobby)
+    const startingPlanets = pickStartingPlanets(slots.length, seed)
+    slots.forEach((slot, i) => {
+      if (!slot.civId || !slot.themeId) return
+      civAssignments.push({
+        civId: slot.civId,
+        themeId: slot.themeId,
+        startingPlanetId: startingPlanets[i] ?? startingPlanets[0]!,
+        displayName: slot.displayName,
+        isHuman: slot.kind === 'human',
+      })
+    })
+
+    this.matchState = newMatchState({
+      matchId: `match-${seed}-${Date.now()}`,
+      seed,
+      planetCount,
+      civAssignments,
+    })
+    this.matchState.startedAtTick = this.currentTick
+
+    for (const slot of slots) {
+      if (
+        slot.kind === 'ai' &&
+        slot.civId &&
+        slot.aiPlaystyle &&
+        slot.aiDifficulty &&
+        slot.themeId
+      ) {
+        const perCiv = this.matchState.civs.get(slot.civId)
+        if (!perCiv) continue
+        const controller = new AIController({
+          civId: slot.civId,
+          empire: perCiv.empire,
+          theme: perCiv.theme,
+          playstyleArchetype: slot.aiPlaystyle,
+          difficulty: slot.aiDifficulty,
+          decisionOffsetTicks: slot.slotIndex,
+          rngSeed: seed + slot.slotIndex,
+        })
+        this.aiRegistry.register(controller)
+      }
+    }
+
+    transitionToInMatch(this.lobby, this.matchState.matchId)
+    this.broadcastMatchStarted(seed, planetCount, civAssignments)
+  }
+
+  takeOverWithAI(civId: CivId): boolean {
+    if (!this.matchState) return false
+    const controller = buildAITakeoverController(this.matchState, {
+      civId,
+      playstyleArchetype: DEFAULT_DISCONNECT_PLAYSTYLE,
+      difficulty: DEFAULT_DISCONNECT_DIFFICULTY,
+      decisionOffsetTicks: this.aiRegistry.size(),
+      rngSeed: this.matchState.seed + this.aiRegistry.size(),
+    })
+    if (!controller) return false
+    this.aiRegistry.register(controller)
+    return true
+  }
+
+  getMatchState(): MatchState | null {
+    return this.matchState
+  }
+
+  getLobby(): Lobby {
+    return this.lobby
+  }
+
+  loadFromSnapshot(matchId: string): boolean {
+    const snap = this.snapshotStore.load(matchId)
+    return snap !== null
+  }
+
   private isHumanCiv(civId: CivId): boolean {
     return this.humanCivs.has(civId)
   }
@@ -104,34 +273,192 @@ export class GameRoom extends Room {
     )
   }
 
-  private buildObservablesForController(_controller: AIController): AITickObservables {
+  private clientRegistry(): ClientRegistry {
+    const clientByCivId = this.clientByCivId
     return {
-      buildingCtx: null,
-      unlockedBuildings: null,
-      shipCtx: null,
-      observedEnemies: [],
-      campaignCtx: null,
-      resourceSurplusRatio: 0,
+      send: (client, msg) => this.sendProtocol(client, msg),
+      clientForCiv: (civId) => clientByCivId.get(civId) ?? null,
+      allClients: () => {
+        const out: { client: Client; civId: CivId }[] = []
+        for (const [civId, client] of clientByCivId) out.push({ client, civId })
+        return out
+      },
     }
   }
 
   private tickGame(): void {
     this.currentTick += 1
+    if (!this.matchState) return
+    this.matchState.currentTick = this.currentTick
+
     if (this.aiRegistry.size() > 0) {
-      this.aiRegistry.tickAll(
+      const results = this.aiRegistry.tickAll(
         this.currentTick,
-        (controller) => this.buildObservablesForController(controller),
+        (controller) => buildObservablesForCiv(this.matchState!, controller),
         (sourceCivId, targetCivId) => this.hostileResolver(sourceCivId, targetCivId),
       )
+      if (this.currentTick % this.aiBroadcastEveryNTicks === 0) {
+        for (const result of results) {
+          if (result.snapshot) this.broadcastAIPlayerState(result.snapshot.civId)
+        }
+      }
+    }
+
+    const tickMsg: TickMessage = {
+      type: 'TICK',
+      v: PROTOCOL_VERSION,
+      tick: this.currentTick,
+    }
+    broadcastToAll(this.clientRegistry(), tickMsg)
+
+    if (this.currentTick % 10 === 0) {
+      this.broadcastMatchStateSync()
+    }
+
+    if (this.currentTick % this.autoSaveEveryNTicks === 0) {
+      this.snapshotStore.save(captureSnapshot(this.matchState))
+    }
+
+    const lengthCap = matchLengthInTicks(this.lobby.config.matchLength)
+    if (
+      this.matchState.startedAtTick !== null &&
+      this.currentTick - this.matchState.startedAtTick >= lengthCap
+    ) {
+      this.endMatch()
     }
   }
 
-  private handleClientMessage(_client: Client, _message: ClientToServerMessage): void {
-    // PHASE 10 wiring: dispatch to per-message handlers
+  private endMatch(): void {
+    if (!this.matchState) return
+    this.matchState.endedAtTick = this.currentTick
+    broadcastToAll(this.clientRegistry(), {
+      type: 'MATCH_ENDED',
+      v: PROTOCOL_VERSION,
+      reason: 'admin-end',
+      winningCivId: this.matchState.winningCivId,
+    })
   }
 
-  private sendProtocol(client: Client, message: AnyProtocolMessage): void {
+  private broadcastLobbyState(): void {
+    const players: LobbyStateMessage['players'] = activeSlots(this.lobby).map((s) => ({
+      civId: s.civId ?? civIdValue(''),
+      displayName: s.displayName,
+      themeId: s.themeId ?? themeIdValue(''),
+      ready: s.ready,
+    }))
+    const msg: LobbyStateMessage = {
+      type: 'LOBBY_STATE',
+      v: PROTOCOL_VERSION,
+      players,
+    }
+    broadcastToAll(this.clientRegistry(), msg)
+  }
+
+  private broadcastMatchStarted(
+    seed: number,
+    planetCount: number,
+    civAssignments: ReadonlyArray<CivAssignment>,
+  ): void {
+    const msg: MatchStartedMessage = {
+      type: 'MATCH_STARTED',
+      v: PROTOCOL_VERSION,
+      seed,
+      planetCount,
+      civAssignments: civAssignments.map((a) => ({
+        civId: a.civId,
+        themeId: a.themeId,
+        startingPlanetId: a.startingPlanetId,
+      })),
+    }
+    broadcastToAll(this.clientRegistry(), msg)
+  }
+
+  private broadcastMatchStateSync(): void {
+    if (!this.matchState) return
+    const counts = controlledPlanetsByCiv(this.matchState)
+    const totalControlledPlanets: { civId: CivId; count: number }[] = []
+    for (const [civId, planetIds] of counts) {
+      totalControlledPlanets.push({ civId, count: planetIds.length })
+    }
+    let aliveCount = 0
+    for (const civ of this.matchState.civs.values()) {
+      if (civ.alive) aliveCount += 1
+    }
+    const msg: MatchStateSyncMessage = {
+      type: 'MATCH_STATE_SYNC',
+      v: PROTOCOL_VERSION,
+      tick: this.currentTick,
+      civCount: this.matchState.civs.size,
+      aliveCivCount: aliveCount,
+      totalControlledPlanets,
+    }
+    broadcastWithFogOfWar(this.matchState, this.clientRegistry(), msg)
+  }
+
+  private broadcastAIPlayerState(civId: CivId): void {
+    if (!this.matchState) return
+    const controller = this.aiRegistry.get(civId)
+    if (!controller) return
+    const perCiv = this.matchState.civs.get(civId)
+    if (!perCiv) return
+    const msg: AIPlayerStateMessage = {
+      type: 'AI_PLAYER_STATE',
+      v: PROTOCOL_VERSION,
+      civId,
+      themeId: perCiv.assignment.themeId,
+      playstyleArchetype: controller.playstyle.archetype,
+      difficultyLevel: controller.difficultyConfig.level,
+      lastDecisionLine: controller.lastSnapshot
+        ? `tick=${controller.lastDecidedTick} | applied`
+        : null,
+      lastDecidedTick: controller.lastDecidedTick,
+    }
+    broadcastWithFogOfWar(this.matchState, this.clientRegistry(), msg)
+  }
+
+  private handleClientMessage(client: Client, message: ClientToServerMessage): void {
+    const civId = this.civIdByClient.get(client.sessionId)
+    if (!civId) {
+      this.sendProtocol(client, this.errMsg('NO_CIV', 'No civ assigned to this connection.'))
+      return
+    }
+    const ctx: HandlerContext = {
+      state: this.matchState,
+      lobby: this.lobby,
+      actorCivId: civId,
+    }
+    const outcome = dispatchClientMessage(ctx, message)
+    if (outcome.error) {
+      this.sendProtocol(client, outcome.error)
+      return
+    }
+    for (const direct of outcome.direct) {
+      this.sendProtocol(client, direct)
+    }
+    if (this.matchState) {
+      for (const broadcast of outcome.broadcast) {
+        broadcastWithFogOfWar(this.matchState, this.clientRegistry(), broadcast)
+      }
+    } else {
+      for (const broadcast of outcome.broadcast) {
+        broadcastToAll(this.clientRegistry(), broadcast)
+      }
+    }
+
+    if (message.type === 'START_MATCH' && this.lobby.phase === 'STARTING') {
+      this.startMatch(message.seed, message.planetCount)
+    }
+    if (message.type === 'JOIN_LOBBY') {
+      this.broadcastLobbyState()
+    }
+  }
+
+  private sendProtocol(client: Client, message: ServerToClientMessage): void {
     client.send(message.type, message)
+  }
+
+  private errMsg(code: string, detail: string): ServerToClientMessage {
+    return { type: 'ERROR', v: PROTOCOL_VERSION, code, detail }
   }
 }
 
@@ -139,4 +466,23 @@ function isProtocolMessage(value: unknown): value is AnyProtocolMessage {
   if (typeof value !== 'object' || value === null) return false
   const v = value as { type?: unknown; v?: unknown }
   return typeof v.type === 'string' && typeof v.v === 'number'
+}
+
+function mulberry32(seed: number): () => number {
+  let s = seed >>> 0
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0
+    let t = s
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function pickStartingPlanets(count: number, _seed: number): PlanetId[] {
+  const out: PlanetId[] = []
+  for (let i = 0; i < count; i++) {
+    out.push(planetIdValue(`planet-${i}`))
+  }
+  return out
 }

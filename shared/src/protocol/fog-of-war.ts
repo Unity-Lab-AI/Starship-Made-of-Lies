@@ -46,6 +46,8 @@ export function shouldDeliverToObserver(msg: ServerToClientMessage, ctx: FogOfWa
     }
     case 'CIV_DEFEATED':
       return ctx.observableCivIds.has(msg.defeatedCivId)
+    case 'AI_PLAYER_STATE':
+      return ctx.observableCivIds.has(msg.civId) || msg.civId === ctx.observerCivId
     default:
       return true
   }
@@ -79,6 +81,11 @@ function isServerToClient(msg: AnyProtocolMessage): msg is ServerToClientMessage
     case 'PLANET_CAPTURED':
     case 'CIV_DEFEATED':
     case 'MATCH_ENDED':
+    case 'AI_PLAYER_STATE':
+    case 'BEACON_ALERT':
+    case 'CIVIL_FACTION_SHIFT':
+    case 'MATCH_STATE_SYNC':
+    case 'RESOURCE_TICK':
     case 'PONG':
     case 'ERROR':
       return true

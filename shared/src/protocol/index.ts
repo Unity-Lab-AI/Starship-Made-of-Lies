@@ -38,6 +38,7 @@ export type ServerToClientMessageType =
   | 'CIVIL_FACTION_SHIFT'
   | 'MATCH_STATE_SYNC'
   | 'BEACON_ALERT'
+  | 'AI_PLAYER_STATE'
   | 'CHAT'
   | 'PONG'
   | 'ERROR'
@@ -245,6 +246,15 @@ export interface BeaconAlertMessage extends BaseMessage<'BEACON_ALERT'> {
   readonly summary: string
 }
 
+export interface AIPlayerStateMessage extends BaseMessage<'AI_PLAYER_STATE'> {
+  readonly civId: CivId
+  readonly themeId: ThemeId
+  readonly playstyleArchetype: 'builder' | 'warmonger' | 'researcher' | 'trickster'
+  readonly difficultyLevel: 'easy' | 'medium' | 'hard' | 'brutal'
+  readonly lastDecisionLine: string | null
+  readonly lastDecidedTick: number
+}
+
 export interface ChatServerMessage extends BaseMessage<'CHAT'> {
   readonly fromCivId: CivId
   readonly fromName: string
@@ -276,6 +286,7 @@ export type ServerToClientMessage =
   | CivilFactionShiftMessage
   | MatchStateSyncMessage
   | BeaconAlertMessage
+  | AIPlayerStateMessage
   | ChatServerMessage
   | PongMessage
   | ErrorMessage
@@ -321,6 +332,7 @@ const SERVER_TO_CLIENT_TYPES: ReadonlySet<string> = new Set<ServerToClientMessag
   'CIVIL_FACTION_SHIFT',
   'MATCH_STATE_SYNC',
   'BEACON_ALERT',
+  'AI_PLAYER_STATE',
   'CHAT',
   'PONG',
   'ERROR',
