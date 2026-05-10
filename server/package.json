@@ -1,13 +1,26 @@
 {
   "name": "@smol/server",
   "version": "0.0.0",
-  "description": "SMoL multiplayer + AI backend (TypeScript). Authoritative game state, fog-of-war enforcement, AI civ background processes, lobby. WebSocket framework (Colyseus or custom) added in PHASE 10 per no-half-implementations LAW.",
+  "description": "SMoL multiplayer + AI backend (TypeScript). Authoritative game state, fog-of-war enforcement, AI civ background processes, lobby. Colyseus 0.16 wired in PHASE 5+ scaffolding for PHASE 10 wire-up.",
   "private": true,
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --check .",
-    "format:write": "prettier --write ."
+    "format:write": "prettier --write .",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@colyseus/core": "^0.16.0",
+    "@colyseus/schema": "^3.0.0",
+    "@colyseus/ws-transport": "^0.16.0",
+    "@smol/shared": "workspace:*",
+    "colyseus": "^0.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0"
   }
 }

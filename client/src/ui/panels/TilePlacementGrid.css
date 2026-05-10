@@ -1,0 +1,86 @@
+.tile-grid-panel {
+  background: var(--bg-secondary, #14181f);
+  border: 1px solid var(--border, #30363d);
+  border-radius: 8px;
+  padding: 1rem;
+  color: var(--fg-primary, #e6edf3);
+  font-family: var(--font-body, sans-serif);
+  position: relative;
+}
+
+.tile-grid-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+
+.tile-grid-panel__header h2 {
+  font-family: var(--font-heading, serif);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.tile-grid-panel__count {
+  font-size: 0.75rem;
+  color: var(--muted, #484f58);
+  margin-left: 0.5rem;
+}
+
+.tile-grid-panel__svg {
+  width: 100%;
+  height: auto;
+  max-height: 24rem;
+  display: block;
+}
+
+.tile-grid-panel__tile polygon {
+  fill: var(--bg-primary, #0a0e14);
+  stroke: var(--border, #30363d);
+  stroke-width: 1;
+  transition: fill 0.15s ease;
+  cursor: pointer;
+}
+
+.tile-grid-panel__tile--occupied polygon {
+  fill: var(--muted, #484f58);
+}
+
+.tile-grid-panel__tile--placeable polygon {
+  fill: var(--success, #3a8a4a);
+}
+
+.tile-grid-panel__tile--blocked polygon {
+  fill: var(--danger, #7a1a3a);
+}
+
+.tile-grid-panel__tile--hover polygon {
+  stroke: var(--warning, #d4a13a);
+  stroke-width: 2;
+}
+
+.tile-grid-panel__tile-label {
+  font-size: 0.85rem;
+  fill: var(--fg-primary, #e6edf3);
+  pointer-events: none;
+}
+
+.tile-grid-panel__hint {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+}
+
+.tile-grid-panel__hint--ok {
+  background: var(--success, #3a8a4a);
+  color: var(--fg-primary, #fff);
+}
+
+.tile-grid-panel__hint--bad {
+  background: var(--danger, #e02d4a);
+  color: var(--fg-primary, #fff);
+}

@@ -9,6 +9,7 @@ import { WikiPage } from './ui/pages/WikiPage'
 import { AboutPage } from './ui/pages/AboutPage'
 import { PrivacyPage } from './ui/pages/PrivacyPage'
 import { TermsPage } from './ui/pages/TermsPage'
+import { PreviewPage } from './ui/pages/PreviewPage'
 import './styles/globals.css'
 
 export function App() {
@@ -25,6 +26,7 @@ export function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/preview" element={<PreviewPage />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
