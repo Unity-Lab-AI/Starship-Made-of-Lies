@@ -10,6 +10,7 @@ import { AboutPage } from './ui/pages/AboutPage'
 import { PrivacyPage } from './ui/pages/PrivacyPage'
 import { TermsPage } from './ui/pages/TermsPage'
 import { PreviewPage } from './ui/pages/PreviewPage'
+import { PlayPage } from './ui/pages/PlayPage'
 import './styles/globals.css'
 
 export function App() {
@@ -19,6 +20,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<TitleScreen />} />
           <Route path="/new-game" element={<NewGamePage />} />
+          <Route path="/play" element={<PlayPage />} />
           <Route path="/multiplayer" element={<MultiplayerPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/achievements" element={<AchievementsPage />} />

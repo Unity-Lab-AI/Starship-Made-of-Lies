@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { type ThemeId, THEMES, civId, getTheme, themeAsCSSVars } from '@smol/shared'
 import {
   LobbyPreviewPanel,
@@ -26,6 +26,7 @@ const MATCH_LENGTH_LABELS: Record<MatchLength, string> = {
 }
 
 export function NewGamePage() {
+  const navigate = useNavigate()
   const [galaxySize, setGalaxySize] = useState<GalaxyPreset>('small')
   const [aiCount, setAiCount] = useState(3)
   const [matchLength, setMatchLength] = useState<MatchLength>('open')
@@ -190,12 +191,26 @@ export function NewGamePage() {
           </p>
 
           <div className="new-game-page__cta">
-            <button type="button" className="new-game-page__start" disabled>
-              ▶ Start Match (gameplay loop in PHASE 8)
+            <button
+              type="button"
+              className="new-game-page__start"
+              onClick={() =>
+                navigate('/play', {
+                  state: {
+                    seed: Math.floor(Math.random() * 0xffffff),
+                    aiCount,
+                    planetCount: preset.planetCount,
+                    humanThemeId: previewThemeId,
+                  },
+                })
+              }
+            >
+              ▶ Start Match
             </button>
             <p className="new-game-page__cta-hint">
-              In-match HUD lands with PHASE 8 (3D scene + camera). Lobby + AI logic + sim engine are
-              fully wired — preview the configuration to the right.
+              Solo match runs client-side via shared sim. Multiplayer + 3D zoom land later — for
+              now: place buildings on hex tiles, research tech, run propaganda campaigns, watch AI
+              civs do their thing, race to a mission objective.
             </p>
           </div>
         </section>
