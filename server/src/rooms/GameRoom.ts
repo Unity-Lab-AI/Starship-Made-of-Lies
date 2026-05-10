@@ -7,17 +7,21 @@ import {
   type CoopAlliance,
   type CoopMatchConfig,
   type LobbyStateMessage,
+  type MatchEndReason,
   type MatchStartedMessage,
   type MatchStateSyncMessage,
+  type MissionObjectiveId,
   type PlanetId,
   type ServerToClientMessage,
   type TickMessage,
   DEFAULT_COOP_MATCH_CONFIG,
   PROTOCOL_VERSION,
   civId as civIdValue,
+  hasWonByTech,
   isAIHostileToTarget,
   isClientToServerMessage,
   planetId as planetIdValue,
+  resolveMatchEnd,
   themeIdValue,
 } from '@smol/shared'
 import { AIController, AIControllerRegistry } from '../ai/AIController'
@@ -32,7 +36,7 @@ import {
   type Lobby,
   activeSlots,
   addHumanToLobby,
-  matchLengthInTicks,
+  effectiveTickCap,
   newLobby,
   removeFromLobby,
   rollSlotThemes,
@@ -57,9 +61,9 @@ export interface GameRoomCreateOptions {
   readonly aiBroadcastEveryNTicks?: number
 }
 
-const DEFAULT_TICK_INTERVAL_MS = 100
-const DEFAULT_AUTO_SAVE_INTERVAL = 100
-const DEFAULT_AI_BROADCAST_INTERVAL = 20
+const DEFAULT_TICK_INTERVAL_MS = 200
+const DEFAULT_AUTO_SAVE_INTERVAL = 50
+const DEFAULT_AI_BROADCAST_INTERVAL = 10
 
 export class GameRoom extends Room {
   override maxClients = 8
@@ -319,22 +323,74 @@ export class GameRoom extends Room {
       this.snapshotStore.save(captureSnapshot(this.matchState))
     }
 
-    const lengthCap = matchLengthInTicks(this.lobby.config.matchLength)
-    if (
-      this.matchState.startedAtTick !== null &&
-      this.currentTick - this.matchState.startedAtTick >= lengthCap
-    ) {
-      this.endMatch()
+    const tickCap = effectiveTickCap(this.lobby.config)
+    const aliveCivIds: CivId[] = []
+    for (const civ of this.matchState.civs.values()) {
+      if (civ.alive) aliveCivIds.push(civ.assignment.civId)
+    }
+    const civProgress = this.computeObjectiveProgress(aliveCivIds)
+    const elapsedSinceStart =
+      this.matchState.startedAtTick !== null
+        ? this.currentTick - this.matchState.startedAtTick
+        : this.currentTick
+    const resolution = resolveMatchEnd({
+      enabledObjectives: this.lobby.config.missionObjectives,
+      civProgress,
+      aliveCivIds,
+      currentTick: elapsedSinceStart,
+      tickCap,
+    })
+    if (resolution.ended) {
+      this.endMatch(resolution.winningCivId, resolution.reason, resolution.resolvedObjectiveId)
     }
   }
 
-  private endMatch(): void {
+  private computeObjectiveProgress(
+    aliveCivIds: ReadonlyArray<CivId>,
+  ): Map<MissionObjectiveId, ReadonlyArray<{ civId: CivId; value: number }>> {
+    const out = new Map<MissionObjectiveId, ReadonlyArray<{ civId: CivId; value: number }>>()
+    if (!this.matchState) return out
+    const highscore: { civId: CivId; value: number }[] = []
+    const resource: { civId: CivId; value: number }[] = []
+    const apex: { civId: CivId; value: number }[] = []
+    for (const civId of aliveCivIds) {
+      const civ = this.matchState.civs.get(civId)
+      if (!civ) continue
+      let civHighscore = 0
+      let civResources = 0
+      civHighscore += civ.empire.controlledPlanetIds.size * 1000
+      civHighscore += civ.empire.defeatedCivIds.size * 5000
+      civHighscore += civ.empire.researchedTechs.size * 200
+      civHighscore += civ.ledger.colonyShipsLaunched * 50
+      civHighscore += civ.ledger.enemyCivilizationsDestroyed * 2000
+      for (const planetId of civ.empire.controlledPlanetIds) {
+        const ps = this.matchState.planetStates.get(planetId)
+        if (!ps) continue
+        for (const amount of ps.inventory.stocks.values()) civResources += amount
+      }
+      highscore.push({ civId, value: civHighscore })
+      resource.push({ civId, value: civResources })
+      apex.push({ civId, value: hasWonByTech(civ.empire) ? 1 : 0 })
+    }
+    out.set('highscore_target', highscore)
+    out.set('resource_target', resource)
+    out.set('apex_tech', apex)
+    return out
+  }
+
+  private endMatch(
+    winningCivId: CivId | null,
+    reason: 'objective_met' | 'tick_cap_hit' | 'admin_end' | null,
+    resolvedObjectiveId: MissionObjectiveId | null,
+  ): void {
     if (!this.matchState) return
     this.matchState.endedAtTick = this.currentTick
+    if (winningCivId) this.matchState.winningCivId = winningCivId
+    const protocolReason: MatchEndReason = mapEndReasonToProtocol(reason, resolvedObjectiveId)
     broadcastToAll(this.clientRegistry(), {
       type: 'MATCH_ENDED',
       v: PROTOCOL_VERSION,
-      reason: 'admin-end',
+      reason: protocolReason,
       winningCivId: this.matchState.winningCivId,
     })
   }
@@ -485,4 +541,17 @@ function pickStartingPlanets(count: number, _seed: number): PlanetId[] {
     out.push(planetIdValue(`planet-${i}`))
   }
   return out
+}
+
+function mapEndReasonToProtocol(
+  reason: 'objective_met' | 'tick_cap_hit' | 'admin_end' | null,
+  objectiveId: MissionObjectiveId | null,
+): MatchEndReason {
+  if (reason === 'tick_cap_hit') return 'admin-end'
+  if (reason === 'admin_end' || reason === null) return 'admin-end'
+  if (objectiveId === 'apex_tech') return 'apex-tech'
+  if (objectiveId === 'last_civ_standing') return 'last-civ-standing'
+  if (objectiveId === 'highscore_target') return 'score'
+  if (objectiveId === 'resource_target') return 'score'
+  return 'admin-end'
 }

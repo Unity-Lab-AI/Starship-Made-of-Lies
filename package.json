@@ -1,6 +1,6 @@
 {
   "name": "starship-made-of-lies",
-  "version": "0.0.0",
+  "version": "0.01.0",
   "description": "SMoL — Starship Made of Lies. Top-down emoji civilization-building game where you trick your own citizens into boarding colony ships aimed at other civilizations. Unity AI Lab.",
   "private": true,
   "type": "module",

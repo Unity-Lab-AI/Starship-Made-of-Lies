@@ -2,6 +2,10 @@
 
 This doc covers prerequisites, per-platform build commands, and known blockers for getting Starship Made of Lies running locally and producing distributable artifacts.
 
+**Version:** v0.01.0 — Alpha (stays at this version until explicitly bumped)
+
+**Community / Feedback:** Single channel — Discord (`https://discord.gg/unitylab-smol`). Drop bugs, ideas, weirdest match stories there. Per-build "Open Discord" button is wired into the in-app footer via `client/src/services/community.ts`.
+
 ## Prerequisites
 
 | Tool         | Min Version | Used For                                       |
@@ -123,14 +127,49 @@ Without these, the build workflows still run + emit artifacts but signing steps 
 
 ## Known blockers (non-toolchain)
 
-| Blocker                                | Phase | Resolution                                                                                           |
-| -------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------- |
-| Real per-theme `.ogg` audio recordings | 12    | Audio team / composer commission. Synth fallback ships today.                                        |
-| Citizen voice cameos                   | 12    | Voice acting sessions per theme. SfxOverrides API is the slot.                                       |
-| OAuth backend (email/Google/Discord)   | 11    | User picks Supabase / Firebase / self-host. AccountStore interface ships today.                      |
-| Persistent leaderboards backend        | 11    | Same backend pick. LeaderboardStore + AchievementStore + SnapshotStore interfaces ship today.        |
-| Three.js scene + LOD + camera          | 8     | Multi-day infra build. Will gate full 3D PannerNode spatial audio + client-side state interpolation. |
-| App icons (real branding)              | 13    | Ship icons in `src-tauri/icons/` + `client/public/icons/`. Placeholders today.                       |
+| Blocker                                    | Phase | Resolution                                                                                                                                                  |
+| ------------------------------------------ | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Real per-theme `.ogg` audio recordings     | 12    | Audio team / composer commission. Per-theme synth fallback ships in PHASE 14 — every theme has distinct tone arrays / LFO / waveform via `theme-polish.ts`. |
+| LLM voice AI cameo pipeline                | 14    | DEFERRED post-MVP per user directive — playback selection, generation, female/male templates, intro cameo.                                                  |
+| Citizen voice cameos                       | 12    | Voice acting sessions per theme. SfxOverrides API is the slot.                                                                                              |
+| OAuth backend (email/Discord/Google/Apple) | 11    | User picks Supabase / Firebase / self-host. All 4 providers will wire in. AccountStore interface ships today.                                               |
+| Persistent leaderboards backend            | 11    | Same backend pick. **PHASE 14 lock-in:** ONE global Hall of Champions / leaderboard (not per-server).                                                       |
+| Three.js scene + LOD + camera              | 8     | Multi-day infra build. Will gate full 3D PannerNode spatial audio + client-side state interpolation.                                                        |
+| App icons (real branding)                  | 13    | Ship icons in `src-tauri/icons/` + `client/public/icons/`. Placeholders today.                                                                              |
+| Crash + match-end telemetry endpoints      | 14    | `HttpTelemetryPipeline` interface ships in PHASE 14. POST endpoints to be configured at deploy.                                                             |
+| Real Discord invite URL                    | 14    | Placeholder `discord.gg/unitylab-smol` in `community.ts` — replace with real invite when server live.                                                       |
+
+## PHASE 14 polish surfaces (shipped 2026-05-10)
+
+PHASE 14 polish surfaces — what landed in code, distinct from prior phases:
+
+- **5Hz authoritative tick** (was 10Hz). Match length recalibrated: blitz=1500 / standard=4500 / epic=9000 / open=∞.
+- **`open` match length + `tickCapOverride`** — default match is now open-ended with mission-objective overlay (per user "mostly everyone will be doing open ended always with mission objective"). All 4 mission objectives (highscore / resource / last-civ-standing / apex-tech) wired into match-end resolver.
+- **Permanent vulnerability flag** replaces `VULNERABILITY_WINDOW_TICKS=30` — 100% landing vulnerability everywhere. `isVulnerable()` always returns true.
+- **Modular ship loadouts** — `ColonyShipBuild` with 8-slot piece system (hull / propulsion / life-support / landing-gear / payload / sensors / weapons / comms). 30+ pieces. Tech-walls + resource-gates per piece. `defaultBuildFromShipDef` derives a build from any existing ColonyShipDef.
+- **Crash-landing mechanic** — `landingGearTier=0` ships CRASH on arrival. `CRASH_LANDED` flight phase + `LootDrop` system + `applyCrashLandingDeaths`.
+- **Indigenous AI civs** — every player's home planet spawns indigenous rivals via `spawnIndigenousCiv`. Theme-coupled hostility (allied/neutral/hostile) drives intra-planet warfare phase before inter-planet. Cult/refugee themes = allied; warlord/junta = hostile.
+- **Modular mines + missiles** — battery + fuel + auto-guidance + crew + marooned-crew mechanic. `tickMineState` / `tickModularMissile` apply death tracking via `DeathLedger`.
+- **`TECH_WARNING_SYSTEM`** — early-game tech (tier 0, prereq Mass Communication) — adds 30 ticks of early-warning + boosted detection range. Researchable before/with Aerospace.
+- **LAST HOPE evac** — `LastHopeEvacState` + `tickLastHopeEvac` 4-phase machine (PACKING / BUILDING / LAUNCHING / IN_FLIGHT). `shouldAutoTriggerLastHope` heuristic for civ-near-collapse.
+- **Per-theme polish (20 themes × 5 fields)** — `theme-polish.ts`: starvation resist multiplier / faction labels / 5-tier citizen emoji pack / indigenous hostility / role label / synth music preset / boot reveal line.
+- **Quality-of-life-driven tier promotion** — `qualityOfLifeIndex` aggregates food variety + food quality + excess housing + water access + happiness floor. `tickTierPromotion` uses QoL × tech × propaganda multiplier.
+- **Death cause enum** — explicit cause tracking (starvation / no_air / no_water / explosion / combat / colony_ship_volunteered / crash_landing / plague). `DeathLedger` per-civ ring buffer.
+- **Citizens immortal from old age** — death ONLY from explicit causes. No senescence.
+- **Manual citizen-pinning override** — `WorkforceState.manualPins` Set + `pinManually` / `clearManualPin` helpers.
+- **Render quality preset** — `RenderQuality` enum (low/medium/high) with per-tier LOD overrides + animation density + targetFps. Auto-detect at first launch via `detectRecommendedQuality`.
+- **Adaptive HUD per zoom level** — `panelsForZoom` binds galaxy/system/planet/region/base/building zoom levels to panel-visibility. Galaxy = minimal, base = full.
+- **Settings model split** — `SETTING_REGISTRY` classifies every setting as `host_shared` (host pushes to match) or `personal` (per-user). 22 settings audited.
+- **WCAG AA palette audit** — `auditAllThemes` scans all 20 theme palettes for 4.5:1 contrast. Per-theme retune overrides slot at `RETUNE_OVERRIDES` (currently empty — populate as audits surface violations).
+- **Per-theme synth music presets** — every theme has distinct tone array + LFO rate + LFO depth + waveform + intensity scale (calm/tense/victory/defeat). `synthParamsFromThemePolish` consumes them in `AudioSystem`.
+- **First-launch role labels** — `buildFirstLaunchCopy` returns "You are the High Priest / CEO / Generalissimo / etc." per theme.
+- **Theme reveal in 26 boot checks** — `theme-reveal` boot check uses `Theme.bootRevealLine` for the dramatic reveal moment.
+- **Mission objective resolver** — server-side `resolveMatchEnd` evaluates highscore / resource / apex / last-civ-standing every tick; ends match on first-met.
+- **Cloud feature gating** — `CLOUD_FEATURE_REQUIREMENTS` lists which features need account login. Local play prompts opt-in for global Hall of Champions / leaderboard.
+- **Telemetry pipeline** — `HttpTelemetryPipeline` with crash + anonymous match-end POST + opt-in state machine.
+- **Discord button** — `client/src/services/community.ts` exports `DISCORD_INVITE_URL` + `openDiscord()`.
+- **3 new client→server messages** — `CLAIM_LOOT_DROP` / `TRIGGER_LAST_HOPE_EVAC` / `MANUAL_SHIP_FIRE` (manual ship control + barrage / auto-salvo).
+- **4 new server→client messages** — `LOOT_DROP_AVAILABLE` / `LOOT_DROP_CLAIMED` / `INCOMING_FLIGHT_WARNING` / `LAST_HOPE_EVAC_TRIGGERED`.
 
 ## Repo layout
 

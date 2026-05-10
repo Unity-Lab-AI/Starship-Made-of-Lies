@@ -7,6 +7,7 @@ import { type WorkforceCategory } from '../sim/workforce'
 import { type AccountId } from '../sim/account'
 import { type AchievementId } from '../sim/achievements'
 import { type LeaderboardCategory, type ScoreEntry } from '../sim/leaderboard'
+import { type LootDropId, type LootDebrisKind, type LootResourceEntry } from '../sim/loot'
 
 export type ProtocolVersion = 1
 export const PROTOCOL_VERSION: ProtocolVersion = 1
@@ -26,6 +27,9 @@ export type ClientToServerMessageType =
   | 'PING'
   | 'REQUEST_PROFILE'
   | 'REQUEST_LEADERBOARD'
+  | 'CLAIM_LOOT_DROP'
+  | 'TRIGGER_LAST_HOPE_EVAC'
+  | 'MANUAL_SHIP_FIRE'
 
 export type ServerToClientMessageType =
   | 'LOBBY_STATE'
@@ -47,6 +51,10 @@ export type ServerToClientMessageType =
   | 'ACHIEVEMENT_UNLOCKED'
   | 'PROFILE_STATE'
   | 'LEADERBOARD_UPDATE'
+  | 'LOOT_DROP_AVAILABLE'
+  | 'LOOT_DROP_CLAIMED'
+  | 'INCOMING_FLIGHT_WARNING'
+  | 'LAST_HOPE_EVAC_TRIGGERED'
   | 'CHAT'
   | 'PONG'
   | 'ERROR'
@@ -126,6 +134,22 @@ export interface RequestLeaderboardMessage extends BaseMessage<'REQUEST_LEADERBO
   readonly topN?: number
 }
 
+export interface ClaimLootDropMessage extends BaseMessage<'CLAIM_LOOT_DROP'> {
+  readonly dropId: LootDropId
+}
+
+export interface TriggerLastHopeEvacMessage extends BaseMessage<'TRIGGER_LAST_HOPE_EVAC'> {
+  readonly fromPlanetId: PlanetId
+}
+
+export interface ManualShipFireMessage extends BaseMessage<'MANUAL_SHIP_FIRE'> {
+  readonly fromPlanetId: PlanetId
+  readonly targetPlanetId: PlanetId
+  readonly buildId: string
+  readonly variantHint?: string
+  readonly mode: 'single' | 'barrage' | 'auto-salvo'
+}
+
 export type ClientToServerMessage =
   | JoinLobbyMessage
   | LeaveLobbyMessage
@@ -141,6 +165,9 @@ export type ClientToServerMessage =
   | PingMessage
   | RequestProfileMessage
   | RequestLeaderboardMessage
+  | ClaimLootDropMessage
+  | TriggerLastHopeEvacMessage
+  | ManualShipFireMessage
 
 export interface LobbyStateMessage extends BaseMessage<'LOBBY_STATE'> {
   readonly players: ReadonlyArray<{
@@ -304,6 +331,40 @@ export interface LeaderboardUpdateMessage extends BaseMessage<'LEADERBOARD_UPDAT
   readonly capturedAtTick: number
 }
 
+export interface LootDropAvailableMessage extends BaseMessage<'LOOT_DROP_AVAILABLE'> {
+  readonly dropId: LootDropId
+  readonly tileId: TileId
+  readonly planetId: PlanetId
+  readonly originCivId: CivId | null
+  readonly debrisKind: LootDebrisKind
+  readonly resources: ReadonlyArray<LootResourceEntry>
+  readonly droppedAtTick: number
+  readonly expiresAtTick: number | null
+}
+
+export interface LootDropClaimedMessage extends BaseMessage<'LOOT_DROP_CLAIMED'> {
+  readonly dropId: LootDropId
+  readonly claimedByCivId: CivId
+  readonly resources: ReadonlyArray<LootResourceEntry>
+  readonly atTick: number
+}
+
+export interface IncomingFlightWarningMessage extends BaseMessage<'INCOMING_FLIGHT_WARNING'> {
+  readonly observerCivId: CivId
+  readonly fromCivId: CivId | null
+  readonly targetPlanetId: PlanetId
+  readonly etaTicks: number
+  readonly warningSource: 'warning_system' | 'beacon' | 'laser_align'
+  readonly confidence: number
+}
+
+export interface LastHopeEvacTriggeredMessage extends BaseMessage<'LAST_HOPE_EVAC_TRIGGERED'> {
+  readonly civId: CivId
+  readonly fromPlanetId: PlanetId
+  readonly etaTicks: number
+  readonly citizensAboard: number
+}
+
 export interface ChatServerMessage extends BaseMessage<'CHAT'> {
   readonly fromCivId: CivId
   readonly fromName: string
@@ -339,6 +400,10 @@ export type ServerToClientMessage =
   | AchievementUnlockedMessage
   | ProfileStateMessage
   | LeaderboardUpdateMessage
+  | LootDropAvailableMessage
+  | LootDropClaimedMessage
+  | IncomingFlightWarningMessage
+  | LastHopeEvacTriggeredMessage
   | ChatServerMessage
   | PongMessage
   | ErrorMessage
@@ -368,6 +433,9 @@ const CLIENT_TO_SERVER_TYPES: ReadonlySet<string> = new Set<ClientToServerMessag
   'PING',
   'REQUEST_PROFILE',
   'REQUEST_LEADERBOARD',
+  'CLAIM_LOOT_DROP',
+  'TRIGGER_LAST_HOPE_EVAC',
+  'MANUAL_SHIP_FIRE',
 ])
 
 const SERVER_TO_CLIENT_TYPES: ReadonlySet<string> = new Set<ServerToClientMessageType>([
@@ -390,6 +458,10 @@ const SERVER_TO_CLIENT_TYPES: ReadonlySet<string> = new Set<ServerToClientMessag
   'ACHIEVEMENT_UNLOCKED',
   'PROFILE_STATE',
   'LEADERBOARD_UPDATE',
+  'LOOT_DROP_AVAILABLE',
+  'LOOT_DROP_CLAIMED',
+  'INCOMING_FLIGHT_WARNING',
+  'LAST_HOPE_EVAC_TRIGGERED',
   'CHAT',
   'PONG',
   'ERROR',

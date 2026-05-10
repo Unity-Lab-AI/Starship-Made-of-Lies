@@ -6,7 +6,7 @@ import { addResource, newPlanetInventory, type PlanetInventory } from './invento
 import { newPlanetPopulation, type PlanetPopulation } from './population'
 import { RESOURCE_FOOD, RESOURCE_FUEL, RESOURCE_INGOTS, RESOURCE_PLANKS } from './resources'
 
-export const VULNERABILITY_WINDOW_TICKS = 30
+export const VULNERABILITY_PERMANENT = true
 
 export interface LandingSite {
   readonly tileId: TileId
@@ -45,7 +45,8 @@ export interface ColonyBootstrap {
   readonly planetId: PlanetId
   readonly population: PlanetPopulation
   readonly inventory: PlanetInventory
-  readonly vulnerableUntilTick: number
+  readonly landedAtTick: number
+  readonly permanentlyVulnerable: true
   readonly seedTile: Tile
 }
 
@@ -85,13 +86,18 @@ export function bootstrapColonyOnLanding(inputs: BootstrapInputs): ColonyBootstr
     planetId,
     population,
     inventory,
-    vulnerableUntilTick: inputs.currentTick + VULNERABILITY_WINDOW_TICKS,
+    landedAtTick: inputs.currentTick,
+    permanentlyVulnerable: true,
     seedTile: inputs.seedTile,
   }
 }
 
-export function isVulnerable(bootstrap: ColonyBootstrap, currentTick: number): boolean {
-  return currentTick < bootstrap.vulnerableUntilTick
+export function isVulnerable(_bootstrap: ColonyBootstrap, _currentTick: number): boolean {
+  return true
+}
+
+export function ticksSinceLanding(bootstrap: ColonyBootstrap, currentTick: number): number {
+  return Math.max(0, currentTick - bootstrap.landedAtTick)
 }
 
 export interface IntraPlanetLandingInputs {

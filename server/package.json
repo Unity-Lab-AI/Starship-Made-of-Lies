@@ -1,6 +1,6 @@
 {
   "name": "@smol/server",
-  "version": "0.0.0",
+  "version": "0.01.0",
   "description": "SMoL multiplayer + AI backend (TypeScript). Authoritative game state, fog-of-war enforcement, AI civ background processes, lobby. Colyseus 0.16 wired in PHASE 5+ scaffolding for PHASE 10 wire-up.",
   "private": true,
   "type": "module",

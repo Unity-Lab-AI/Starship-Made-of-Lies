@@ -1,9 +1,11 @@
 import { type AIPersonalityArchetype, type Theme } from './themes'
+import { getThemePolish } from './theme-polish'
 
 export interface BootCheck {
   readonly id: string
   readonly defaultLabel: string
   readonly weightTicks: number
+  readonly isThemeReveal?: boolean
 }
 
 export const SMOL_BOOT_CHECKS: ReadonlyArray<BootCheck> = [
@@ -13,6 +15,12 @@ export const SMOL_BOOT_CHECKS: ReadonlyArray<BootCheck> = [
   { id: 'civ-roster', defaultLabel: 'Registering civilization roster', weightTicks: 1 },
   { id: 'theme-rolling', defaultLabel: 'Rolling government themes', weightTicks: 2 },
   {
+    id: 'theme-reveal',
+    defaultLabel: 'Theme assignment confirmed',
+    weightTicks: 3,
+    isThemeReveal: true,
+  },
+  {
     id: 'propaganda-systems',
     defaultLabel: 'Spinning up government propaganda systems',
     weightTicks: 3,
@@ -20,8 +28,7 @@ export const SMOL_BOOT_CHECKS: ReadonlyArray<BootCheck> = [
   { id: 'citizen-models', defaultLabel: 'Loading citizen behavioral models', weightTicks: 2 },
   { id: 'tier-allocation', defaultLabel: 'Allocating citizen tier ratios', weightTicks: 2 },
   { id: 'faction-init', defaultLabel: 'Calibrating faction loyalty splits', weightTicks: 2 },
-  { id: 'tech-tree', defaultLabel: 'Loading tech tree manifest', weightTicks: 1 },
-  { id: 'tech-gates', defaultLabel: 'Validating conquest gates + apex check', weightTicks: 1 },
+  { id: 'tech-tree', defaultLabel: 'Loading tech tree + conquest gates', weightTicks: 1 },
   { id: 'resource-manifest', defaultLabel: 'Indexing resource manifest', weightTicks: 1 },
   { id: 'building-catalog', defaultLabel: 'Indexing building catalog', weightTicks: 1 },
   {
@@ -30,13 +37,13 @@ export const SMOL_BOOT_CHECKS: ReadonlyArray<BootCheck> = [
     weightTicks: 1,
   },
   { id: 'trajectory-math', defaultLabel: 'Establishing trajectory math', weightTicks: 2 },
-  { id: 'pad-states', defaultLabel: 'Bringing launch pads online', weightTicks: 2 },
-  { id: 'salvo-coord', defaultLabel: 'Synchronizing salvo coordinator', weightTicks: 1 },
+  { id: 'pad-states', defaultLabel: 'Bringing launch pads + salvo coord online', weightTicks: 2 },
   { id: 'beacon-net', defaultLabel: 'Activating planetary beacon network', weightTicks: 1 },
   { id: 'signal-mesh', defaultLabel: 'Calibrating signal mesh', weightTicks: 1 },
   { id: 'fog-of-war', defaultLabel: 'Spinning up fog-of-war filters', weightTicks: 2 },
   { id: 'multiplayer-sockets', defaultLabel: 'Opening multiplayer sockets', weightTicks: 2 },
   { id: 'ai-civs', defaultLabel: 'Booting AI civilization processes', weightTicks: 3 },
+  { id: 'indigenous-spawn', defaultLabel: 'Spawning indigenous civilizations', weightTicks: 2 },
   { id: 'audio-mixer', defaultLabel: 'Tuning per-theme audio mixer', weightTicks: 1 },
   { id: 'persistence', defaultLabel: 'Connecting persistence layer', weightTicks: 1 },
   { id: 'narrator-voice', defaultLabel: 'Briefing narrator voice', weightTicks: 1 },
@@ -113,8 +120,16 @@ const PER_THEME_OVERRIDES: Readonly<
 }
 
 export function getThemedBootLabel(check: BootCheck, theme: Theme): string {
+  if (check.isThemeReveal) {
+    const polish = getThemePolish(theme.id)
+    return polish.bootRevealLine
+  }
   const override = PER_THEME_OVERRIDES[theme.aiPersonalityArchetype]?.[check.id]
   return override ?? check.defaultLabel
+}
+
+export function getThemeRevealLine(theme: Theme): string {
+  return getThemePolish(theme.id).bootRevealLine
 }
 
 export type BootCheckStatus = 'pending' | 'running' | 'completed' | 'failed'

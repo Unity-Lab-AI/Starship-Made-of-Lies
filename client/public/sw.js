@@ -1,3 +1,5 @@
+/* eslint-env serviceworker */
+/* global self, caches, fetch, URL */
 const SW_VERSION = 'smol-sw-v1'
 const APP_SHELL_CACHE = `${SW_VERSION}-shell`
 const RUNTIME_CACHE = `${SW_VERSION}-runtime`

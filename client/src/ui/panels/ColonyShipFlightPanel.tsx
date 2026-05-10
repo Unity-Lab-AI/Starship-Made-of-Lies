@@ -14,6 +14,7 @@ const PHASE_LABEL: Readonly<Record<FlightPhase, string>> = {
   DETONATE: 'Impacted',
   INTERCEPTED: 'Intercepted',
   ABORTED: 'Aborted',
+  CRASH_LANDED: 'Crash-Landed',
 }
 
 const PHASE_GLYPH: Readonly<Record<FlightPhase, string>> = {
@@ -24,6 +25,7 @@ const PHASE_GLYPH: Readonly<Record<FlightPhase, string>> = {
   DETONATE: '✦',
   INTERCEPTED: '✕',
   ABORTED: '⊘',
+  CRASH_LANDED: '💥',
 }
 
 export function ColonyShipFlightPanel({ flights, onAfterAction }: ColonyShipFlightPanelProps) {

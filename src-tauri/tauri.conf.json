@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Starship Made of Lies",
-  "version": "0.1.0",
+  "version": "0.01.0",
   "identifier": "ai.unitylab.smol",
   "build": {
     "frontendDist": "../client/dist",

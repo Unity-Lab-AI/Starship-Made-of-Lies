@@ -17,6 +17,7 @@ export type FlightPhase =
   | 'DETONATE'
   | 'INTERCEPTED'
   | 'ABORTED'
+  | 'CRASH_LANDED'
 
 export type ColonyShipOutcome = PadOutcome
 
@@ -87,7 +88,12 @@ export interface FlightTickResult {
 
 export function tickFlight(flight: ColonyShipFlight): FlightTickResult {
   const prevPhase = flight.phase
-  if (flight.phase === 'DETONATE' || flight.phase === 'INTERCEPTED' || flight.phase === 'ABORTED') {
+  if (
+    flight.phase === 'DETONATE' ||
+    flight.phase === 'INTERCEPTED' ||
+    flight.phase === 'ABORTED' ||
+    flight.phase === 'CRASH_LANDED'
+  ) {
     return {
       phaseChanged: false,
       newPhase: flight.phase,
@@ -140,7 +146,12 @@ export function intercept(
   defenderCivId: CivId,
   reason: 'mine-field' | 'counter-ship',
 ): void {
-  if (flight.phase === 'DETONATE' || flight.phase === 'INTERCEPTED' || flight.phase === 'ABORTED') {
+  if (
+    flight.phase === 'DETONATE' ||
+    flight.phase === 'INTERCEPTED' ||
+    flight.phase === 'ABORTED' ||
+    flight.phase === 'CRASH_LANDED'
+  ) {
     return
   }
   flight.phase = 'INTERCEPTED'
@@ -150,11 +161,29 @@ export function intercept(
 }
 
 export function abortFlight(flight: ColonyShipFlight): void {
-  if (flight.phase === 'DETONATE' || flight.phase === 'INTERCEPTED' || flight.phase === 'ABORTED') {
+  if (
+    flight.phase === 'DETONATE' ||
+    flight.phase === 'INTERCEPTED' ||
+    flight.phase === 'ABORTED' ||
+    flight.phase === 'CRASH_LANDED'
+  ) {
     return
   }
   flight.phase = 'ABORTED'
   flight.outcome = 'ABORTED'
+}
+
+export function markCrashLanded(flight: ColonyShipFlight): void {
+  if (
+    flight.phase === 'DETONATE' ||
+    flight.phase === 'INTERCEPTED' ||
+    flight.phase === 'ABORTED' ||
+    flight.phase === 'CRASH_LANDED'
+  ) {
+    return
+  }
+  flight.phase = 'CRASH_LANDED'
+  flight.outcome = 'SIGNAL_LOST'
 }
 
 export function flightCurrentPosition(flight: ColonyShipFlight): Vec3 {

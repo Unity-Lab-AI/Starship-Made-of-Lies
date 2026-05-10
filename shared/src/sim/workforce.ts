@@ -1,4 +1,4 @@
-import { type PlanetId } from '../types/index'
+import { type CivId, type PlanetId } from '../types/index'
 
 export type WorkforceCategory = 'food' | 'industry' | 'research' | 'military' | 'propaganda'
 
@@ -10,9 +10,17 @@ export interface WorkforceSliders {
   propaganda: number
 }
 
+export interface ManualPin {
+  readonly civId: CivId
+  readonly planetId: PlanetId
+  readonly category: WorkforceCategory
+  readonly count: number
+}
+
 export interface PlanetWorkforce {
   readonly planetId: PlanetId
   sliders: WorkforceSliders
+  manualPins: ManualPin[]
 }
 
 export function newPlanetWorkforce(planetId: PlanetId): PlanetWorkforce {
@@ -25,7 +33,37 @@ export function newPlanetWorkforce(planetId: PlanetId): PlanetWorkforce {
       military: 0.1,
       propaganda: 0.15,
     },
+    manualPins: [],
   }
+}
+
+export function pinManually(wf: PlanetWorkforce, pin: ManualPin): void {
+  if (pin.planetId !== wf.planetId) {
+    throw new Error(`pinManually: planetId mismatch (${pin.planetId} vs ${wf.planetId})`)
+  }
+  if (pin.count < 0) throw new Error(`pinManually: count must be non-negative, got ${pin.count}`)
+  const existing = wf.manualPins.findIndex(
+    (p) => p.civId === pin.civId && p.category === pin.category,
+  )
+  if (existing >= 0) wf.manualPins[existing] = pin
+  else wf.manualPins.push(pin)
+}
+
+export function clearManualPin(
+  wf: PlanetWorkforce,
+  civId: CivId,
+  category: WorkforceCategory,
+): boolean {
+  const idx = wf.manualPins.findIndex((p) => p.civId === civId && p.category === category)
+  if (idx < 0) return false
+  wf.manualPins.splice(idx, 1)
+  return true
+}
+
+export function manualPinTotal(wf: PlanetWorkforce, category: WorkforceCategory): number {
+  let total = 0
+  for (const p of wf.manualPins) if (p.category === category) total += p.count
+  return total
 }
 
 export function setSlider(wf: PlanetWorkforce, category: WorkforceCategory, value: number): void {
@@ -59,7 +97,16 @@ export function citizensAssignedTo(
   category: WorkforceCategory,
   totalAvailable: number,
 ): number {
-  return Math.round(totalAvailable * wf.sliders[category])
+  const pinned = manualPinTotal(wf, category)
+  const remainingAfterPins = Math.max(0, totalAvailable - totalManualPins(wf))
+  const sliderShare = Math.round(remainingAfterPins * wf.sliders[category])
+  return pinned + sliderShare
+}
+
+export function totalManualPins(wf: PlanetWorkforce): number {
+  let total = 0
+  for (const p of wf.manualPins) total += p.count
+  return total
 }
 
 export function workforceCategorySummary(

@@ -1,6 +1,7 @@
 import {
   type AIDifficultyLevel,
   type CivId,
+  type MissionObjectiveConfig,
   type PlaystyleArchetype,
   type ThemeId,
   THEMES,
@@ -9,9 +10,11 @@ import {
 
 export type LobbyPhase = 'CONFIGURING' | 'STARTING' | 'IN_MATCH' | 'COMPLETE'
 
-export type MatchLength = 'blitz' | 'standard' | 'epic'
+export type MatchLength = 'blitz' | 'standard' | 'epic' | 'open'
 
 export type WinCondition = 'apex-tech' | 'last-civ-standing' | 'map-control' | 'score'
+
+export type ConquestGateStrictness = 'loose' | 'standard' | 'strict' | 'multi-path'
 
 export interface LobbyConfig {
   planetCount: number
@@ -21,16 +24,26 @@ export interface LobbyConfig {
   biomesAvailable: 'all' | 'tier0only' | 'tier0-1' | 'tier0-2'
   coopMode: boolean
   rollSeed: number
+  conquestGateStrictness: ConquestGateStrictness
+  missionObjectives: ReadonlyArray<MissionObjectiveConfig>
+  tickCapOverride: number | null
 }
 
 export const DEFAULT_LOBBY_CONFIG: LobbyConfig = {
   planetCount: 100,
   playerCount: 8,
-  matchLength: 'standard',
+  matchLength: 'open',
   winConditions: ['apex-tech', 'last-civ-standing', 'map-control'],
   biomesAvailable: 'all',
   coopMode: false,
   rollSeed: 1234,
+  conquestGateStrictness: 'standard',
+  missionObjectives: [
+    { id: 'highscore_target', target: 100000 },
+    { id: 'last_civ_standing', target: 1 },
+    { id: 'apex_tech', target: 1 },
+  ],
+  tickCapOverride: null,
 }
 
 export type SlotKind = 'human' | 'ai' | 'empty'
@@ -227,10 +240,18 @@ export function transitionToComplete(lobby: Lobby): void {
 export function matchLengthInTicks(matchLength: MatchLength): number {
   switch (matchLength) {
     case 'blitz':
-      return 3000
+      return 1500
     case 'standard':
-      return 9000
+      return 4500
     case 'epic':
-      return 18000
+      return 9000
+    case 'open':
+      return Number.POSITIVE_INFINITY
   }
+}
+
+export function effectiveTickCap(config: LobbyConfig): number | null {
+  if (config.tickCapOverride !== null) return config.tickCapOverride
+  if (config.matchLength === 'open') return null
+  return matchLengthInTicks(config.matchLength)
 }

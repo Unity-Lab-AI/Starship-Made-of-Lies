@@ -76,6 +76,7 @@ export const TECH_COMBUSTION_ENGINES = techId('combustionEngines')
 export const TECH_MASS_PRODUCTION = techId('massProduction')
 export const TECH_MASS_COMMUNICATION = techId('massCommunication')
 export const TECH_ELECTRIC_POWER = techId('electricPower')
+export const TECH_WARNING_SYSTEM = techId('warningSystem')
 
 export const TECH_COMPUTING = techId('computing')
 export const TECH_TELECOMMUNICATIONS = techId('telecommunications')
@@ -180,6 +181,19 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     effects: {
       buildingProductionMultiplier: 1.15,
     },
+  },
+  {
+    id: TECH_WARNING_SYSTEM,
+    name: 'Warning System',
+    emoji: '📡',
+    tier: 0,
+    visibility: 'mainstream',
+    category: 'information',
+    description:
+      'Early-detection grid for incoming colony ships. Adds 30 ticks of early warning + boosts detection range. Researchable before/with Aerospace.',
+    prerequisites: [TECH_MASS_COMMUNICATION],
+    costPoints: 35,
+    effects: {},
   },
   {
     id: TECH_COMPUTING,

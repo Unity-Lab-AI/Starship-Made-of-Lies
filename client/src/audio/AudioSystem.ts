@@ -1,4 +1,4 @@
-import { type ThemeId, type Vec3 } from '@smol/shared'
+import { type ThemeId, type Vec3, getThemePolish } from '@smol/shared'
 import {
   AudioMixer,
   type AudioBusId,
@@ -22,7 +22,7 @@ export class AudioSystem {
     const snapshot = opts.mixerSnapshot ?? loadMixerSnapshotFromLocalStorage() ?? undefined
     this.mixer = new AudioMixer(snapshot ?? undefined)
     this.music = new AdaptiveMusic(this.mixer, (ctx, output, intensity) =>
-      synthMusicLayer(ctx, output, intensity),
+      synthMusicLayer(ctx, output, intensity, this.currentThemeId),
     )
   }
 
@@ -125,8 +125,11 @@ function synthMusicLayer(
   ctx: AudioContext,
   output: AudioNode,
   intensity: MusicIntensity,
+  themeId: ThemeId | null,
 ): MusicLayerHandle {
-  const params = synthParamsForIntensity(intensity)
+  const params = themeId
+    ? (synthParamsFromThemePolish(themeId, intensity) ?? synthParamsForIntensity(intensity))
+    : synthParamsForIntensity(intensity)
   const gain = ctx.createGain()
   gain.gain.value = 1
   gain.connect(output)
@@ -160,6 +163,27 @@ function synthMusicLayer(
         /* already stopped */
       }
     },
+  }
+}
+
+function synthParamsFromThemePolish(
+  themeId: ThemeId,
+  intensity: MusicIntensity,
+): SynthMusicParams | null {
+  const polish = getThemePolish(themeId)
+  const preset = polish.synthMusicPreset
+  if (!preset) return null
+  const intensityScale = preset.intensityScale[intensity]
+  const baseGain = 0.18 * intensityScale
+  const tones: SynthMusicTone[] = preset.toneFrequencies.map((freq, i) => ({
+    waveform: preset.waveform,
+    frequencyHz: freq,
+    gain: baseGain * (i === 0 ? 1 : 0.7 - i * 0.05),
+  }))
+  return {
+    tones,
+    lfoFrequencyHz: preset.lfoRateHz,
+    lfoDepth: preset.lfoDepth,
   }
 }
 

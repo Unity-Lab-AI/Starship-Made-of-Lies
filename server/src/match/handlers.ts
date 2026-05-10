@@ -3,12 +3,14 @@ import {
   type ChatClientMessage,
   type ChatServerMessage,
   type CivId,
+  type ClaimLootDropMessage,
   type ClientToServerMessage,
   type ConscriptCitizensMessage,
   type ErrorMessage,
   type JoinLobbyMessage,
   type LaunchCampaignMessage,
   type LaunchColonyShipMessage,
+  type ManualShipFireMessage,
   type PingMessage,
   type PlaceBuildingMessage,
   type PongMessage,
@@ -19,6 +21,7 @@ import {
   type StartResearchMessage,
   type SetWorkforceSliderMessage,
   type TechResearchedMessage,
+  type TriggerLastHopeEvacMessage,
   PROTOCOL_VERSION,
   applyConscriptionPenalty,
   startResearch,
@@ -82,6 +85,12 @@ export function dispatchClientMessage(
       return handleRequestProfile(ctx, msg)
     case 'REQUEST_LEADERBOARD':
       return handleRequestLeaderboard(ctx, msg)
+    case 'CLAIM_LOOT_DROP':
+      return handleClaimLootDrop(ctx, msg)
+    case 'TRIGGER_LAST_HOPE_EVAC':
+      return handleTriggerLastHopeEvac(ctx, msg)
+    case 'MANUAL_SHIP_FIRE':
+      return handleManualShipFire(ctx, msg)
   }
 }
 
@@ -244,5 +253,44 @@ function handleRequestLeaderboard(
   _ctx: HandlerContext,
   _msg: RequestLeaderboardMessage,
 ): HandlerOutcome {
+  return EMPTY_OUTCOME
+}
+
+function handleClaimLootDrop(ctx: HandlerContext, msg: ClaimLootDropMessage): HandlerOutcome {
+  if (!ctx.state) return withError('NO_MATCH', 'No active match in this room.')
+  if (!ctx.state.lootDrops) {
+    return withError('NO_LOOT_INDEX', 'Match has no loot drops registered.')
+  }
+  const drop = ctx.state.lootDrops.get(msg.dropId)
+  if (!drop) return withError('LOOT_UNKNOWN', `Unknown loot drop ${String(msg.dropId)}.`)
+  if (drop.claimedByCivId) return withError('ALREADY_CLAIMED', 'Loot already claimed.')
+  return EMPTY_OUTCOME
+}
+
+function handleTriggerLastHopeEvac(
+  ctx: HandlerContext,
+  msg: TriggerLastHopeEvacMessage,
+): HandlerOutcome {
+  if (!ctx.state) return withError('NO_MATCH', 'No active match in this room.')
+  const planetState = getPlanetState(ctx.state, msg.fromPlanetId)
+  if (!planetState)
+    return withError('PLANET_UNKNOWN', `Unknown planet ${String(msg.fromPlanetId)}.`)
+  if (planetState.ownerCivId !== ctx.actorCivId) {
+    return withError('NOT_OWNER', 'You do not control this planet.')
+  }
+  return EMPTY_OUTCOME
+}
+
+function handleManualShipFire(ctx: HandlerContext, msg: ManualShipFireMessage): HandlerOutcome {
+  if (!ctx.state) return withError('NO_MATCH', 'No active match in this room.')
+  const planetState = getPlanetState(ctx.state, msg.fromPlanetId)
+  if (!planetState)
+    return withError('PLANET_UNKNOWN', `Unknown planet ${String(msg.fromPlanetId)}.`)
+  if (planetState.ownerCivId !== ctx.actorCivId) {
+    return withError('NOT_OWNER', 'You do not control this planet.')
+  }
+  if (msg.fromPlanetId === msg.targetPlanetId) {
+    return withError('SAME_PLANET', 'Cannot launch ship at own planet.')
+  }
   return EMPTY_OUTCOME
 }

@@ -1,10 +1,14 @@
 import {
   type CivId,
   type ColonyShipFlight,
+  type DeathLedger,
   type Empire,
   type FactionSplit,
   type Galaxy,
+  type IndigenousCiv,
   type LaunchPad,
+  type LootDrop,
+  type LootDropId,
   type PlanetBeacon,
   type PlanetId,
   type PlanetInventory,
@@ -14,11 +18,14 @@ import {
   type TileId,
   generateGalaxy,
   getTheme,
+  getThemePolish,
+  newDeathLedger,
   newDeceptionLedger,
   newEmpire,
   newFactionSplit,
   newPlanetBeacon,
   newPlanetInventory,
+  spawnIndigenousCiv,
   type DeceptionLedger,
   RESOURCE_FOOD,
   RESOURCE_INGOTS,
@@ -49,10 +56,12 @@ export interface PerCivState {
   readonly empire: Empire
   readonly theme: Theme
   ledger: DeceptionLedger
+  deaths: DeathLedger
   launchPads: Map<TileId, LaunchPad>
   alive: boolean
   disconnected: boolean
   takenOverByAI: boolean
+  lastHopeEvacTriggered: boolean
 }
 
 export interface MatchState {
@@ -62,6 +71,8 @@ export interface MatchState {
   readonly civs: Map<CivId, PerCivState>
   readonly planetStates: Map<PlanetId, PerPlanetState>
   readonly flights: Map<string, ColonyShipFlight>
+  readonly lootDrops: Map<LootDropId, LootDrop>
+  readonly indigenousCivs: Map<CivId, IndigenousCiv>
   currentTick: number
   startedAtTick: number | null
   endedAtTick: number | null
@@ -90,6 +101,8 @@ export function newMatchState(inputs: NewMatchStateInputs): MatchState {
   }
 
   const civs = new Map<CivId, PerCivState>()
+  const indigenousCivs = new Map<CivId, IndigenousCiv>()
+  const indigRng = mulberryFromSeed(inputs.seed + 0x9e37)
   for (const assignment of inputs.civAssignments) {
     const empire = newEmpire(assignment.civId, assignment.startingPlanetId)
     const theme = getTheme(assignment.themeId)
@@ -99,12 +112,27 @@ export function newMatchState(inputs: NewMatchStateInputs): MatchState {
       empire,
       theme,
       ledger,
+      deaths: newDeathLedger(assignment.civId),
       launchPads: new Map<TileId, LaunchPad>(),
       alive: true,
       disconnected: false,
       takenOverByAI: false,
+      lastHopeEvacTriggered: false,
     })
     seedStartingPlanet(planetStates, assignment)
+
+    const polish = getThemePolish(assignment.themeId)
+    const homePlanetState = planetStates.get(assignment.startingPlanetId)
+    if (homePlanetState) {
+      const indig = spawnIndigenousCiv({
+        hostHumanCivId: assignment.civId,
+        homePlanet: homePlanetState.planet,
+        hostility: polish.homeIndigenousHostility,
+        themeName: theme.name,
+        rng: indigRng,
+      })
+      if (indig) indigenousCivs.set(indig.civId, indig)
+    }
   }
 
   return {
@@ -114,10 +142,23 @@ export function newMatchState(inputs: NewMatchStateInputs): MatchState {
     civs,
     planetStates,
     flights: new Map(),
+    lootDrops: new Map(),
+    indigenousCivs,
     currentTick: 0,
     startedAtTick: null,
     endedAtTick: null,
     winningCivId: null,
+  }
+}
+
+function mulberryFromSeed(seed: number): () => number {
+  let s = seed >>> 0
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0
+    let t = s
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
 }
 
