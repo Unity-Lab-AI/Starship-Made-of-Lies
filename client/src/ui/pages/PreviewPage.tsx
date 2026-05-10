@@ -49,6 +49,7 @@ import {
 } from '@smol/shared'
 import {
   type AchievementProgress,
+  type Account,
   type ProductionHistory,
   type ProductionTickSample,
   type ScoreEntry,
@@ -56,19 +57,28 @@ import {
   RESOURCE_INGOTS as PRODUCTION_RES_INGOTS,
   RESOURCE_PLANKS as PRODUCTION_RES_PLANKS,
   accountId as accountIdValue,
+  newAnonymousAccount,
   newProductionHistory,
   pushProductionSample,
 } from '@smol/shared'
+import { getAudioSystem } from '../../audio/AudioSystem'
+import { loadAccessibilitySettings } from '../../settings/accessibility'
+import { loadKeybindMap } from '../../settings/keybindings'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
+import { AccessibilitySettingsPanel } from '../panels/AccessibilitySettingsPanel'
 import { AchievementsPanel } from '../panels/AchievementsPanel'
+import { AudioSettingsPanel } from '../panels/AudioSettingsPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
 import { BootSequencePanel } from '../panels/BootSequencePanel'
 import { CameraReconPanel, type ScoutReport } from '../panels/CameraReconPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
 import { HallOfChampionsPanel, type CategoryBoardSnapshot } from '../panels/HallOfChampionsPanel'
+import { KeybindingsPanel } from '../panels/KeybindingsPanel'
 import { LaunchPadPanel } from '../panels/LaunchPadPanel'
+import { LobbyPreviewPanel, type LobbyPreviewSummary } from '../panels/LobbyPreviewPanel'
 import { ProductionGraphPanel } from '../panels/ProductionGraphPanel'
+import { ProfilePanel } from '../panels/ProfilePanel'
 import { TechTreePanel } from '../panels/TechTreePanel'
 import { ResourcesPanel } from '../panels/ResourcesPanel'
 import { TilePlacementGrid } from '../panels/TilePlacementGrid'
@@ -189,6 +199,110 @@ export function PreviewPage() {
     return [scout, pilgrim]
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startingPlanet.id])
+
+  const audioSystem = useMemo(() => getAudioSystem(), [])
+  const accessibilityInitial = useMemo(() => loadAccessibilitySettings(), [])
+  const keybindMapInitial = useMemo(() => loadKeybindMap(), [])
+
+  const mockAccount = useMemo<Account>(() => {
+    const account = newAnonymousAccount(accountIdValue('mock-account-gee'), 'Gee', 'gee14', 0)
+    account.stats.matchesPlayed = 47
+    account.stats.matchesWon = 22
+    account.stats.totalPlanetsControlledPeak = 38
+    account.stats.totalEnemyCivsEliminated = 19
+    account.stats.totalColonyShipsLaunched = 412
+    account.stats.totalCitizensConscripted = 18430
+    account.stats.fastestApexTicks = 1640
+    account.stats.themesPlayed.add(theme.id)
+    return account
+  }, [theme.id])
+
+  const lobbySummary = useMemo<LobbyPreviewSummary>(
+    () => ({
+      phase: 'CONFIGURING',
+      planetCount: 100,
+      playerCount: 8,
+      matchLength: 'standard',
+      winConditionsLabel: 'Apex Tech · Last Civ · Map Control',
+      biomesLabel: 'All biomes',
+      coopMode: false,
+      slots: [
+        {
+          slotIndex: 0,
+          kind: 'human',
+          civId: civId('civ-gee'),
+          displayName: 'Gee',
+          themeId: theme.id,
+          themeLocked: true,
+          ready: true,
+          aiPlaystyle: null,
+          aiDifficulty: null,
+          isHost: true,
+        },
+        {
+          slotIndex: 1,
+          kind: 'human',
+          civId: civId('civ-sponge'),
+          displayName: 'Sponge',
+          themeId: theme.id,
+          themeLocked: false,
+          ready: true,
+          aiPlaystyle: null,
+          aiDifficulty: null,
+          isHost: false,
+        },
+        {
+          slotIndex: 2,
+          kind: 'ai',
+          civId: civId('civ-ai-1'),
+          displayName: 'AI · Cult-1',
+          themeId: theme.id,
+          themeLocked: false,
+          ready: true,
+          aiPlaystyle: 'trickster',
+          aiDifficulty: 'brutal',
+          isHost: false,
+        },
+        {
+          slotIndex: 3,
+          kind: 'ai',
+          civId: civId('civ-ai-2'),
+          displayName: 'AI · Junta-2',
+          themeId: theme.id,
+          themeLocked: false,
+          ready: true,
+          aiPlaystyle: 'warmonger',
+          aiDifficulty: 'hard',
+          isHost: false,
+        },
+        {
+          slotIndex: 4,
+          kind: 'empty',
+          civId: null,
+          displayName: '',
+          themeId: null,
+          themeLocked: false,
+          ready: false,
+          aiPlaystyle: null,
+          aiDifficulty: null,
+          isHost: false,
+        },
+        {
+          slotIndex: 5,
+          kind: 'empty',
+          civId: null,
+          displayName: '',
+          themeId: null,
+          themeLocked: false,
+          ready: false,
+          aiPlaystyle: null,
+          aiDifficulty: null,
+          isHost: false,
+        },
+      ],
+    }),
+    [theme.id],
+  )
 
   const productionHistory = useMemo<ProductionHistory>(() => {
     const history = newProductionHistory(60)
@@ -529,6 +643,11 @@ export function PreviewPage() {
           currentTick={120}
           showHidden={false}
         />
+        <AudioSettingsPanel audioSystem={audioSystem} />
+        <AccessibilitySettingsPanel initial={accessibilityInitial} />
+        <KeybindingsPanel initial={keybindMapInitial} />
+        <LobbyPreviewPanel summary={lobbySummary} />
+        <ProfilePanel account={mockAccount} achievementsUnlocked={5} achievementsTotal={20} />
       </div>
     </div>
   )

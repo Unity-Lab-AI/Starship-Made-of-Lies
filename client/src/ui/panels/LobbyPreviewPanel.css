@@ -1,0 +1,120 @@
+.lobby-panel {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  color: var(--fg-primary, #e6edf3);
+  padding: 0.4rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lobby-panel__config {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  font-size: 0.7rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+  padding-bottom: 0.35rem;
+}
+
+.lobby-panel__cfg-row {
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.lobby-panel__slots {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.lobby-panel__slot {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr auto auto auto;
+  gap: 0.35rem;
+  align-items: baseline;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  font-size: 0.7rem;
+}
+
+.lobby-panel__slot--empty {
+  opacity: 0.45;
+}
+
+.lobby-panel__slot--ai {
+  background: rgba(212, 161, 58, 0.04);
+}
+
+.lobby-panel__slot--human {
+  background: rgba(107, 217, 104, 0.04);
+}
+
+.lobby-panel__slot--ready {
+  border-color: rgba(107, 217, 104, 0.4);
+}
+
+.lobby-panel__slot--host {
+  border-left-width: 3px;
+  border-left-color: var(--lcd-glow, #d4a13a);
+}
+
+.lobby-panel__slot-index {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.65rem;
+  opacity: 0.65;
+}
+
+.lobby-panel__slot-empty {
+  font-style: italic;
+  font-size: 0.7rem;
+  grid-column: span 4;
+}
+
+.lobby-panel__slot-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lobby-panel__host-tag {
+  font-size: 0.6rem;
+  font-weight: 400;
+  opacity: 0.7;
+  letter-spacing: 0.06em;
+  color: var(--lcd-glow, #d4a13a);
+}
+
+.lobby-panel__slot-theme {
+  font-size: 0.65rem;
+  opacity: 0.85;
+}
+
+.lobby-panel__slot-theme--locked {
+  color: var(--lcd-glow, #d4a13a);
+}
+
+.lobby-panel__slot-ai {
+  font-size: 0.62rem;
+  opacity: 0.75;
+}
+
+.lobby-panel__slot-ready {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.65;
+  text-align: right;
+}
+
+.lobby-panel__slot-ready--on {
+  color: #6bd968;
+  opacity: 0.95;
+}
