@@ -205,7 +205,7 @@ See `ROADMAP.md` for full phase milestones.
 | Language | TypeScript (strict) — single language, client + server + shared |
 | UI | React (per-government-theme UI skin via CSS variables) |
 | 3D | Three.js (continuous LOD: galaxy → planet → region → base → building) |
-| 2D top-down | Canvas / Pixi.js (or Three.js orthographic — TBD in PHASE 1 spike) |
+| 2D top-down | React + CSS hex-grid (TilePlacementGrid) for alpha; Three.js orthographic deferred to v1.5+ |
 | Build | Vite |
 | Type-check + lint | `tsc --noEmit` + ESLint + Prettier (no unit tests; manual verification > automated testing) |
 | Multiplayer | WebSocket — Colyseus or custom |
@@ -259,7 +259,7 @@ The pivot was documented in PHASE 0: 12 structured extraction docs (~10,000 line
 
 ## License
 
-TBD (see `_ums-reference/docs/README-UMS.md` for the original UMS license terms — SMoL license decision deferred to PHASE 14).
+Source-available, all-rights-reserved during alpha. Repo public for code review + bug discovery; not licensed for redistribution or commercial use until a formal license lands. See the in-app `/terms` page for full terms of service.
 
 ---
 
