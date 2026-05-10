@@ -10,17 +10,39 @@
 
 ### Project Vision
 
-A top-down emoji-driven civilization-building game where you trick your own citizens into boarding "starships" that are actually colonization missiles aimed at other civilizations on the map. Set in an industrial-future dystopia. Dark comedy. Win by conquering the galaxy.
+A top-down emoji-driven civilization-building game where you trick your own citizens into boarding "starships" that are actually **colony ships** aimed at other civilizations on the map. Set in an industrial-future dystopia. Dark comedy with a slow-corruption arc. Win by conquering the galaxy.
 
 - **Platform:** web + desktop + mobile + native (cross-platform single codebase)
 - **Tech stack:** TypeScript + React + Three.js + Vite + Tauri + Capacitor + WebSocket
 - **Multiplayer:** Real-time, 1-12 players (humans + AI mix), fog of war
-- **Map:** Procedural planet-scale, 100-1000 planets per match (host config), true sphere geometry, great-circle missile trajectories
+- **Map:** Procedural planet-scale, 100-1000 planets per match (host config), true sphere geometry, great-circle colony-ship trajectories
 - **Setting:** Industrial-future dystopian (no stone age — starts mid-future)
 - **Aesthetic:** Complete-emoji game, masterfully curated, NOT overdone
 - **Deception:** Random per-civ government themes (Theocracy / Corporate / Surveillance State / Eugenics / AI-Overlord / etc.) drive propaganda style + UI skin + audio per civ
 - **Win conditions:** Host-configurable combination at lobby (map control / tech apex / last-civ-standing / score-based)
 - **Tone:** Dark comedy. The player is "like the god in the sky." Citizens never chose their government — they were born into it.
+
+#### Colony Ship Taxonomy (4 tiers × tech-tier-gated variants)
+
+Each tech tier unlocks new colony ship variants that get progressively darker. The propaganda layer stays pretty (or gets MORE pretty to compensate) while the player's actions get more obviously horrible — that's the dark comedy.
+
+- **Tier 1 — Tests & Exploration:** Scout / Surveyor / Probe (auto-explore, send back data, low-stakes)
+- **Tier 2 — Discovery & Escalation:** Standard / Laser-Targeting Beacon / Decoy / Boarding (real colonization on enemy planets)
+- **Tier 3 — Aggression & Industrial Warfare:** Saboteur / Explosive / Heavy / Counter (open warfare under pioneer cover)
+- **Tier 4 — Industrial Eradication:** Pilgrim Volunteer (one-way "honored" trips) / Mass Evacuation (city-scale) / Orbital Weapon Platform / The Final Colony Ship (planet-cracker)
+- **Cross-cutting:** Mining (UMS-style auto-shuttle — set target ore, miner cycles autonomously) / Refugee / Embassy / Resupply
+
+Full taxonomy in `.claude/SMOL_DESIGN_COLONY_SHIPS.md` (proprietary, gitignored design doc).
+
+#### Citizen Tier System (THE design hook for the dark-comedy arc)
+
+Citizens DEFAULT to NOT wanting to die. Only the highest-tier / happiest / highest-status citizens can be recruited for one-way colony ships. The player's late-game challenge is **manufacturing high-tier citizens** to feed the death-ship pipeline.
+
+- 5 tiers: Worker (60%) / Skilled (25%) / Privileged (10%) / Elite (4%) / Pinnacle "The Chosen" (1%)
+- Tier 4-5 are the scarce strategic resource for suicide colony ships
+- Indoctrination Buildings (Cathedral 🛐 / University 🏫 / Re-education Center 👁️ / Corporate Promotions Office 💼 — theme-flavored) tier-up citizens
+- The propaganda has worked TOO WELL: the elite citizens — the ones the player elevated, gave the best housing, the most honor — are exactly the ones who eagerly volunteer for one-way trips, because the propaganda told them "the eternal voyage is the highest honor; only the worthiest are chosen"
+- The dark comedy: your investment in elevating citizens IS the same investment that produces volunteers
 
 ### Current Status
 
@@ -60,17 +82,18 @@ A top-down emoji-driven civilization-building game where you trick your own citi
 | `.claude/TODO.md` | Granular task list per phase (~250+ tasks, ready to be picked up) |
 | `.claude/FINALIZED.md` | UMS sunset entry (2026-05-09) + future SMoL completions appended |
 | `.claude/SMOL_REFERENCE_MAP.md` (PHASE 0 deliverable) | Master index mapping UMS source → SMoL replication phase + extraction doc + status |
-| `.claude/SMOL_REFERENCE_PAD.md` (PHASE 0 deliverable) | UnityPad subsystem extraction (state machine, salvo, controller mode, telemetry, GPS, multi-pad coord) |
-| `.claude/SMOL_REFERENCE_MISSILE.md` (PHASE 0 deliverable) | UnityMissile subsystem extraction (flight phases, targeting modes, satellite branch, trajectory math) |
+| `.claude/SMOL_REFERENCE_PAD.md` (PHASE 0 deliverable) | UnityPad subsystem extraction → SMoL launch-pad mechanics (state machine, salvo, controller mode, telemetry, GPS, multi-pad coord) |
+| `.claude/SMOL_REFERENCE_MISSILE.md` (PHASE 0 deliverable) | UnityMissile subsystem extraction → SMoL colony-ship in-flight mechanics (flight phases, targeting modes, satellite branch, trajectory math) |
 | `.claude/SMOL_REFERENCE_INVENTORY.md` (PHASE 0 deliverable) | UnityInventory subsystem extraction (production system, recycling, item handling, ammo type sync) |
-| `.claude/SMOL_REFERENCE_BOOT.md` (PHASE 0 deliverable) | Unity Boot subsystem extraction (26 checks, IGC handshake, sibling discovery) |
+| `.claude/SMOL_REFERENCE_BOOT.md` (PHASE 0 deliverable) | Unity Boot subsystem extraction (28-check ceremony, IGC handshake, sibling discovery) |
 | `.claude/SMOL_REFERENCE_SIGNAL.md` (PHASE 0 deliverable) | UnitySignal subsystem extraction (antennas, lasers, satellite tracking, camera display) |
-| `.claude/SMOL_REFERENCE_BEACON.md` (PHASE 0 deliverable) | UnityBeacon subsystem extraction (fleet broadcast, status inference) |
+| `.claude/SMOL_REFERENCE_BEACON.md` (PHASE 0 deliverable) | UnityBeacon subsystem extraction → SMoL miner auto-shuttle template (fleet broadcast, status inference, shuttle-cycle ETA) |
 | `.claude/SMOL_REFERENCE_GRAPHS_PANELS.md` (PHASE 0 deliverable) | LCD output / production graph / build queue / telemetry panel rendering patterns |
-| `.claude/SMOL_REFERENCE_IGC_PROTOCOL.md` (PHASE 0 deliverable) | Full IGC channel + message inventory (17+ channels) |
-| `.claude/SMOL_REFERENCE_TRAJECTORY.md` (PHASE 0 deliverable) | Missile trajectory math + intercept geometry (great-circle, mine intercept, counter-missile, SAT_HOLD orbital) |
-| `.claude/SMOL_REFERENCE_PRINTING.md` (PHASE 0 deliverable) | Missile printing pipeline (UNITY_PRINTER IGC, PRINT/BUILD state transitions, Auto-Build cycle) |
-| `.claude/SMOL_REFERENCE_MOD.md` (PHASE 0 deliverable) | UMS Mod (DeMergeSession, Plugin) — informs missile-body-separation concept |
+| `.claude/SMOL_REFERENCE_IGC_PROTOCOL.md` (PHASE 0 deliverable) | Full IGC channel + message inventory (19 channels — actual count) |
+| `.claude/SMOL_REFERENCE_TRAJECTORY.md` (PHASE 0 deliverable) | Colony-ship trajectory math + intercept geometry (great-circle, mine intercept, counter-colony-ship, SAT_HOLD orbital) |
+| `.claude/SMOL_REFERENCE_PRINTING.md` (PHASE 0 deliverable) | Colony-ship printing pipeline (UNITY_PRINTER IGC, PRINT/BUILD state transitions, Auto-Build cycle) |
+| `.claude/SMOL_DESIGN_COLONY_SHIPS.md` (active design doc, 2026-05-09) | Full colony ship taxonomy (Tier 1-4 × 17+ variants), citizen tier system (Worker→Pinnacle 5-tier model), per-theme propaganda templates, darkness progression arc |
+| `.claude/SMOL_REFERENCE_MOD.md` (PHASE 0 deliverable) | UMS Mod (DeMergeSession, Plugin) — informs colony-ship-detachment concept |
 | `.claude/SMOL_REFERENCE_TOOLING.md` (PHASE 0 deliverable) | UMS tooling patterns (wrap-scripts, char-budget validation, dependency-bump) |
 
 ### Decision Log (SMoL)
@@ -93,6 +116,13 @@ A top-down emoji-driven civilization-building game where you trick your own citi
 | 2026-05-09 | Missiles = colonization vehicles, planet-LOCAL inventory, universal tech transfer | "they can set up new civiliazations on other planets and even on the same planet" + "inventory is via planet only too expensive to ship goods between planets" |
 | 2026-05-09 | Faction loyalty model (loyal / skeptic / dissident); performance-degradation discovery (no violent revolt) | "Faction split (loyal/skeptic/dissident)" + "they just wont do things as well" |
 | 2026-05-09 | Hall of Champions multi-category + achievements; optional account | "scores achievments all fo it hall of champions" + "Optional account (anonymous OR signed-in)" |
+| 2026-05-09 | Terminology shift: missile → colony ship across SMoL contexts (UMS LEGACY refs untouched) | "is say 'missiles' ahumm colony ships" |
+| 2026-05-09 | Colony Ship Taxonomy: 4-tier darkness progression (Tests → Discovery → Aggression → Industrial Eradication); 17+ ship variants total | "lets make sure we add things like scout rockets that auto explore and attack and laser targeting ship[s that can land and guid other missiles in.. all manushua of things like that to make it epic" |
+| 2026-05-09 | Darkness Progression Arc: tech tiers unlock progressively-darker variants; propaganda gets prettier as actions get worse | "remmebr it gets darker and darks as we play so first rockets a like tests later on when u discover others maybe then idk maybe then that when u get explosives or mayjust kamakaazia liek(but dont use thast name) bigger booms fast ships more crew food ect ect for longer durations ect ect" |
+| 2026-05-09 | Suicide colony ships use SMoL-flavored cover names ("Pilgrim Volunteer", "The Chosen") — NEVER "kamikaze" or similar on-the-nose terms | User explicit: "(but dont use thast name)" referring to "kamakaazia" |
+| 2026-05-09 | Citizen Tier System: 5-tier (Worker/Skilled/Privileged/Elite/Pinnacle); Tier 4-5 required for suicide ships; player invests in propaganda buildings to manufacture high-tier citizens | "remember above all citizens dont want to kill them selves but for the most high tiered/happy/statas we have" |
+| 2026-05-09 | Mining colony ships use UMS-style auto-shuttle mechanic (UnityBeacon shuttle-cycle + UnityInventory cargo correlation); SMoL adds multi-planet rotation queue, auto-recall on threat, fleet auto-balancing | "and mining needs to using the mining s er like we had... in UMS... just more automated... with target ore send miner on auto settings ect ect similare way if not exact way" |
+| 2026-05-09 | Dark-humor tone is the through-line — every dark mechanic wrapped in increasingly desperate propaganda cover stories per government theme | "heheh dark humar games!" |
 
 ### Risk Assessment (SMoL)
 

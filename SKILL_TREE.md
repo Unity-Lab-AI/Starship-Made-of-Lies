@@ -72,6 +72,18 @@
 | Performance-degradation discovery model ("they just won't do things as well") | 5 | ⬜ planned | Advanced | P0 |
 | Gradual-reveal UI (innocent → dark metrics over match) | 5 | ⬜ planned | Intermediate | P1 |
 | "For the greater good" framing layer | 5 | ⬜ planned | Basic | P1 |
+| **Citizen Tier System (5-tier — Worker/Skilled/Privileged/Elite/Pinnacle)** | 5.5 | ⬜ planned | Advanced | P0 |
+| **Indoctrination Buildings — theme-flavored (Cathedral 🛐 / University 🏫 / Re-education Center 👁️ / Corporate Promotions Office 💼 / etc.)** | 5.5 | ⬜ planned | Intermediate | P0 |
+| **Active Campaigns for tier-up surges (theme-flavored names)** | 5.5 | ⬜ planned | Intermediate | P1 |
+| **Direct Promotion mechanic (instant tier-up + faction-loyalty cost)** | 5.5 | ⬜ planned | Intermediate | P1 |
+| **Per-suicide-ship tier requirement validation** | 5.5 | ⬜ planned | Advanced | P0 |
+| **Build-screen UI for suicide ships shows tier-cost preview** | 5.5 | ⬜ planned | Intermediate | P0 |
+| **Conscription override mode (force-launch low-tier with severe faction crash)** | 5.5 | ⬜ planned | Advanced | P1 |
+| **Faction-loyalty cascade on suicide-ship launch (Tier-5 honored, Tier-3-4 mixed, Tier-1-2 dissident-shift)** | 5.5 | ⬜ planned | Advanced | P0 |
+| **Per-planet citizen tier breakdown UI ("1450 Workers / 600 Skilled / 240 Privileged / 96 Elite / 24 Chosen")** | 5.5 | ⬜ planned | Intermediate | P0 |
+| **"Volunteer Pool" indicator on civ UI (sum of Tier 5 across empire)** | 5.5 | ⬜ planned | Basic | P0 |
+| **Per-theme "The Chosen" framing string library (Theocracy="Most Holy Pilgrims", Corporate="Platinum-Tier Subscribers", etc.)** | 5.5 | ⬜ planned | Intermediate | P1 |
+| **Darkness progression arc (tech tier unlocks gate ship variants per tier — no skipping the corruption)** | 5.5 | ⬜ planned | Advanced | P0 |
 
 #### 7. Government Theme System (`shared/sim/themes/`, `assets/themes/`)
 | Skill | Phase | Status | Complexity | Priority |
@@ -102,7 +114,12 @@
 | Tech-tier-gated hostile biome unlock | 3 | ⬜ planned | Intermediate | P1 |
 | Tech tree visualizer (per-theme styled) | 3 | ⬜ planned | Advanced | P1 |
 
-#### 9. Missile System (UMS feature carryover — `shared/sim/missile/`)
+#### 9. Colony Ship System (was "Missile System" — UMS feature carryover + SMoL design extensions — `shared/sim/colonyship/`)
+
+> Renamed 2026-05-09 from "Missile System" to "Colony Ship System" per user terminology shift ("is say 'missiles' ahumm colony ships"). Every UMS missile concept maps to a SMoL colony ship variant. UMS LEGACY references in this doc untouched.
+
+##### 9a. Core mechanics (UMS-direct carryover)
+
 | Skill | Phase | Status | Complexity | Priority | UMS Source |
 |-------|-------|--------|------------|----------|------------|
 | Multi-pad coordination (one civ owns multiple pads, scales with empire) | 6 | ⬜ planned | Advanced | P0 | UnityPad.cs |
@@ -111,22 +128,69 @@
 | Salvo launch with stagger (15s default `svInt`) | 6 | ⬜ planned | Advanced | P1 | UnityPad.cs UpdateSalvo |
 | Saved-target locations (galaxy waypoint list) | 6 | ⬜ planned | Intermediate | P0 | UnityPad button-panel GPS |
 | Pad inventory + telemetry panels (per-pad LCD-style, theme-skinned) | 6, 7 | ⬜ planned | Intermediate | P0 | UnityPad LCDs |
-| Missile body construction (resource cost, build time, queued in pad) | 6 | ⬜ planned | Intermediate | P0 | UnityPad.cs BUILD state |
-| Citizen loading (configurable count, theme-flavored coax) | 6 | ⬜ planned | Intermediate | P0 | (SMoL-new — coax-based) |
+| Colony ship body construction (resource cost, build time, queued in pad) | 6 | ⬜ planned | Intermediate | P0 | UnityPad.cs BUILD state |
+| Citizen loading (configurable count, theme-flavored coax — gated by Citizen Tier System) | 6 | ⬜ planned | Intermediate | P0 | (SMoL-new — coax-based) |
 | Payload configurator (citizens vs equipment vs weapons trade-off) | 6 | ⬜ planned | Advanced | P0 | (SMoL-new) |
 | Tech-tier-scaled payload size | 6 | ⬜ planned | Intermediate | P1 | (SMoL-new) |
 | Arm/Disarm controls | 6 | ⬜ planned | Basic | P0 | UnityPad.cs ARM/DISARM |
-| Great-circle missile arc on planet sphere | 6 | ⬜ planned | Expert | P0 | UnityMissile.cs CLIMB+COAST+REENTRY |
+| Great-circle colony-ship arc on planet sphere | 6 | ⬜ planned | Expert | P0 | UnityMissile.cs CLIMB+COAST+REENTRY |
 | Visible trajectory to all players (no surprise attacks; defender prepares) | 6 | ⬜ planned | Intermediate | P0 | (SMoL-new) |
 | Mine field defense (pre-placed mines intercept incoming) | 6 | ⬜ planned | Advanced | P0 | UMS mines |
-| Counter-missile launch (defender intercepts mid-flight; intercept math) | 6 | ⬜ planned | Expert | P0 | (SMoL-new derived) |
+| Counter-colony-ship launch (defender intercepts mid-flight; intercept math) | 6 | ⬜ planned | Expert | P0 | (SMoL-new derived) |
 | Outcome resolution (TARGET HIT / PROBABLE HIT / SIGNAL LOST / INTERCEPTED / ABORTED) | 6 | ⬜ planned | Intermediate | P0 | UMS outcome enum |
 | Landing site selection (player picks tile within target planet/zone) | 6 | ⬜ planned | Intermediate | P0 | (SMoL-new) |
 | Colony bootstrap on landing (fresh-game-start with shipped resources) | 6 | ⬜ planned | Advanced | P0 | (SMoL-new) |
 | Empire-wide tech inheritance | 6 | ⬜ planned | Basic | P0 | (SMoL-new) |
 | Local resource detection (planet-local biome → mineable/buildable list) | 6 | ⬜ planned | Intermediate | P1 | (SMoL-new) |
 | Initial defense vulnerability (new colony fortify-or-die window) | 6 | ⬜ planned | Intermediate | P1 | (SMoL-new) |
-| Intra-planet colonization (missiles can land same-planet for forward bases) | 6 | ⬜ planned | Intermediate | P1 | (SMoL-new) |
+| Intra-planet colonization (colony ships can land same-planet for forward bases) | 6 | ⬜ planned | Intermediate | P1 | (SMoL-new) |
+
+##### 9b. Colony Ship Variants — Tier 1 (Tests & Exploration)
+
+| Skill | Phase | Status | Complexity | Priority | Reference |
+|-------|-------|--------|------------|----------|-----------|
+| Scout Colony Ship 🛰️ (auto-explore, attack-if-attacked, returns alive) | 6.5 | ⬜ planned | Advanced | P0 | UMS UnityMissile T.MANUAL + sensor-driven explore |
+| Surveyor Colony Ship 📡 (peaceful land + scan + sub-colony establishment) | 6.5 | ⬜ planned | Intermediate | P0 | (SMoL-new) |
+| Probe Colony Ship 🔬 (one-way sacrifice scout, sends data until destroyed) | 6.5 | ⬜ planned | Basic | P0 | (SMoL-new) |
+
+##### 9c. Colony Ship Variants — Tier 2 (Discovery & Escalation)
+
+| Skill | Phase | Status | Complexity | Priority | Reference |
+|-------|-------|--------|------------|----------|-----------|
+| Standard Colony Ship 🚀 (canonical SMoL launch action — invade enemy planet under colonization cover) | 6.6 | ⬜ planned | Advanced | P0 | UMS missile + SMoL coax loading |
+| Laser-Targeting Beacon Ship 🔦 (lands on enemy planet, becomes ground beacon for follow-up precision strikes) | 6.6 | ⬜ planned | Expert | P0 | UMS pad-laser + missile-side laser uplink |
+| Decoy Colony Ship 🎭 (no citizens; intercept-magnet for salvo) | 6.6 | ⬜ planned | Advanced | P1 | UMS salvo desync + telemetry-fakery |
+| Boarding Colony Ship 🤝 (citizens are operatives; captures enemy buildings) | 6.6 | ⬜ planned | Advanced | P1 | (SMoL-new — building-capture mechanic) |
+
+##### 9d. Colony Ship Variants — Tier 3 (Aggression & Industrial Warfare)
+
+| Skill | Phase | Status | Complexity | Priority | Reference |
+|-------|-------|--------|------------|----------|-----------|
+| Saboteur Colony Ship 💣 (disguised crash on enemy infrastructure, framed as "tragic accident") | 6.7 | ⬜ planned | Advanced | P0 | UMS detonation + small-payload variant |
+| Explosive Colony Ship 💥 (large warhead, multi-building damage, framed as "carrying mining explosives") | 6.7 | ⬜ planned | Advanced | P0 | UMS detonation + large-payload variant |
+| Heavy Colony Ship 🛳️ (long-range, high-HP, slow — can reach distant planets) | 6.7 | ⬜ planned | Intermediate | P1 | (SMoL-new — size-scaled variant) |
+| Counter-Colony Ship 🛡️ (interceptor — defends against incoming) | 6.7 | ⬜ planned | Expert | P0 | UMS counter-missile geometry |
+
+##### 9e. Colony Ship Variants — Tier 4 (Industrial Eradication — REQUIRES TIER 4-5 CITIZENS)
+
+| Skill | Phase | Status | Complexity | Priority | Reference |
+|-------|-------|--------|------------|----------|-----------|
+| Pilgrim Volunteer Ship 🕊️ (suicide colony ship — requires Tier 4-5 citizens; one-way "honored" trip) | 6.8 | ⬜ planned | Advanced | P0 | UMS manual-mode self-destruct + payload-as-detonator |
+| Mass Evacuation Ship 🌆 (city-scale; thousands of citizens; aimed at enemy capital) | 6.8 | ⬜ planned | Expert | P1 | (SMoL-new — scaled-up Pilgrim Volunteer) |
+| Orbital Weapon Platform 🛰️ (BLACKOUT_SAT mechanic — auto-conversion to orbital satellite weapon) | 6.8 | ⬜ planned | Expert | P0 | UnityMissile satellite branch direct carryover |
+| The Final Colony Ship 🌌 (endgame super-weapon, planet-cracker, requires ≥15 planets + tech apex) | 6.8 | ⬜ planned | Expert | P2 | (SMoL-new — capstone variant) |
+
+##### 9f. Cross-cutting variants
+
+| Skill | Phase | Status | Complexity | Priority | Reference |
+|-------|-------|--------|------------|----------|-----------|
+| Mining Colony Ship ⛏️ — UMS-style auto-shuttle (target ore + auto-settings + cycle indefinitely) | 6.9 | ⬜ planned | Advanced | P0 | UnityBeacon shuttle-cycle + UnityInventory cargo correlation |
+| Multi-planet auto-rotation queue (SMoL automation upgrade beyond UMS) | 6.9 | ⬜ planned | Intermediate | P1 | (SMoL-new) |
+| Auto-recall on threat (miner evacuates if planet under attack) | 6.9 | ⬜ planned | Intermediate | P1 | (SMoL-new) |
+| Fleet auto-balancing (civ AI distributes miners across planets per resource needs) | 6.9 | ⬜ planned | Advanced | P1 | (SMoL-new) |
+| Refugee Colony Ship 🚑 (genuine humanitarian, coop-mode + rare solo events) | 6.9 | ⬜ planned | Basic | P2 | (SMoL-new) |
+| Embassy Colony Ship 📜 (coop-mode diplomacy — peaceful trade route) | 6.9 | ⬜ planned | Basic | P2 | (SMoL-new) |
+| Resupply Colony Ship 📦 (own-empire reinforcement — supplies + reinforcements to distant colonies) | 6.9 | ⬜ planned | Intermediate | P1 | (SMoL-new) |
 
 #### 10. UMS Visual / Telemetry Carryover (`client/panels/`)
 | Skill | Phase | Status | Complexity | Priority | UMS Source |
@@ -298,17 +362,17 @@
 | 3. 2D Top-Down | 3 | 0 | 0 | 3 |
 | 4. Galaxy + Planet Generation | 5 | 0 | 0 | 5 |
 | 5. Civilization Building | 9 | 0 | 0 | 9 |
-| 6. Deception / Subterfuge | 7 | 0 | 0 | 7 |
+| 6. Deception / Subterfuge | ~19 (was 7; expanded with 12 Citizen Tier System sub-skills) | 0 | 0 | ~19 |
 | 7. Government Theme System | 10 | 0 | 0 | 10 |
 | 8. Tech Tree & Research | 11 | 0 | 0 | 11 |
-| 9. Missile System (UMS carryover) | 22 | 0 | 0 | 22 |
+| 9. Colony Ship System (UMS carryover + design extensions) | ~50 (was 22; expanded with 17+ ship variants × Tier 1-4 + cross-cutting) | 0 | 0 | ~50 |
 | 10. UMS Visual / Telemetry Carryover | 12 | 0 | 0 | 12 |
 | 11. AI Players | 7 | 0 | 0 | 7 |
 | 12. Multiplayer Server | 13 | 0 | 0 | 13 |
 | 13. Persistence + Meta-progression | 6 | 0 | 0 | 6 |
 | 14. Audio System | 8 | 0 | 0 | 8 |
 | 15. Cross-Platform Packaging | 10 | 0 | 0 | 10 |
-| **TOTAL** | **136** | **0** | **0** | **136** |
+| **TOTAL** | **~176** (was 136; +40 for Colony Ship variants × tiers + Citizen Tier System) | **0** | **0** | **~176** |
 
 ### Future Possibilities (Post-MVP / Out-of-Scope per TODO)
 
