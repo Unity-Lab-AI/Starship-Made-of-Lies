@@ -39,11 +39,15 @@ import {
   TECH_INDUSTRIAL_LOGISTICS,
   TECH_MASS_PRODUCTION,
   THEMES,
+  THEME_THEOCRACY,
+  THEME_MILITARY_JUNTA,
+  THEME_MEMETIC_CULT,
   type ThemeId,
   themeAsCSSVars,
   type TechId,
   tileId as tileIdValue,
 } from '@smol/shared'
+import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
 import { BootSequencePanel } from '../panels/BootSequencePanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
@@ -170,6 +174,39 @@ export function PreviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startingPlanet.id])
 
+  const aiSnapshots = useMemo<ReadonlyArray<AIPlayerSnapshot>>(
+    () => [
+      {
+        civLabel: 'civ-theocracy-1',
+        theme: getTheme(THEME_THEOCRACY),
+        playstyle: 'builder',
+        difficulty: 'brutal',
+        lastDecisionLine:
+          'tick=120 | research=Antimatter | build=Cathedral | ship=Pilgrim Volunteer | attacking=true',
+        lastTick: 120,
+      },
+      {
+        civLabel: 'civ-junta-7',
+        theme: getTheme(THEME_MILITARY_JUNTA),
+        playstyle: 'warmonger',
+        difficulty: 'hard',
+        lastDecisionLine:
+          'tick=118 | research=Aerospace | ship=Heavy | attack=PLANET-04 | attacking=true',
+        lastTick: 118,
+      },
+      {
+        civLabel: 'civ-memetic-3',
+        theme: getTheme(THEME_MEMETIC_CULT),
+        playstyle: 'trickster',
+        difficulty: 'medium',
+        lastDecisionLine:
+          'tick=115 | research=Memetic Engineering | campaign=Unity Rally | consc=0.62',
+        lastTick: 115,
+      },
+    ],
+    [],
+  )
+
   const beacon = useMemo<PlanetBeacon>(() => {
     const b = newPlanetBeacon(startingPlanet.id, civId('preview-civ'))
     pushBeaconAlert(b, {
@@ -278,6 +315,7 @@ export function PreviewPage() {
         <ColonyShipFlightPanel flights={inFlightShips} onAfterAction={triggerRefresh} />
         <BeaconPanel beacon={beacon} currentTick={120} />
         <BootSequencePanel theme={theme} />
+        <AIPlayerPanel snapshots={aiSnapshots} />
       </div>
     </div>
   )
