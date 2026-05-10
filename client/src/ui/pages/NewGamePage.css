@@ -70,6 +70,76 @@
   line-height: 1.5;
 }
 
+.new-game-page__objectives {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.new-game-page__objectives legend {
+  padding: 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-hero);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.new-game-page__objectives-hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-mute);
+  font-style: italic;
+}
+
+.new-game-page__objective {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+}
+
+.new-game-page__objective span:first-of-type {
+  font-weight: 600;
+  color: var(--text-hero);
+}
+
+.new-game-page__objective-target {
+  width: 110px;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 4px;
+  color: var(--text-soft);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+}
+
+.new-game-page__objective-hint {
+  font-size: 0.8rem;
+  color: var(--text-mute);
+  font-style: italic;
+}
+
+.new-game-page__match-status {
+  margin: 1rem 0;
+  padding: 0.85rem 1.1rem;
+  background: rgba(212, 161, 58, 0.06);
+  border-left: 3px solid var(--ui-glow, #d4a13a);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.9rem;
+}
+
+.new-game-page__match-status-detail {
+  font-size: 0.8rem;
+  color: var(--text-mute);
+}
+
 .new-game-page__cta {
   margin-top: 2rem;
   padding-top: 1.5rem;

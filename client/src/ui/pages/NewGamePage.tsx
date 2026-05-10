@@ -10,7 +10,6 @@ import './SubPage.css'
 import './NewGamePage.css'
 
 type GalaxyPreset = 'small' | 'medium' | 'large'
-type MatchLength = 'blitz' | 'standard' | 'epic' | 'open'
 
 const GALAXY_PRESETS: Record<GalaxyPreset, { label: string; planetCount: number }> = {
   small: { label: 'Small (100 planets)', planetCount: 100 },
@@ -18,24 +17,46 @@ const GALAXY_PRESETS: Record<GalaxyPreset, { label: string; planetCount: number 
   large: { label: 'Large (1000 planets)', planetCount: 1000 },
 }
 
-const MATCH_LENGTH_LABELS: Record<MatchLength, string> = {
-  blitz: 'Blitz (5 min)',
-  standard: 'Standard (15 min)',
-  epic: 'Epic (30 min)',
-  open: 'Open-ended (mission objectives)',
+interface ObjectiveToggleState {
+  readonly highscoreEnabled: boolean
+  readonly highscoreTarget: number
+  readonly resourceEnabled: boolean
+  readonly resourceTarget: number
+  readonly lastCivStandingEnabled: boolean
+  readonly apexTechEnabled: boolean
+}
+
+const DEFAULT_OBJECTIVES: ObjectiveToggleState = {
+  highscoreEnabled: false,
+  highscoreTarget: 50000,
+  resourceEnabled: false,
+  resourceTarget: 100000,
+  lastCivStandingEnabled: true,
+  apexTechEnabled: true,
 }
 
 export function NewGamePage() {
   const navigate = useNavigate()
   const [galaxySize, setGalaxySize] = useState<GalaxyPreset>('small')
   const [aiCount, setAiCount] = useState(3)
-  const [matchLength, setMatchLength] = useState<MatchLength>('open')
   const [coopMode, setCoopMode] = useState(false)
   const [previewThemeId, setPreviewThemeId] = useState<ThemeId>(THEMES[0]!.id)
+  const [objectives, setObjectives] = useState<ObjectiveToggleState>(DEFAULT_OBJECTIVES)
 
   const theme = getTheme(previewThemeId)
   const styleVars = useMemo(() => themeAsCSSVars(theme), [theme])
   const preset = GALAXY_PRESETS[galaxySize]
+
+  const matchIsTimed = objectives.highscoreEnabled || objectives.resourceEnabled
+  const winConditionsLabel = (() => {
+    const parts: string[] = []
+    if (objectives.apexTechEnabled) parts.push('Apex Tech')
+    if (objectives.lastCivStandingEnabled) parts.push('Last Civ')
+    if (objectives.highscoreEnabled) parts.push(`Score → ${objectives.highscoreTarget}`)
+    if (objectives.resourceEnabled) parts.push(`Resource → ${objectives.resourceTarget}`)
+    if (parts.length === 0) return 'Open-ended (no end condition!)'
+    return parts.join(' · ')
+  })()
 
   const lobbySummary = useMemo<LobbyPreviewSummary>(() => {
     const slots: LobbyPreviewSlot[] = [
@@ -96,13 +117,13 @@ export function NewGamePage() {
       phase: 'CONFIGURING',
       planetCount: preset.planetCount,
       playerCount: 1 + aiCount,
-      matchLength: matchLength === 'open' ? 'standard' : matchLength,
-      winConditionsLabel: 'Apex Tech · Last Civ · Highscore',
+      matchLength: 'standard',
+      winConditionsLabel,
       biomesLabel: 'All biomes',
       coopMode,
       slots,
     }
-  }, [aiCount, coopMode, matchLength, preset.planetCount, previewThemeId])
+  }, [aiCount, coopMode, preset.planetCount, previewThemeId, winConditionsLabel])
 
   return (
     <div className="sub-page" style={styleVars as React.CSSProperties}>
@@ -143,20 +164,6 @@ export function NewGamePage() {
           </label>
 
           <label className="new-game-page__field">
-            <span>Match length</span>
-            <select
-              value={matchLength}
-              onChange={(e) => setMatchLength(e.target.value as MatchLength)}
-            >
-              {Object.entries(MATCH_LENGTH_LABELS).map(([id, label]) => (
-                <option key={id} value={id}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="new-game-page__field">
             <span>Co-op mode</span>
             <input
               type="checkbox"
@@ -167,6 +174,111 @@ export function NewGamePage() {
               {coopMode ? 'Humans share tech pool, AI hostile to alliance' : 'Free-for-all'}
             </span>
           </label>
+
+          <fieldset className="new-game-page__objectives">
+            <legend>Win conditions</legend>
+            <p className="new-game-page__objectives-hint">
+              Match runs <strong>open-ended</strong> until a win condition triggers. Score-based
+              conditions create a race; the others end the match when met.
+            </p>
+
+            <label className="new-game-page__objective">
+              <input
+                type="checkbox"
+                checked={objectives.lastCivStandingEnabled}
+                onChange={(e) =>
+                  setObjectives({ ...objectives, lastCivStandingEnabled: e.target.checked })
+                }
+              />
+              <span>🏴 Last Civ Standing</span>
+              <span className="new-game-page__objective-hint">
+                Last surviving civ wins. No time limit.
+              </span>
+            </label>
+
+            <label className="new-game-page__objective">
+              <input
+                type="checkbox"
+                checked={objectives.apexTechEnabled}
+                onChange={(e) =>
+                  setObjectives({ ...objectives, apexTechEnabled: e.target.checked })
+                }
+              />
+              <span>🌌 Apex Tech</span>
+              <span className="new-game-page__objective-hint">
+                First civ to research a winning Apex tech wins. No time limit.
+              </span>
+            </label>
+
+            <label className="new-game-page__objective">
+              <input
+                type="checkbox"
+                checked={objectives.highscoreEnabled}
+                onChange={(e) =>
+                  setObjectives({ ...objectives, highscoreEnabled: e.target.checked })
+                }
+              />
+              <span>🎯 Highscore Target — race</span>
+              {objectives.highscoreEnabled && (
+                <input
+                  type="number"
+                  min={1000}
+                  step={1000}
+                  className="new-game-page__objective-target"
+                  value={objectives.highscoreTarget}
+                  onChange={(e) =>
+                    setObjectives({
+                      ...objectives,
+                      highscoreTarget: Math.max(1000, Number(e.target.value) || 50000),
+                    })
+                  }
+                  aria-label="Highscore target"
+                />
+              )}
+              <span className="new-game-page__objective-hint">
+                First civ to reach target score wins.
+              </span>
+            </label>
+
+            <label className="new-game-page__objective">
+              <input
+                type="checkbox"
+                checked={objectives.resourceEnabled}
+                onChange={(e) =>
+                  setObjectives({ ...objectives, resourceEnabled: e.target.checked })
+                }
+              />
+              <span>📦 Resource Target — race</span>
+              {objectives.resourceEnabled && (
+                <input
+                  type="number"
+                  min={5000}
+                  step={5000}
+                  className="new-game-page__objective-target"
+                  value={objectives.resourceTarget}
+                  onChange={(e) =>
+                    setObjectives({
+                      ...objectives,
+                      resourceTarget: Math.max(5000, Number(e.target.value) || 100000),
+                    })
+                  }
+                  aria-label="Resource target"
+                />
+              )}
+              <span className="new-game-page__objective-hint">
+                First civ to stockpile target resource units wins.
+              </span>
+            </label>
+          </fieldset>
+
+          <p className="new-game-page__match-status">
+            Match type:{' '}
+            <strong>{matchIsTimed ? 'Open-ended (race to score)' : 'Open-ended'}</strong>
+            <br />
+            <span className="new-game-page__match-status-detail">
+              Win conditions: {winConditionsLabel}
+            </span>
+          </p>
 
           <label className="new-game-page__field">
             <span>Theme preview</span>
@@ -208,9 +320,8 @@ export function NewGamePage() {
               ▶ Start Match
             </button>
             <p className="new-game-page__cta-hint">
-              Solo match runs client-side via shared sim. Multiplayer + 3D zoom land later — for
-              now: place buildings on hex tiles, research tech, run propaganda campaigns, watch AI
-              civs do their thing, race to a mission objective.
+              Solo match runs open-ended until a win condition triggers. No clock — just race the AI
+              to your picked condition.
             </p>
           </div>
         </section>
