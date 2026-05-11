@@ -2,9 +2,6 @@ import { Link } from 'react-router-dom'
 import { MainMenu } from './MainMenu'
 import './TitleScreen.css'
 
-const EMOJI_RAIL_LEFT = '🌾🏠🏭🏫⛪🚀⛏️📡🛰️🛐💼🪖👁️🌡️🧬🤖💰👑🌿🧠📺🌃⏳🎭'
-const EMOJI_RAIL_RIGHT = '⛏️🌾🏭🏠🏫⛪🚀📡🛰️🛐💼🪖👁️🌡️🧬🤖💰👑🌿🧠📺🌃⏳🎭'
-
 export function TitleScreen() {
   return (
     <div className="title-screen">
@@ -29,13 +26,6 @@ export function TitleScreen() {
           <Link to="/terms">Terms</Link>
         </nav>
       </header>
-
-      <div className="emoji-rail emoji-rail--left" aria-hidden="true">
-        {EMOJI_RAIL_LEFT}
-      </div>
-      <div className="emoji-rail emoji-rail--right" aria-hidden="true">
-        {EMOJI_RAIL_RIGHT}
-      </div>
 
       <main className="title-content">
         <MainMenu />
