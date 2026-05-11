@@ -79,6 +79,8 @@
    │   TelemetryRack POWER-slot mirror             ✅ 17.L.B.6   │
    │   padId perf index (O(1) launch lookup)       ✅ 17.L.C.9   │
    │   Hard energy gating on blueprint print       ✅ 17.L.C.2   │
+   │   Custom-build cost preview in library row    ✅ 17.L.B.3   │
+   │   Multi-pad blueprint print picker            ✅ 17.L.B.4   │
    ├─────────────────────────────────────────────────────────────┤
    │   ACTIVE — PHASE 17.L tail (super-review additions)         │
    ├─────────────────────────────────────────────────────────────┤
