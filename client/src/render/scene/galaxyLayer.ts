@@ -561,6 +561,121 @@ function paintMineFieldCanvas(canvas: HTMLCanvasElement, intensity: number): voi
   ctx.fillText('💣', cx, cy + 2)
 }
 
+// === DETONATION FLASH LAYER ===
+// PHASE 16.24 (deferred completion) — per user verbatim 2026-05-10 "it damages area of effect
+// fo like sending them to attack all ships depending fuel and payload ect ect whats loaded
+// make them go bigg booms but it takes like 30-50 missile to wipe out a vmiulti plaet civ".
+// computeDetonationAoE + applyDetonationAoE in MatchSim already drive the sim damage; this
+// layer renders the visual punch. Each MatchDetonation spawns a sphere mesh at the impact
+// world position that expands from 0 → max-radius × 1.2 over ~1.5s wall-clock with a color
+// fade white → yellow → orange → red and opacity fade 0.9 → 0. Additive blending so multiple
+// overlapping detonations stack brighter. Animation is self-timed per entry (spawnedAt ms);
+// sim-side prune drops the source entry after DETONATION_LIFETIME_TICKS but the render-side
+// entry self-completes much faster.
+
+const DETONATION_FLASH_DURATION_MS = 1500
+
+export interface DetonationFlashInput {
+  readonly id: string
+  readonly worldPosition: Vec3
+  readonly radius: number
+  readonly magnitude: number
+}
+
+export interface DetonationFlashEntry {
+  readonly id: string
+  readonly mesh: THREE.Mesh
+  readonly spawnedAt: number
+  readonly maxRadius: number
+  readonly magnitude: number
+}
+
+export interface DetonationFlashLayerHandle {
+  readonly group: THREE.Group
+  readonly entries: Map<string, DetonationFlashEntry>
+  readonly destroy: () => void
+}
+
+export function buildDetonationFlashLayer(): DetonationFlashLayerHandle {
+  const group = new THREE.Group()
+  const entries = new Map<string, DetonationFlashEntry>()
+  return {
+    group,
+    entries,
+    destroy: () => {
+      for (const entry of entries.values()) {
+        entry.mesh.geometry.dispose()
+        ;(entry.mesh.material as THREE.Material).dispose()
+      }
+      entries.clear()
+    },
+  }
+}
+
+export function syncDetonationFlashes(
+  handle: DetonationFlashLayerHandle,
+  detonations: ReadonlyArray<DetonationFlashInput>,
+): void {
+  const now = performance.now()
+  const liveIds = new Set<string>()
+  for (const det of detonations) {
+    liveIds.add(det.id)
+    let entry = handle.entries.get(det.id)
+    if (!entry) {
+      const geom = new THREE.SphereGeometry(1, 24, 16)
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0xffe080,
+        transparent: true,
+        opacity: 1,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+      const mesh = new THREE.Mesh(geom, mat)
+      mesh.position.set(det.worldPosition.x, det.worldPosition.y, det.worldPosition.z)
+      mesh.userData = { kind: 'detonation-flash', detId: det.id }
+      handle.group.add(mesh)
+      entry = {
+        id: det.id,
+        mesh,
+        spawnedAt: now,
+        maxRadius: det.radius,
+        magnitude: det.magnitude,
+      }
+      handle.entries.set(det.id, entry)
+    }
+    const age = (now - entry.spawnedAt) / DETONATION_FLASH_DURATION_MS
+    if (age >= 1) continue
+    // Scale: 0 → 1.2 × maxRadius with eased-out cubic so flash blooms fast then settles.
+    const eased = 1 - Math.pow(1 - age, 3)
+    entry.mesh.scale.setScalar(entry.maxRadius * (0.05 + 1.15 * eased))
+    // Color fade: white → yellow → orange → red over lifetime. Brighter mid-flash mass-spike
+    // for high-magnitude strikes (Pilgrim/Heavy/Final variants paint a bigger boom).
+    const mat = entry.mesh.material as THREE.MeshBasicMaterial
+    if (age < 0.3) {
+      const t = age / 0.3
+      mat.color.setRGB(1, 1 - t * 0.15, 0.5 - t * 0.3)
+    } else if (age < 0.7) {
+      const t = (age - 0.3) / 0.4
+      mat.color.setRGB(1, 0.85 - t * 0.5, 0.2 - t * 0.15)
+    } else {
+      const t = (age - 0.7) / 0.3
+      mat.color.setRGB(1, 0.35 - t * 0.3, 0.05)
+      void t
+    }
+    // Opacity: 0.9 → 0 with quadratic fade so the flash lingers visibly then drops out.
+    mat.opacity = Math.max(0, 0.9 * (1 - age * age))
+  }
+  // Remove finished entries (animation complete OR entry no longer in input list).
+  for (const [id, entry] of handle.entries) {
+    const finished = (now - entry.spawnedAt) / DETONATION_FLASH_DURATION_MS >= 1
+    if (liveIds.has(id) && !finished) continue
+    handle.group.remove(entry.mesh)
+    entry.mesh.geometry.dispose()
+    ;(entry.mesh.material as THREE.Material).dispose()
+    handle.entries.delete(id)
+  }
+}
+
 // === FLIGHT ARC LAYER ===
 
 export interface FlightArcEntry {

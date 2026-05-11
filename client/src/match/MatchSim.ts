@@ -153,6 +153,21 @@ import {
 
 export type MatchPhase = 'STARTING' | 'IN_PROGRESS' | 'ENDED'
 
+// PHASE 16.24 (deferred completion): structured detonation event consumed by the 3D render
+// layer. The sim emits one MatchDetonation per AoE strike with the target planet's world
+// position + AoE radius + magnitude. GalaxyView's DetonationFlashLayer reads the list every
+// render frame and spawns an expanding-sphere flash mesh per id; the flash entry self-times
+// in wall-clock ms (~1.5s). Sim-side prune keeps entries within last DETONATION_LIFETIME_TICKS
+// so the list stays bounded even in long matches with frequent strikes.
+export interface MatchDetonation {
+  readonly id: string
+  readonly atTick: number
+  readonly planetId: PlanetId
+  readonly worldPosition: import('@smol/shared').Vec3
+  readonly radius: number
+  readonly magnitude: number
+}
+
 export interface MatchPlanetState {
   readonly planet: Planet
   civId: CivId
@@ -229,6 +244,9 @@ export interface MatchState {
   readonly aiRegistry: AIControllerRegistry
   readonly indigenousCivs: Map<CivId, IndigenousCiv>
   readonly lootDrops: Map<string, LootDrop>
+  // PHASE 16.24 (deferred completion): structured detonation events for the 3D render layer.
+  // Pruned every tick to keep within DETONATION_LIFETIME_TICKS.
+  detonations: MatchDetonation[]
   events: MatchEventLog[]
   currentTick: number
   startedAtTick: number
@@ -283,6 +301,10 @@ const COUNTER_FUEL_COST = 50
 const COUNTER_AMMO_COST = 100
 const COUNTER_PAYLOAD_TIER_REQUIRED = 3
 const COUNTER_TRAVEL_RADIUS = 800
+// PHASE 16.24 (deferred completion): detonation flash lifetime. Sim entries get pruned this
+// many ticks after their atTick. Render layer animates each flash on its own ~1.5s wall-clock
+// timeline so they fade out long before the sim-side prune drops them.
+const DETONATION_LIFETIME_TICKS = 30
 
 export function createMatch(config: MatchConfig): MatchState {
   const galaxy = generateGalaxy({ seed: config.seed, planetCount: config.planetCount })
@@ -392,6 +414,7 @@ export function createMatch(config: MatchConfig): MatchState {
     flights: new Map(),
     counterFlightTargets: new Map(),
     counterLaunchesByAttacker: new Map(),
+    detonations: [],
     humanCivId,
     objectives: config.objectives,
     tickCap: config.tickCapOverride,
@@ -582,6 +605,12 @@ export function tickMatch(state: MatchState): void {
   }
 
   pruneExpiredLoot(state)
+  // PHASE 16.24 (deferred completion): prune detonation entries older than the lifetime
+  // window. Keeps the array bounded across long matches without affecting render-side
+  // animations (they self-time in wall-clock and fade much faster than the tick window).
+  state.detonations = state.detonations.filter(
+    (d) => state.currentTick - d.atTick < DETONATION_LIFETIME_TICKS,
+  )
 
   resolveMatch(state)
 }
@@ -1416,6 +1445,21 @@ function applyDetonationAoE(
     civId: launchingCiv.civId,
     kind: 'intercept',
     message: `💥 ${def.emoji} ${def.name} detonated on ${String(targetPlanet.planet.id)} — ${kills.toLocaleString()} dead, ${buildingsHit} buildings lost (r=${aoe.radius.toFixed(0)}u, mag=${aoe.magnitude.toFixed(0)})`,
+  })
+  // PHASE 16.24 (deferred completion): emit structured detonation event for the 3D render
+  // layer. World position = target planet center (sufficient flash precision at galactic
+  // scale — the AoE radius is what reads visually, not a tile-precise impact point).
+  state.detonations.push({
+    id: `det-${state.currentTick}-${String(flight.id)}`,
+    atTick: state.currentTick,
+    planetId: targetPlanet.planet.id,
+    worldPosition: {
+      x: targetPlanet.planet.position.x,
+      y: targetPlanet.planet.position.y,
+      z: targetPlanet.planet.position.z,
+    },
+    radius: aoe.radius,
+    magnitude: aoe.magnitude,
   })
 }
 

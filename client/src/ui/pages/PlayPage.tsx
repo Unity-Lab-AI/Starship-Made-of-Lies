@@ -662,6 +662,7 @@ export function PlayPage() {
             indigenousByPlanet={indigenousByPlanet}
             lastHopeTriggeredPlanetIds={lastHopeTriggeredPlanetIds}
             padStateGlows={padStateGlows}
+            detonations={sim.state.detonations}
           />
         )}
       </div>
