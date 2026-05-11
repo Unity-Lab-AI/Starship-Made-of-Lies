@@ -10,6 +10,7 @@ import {
   type MissionObjectiveConfig,
   type PlanetId,
   type ShipBeaconBroadcast,
+  type TargetingMode,
   type ThemeId,
   type Tile,
   COLONY_SHIPS,
@@ -34,6 +35,7 @@ import { LastHopePanel } from '../panels/LastHopePanel'
 import { LootDropPanel } from '../panels/LootDropPanel'
 import { ResourcesPanel } from '../panels/ResourcesPanel'
 import { ShipBuildPanel } from '../panels/ShipBuildPanel'
+import { TargetingModePanel } from '../panels/TargetingModePanel'
 import { TechTreePanel } from '../panels/TechTreePanel'
 import { TilePlacementGrid } from '../panels/TilePlacementGrid'
 import { GalaxyView } from '../../render/scene/GalaxyView'
@@ -118,6 +120,12 @@ export function PlayPage() {
   // FlightDetailPanel; next right-click on a planet in GalaxyView fires sim.redirectFlight.
   // Reset after one use (whether successful or not).
   const [redirectModeFlightId, setRedirectModeFlightId] = useState<string | null>(null)
+  // PHASE 16.33: UMS 6-mode targeting selection. Held in PlayPage local state so the next
+  // single-pad launch + controller LAUNCHALL command apply the chosen mode. Default GPS keeps
+  // early-game launches working without the player picking a mode. Toggle the picker via 'm'
+  // keyboard shortcut.
+  const [currentTargetingMode, setCurrentTargetingMode] = useState<TargetingMode>('GPS')
+  const [showTargetingPanel, setShowTargetingPanel] = useState(false)
 
   // PHASE 16.13.9: /play canvas defaults to the 3D GalaxyView. The legacy 2D TilePlacementGrid
   // is kept ONLY as a dev-debug overlay reachable via `?dev=hexgrid` URL flag. Per LAW #0
@@ -558,6 +566,7 @@ export function PlayPage() {
     sim.launchShipFromPad({
       padId: firstPad.id,
       targetPlanetId: targetPlanetIdStr as unknown as PlanetId,
+      targetingMode: currentTargetingMode,
     })
   }
 
@@ -572,6 +581,12 @@ export function PlayPage() {
       if (e.target instanceof HTMLSelectElement) return
       const k = e.key.toLowerCase()
       if (e.key === 'Escape') {
+        // PHASE 16.33: targeting panel takes Escape priority before regular panels so the
+        // player can dismiss the picker without affecting any open primary panel.
+        if (showTargetingPanel) {
+          setShowTargetingPanel(false)
+          return
+        }
         if (openPanels.size > 0) {
           const last = [...openPanels].at(-1)!
           closePanel(last)
@@ -592,6 +607,11 @@ export function PlayPage() {
       else if (k === 'i') togglePanel('indigenous')
       else if (k === 'x') togglePanel('events')
       else if (k === 'g') togglePanel('planets')
+      // PHASE 16.33: 'm' toggles the UMS 6-mode targeting picker. Chosen 'm' (mode) since
+      // 't' is tech, 'p' is propaganda/campaigns, 'b' is build — all the obvious candidates
+      // are taken. Per-keyboard-shortcut hotkey map in `feedback_mode_switching.md` is for
+      // /unity persona modes only, NOT in-game UI.
+      else if (k === 'm') setShowTargetingPanel((v) => !v)
       else if (k === ' ') {
         e.preventDefault()
         sim.togglePause()
@@ -602,7 +622,15 @@ export function PlayPage() {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [openPanels, buildMode, sim, togglePanel, closePanel, handleCancelBuildMode])
+  }, [
+    openPanels,
+    buildMode,
+    sim,
+    togglePanel,
+    closePanel,
+    handleCancelBuildMode,
+    showTargetingPanel,
+  ])
 
   if (sim.state.phase === 'ENDED') {
     return (
@@ -986,6 +1014,23 @@ export function PlayPage() {
             )
           })()
         : null}
+      {/* PHASE 16.33: UMS 6-mode targeting picker. Player presses 'm' to toggle. Selected
+          mode applies to the next single-pad launch via handleLaunchShip; salvo/mass-action
+          paths still default GPS for v1 simplicity. Click outside the panel to dismiss. */}
+      {showTargetingPanel ? (
+        <div className="targeting-mode-panel__overlay" onClick={() => setShowTargetingPanel(false)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <TargetingModePanel
+              currentMode={currentTargetingMode}
+              onModeChange={setCurrentTargetingMode}
+              isTechResearched={(techId) =>
+                humanCivState.empire.researchedTechs.has(techId as unknown as never)
+              }
+              onClose={() => setShowTargetingPanel(false)}
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

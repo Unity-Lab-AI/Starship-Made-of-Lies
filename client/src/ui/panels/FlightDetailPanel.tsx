@@ -1,6 +1,8 @@
 import {
   type ColonyShipFlight,
   type PlanetId,
+  TARGETING_MODE_EMOJI,
+  TARGETING_MODE_LABEL,
   flightTelemetrySnapshot,
   getColonyShipDef,
 } from '@smol/shared'
@@ -120,6 +122,13 @@ export function FlightDetailPanel({
           {isEmptyHulk ? (
             <span className="flight-detail-panel__hulk-badge">🪦 EMPTY HULK — DRIFTING</span>
           ) : null}
+          <span
+            className="flight-detail-panel__mode-badge"
+            title={`Targeting mode: ${TARGETING_MODE_LABEL[flight.targetingMode]}`}
+          >
+            {TARGETING_MODE_EMOJI[flight.targetingMode]}{' '}
+            {TARGETING_MODE_LABEL[flight.targetingMode]}
+          </span>
           <span className="flight-detail-panel__tier">Darkness Tier {def.darknessTier}</span>
           <button
             type="button"

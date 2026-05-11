@@ -4,6 +4,7 @@ import {
   type LaunchPad,
   type PlanetInventory,
   type ShipBeaconBroadcast,
+  TARGETING_MODE_EMOJI,
   flightTelemetrySnapshot,
   getColonyShipDef,
 } from '@smol/shared'
@@ -70,11 +71,12 @@ export function TelemetryRack({
     return sorted.slice(0, 4).map(([id, amount]) => [String(id), amount] as const)
   }, [activePlanetInventory])
 
-  // PHASE 16.20 → 16.21: LCD slot 8 MISSILE STATUS UMS-faithful telemetry per
+  // PHASE 16.20 → 16.21 → 16.33: LCD slot 8 MISSILE STATUS UMS-faithful telemetry per
   // .claude/SMOL_REFERENCE_MISSILE.md UNITY_MSL channel spec. Per active flight (resolved
   // flights filtered out): variant + distToTarget (km) + closingSpeed (m/s) + altitude (km)
-  // + citizens aboard + phase + signalLost badge. Sorted by progress desc so most-traveled
-  // missiles surface first (matches UMS pad LCD7 ordering).
+  // + citizens aboard + phase + signalLost badge + PHASE 16.33 targeting mode emoji.
+  // Sorted by progress desc so most-traveled missiles surface first (matches UMS pad LCD7
+  // ordering).
   const topFlightStatus = useMemo<
     ReadonlyArray<{
       id: string
@@ -86,6 +88,7 @@ export function TelemetryRack({
       citizens: number
       phase: string
       signalLost: boolean
+      modeEmoji: string
     }>
   >(() => {
     const out: Array<{
@@ -98,6 +101,7 @@ export function TelemetryRack({
       citizens: number
       phase: string
       signalLost: boolean
+      modeEmoji: string
     }> = []
     for (const f of activeFlights) {
       if (
@@ -120,10 +124,89 @@ export function TelemetryRack({
         citizens: f.citizensAboard,
         phase: f.phase,
         signalLost: tel.signalLost,
+        modeEmoji: TARGETING_MODE_EMOJI[tel.targetingMode],
       })
     }
     out.sort((a, b) => b.progressPct - a.progressPct)
     return out.slice(0, 3)
+  }, [activeFlights])
+
+  // PHASE 16.33: LCD slot 3 SHIP SYSTEMS live — aggregates the most-distressed active flights
+  // by ship-systems state from PHASE 16.32 (power, life support, crew, auto-guidance). Sort
+  // priority: STRANDED + EMPTY_HULK first (most critical), then starving crew, then low power,
+  // then by overall systems-distress index. Top 3 surface so the player sees the worst-off
+  // flights without opening the FlightDetailPanel for each.
+  const topShipSystems = useMemo<
+    ReadonlyArray<{
+      id: string
+      label: string
+      powerSource: 'battery' | 'reactor' | 'solar'
+      powerPct: number
+      lifeSupportPct: number
+      crewAlive: number
+      crewTotal: number
+      isStarving: boolean
+      isStranded: boolean
+      isEmptyHulk: boolean
+      autoGuidance: boolean
+    }>
+  >(() => {
+    const out: Array<{
+      id: string
+      label: string
+      powerSource: 'battery' | 'reactor' | 'solar'
+      powerPct: number
+      lifeSupportPct: number
+      crewAlive: number
+      crewTotal: number
+      isStarving: boolean
+      isStranded: boolean
+      isEmptyHulk: boolean
+      autoGuidance: boolean
+      distressScore: number
+    }> = []
+    for (const f of activeFlights) {
+      if (
+        f.phase === 'DETONATE' ||
+        f.phase === 'INTERCEPTED' ||
+        f.phase === 'ABORTED' ||
+        f.phase === 'CRASH_LANDED'
+      ) {
+        continue
+      }
+      const def = getColonyShipDef(f.variantId)
+      const tel = flightTelemetrySnapshot(f)
+      const isStarving = tel.crewStarvationTimer > 0 && tel.crewAlive > 0
+      const isStranded = f.phase === 'STRANDED'
+      const isEmptyHulk = f.phase === 'EMPTY_HULK'
+      // Higher score = more distressed. EMPTY_HULK + STRANDED dominate; starving + low power
+      // stack below. Unmanned ships with healthy systems score near zero.
+      let distressScore = 0
+      if (isEmptyHulk) distressScore += 1000
+      if (isStranded) distressScore += 800
+      if (isStarving) distressScore += 400
+      distressScore += (1 - tel.powerPct) * 100
+      distressScore += (1 - tel.lifeSupportPct) * 100
+      out.push({
+        id: String(f.id),
+        label: `${def.emoji} ${def.name}`,
+        powerSource: tel.powerSource,
+        powerPct: Math.round(tel.powerPct * 100),
+        lifeSupportPct: Math.round(tel.lifeSupportPct * 100),
+        crewAlive: tel.crewAlive,
+        crewTotal: f.citizensAboard,
+        isStarving,
+        isStranded,
+        isEmptyHulk,
+        autoGuidance: tel.autoGuidanceInstalled,
+        distressScore,
+      })
+    }
+    out.sort((a, b) => b.distressScore - a.distressScore)
+    return out.slice(0, 3).map(({ distressScore: _omit, ...rest }) => {
+      void _omit
+      return rest
+    })
   }, [activeFlights])
 
   // PHASE 16.20: LCD slot 10 MINER DETAIL live data — top 3 mining ships by cargo% across all
@@ -292,10 +375,36 @@ export function TelemetryRack({
             <div className="telemetry-rack__line">Idle: {padCounts.idle}</div>
           </LCDSlot>
 
-          <LCDSlot slot={3} title="SHIP SYSTEMS" status="stub">
-            <div className="telemetry-rack__stub">
-              Per-pad missile-systems breakdown — landing with build-phase machine wire-up.
-            </div>
+          <LCDSlot slot={3} title="SHIP SYSTEMS" status="live">
+            {topShipSystems.length === 0 ? (
+              <div className="telemetry-rack__stub">No active colony-ship flights.</div>
+            ) : (
+              <>
+                {topShipSystems.map((s) => {
+                  const powerGlyph =
+                    s.powerSource === 'solar' ? '🔆' : s.powerSource === 'battery' ? '🔋' : '⚛️'
+                  const crewLabel =
+                    s.crewTotal === 0
+                      ? 'unmanned'
+                      : `👥 ${s.crewAlive.toLocaleString()}/${s.crewTotal.toLocaleString()}`
+                  const flags = [
+                    s.isEmptyHulk ? '🪦 HULK' : null,
+                    s.isStranded ? '🛰️ STRANDED' : null,
+                    s.isStarving ? '⚠️ STARVING' : null,
+                    s.autoGuidance ? '🤖 AUTO' : null,
+                  ]
+                    .filter((x): x is string => x !== null)
+                    .join(' ')
+                  return (
+                    <div key={s.id} className="telemetry-rack__line">
+                      {s.label} · {powerGlyph} <strong>{s.powerPct}%</strong> · LS{' '}
+                      {s.lifeSupportPct}% · {crewLabel}
+                      {flags ? ` · ${flags}` : ''}
+                    </div>
+                  )
+                })}
+              </>
+            )}
           </LCDSlot>
 
           <LCDSlot slot={4} title="INV CYCLE" status="live">
@@ -347,8 +456,8 @@ export function TelemetryRack({
               <>
                 {topFlightStatus.map((f) => (
                   <div key={f.id} className="telemetry-rack__line">
-                    {f.label} · <strong>{f.distToTargetKm.toFixed(1)}km</strong> ↓{f.closingSpeed}
-                    m/s · {f.phase}
+                    {f.modeEmoji} {f.label} · <strong>{f.distToTargetKm.toFixed(1)}km</strong> ↓
+                    {f.closingSpeed}m/s · {f.phase}
                     {f.signalLost ? ' 📡✕' : ''} · 👥 {f.citizens.toLocaleString()}
                   </div>
                 ))}

@@ -63,6 +63,56 @@ export type FlightPhase =
 
 export type ColonyShipOutcome = PadOutcome
 
+// PHASE 16.33 — UMS 6 targeting modes per SMOL_REFERENCE_MISSILE.md UnityMissile.cs spec.
+// Each mode reflects a different guidance package that biases the per-flight dispersion radius:
+// - GPS:       baseline 1.0× dispersion. Always available — orbital position update from civ pad.
+// - ANTENNA:   1.2× — radio direction-finding, jammable, looser lock.
+// - SENSOR:    0.9× — passive thermal/RF sensor lock-on, slightly tighter.
+// - LIDAR:     0.6× — active range-imaging, tight terminal guidance.
+// - MANUAL:    1.1× — pilot-aimed pre-launch waypoint, deterministic but coarser than GPS.
+// - SATELLITE: 0.3× — orbital laser-relay handoff, near-perfect guidance. UMS sat-laser tech.
+// Modes are wired through the launch flow + persisted on each flight so LCD slot 8 + the flight
+// detail panel can render the mode badge per ship. Tech-gating happens in TargetingModePanel.
+export type TargetingMode = 'GPS' | 'ANTENNA' | 'SENSOR' | 'LIDAR' | 'MANUAL' | 'SATELLITE'
+
+export const TARGETING_MODE_DISPERSION_MULTIPLIER: Readonly<Record<TargetingMode, number>> = {
+  GPS: 1.0,
+  ANTENNA: 1.2,
+  SENSOR: 0.9,
+  LIDAR: 0.6,
+  MANUAL: 1.1,
+  SATELLITE: 0.3,
+}
+
+export const TARGETING_MODE_EMOJI: Readonly<Record<TargetingMode, string>> = {
+  GPS: '🛰️',
+  ANTENNA: '📡',
+  SENSOR: '📍',
+  LIDAR: '🔬',
+  MANUAL: '✋',
+  SATELLITE: '🛸',
+}
+
+export const TARGETING_MODE_LABEL: Readonly<Record<TargetingMode, string>> = {
+  GPS: 'GPS',
+  ANTENNA: 'Antenna',
+  SENSOR: 'Sensor',
+  LIDAR: 'LIDAR',
+  MANUAL: 'Manual',
+  SATELLITE: 'Satellite',
+}
+
+export const TARGETING_MODE_DESCRIPTION: Readonly<Record<TargetingMode, string>> = {
+  GPS: 'Orbital position update from pad — always-available baseline guidance.',
+  ANTENNA: 'Radio direction-finding lock — jammable, looser terminal scatter.',
+  SENSOR: 'Passive thermal/RF lock-on — slightly tighter than GPS.',
+  LIDAR: 'Active range-imaging — tight terminal guidance, requires LIDAR array.',
+  MANUAL: 'Pilot-aimed pre-launch waypoint — deterministic but coarser than GPS.',
+  SATELLITE: 'Orbital laser-relay handoff — near-perfect guidance via UMS sat-laser tech.',
+}
+
+const DEFAULT_TARGETING_MODE: TargetingMode = 'GPS'
+
 declare const __flightBrand: unique symbol
 type Brand<T, B> = T & { readonly [__flightBrand]: B }
 export type ColonyShipFlightId = Brand<string, 'ColonyShipFlightId'>
@@ -147,6 +197,11 @@ export interface ColonyShipFlight {
   outcome: ColonyShipOutcome | null
   signalLossSeed: number
   citizensAboard: number
+  // PHASE 16.33 — UMS 6-mode targeting selection at launch. Default GPS for backwards compat
+  // when older flight records lack the field (older saves and AI auto-launches that don't pick
+  // a mode). Mode is preserved across redirect (god-control) so the same guidance package
+  // applies post-redirect. Mode biases dispersion radius via TARGETING_MODE_DISPERSION_MULTIPLIER.
+  readonly targetingMode: TargetingMode
 }
 
 export interface FlightCreateOptions {
@@ -161,6 +216,9 @@ export interface FlightCreateOptions {
   readonly tickSpeedMultiplier?: number
   readonly citizensAboard: number
   readonly signalLossSeed?: number
+  // PHASE 16.33 — optional. Defaults to GPS when omitted (AI / auto-fire / legacy code paths).
+  // Player-facing launch flows thread the selected mode through from TargetingModePanel state.
+  readonly targetingMode?: TargetingMode
 }
 
 export const BASE_TRAVEL_SPEED_PER_TICK = 5
@@ -189,26 +247,30 @@ function pseudoRandomPerpendicularUnit(axis: Vec3, seed: number): Vec3 {
   return vec3Normalize(vec3Add(vec3Scale(tangent1, cos), vec3Scale(tangent2, sin)))
 }
 
-function computeDispersionRadius(def: ColonyShipDef, seed: number): number {
+function computeDispersionRadius(def: ColonyShipDef, seed: number, mode: TargetingMode): number {
   // UMS-faithful: better guidance package (speedMultiplier × evasionMultiplier) tightens
   // the terminal dispersion. The seed contribution is bounded — even worst-roll on a high-
-  // spec ship stays within reasonable terminal radius.
+  // spec ship stays within reasonable terminal radius. PHASE 16.33 layers the targeting-mode
+  // multiplier on top — LIDAR/SATELLITE tighten further, ANTENNA/MANUAL widen.
   const guidanceFactor = Math.max(MIN_GUIDANCE_FACTOR, def.speedMultiplier * def.evasionMultiplier)
   const seedNoise = pseudoRandom(seed + 19)
   const noiseScalar = NOISE_FLOOR + (1 - NOISE_FLOOR) * seedNoise
-  return (BASE_DISPERSION_RADIUS / guidanceFactor) * noiseScalar
+  const modeMultiplier = TARGETING_MODE_DISPERSION_MULTIPLIER[mode]
+  return (BASE_DISPERSION_RADIUS / guidanceFactor) * noiseScalar * modeMultiplier
 }
 
 export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight {
   const def = getColonyShipDef(opts.variantId)
   const seed = opts.signalLossSeed ?? 0
+  const targetingMode = opts.targetingMode ?? DEFAULT_TARGETING_MODE
 
   // PHASE 16.21 dispersion offset — UMS-faithful per SMOL_REFERENCE_TRAJECTORY.md §19.
   // Direction of the offset is in the plane perpendicular to the line-of-arrival
   // (target - from), so the offset is a lateral / above-or-below miss, not a long/short.
+  // PHASE 16.33 — targeting mode biases the dispersion radius via computeDispersionRadius.
   const lineOfArrival = vec3Sub(opts.targetPosition, opts.fromPosition)
   const offsetDir = pseudoRandomPerpendicularUnit(lineOfArrival, seed)
-  const dispersionRadius = computeDispersionRadius(def, seed)
+  const dispersionRadius = computeDispersionRadius(def, seed, targetingMode)
   const adjustedTarget: Vec3 = vec3Add(opts.targetPosition, vec3Scale(offsetDir, dispersionRadius))
 
   const arc = newSphericalArc(opts.fromPosition, adjustedTarget, opts.travelRadius)
@@ -252,6 +314,7 @@ export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight
     outcome: null,
     signalLossSeed: seed,
     citizensAboard: opts.citizensAboard,
+    targetingMode,
   }
 }
 
@@ -595,6 +658,9 @@ export interface FlightTelemetrySnapshot {
   readonly autoGuidanceInstalled: boolean
   readonly distFromLaunch: number
   readonly hulkTicksDrifted: number
+  // PHASE 16.33 — UMS 6-mode targeting selection per flight. Surfaced so LCD slot 8 +
+  // FlightDetailPanel header can render the mode badge.
+  readonly targetingMode: TargetingMode
 }
 
 export function flightTelemetrySnapshot(flight: ColonyShipFlight): FlightTelemetrySnapshot {
@@ -653,6 +719,7 @@ export function flightTelemetrySnapshot(flight: ColonyShipFlight): FlightTelemet
     autoGuidanceInstalled: flight.autoGuidanceInstalled,
     distFromLaunch,
     hulkTicksDrifted: flight.hulkTicksDrifted,
+    targetingMode: flight.targetingMode,
   }
 }
 

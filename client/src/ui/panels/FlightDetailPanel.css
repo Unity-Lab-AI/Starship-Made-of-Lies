@@ -112,6 +112,18 @@
   white-space: nowrap;
 }
 
+.flight-detail-panel__mode-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(167, 139, 250, 0.16);
+  border: 1px solid rgba(167, 139, 250, 0.55);
+  color: #c4b5fd;
+  white-space: nowrap;
+}
+
 .flight-detail-panel__close {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
