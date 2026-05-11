@@ -1,3 +1,8 @@
+import {
+  AI_DECISION_INTERVAL_MULTIPLIER,
+  AI_DECISION_INTERVAL_MULTIPLIER_BRUTAL,
+} from './balance-constants'
+
 export type AIDifficultyLevel = 'easy' | 'medium' | 'hard' | 'brutal'
 
 export interface AIDifficultyConfig {
@@ -16,13 +21,20 @@ export interface AIDifficultyConfig {
   readonly suboptimalChoiceProbability: number
 }
 
+// PHASE 17.B.4 — decision intervals scaled by the saga multiplier so non-brutal AI think
+// 2.5× slower across a 10-24h match. Brutal stays unmultiplied (×1.0) — its identity is
+// "instant decisions"; diluting it would make Brutal stop being brutal.
+const SAGA = (raw: number): number => Math.max(1, Math.round(raw * AI_DECISION_INTERVAL_MULTIPLIER))
+const SAGA_BRUTAL = (raw: number): number =>
+  Math.max(1, Math.round(raw * AI_DECISION_INTERVAL_MULTIPLIER_BRUTAL))
+
 export const AI_DIFFICULTY_CONFIGS: Readonly<Record<AIDifficultyLevel, AIDifficultyConfig>> = {
   easy: {
     level: 'easy',
     name: 'Easy',
     emoji: '🌱',
     description: 'slower decisions, smaller resource cushion, suboptimal targeting',
-    decisionIntervalTicks: 12,
+    decisionIntervalTicks: SAGA(12),
     resourceCushionMultiplier: 0.7,
     targetingAccuracyBonus: -0.15,
     themeBiasLethalMultiplier: 0.8,
@@ -37,7 +49,7 @@ export const AI_DIFFICULTY_CONFIGS: Readonly<Record<AIDifficultyLevel, AIDifficu
     name: 'Medium',
     emoji: '⚖️',
     description: 'balanced',
-    decisionIntervalTicks: 8,
+    decisionIntervalTicks: SAGA(8),
     resourceCushionMultiplier: 1.0,
     targetingAccuracyBonus: 0,
     themeBiasLethalMultiplier: 1.0,
@@ -52,7 +64,7 @@ export const AI_DIFFICULTY_CONFIGS: Readonly<Record<AIDifficultyLevel, AIDifficu
     name: 'Hard',
     emoji: '🔥',
     description: 'faster decisions, optimized targeting',
-    decisionIntervalTicks: 4,
+    decisionIntervalTicks: SAGA(4),
     resourceCushionMultiplier: 1.25,
     targetingAccuracyBonus: 0.15,
     themeBiasLethalMultiplier: 1.3,
@@ -68,7 +80,7 @@ export const AI_DIFFICULTY_CONFIGS: Readonly<Record<AIDifficultyLevel, AIDifficu
     emoji: '💀',
     description:
       'instant decisions, perfect targeting, theme-bias lethal — e.g., Brutal Surveillance always knows your plans',
-    decisionIntervalTicks: 1,
+    decisionIntervalTicks: SAGA_BRUTAL(1),
     resourceCushionMultiplier: 1.6,
     targetingAccuracyBonus: 0.35,
     themeBiasLethalMultiplier: 1.8,

@@ -53,12 +53,19 @@ import {
   BLDG_LUMBER_CAMP,
   BLDG_MINE,
   BLDG_MINE_FIELD,
+  BLDG_MINING_OUTPOST,
   BLDG_TV_STATION,
   CAMPAIGNS,
   COLONY_SHIPS,
   LAST_HOPE_BUILD_TICKS,
   LAST_HOPE_LAUNCH_TICKS,
   LAST_HOPE_PACK_TICKS,
+  MAX_MINERS_PER_OUTPOST,
+  MINING_OUTPOST_SHIP_COST_COMPONENTS,
+  MINING_OUTPOST_SHIP_COST_FUEL,
+  MINING_OUTPOST_SHIP_COST_INGOTS,
+  MINING_OUTPOST_SHIP_INTERVAL_TICKS,
+  RESEARCH_POINT_DIVISOR,
   RESOURCE_AMMUNITION,
   RESOURCE_BRICKS,
   RESOURCE_COMPONENTS,
@@ -92,7 +99,6 @@ import {
   createLootDrop,
   discoverPlanet,
   deathsInWindow,
-  defaultHomeDockPosition,
   deceptionPenalties,
   defaultBuildFromShipDef,
   deriveCrashLootFromShipPayload,
@@ -154,6 +160,7 @@ import {
   tickMiningShip,
   tickPad,
   tickPlanetProduction,
+  tileWorldPosition,
   tickResearch,
   tickTierPromotion,
   totalPopulation,
@@ -209,6 +216,13 @@ export interface MatchPlanetState {
   // tile → a MineField is created at the tile's world position. Per-tick intercept check
   // compares each in-flight ship arc position vs every mine field on the target planet.
   mineFields: MineField[]
+  // PHASE 17.B.2 — per-outpost build-progress counter. Each BLDG_MINING_OUTPOST tile accrues
+  // build progress every tick; when it crosses MINING_OUTPOST_SHIP_INTERVAL_TICKS the outpost
+  // tries to spawn one mining ship (gated on resource cost + per-outpost miner cap).
+  outpostBuildTicks: Map<TileId, number>
+  // PHASE 17.B.2 — monotonic miner serial per planet so generated ids never collide even when
+  // multiple outposts spawn on the same tick.
+  nextMinerSerial: number
 }
 
 export interface MatchCivState {
@@ -464,7 +478,6 @@ export function createMatch(config: MatchConfig): MatchState {
     resolvedObjectiveId: null,
     rng,
   }
-  spawnInitialMiningShips(state)
   return state
 }
 
@@ -501,25 +514,104 @@ function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
     activeCampaigns: [],
     mineFields: [],
     indigenousCivId: null,
+    outpostBuildTicks: new Map(),
+    nextMinerSerial: 0,
   }
 }
 
-// Spawn 2 mining ships per civ at match start on their home planet (UMS-style auto-shuttle
-// fleet). Each ship cycles DOCKED → OUTBOUND → DRILLING → INBOUND → OFFLOADING against the
-// planet's ResourceNode deposits. Per `feedback_resource_miners_need_deposits.md`.
-const STARTING_MINING_SHIPS_PER_CIV = 2
+// PHASE 17.B.2 — outpost-driven miner spawning. Auto-spawn at match start violated the
+// "build it to use it" gameplay rule (per user verbatim *"miners should be BUILT not given
+// for free"*). Mining ships now come exclusively from BLDG_MINING_OUTPOST buildings: each
+// outpost accumulates build progress, and when the counter crosses MINING_OUTPOST_SHIP_INTERVAL_TICKS
+// it spends INGOTS + COMPONENTS + FUEL to assemble one ship — gated on a per-outpost cap so
+// runaway production can't happen. Tunables live in shared/sim/balance-constants per 17.B.4.
 
-function spawnInitialMiningShips(state: MatchState): void {
-  for (const civState of state.civs.values()) {
-    const home = state.planets.get(civState.homePlanetId)
-    if (!home) continue
-    const dockPos = defaultHomeDockPosition(home.planet.position, home.planet.surfaceRadius)
-    for (let i = 0; i < STARTING_MINING_SHIPS_PER_CIV; i++) {
-      const shipId = `${civState.civId}-miner-${i + 1}`
-      const shipName = `${civState.theme.emoji} Drone ${String.fromCharCode(65 + i)}`
-      const ship = newMiningShip(shipId, shipName, civState.civId, home.planet.id, dockPos)
-      home.miningShips.set(shipId, ship)
+// Mining ship dock offset above the outpost tile (along the tile's outward normal). Far enough
+// that the ship renders clear of the surface but close enough that visual association is obvious.
+// This stays local — it's a rendering-adjacent constant, not a balance lever.
+const MINING_OUTPOST_DOCK_OFFSET = 30
+
+// PHASE 17.B.2 + 17.B.3 — per-outpost mining-ship spawn tick. Walks every BLDG_MINING_OUTPOST
+// tile, increments its build counter, and when ready attempts a paid spawn. Spawned ship's
+// homeTileId + homePosition track the outpost tile so 17.B.3's "ship returns to its outpost,
+// not to the planet's north pole" contract holds. Owner check is implicit — buildingsByTile is
+// keyed on owned tiles only because placeBuildingCanonical refuses non-owned tiles.
+function tickMiningOutpost(state: MatchState, planetState: MatchPlanetState): void {
+  for (const [tileId, defId] of planetState.buildingsByTile) {
+    if (defId !== BLDG_MINING_OUTPOST) continue
+    const tile = planetState.planet.tiles.find((t) => t.id === tileId)
+    if (!tile) continue
+    const progress = (planetState.outpostBuildTicks.get(tileId) ?? 0) + 1
+    if (progress < MINING_OUTPOST_SHIP_INTERVAL_TICKS) {
+      planetState.outpostBuildTicks.set(tileId, progress)
+      continue
     }
+    // Check per-outpost cap.
+    let minersAtThisOutpost = 0
+    for (const ship of planetState.miningShips.values()) {
+      if (ship.homeTileId === tileId) minersAtThisOutpost += 1
+    }
+    if (minersAtThisOutpost >= MAX_MINERS_PER_OUTPOST) {
+      // Cap reached — leave progress pegged at the spawn threshold so the moment a miner is
+      // lost / scrapped the next one is ready to go. Avoids wasted ticks.
+      planetState.outpostBuildTicks.set(tileId, MINING_OUTPOST_SHIP_INTERVAL_TICKS)
+      continue
+    }
+    // Resource check.
+    const ingots = stockOf(planetState.inventory, RESOURCE_INGOTS)
+    const components = stockOf(planetState.inventory, RESOURCE_COMPONENTS)
+    const fuel = stockOf(planetState.inventory, RESOURCE_FUEL)
+    if (
+      ingots < MINING_OUTPOST_SHIP_COST_INGOTS ||
+      components < MINING_OUTPOST_SHIP_COST_COMPONENTS ||
+      fuel < MINING_OUTPOST_SHIP_COST_FUEL
+    ) {
+      // Materials short — pin progress, retry next tick.
+      planetState.outpostBuildTicks.set(tileId, MINING_OUTPOST_SHIP_INTERVAL_TICKS)
+      continue
+    }
+    // Deduct + spawn.
+    planetState.inventory.stocks.set(RESOURCE_INGOTS, ingots - MINING_OUTPOST_SHIP_COST_INGOTS)
+    planetState.inventory.stocks.set(
+      RESOURCE_COMPONENTS,
+      components - MINING_OUTPOST_SHIP_COST_COMPONENTS,
+    )
+    planetState.inventory.stocks.set(RESOURCE_FUEL, fuel - MINING_OUTPOST_SHIP_COST_FUEL)
+    planetState.outpostBuildTicks.set(tileId, 0)
+
+    const civState = state.civs.get(planetState.civId)
+    const themeEmoji = civState?.theme.emoji ?? '⛏️'
+    const serial = planetState.nextMinerSerial + 1
+    planetState.nextMinerSerial = serial
+    const shipId = `${planetState.civId}-miner-${String(tileId)}-${serial}`
+    const shipName = `${themeEmoji} Drone ${serial}`
+    // 17.B.3: dock position = tile centroid extended along the outward normal by
+    // MINING_OUTPOST_DOCK_OFFSET. The centroid is at distance surfaceRadius from planet
+    // center, so scaling by (R + offset)/R lifts the dock that much above the surface.
+    const planetPos = planetState.planet.position
+    const surfR = planetState.planet.surfaceRadius
+    const scale = surfR > 0 ? (surfR + MINING_OUTPOST_DOCK_OFFSET) / surfR : 1
+    const tileWorld = tileWorldPosition(tile, planetState.planet)
+    const dockPos = {
+      x: planetPos.x + (tileWorld.x - planetPos.x) * scale,
+      y: planetPos.y + (tileWorld.y - planetPos.y) * scale,
+      z: planetPos.z + (tileWorld.z - planetPos.z) * scale,
+    }
+    const ship = newMiningShip(
+      shipId,
+      shipName,
+      planetState.civId,
+      planetState.planet.id,
+      dockPos,
+      tileId,
+    )
+    planetState.miningShips.set(shipId, ship)
+    pushEvent(state, {
+      atTick: state.currentTick,
+      civId: planetState.civId,
+      kind: 'build',
+      message: `⛏️ Mining outpost rolled out ${shipName}.`,
+    })
   }
 }
 
@@ -833,6 +925,11 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
     tickPad(pad, planetState.inventory)
   }
 
+  // PHASE 17.B.2 — outposts drive miner production. Each tick, every mining outpost on this
+  // planet accumulates build progress and pays out a new miner when it hits the threshold +
+  // resource cost + per-outpost cap.
+  tickMiningOutpost(state, planetState)
+
   // Mining ship auto-shuttle tick — each ship picks the closest non-depleted ResourceNode,
   // travels to it, drills, returns, offloads into PlanetInventory.stocks. Beacons broadcast
   // every 2 ticks (UMS MINER_BEACON cadence) so MiningFleetPanel + telemetry rack stay live.
@@ -922,7 +1019,11 @@ function tickCivResearch(state: MatchState, civState: MatchCivState): void {
       }),
     )
   }
-  const aggregate = aggregateEmpireResearchPoints(civState.empire, points)
+  const rawAggregate = aggregateEmpireResearchPoints(civState.empire, points)
+  // PHASE 17.B.4 — research throttle for the locked 10-24h saga. Same costPoints, fewer
+  // points/tick = each tech takes RESEARCH_POINT_DIVISOR× longer to research. Keeps the
+  // tech.ts cost numbers intact while making "rush to galactic apex" a real long climb.
+  const aggregate = Math.max(0, Math.floor(rawAggregate / RESEARCH_POINT_DIVISOR))
   if (aggregate <= 0) return
   if (!civState.empire.activeResearchTechId) return
   const result = tickResearch(civState.empire, aggregate)

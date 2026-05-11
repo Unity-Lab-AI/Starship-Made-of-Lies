@@ -1,4 +1,4 @@
-import { type CivId, type PlanetId, type ResourceId, type Vec3 } from '../types/index'
+import { type CivId, type PlanetId, type ResourceId, type TileId, type Vec3 } from '../types/index'
 import { type Planet } from '../gen/planet'
 import { type PlanetInventory } from './inventory'
 import { drillResourceNode, isDepleted, type ResourceNode } from './resource-node'
@@ -24,12 +24,19 @@ const BATTERY_RECHARGE_DOCKED = 1.8
 const MIN_FUEL_TO_LAUNCH = 25
 const MIN_BATTERY_TO_LAUNCH = 25
 const BEACON_INTERVAL_TICKS = 2
+// PHASE 17.B.5 — NO_SIGNAL handling. Ship crawls home at half speed (battery-only, no comms).
+// Mirrors UMS UnityBeacon laser-home fallback when the antenna mesh is offline.
+const NO_SIGNAL_CRAWL_SPEED_UNITS_PER_TICK = 40
+const NO_SIGNAL_BATTERY_BURN = 0.2
 
 export interface MiningShip {
   readonly id: string
   readonly shipName: string
   readonly civId: CivId
   readonly homePlanetId: PlanetId
+  // PHASE 17.B.3 — tile this ship returns to. Set when the ship is spawned by a
+  // BLDG_MINING_OUTPOST. null for legacy / non-outpost-spawned ships.
+  readonly homeTileId: TileId | null
   status: ShipBeaconStatus
   worldPosition: Vec3
   readonly homePosition: Vec3
@@ -45,6 +52,11 @@ export interface MiningShip {
   travelStartPosition: Vec3
   offloadTicksRemaining: number
   ticksInStatus: number
+  // PHASE 17.B.5 — when status flips to NO_SIGNAL the ship aborts whatever it was doing and
+  // attempts a LASER_HOME crawl back to homePosition. Tracks how many ticks the ship has
+  // been signal-dark so the beacon can broadcast "stranded for N ticks" and the player can
+  // decide to abandon vs. rescue.
+  ticksInNoSignal: number
 }
 
 export function newMiningShip(
@@ -53,12 +65,14 @@ export function newMiningShip(
   civId: CivId,
   homePlanetId: PlanetId,
   homePosition: Vec3,
+  homeTileId: TileId | null = null,
 ): MiningShip {
   return {
     id,
     shipName,
     civId,
     homePlanetId,
+    homeTileId,
     status: 'DOCKED',
     worldPosition: { ...homePosition },
     homePosition: { ...homePosition },
@@ -74,6 +88,7 @@ export function newMiningShip(
     travelStartPosition: { ...homePosition },
     offloadTicksRemaining: 0,
     ticksInStatus: 0,
+    ticksInNoSignal: 0,
   }
 }
 
@@ -273,7 +288,31 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
     }
 
     case 'NO_SIGNAL': {
-      // Reserved for fog-of-war / signal-loss handling — PHASE 16.8.
+      // PHASE 17.B.5 — signal-lost crawl-home behavior. The ship drops drilling, broadcasts
+      // a "stranded" beacon, and crawls toward homePosition at half normal speed on battery
+      // alone (no fuel use — the engines are throttled by the offline autopilot). If battery
+      // dies en route the ship sits dead in space; if it reaches home it re-docks and the
+      // normal cycle resumes. UMS UnityBeacon laser-home parity.
+      ship.ticksInNoSignal += 1
+      ship.targetNodeId = null
+      const dx = ship.homePosition.x - ship.worldPosition.x
+      const dy = ship.homePosition.y - ship.worldPosition.y
+      const dz = ship.homePosition.z - ship.worldPosition.z
+      const dist = Math.hypot(dx, dy, dz)
+      if (dist <= NO_SIGNAL_CRAWL_SPEED_UNITS_PER_TICK) {
+        ship.worldPosition = { ...ship.homePosition }
+        ship.status = 'DOCKED'
+        ship.ticksInStatus = 0
+        ship.ticksInNoSignal = 0
+      } else if (ship.batteryPercent > 0) {
+        const t = NO_SIGNAL_CRAWL_SPEED_UNITS_PER_TICK / dist
+        ship.worldPosition = {
+          x: ship.worldPosition.x + dx * t,
+          y: ship.worldPosition.y + dy * t,
+          z: ship.worldPosition.z + dz * t,
+        }
+        ship.batteryPercent = Math.max(0, ship.batteryPercent - NO_SIGNAL_BATTERY_BURN)
+      }
       break
     }
   }

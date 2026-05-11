@@ -4,6 +4,9 @@ import {
   type MissionObjectiveConfig,
   type PlaystyleArchetype,
   type ThemeId,
+  MATCH_LENGTH_TICKS_BLITZ,
+  MATCH_LENGTH_TICKS_EPIC,
+  MATCH_LENGTH_TICKS_STANDARD,
   THEMES,
   rollDistinctThemes,
 } from '@smol/shared'
@@ -291,13 +294,14 @@ export function transitionToComplete(lobby: Lobby): void {
 }
 
 export function matchLengthInTicks(matchLength: MatchLength): number {
+  // PHASE 17.B.4 — caps sourced from balance-constants per the locked 10-24h saga design.
   switch (matchLength) {
     case 'blitz':
-      return 1500
+      return MATCH_LENGTH_TICKS_BLITZ
     case 'standard':
-      return 4500
+      return MATCH_LENGTH_TICKS_STANDARD
     case 'epic':
-      return 9000
+      return MATCH_LENGTH_TICKS_EPIC
     case 'open':
       return Number.POSITIVE_INFINITY
   }
