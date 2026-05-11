@@ -67,6 +67,7 @@ import {
   RESOURCE_PROPAGANDA_MATERIALS,
   RESOURCE_STONE,
   RESOURCE_WOOD,
+  SHIP_COUNTER_COLONY,
   SHIP_SCOUT,
   SHIP_STANDARD,
   THEMES,
@@ -114,9 +115,13 @@ import {
   newMiningShip,
   newPlanetBeacon,
   newPlanetInventory,
+  abortFlight,
+  attemptCounterMissileLaunch,
   computeDetonationAoE,
+  intercept,
   mineFieldCheckIntercept,
   newMineField,
+  tickCounterFlight,
   newPlanetPopulation,
   newPlanetShipBeaconBuffer,
   newPlanetWorkforce,
@@ -212,6 +217,12 @@ export interface MatchState {
   readonly civs: Map<CivId, MatchCivState>
   readonly planets: Map<PlanetId, MatchPlanetState>
   readonly flights: Map<string, ColonyShipFlight>
+  // PHASE 16.29: counter-colony-ship intercept tracking. counterFlightTargets maps each
+  // active counter-flight id → the attacker flight id it is chasing. counterLaunchesByAttacker
+  // tracks which defender civs have already launched a counter against each attacker (one
+  // counter per defender per attacker — no spam).
+  readonly counterFlightTargets: Map<string, string>
+  readonly counterLaunchesByAttacker: Map<string, Set<CivId>>
   readonly humanCivId: CivId
   readonly objectives: ReadonlyArray<MissionObjectiveConfig>
   readonly tickCap: number | null
@@ -264,6 +275,14 @@ const LAST_HOPE_AUTO_CHECK_INTERVAL = 50
 const LAST_HOPE_GRACE_PERIOD_TICKS = 300
 const LAST_HOPE_DEATH_WINDOW_TICKS = 100
 const INDIGENOUS_PARLEY_INTERVAL = 60
+// PHASE 16.29: counter-colony-ship tunables. Resource cost mirrors SHIP_COUNTER_COLONY def
+// (fuel=50, ammo=100) — defender consumes these instantly per counter-launch, NO pad build
+// cycle (UMS-faithful counter-missile silo semantics). Travel radius tighter than attacker
+// (800 vs 1000) because counters intercept mid-arc, not cross interplanetary.
+const COUNTER_FUEL_COST = 50
+const COUNTER_AMMO_COST = 100
+const COUNTER_PAYLOAD_TIER_REQUIRED = 3
+const COUNTER_TRAVEL_RADIUS = 800
 
 export function createMatch(config: MatchConfig): MatchState {
   const galaxy = generateGalaxy({ seed: config.seed, planetCount: config.planetCount })
@@ -371,6 +390,8 @@ export function createMatch(config: MatchConfig): MatchState {
     civs,
     planets,
     flights: new Map(),
+    counterFlightTargets: new Map(),
+    counterLaunchesByAttacker: new Map(),
     humanCivId,
     objectives: config.objectives,
     tickCap: config.tickCapOverride,
@@ -483,6 +504,51 @@ export function tickMatch(state: MatchState): void {
 
   for (const flight of [...state.flights.values()]) {
     tickFlight(flight)
+    const flightDef = getColonyShipDef(flight.variantId)
+    const flightIdStr = String(flight.id)
+    // PHASE 16.29: counter-colony-ship intercept tick. If this flight is a counter chasing
+    // a registered attacker, run tickCounterFlight proximity check. On intercept both ships
+    // die (attacker via intercept() inside tickCounterFlight; counter via intercept() here).
+    // If the attacker is gone or already terminal, the counter self-destructs in space —
+    // no AoE on the defender's own planet.
+    if (flightDef.canIntercept && state.counterFlightTargets.has(flightIdStr)) {
+      const attackerId = state.counterFlightTargets.get(flightIdStr)!
+      const attackerFlight = state.flights.get(attackerId)
+      const attackerStillAlive =
+        attackerFlight !== undefined &&
+        attackerFlight.phase !== 'DETONATE' &&
+        attackerFlight.phase !== 'INTERCEPTED' &&
+        attackerFlight.phase !== 'ABORTED' &&
+        attackerFlight.phase !== 'CRASH_LANDED'
+      if (!attackerStillAlive) {
+        abortFlight(flight)
+      } else {
+        const result = tickCounterFlight(flight, attackerFlight!)
+        if (result.intercepted) {
+          pushEvent(state, {
+            atTick: state.currentTick,
+            civId: flight.launchingCivId,
+            kind: 'intercept',
+            message: `🛡️ Counter-ship intercepted ${String(attackerFlight!.id)} mid-flight.`,
+          })
+          intercept(flight, flight.launchingCivId, 'counter-ship')
+        }
+      }
+    }
+    // PHASE 16.29: defender counter-launch evaluation for incoming attackers. Each defender
+    // owning the attacker's target planet gets one counter-launch attempt per attacker, gated
+    // on tier-3+ ship tech + sufficient fuel/ammo. Mirrors UMS counter-missile silo behavior
+    // (instant fire-from-pad). See SMOL_REFERENCE_TRAJECTORY §18 for the intercept geometry.
+    if (!flightDef.canIntercept) {
+      const isInTerminalPhase =
+        flight.phase === 'DETONATE' ||
+        flight.phase === 'INTERCEPTED' ||
+        flight.phase === 'ABORTED' ||
+        flight.phase === 'CRASH_LANDED'
+      if (!isInTerminalPhase) {
+        attemptDefenderCounterLaunch(state, flight, flightIdStr)
+      }
+    }
     // PHASE 16.22: per-tick mine-field intercept check per UMS UnityPad.cs mine logic +
     // SMOL_REFERENCE_TRAJECTORY §17. For each in-flight ship, walk the target planet's
     // mineFields[] and call mineFieldCheckIntercept — flips flight.phase to INTERCEPTED
@@ -1094,6 +1160,66 @@ function countIncomingHostileFor(state: MatchState, defenderCivId: CivId): numbe
   return count
 }
 
+// PHASE 16.29 — defender counter-launch evaluation. Called per-tick for every in-flight
+// attacker (non-counter, non-terminal). The civ that owns the attacker's target planet gets
+// ONE counter-launch attempt per attacker, gated on tier-3+ ship tech + fuel/ammo. Once
+// `solveIntercept` confirms a viable intercept, the counter-flight is spawned with the
+// computed intercept point as its arc endpoint and registered in counterFlightTargets so
+// the flight loop's counter-tick block runs proximity checks every tick.
+function attemptDefenderCounterLaunch(
+  state: MatchState,
+  attacker: ColonyShipFlight,
+  attackerIdStr: string,
+): void {
+  const targetPlanet = state.planets.get(attacker.targetPlanetId)
+  if (!targetPlanet) return
+  const defenderCiv = state.civs.get(targetPlanet.civId)
+  if (!defenderCiv || !defenderCiv.alive) return
+  if (defenderCiv.civId === attacker.launchingCivId) return
+
+  let launched = state.counterLaunchesByAttacker.get(attackerIdStr)
+  if (!launched) {
+    launched = new Set<CivId>()
+    state.counterLaunchesByAttacker.set(attackerIdStr, launched)
+  }
+  if (launched.has(defenderCiv.civId)) return
+
+  const techEffects = aggregateEffects(defenderCiv.empire.researchedTechs)
+  if (techEffects.maxPayloadTier < COUNTER_PAYLOAD_TIER_REQUIRED) return
+
+  const fuel = stockOf(targetPlanet.inventory, RESOURCE_FUEL)
+  const ammo = stockOf(targetPlanet.inventory, RESOURCE_AMMUNITION)
+  if (fuel < COUNTER_FUEL_COST || ammo < COUNTER_AMMO_COST) return
+
+  const counterFlightIdStr = `counter-${state.currentTick}-${defenderCiv.civId}-${attackerIdStr}`
+  const result = attemptCounterMissileLaunch(attacker, {
+    defenderCivId: defenderCiv.civId,
+    defenderPlanetId: targetPlanet.planet.id,
+    launchPosition: targetPlanet.planet.position,
+    travelRadius: COUNTER_TRAVEL_RADIUS,
+    counterShipVariantId: SHIP_COUNTER_COLONY,
+    nextFlightId: () => colonyShipFlightId(counterFlightIdStr),
+  })
+  if (!result.canIntercept || !result.counterFlight) return
+
+  targetPlanet.inventory.stocks.set(RESOURCE_FUEL, fuel - COUNTER_FUEL_COST)
+  targetPlanet.inventory.stocks.set(RESOURCE_AMMUNITION, ammo - COUNTER_AMMO_COST)
+
+  const counterIdStr = String(result.counterFlight.id)
+  state.flights.set(counterIdStr, result.counterFlight)
+  state.counterFlightTargets.set(counterIdStr, attackerIdStr)
+  launched.add(defenderCiv.civId)
+
+  const attackerCiv = state.civs.get(attacker.launchingCivId)
+  const attackerThemeEmoji = attackerCiv?.theme.emoji ?? '🚀'
+  pushEvent(state, {
+    atTick: state.currentTick,
+    civId: defenderCiv.civId,
+    kind: 'launch',
+    message: `🛡️ ${defenderCiv.theme.emoji} ${defenderCiv.displayName} counter-launched against incoming ${attackerThemeEmoji} (intercept ETA ~${result.defenderTicksToIntercept}t).`,
+  })
+}
+
 export function triggerLastHopeManually(state: MatchState, civIdParam: CivId): boolean {
   const civState = state.civs.get(civIdParam)
   if (!civState || !civState.alive || civState.lastHopeTriggered) return false
@@ -1165,7 +1291,20 @@ function handleFlightOutcome(state: MatchState, flight: ColonyShipFlight): void 
     // colonization still works. Full verbatim user directive lives in `.claude/TODO.md`
     // PHASE 16.24 entry per LAW #0.
     if (def.suicideShip || def.payload.explosiveYield > 0 || def.payload.weaponPayload > 0) {
-      applyDetonationAoE(state, flight, launchingCiv, targetPlanet)
+      // PHASE 16.29: defensive counters launched FROM the defender's planet have that same
+      // planet as their target (intercept happens mid-arc above defender territory). If a
+      // counter reaches terminal phase without intercepting (its attacker was already gone),
+      // skip friendly-fire AoE — the counter returns or burns up safely.
+      if (targetPlanet.civId === launchingCiv.civId) {
+        pushEvent(state, {
+          atTick: state.currentTick,
+          civId: launchingCiv.civId,
+          kind: 'intercept',
+          message: `🛡️ ${def.emoji} ${def.name} returned to ${String(targetPlanet.planet.id)} (no intercept target).`,
+        })
+      } else {
+        applyDetonationAoE(state, flight, launchingCiv, targetPlanet)
+      }
     } else {
       const build = defaultBuildFromShipDef(def)
       const lastPiece = build.pieces.find((p) => p.startsWith('gear-')) ?? 'gear-none'
@@ -1193,7 +1332,7 @@ function handleFlightOutcome(state: MatchState, flight: ColonyShipFlight): void 
     // empty space — log event but no damage.
     const aborted = state.flights.get(String(flight.id))
     const progress = aborted ? aborted.ticksFlown / Math.max(1, aborted.totalTicks) : 0
-    if (targetPlanet && progress >= 0.3) {
+    if (targetPlanet && progress >= 0.3 && targetPlanet.civId !== launchingCiv.civId) {
       applyDetonationAoE(state, flight, launchingCiv, targetPlanet)
     } else {
       pushEvent(state, {
@@ -1212,7 +1351,12 @@ function handleFlightOutcome(state: MatchState, flight: ColonyShipFlight): void 
       message: `Flight ${String(flight.id)} INTERCEPTED.`,
     })
   }
-  state.flights.delete(String(flight.id))
+  const flightIdStr = String(flight.id)
+  state.flights.delete(flightIdStr)
+  // PHASE 16.29: clean up counter-flight tracking when a flight ends. If this was an
+  // attacker, drop its counter-launches set; if it was a counter, drop its target mapping.
+  state.counterFlightTargets.delete(flightIdStr)
+  state.counterLaunchesByAttacker.delete(flightIdStr)
 }
 
 // PHASE 16.24 — apply AoE damage to target planet population per computeDetonationAoE

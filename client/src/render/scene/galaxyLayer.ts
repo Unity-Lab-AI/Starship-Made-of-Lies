@@ -10,6 +10,7 @@ import {
   type Theme,
   type TileId,
   type Vec3,
+  getColonyShipDef,
   planetRenderRadius,
 } from '@smol/shared'
 
@@ -635,6 +636,12 @@ export function syncFlightArcs(
     if (!sourceMesh || !targetMesh) continue
     const civColor = civColorMap.get(String(flight.launchingCivId)) ?? 0xd4a13a
     const progress = Math.min(1, flight.ticksFlown / Math.max(1, flight.totalTicks))
+    // PHASE 16.29: counter-colony-ships render as smaller, brighter, shorter-dashed cones
+    // so defensive interceptors read distinctly from attacking colony ships at galactic zoom.
+    // Same civ color (so player tells whose counter it is) but the geometry + dash cadence
+    // mark it as an intercept-trail vs. a cruise-arc.
+    const flightDef = getColonyShipDef(flight.variantId)
+    const isCounter = flightDef.canIntercept
 
     let entry = handle.entries.get(flightIdStr)
     if (!entry) {
@@ -647,8 +654,8 @@ export function syncFlightArcs(
       const geom = new THREE.BufferGeometry().setFromPoints(points)
       const mat = new THREE.LineDashedMaterial({
         color: civColor,
-        dashSize: 30,
-        gapSize: 18,
+        dashSize: isCounter ? 18 : 30,
+        gapSize: isCounter ? 10 : 18,
         linewidth: 2,
         transparent: true,
         opacity: 0.85,
@@ -658,11 +665,14 @@ export function syncFlightArcs(
       handle.group.add(line)
       // PHASE 16.x complete-3D-world-space: progress marker is now a directional cone
       // (oriented along arc tangent), not a sphere. Reads as a ship traveling its arc.
-      const dotGeom = new THREE.ConeGeometry(14, 36, 6)
+      // PHASE 16.29: counters use a smaller cone (interceptor missile, not colony ship).
+      const coneRadius = isCounter ? 8 : 14
+      const coneHeight = isCounter ? 22 : 36
+      const dotGeom = new THREE.ConeGeometry(coneRadius, coneHeight, 6)
       const dotMat = new THREE.MeshStandardMaterial({
         color: civColor,
         emissive: civColor,
-        emissiveIntensity: 0.7,
+        emissiveIntensity: isCounter ? 1.1 : 0.7,
         roughness: 0.35,
         metalness: 0.4,
       })
