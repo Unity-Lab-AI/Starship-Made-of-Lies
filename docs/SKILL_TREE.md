@@ -1,12 +1,94 @@
 # STARSHIP MADE OF LIES — Skill Tree
 
-*Last Updated: 2026-05-10*
+*Last Updated: 2026-05-11 (post super-review × 2 + PHASE 17.J added)*
 *Project: SMoL (Starship Made of Lies) — formerly Unity Missile System*
 *Unity AI Lab*
 
-> ## ⚠ REALITY CHECK 2026-05-10
+> ## ⚠ REALITY CHECK 2026-05-11
 >
-> `/super-review` 2026-05-10 measured the SMoL codebase against the UMS canonical spec (the `.claude/SMOL_REFERENCE_*.md` extraction docs). The Status Summary table at the bottom of this skill tree has been updated to reflect what's actually in code vs what's still ⬜ planned. Per-row `⬜ planned` markers below are CORRECT design intent — they capture what each skill SHOULD do. The shipped-vs-pending status is rolled up in the Summary table. Active correction work is tracked in `.claude/TODO.md` PHASE 16.13 (true 3D rebuild per LAW #0) + PHASE 16.14 (doc reality sync). For the per-component UMS-vs-SMoL gap table, see `.claude/ARCHITECTURE.md` REALITY CHECK banner.
+> **The per-row `⬜ planned` markers in the SMoL Capability Map (sections 1–15 below) capture DESIGN INTENT — what each skill SHOULD do when fully implemented.** Many are SHIPPED today; some are partially wired; some remain pure design.
+>
+> **For the honest shipped-state snapshot of SMoL**, see the new **🎯 SMoL Implementation Snapshot (2026-05-11)** section immediately below. It reflects post-PHASE 17.A/B/I + super-review × 2 (30+ code-review fixes) + outstanding PHASE 17.J feature richness.
+>
+> **For the UMS LEGACY summary at the bottom of this doc** (`Feature Status Summary` showing 101/101 complete + `Future Possibilities`) — that table describes the Unity Missile System Space Engineers project's complete shipped state. It's preserved as canonical math reference until PHASE 15 nuke. SMoL is the active project on top.
+
+---
+
+## 🎯 SMoL Implementation Snapshot (2026-05-11)
+
+```
+   ┌─────────────────────────────────────────────────────────────┐
+   │   Capability                                  State         │
+   ├─────────────────────────────────────────────────────────────┤
+   │   Galaxy + planet generation                  ✅ Shipped    │
+   │   Solar-system clustering (4× star scale)     ✅ Shipped    │
+   │   Spectral-class star variety (O/B/A/F/G/K/M) ✅ Shipped    │
+   │   Universe wrap (toroidal ±60k)               ✅ Shipped    │
+   │   Hex/pentagon tiles on planet spheres        ✅ Shipped    │
+   │   Building catalog (24 buildings)             ✅ Shipped    │
+   │   Production system (BUILDING_PRODUCTION,     ✅ Shipped    │
+   │     audited 2026-05-11, drift gate active)                  │
+   │   Outpost-driven mining-ship economy          ✅ Shipped    │
+   │   NO_SIGNAL crawl-home + solar recharge       ✅ Shipped    │
+   │   Workforce sliders (5 categories)            ✅ Shipped    │
+   │   Citizen tier system (5-tier)                ✅ Shipped    │
+   │   Tech tree (38 nodes)                        ✅ Shipped    │
+   │     ├─ Full expansion to 60+ nodes            🚧 17.C.7     │
+   │   Government themes (15+)                     ✅ Shipped    │
+   │   18 colony ship variants                     ✅ Shipped    │
+   │   Pad state machine + salvo stagger           ✅ Shipped    │
+   │   6 targeting modes (GPS/ANT/SEN/LID/MAN/SAT) ✅ Shipped    │
+   │   Counter-colony-ship interception            ✅ Shipped    │
+   │   Mine fields                                 ✅ Shipped    │
+   │   Indigenous civilizations                    ✅ Shipped    │
+   │   AI civs (4 personalities × 4 difficulties)  ✅ Shipped    │
+   │     ├─ Outpost-rush priority boost            ✅ Shipped    │
+   │   Fog of war (hidden planets at match start)  ✅ Shipped    │
+   │   placeBuilding canonical (specific errors)   ✅ Shipped    │
+   │   God-control mid-flight redirect             ✅ Shipped    │
+   │   11-LCD telemetry rack                       ✅ Shipped    │
+   │   Owner-flag distance fade                    ✅ Shipped    │
+   │   Indigenous-marker distance fade             ✅ Shipped    │
+   │   Match-length scaling (1h/10h/24h sagas)     ✅ Shipped    │
+   │   Logarithmic depth buffer + shader chunks    ✅ Shipped    │
+   │   Galaxy gen determinism                      ✅ Shipped    │
+   ├─────────────────────────────────────────────────────────────┤
+   │   ACTIVE — PHASE 17.J UMS-faithful immersion                │
+   ├─────────────────────────────────────────────────────────────┤
+   │   Draggable / floating panels                 🚧 17.J.1     │
+   │   Unified top toolbar (resources + tiers)     🚧 17.J.2     │
+   │   Quick-toggle bar per panel                  🚧 17.J.3     │
+   │   Modular 8-slot ship builder                 🚧 17.J.4     │
+   │   Reactor fuel loading (radioactives)         🚧 17.J.5     │
+   │   Planet energy panel (capacity/draw/surplus) 🚧 17.J.6     │
+   │   Battery + reactor buildings                 🚧 17.J.7/8   │
+   │   Citizen panel w/ ship-duty sliders          🚧 17.J.9     │
+   │   Per-launch crew + cargo UI                  🚧 17.J.10    │
+   │   Saved ship blueprints                       🚧 17.J.11    │
+   │   Production-chain Sankey                     🚧 17.J.12    │
+   ├─────────────────────────────────────────────────────────────┤
+   │   AWAITING BUSINESS DECISIONS — PHASE 17.D/E + EXTERNAL    │
+   ├─────────────────────────────────────────────────────────────┤
+   │   OAuth tail (Discord/Apple/email-passwordless) 🟡 17.D     │
+   │   Real Postgres-backed multiplayer at scale     🟡 17.E     │
+   │   Tauri desktop builds (Win/Mac/Linux)          🟡 17.E     │
+   │   Capacitor mobile builds (iOS/Android)         🟡 17.E     │
+   │   Replay archive                                🟡 17.E     │
+   │   Diplomacy + treaty system                     🟡 17.E     │
+   │   Cinematics + events                           🟡 17.E     │
+   │   Localization (i18n)                           🟡 17.E     │
+   │   GDPR / data-deletion compliance               🟡 EXTERNAL │
+   │   Payment integration / monetization            🟡 EXTERNAL │
+   └─────────────────────────────────────────────────────────────┘
+```
+
+**Legend:** ✅ Shipped + verified · 🚧 Active feature work · 🟡 Designed, awaiting business / external decision
+
+---
+
+## 📚 SMoL Capability Map (Design Intent — what each skill SHOULD do)
+
+> The tables below are the canonical _design specification_ for every SMoL capability across 15 domains × 4 complexity tiers × 4 priority levels. Skills marked `⬜ planned` describe the FULL intended behavior — even when partially shipped, this captures what "done" looks like.
 
 ---
 
@@ -717,7 +799,15 @@ System integration and automation.
 
 ---
 
-## Feature Status Summary
+---
+
+## 🏛️ LEGACY: Unity Missile System (UMS) — Final Shipped State
+
+> The table below is the **complete shipped state of the LEGACY Unity Missile System (UMS) project** — the Space Engineers Programmable Block project that this repository was originally before pivoting to SMoL on 2026-05-09. **It is preserved as canonical math reference for SMoL's colony-ship trajectory math** (see `_ums-reference/`). The 101/101 figure refers to the UMS C# scripts' final state, NOT to SMoL features.
+>
+> **For SMoL's actual shipped state, scroll to the top: 🎯 SMoL Implementation Snapshot.**
+
+### UMS Feature Status Summary (legacy — 101 features in 11 categories)
 
 | Category | Total | Complete | Pending |
 |----------|-------|----------|---------|
@@ -732,26 +822,26 @@ System integration and automation.
 | Launch Operations | 9 | 9 | 0 |
 | Mass Operations | 9 | 9 | 0 |
 | Safety Systems | 9 | 9 | 0 |
-| **TOTAL** | **101** | **101** | **0** |
+| **UMS TOTAL** | **101** | **101** | **0** |
+
+These 101 features port 1:1 into SMoL's TypeScript implementation (trajectory math, pad state machine, salvo stagger, telemetry channels). Port progress lives in the SMoL Implementation Snapshot above. UMS source deletion is gated on full SMoL completion + post-playtest verification (PHASE 15).
+
+### UMS Future Possibilities (carried forward into SMoL as design seeds)
+
+Things UMS didn't implement that became SMoL ship-variant or tech-tree design intent:
+
+- Spiral approach patterns for evasion → **SMoL ship variant: 'spiral' guidance mode**
+- Terminal guidance correction → **SMoL Tier 2 tech: 'Terminal Guidance Correction'**
+- Multi-target sequencing → **SMoL salvo controller mode (auto-fire round)**
+- Decoy deployment → **SMoL Decoy colony-ship variant (Tier 2)**
+- EMP payload mode → **SMoL Saboteur ship payload type (Tier 3)**
+- Formation flying → **SMoL counter-colony-ship intercept geometry**
+- Return-to-base abort → **SMoL ABORT command on all flights**
+- Damage assessment telemetry → **SMoL FlightDetailPanel post-impact log**
+- Fuel efficiency optimization → **SMoL fuel-remaining → AoE damage scaling**
+- Adaptive guidance switching → **SMoL 6 targeting modes with mode-specific dispersion**
 
 ---
 
-## Future Possibilities
-
-Things not implemented but could be:
-
-- Spiral approach patterns for evasion
-- Terminal guidance correction
-- Multi-target sequencing
-- Decoy deployment
-- EMP payload mode
-- Formation flying
-- Return-to-base abort
-- Damage assessment telemetry
-- Fuel efficiency optimization
-- Adaptive guidance switching
-
----
-
-*Unity AI Lab - Missile Systems Division*
-*"Every feature is a new way to make things explode"*
+*Unity AI Lab*
+*"The propaganda layer was never broken — it just got prettier as the actions got worse."*

@@ -27,6 +27,27 @@ A real-time, multi-hour, planet-scale strategy game where every "starship" your 
 
 ---
 
+## 📈 Current Implementation Snapshot (2026-05-11)
+
+```
+   ╔═════════════════════════════════════════════════════════════╗
+   ║   Code-review fixes:                          100% ✓        ║
+   ║   Core game loop (build→economy→launch→win):  ~85%          ║
+   ║   UMS-faithful immersion (panels, UI):        ~50%          ║
+   ║   Ready-to-sell business surface:             ~20%          ║
+   ╚═════════════════════════════════════════════════════════════╝
+```
+
+**Working today:** build emoji buildings on planet hex tiles · planet-level economy (30+ resources, 24 buildings, audited production catalog) · workforce sliders (food/industry/research/propaganda/military) · launch colony ships at enemies · 6 targeting modes · counter-colony-ship interception · mine fields · 18 colony ship variants · 38+ tech-tree nodes · 15+ government themes · indigenous civilizations · 4-tier AI difficulty × 4 personality archetypes · solar-system clustered galaxy with 4× star scale + collision-free wrap-aware placement · spectral-class stars (O/B/A/F/G/K/M) · outpost-driven mining-ship economy · fog of war (hidden planets) · 11-LCD telemetry rack · Auto-Fire salvo orchestrator · god-control mid-flight redirect.
+
+**Active feature work (PHASE 17.J):** modular 8-slot ship builder · draggable/floating panel framework · planet energy/battery/reactor mechanics · radioactives loaded into ship reactors · unified top toolbar with all-resources + citizen-tier breakdown · quick-toggle bar for every panel · ship-duty sliders for crew assignment · saved ship blueprints. **Estimated 8-12 working days** to deliver the full "UMS-faithful immersion" surface.
+
+**Aspirational (PHASE 17.D / 17.E):** real OAuth tail (Discord/Apple/email-passwordless) · Postgres-backed multiplayer at scale · cross-device sync · mobile (Capacitor) + desktop (Tauri) packaging · replay archive · diplomacy + treaty system · cinematics · localization. Gated on business decisions.
+
+Per-phase implementation progress + sub-task tracking lives in `.claude/TODO.md` (gitignored — proprietary workflow). Atomic-commit ship history lives in `.claude/FINALIZED.md`.
+
+---
+
 ## 🌌 Game Pillars
 
 ```
@@ -583,7 +604,82 @@ Per-difficulty playtest required after any balance touch. Easy AI is the floor; 
 
 ---
 
-## 🔄 PHASE 17–18 — Mobile + Replay + Diplomacy + Cinematics
+## 🔧 PHASE 17 — Active Sub-Phases (in-flight as of 2026-05-11)
+
+PHASE 17 subdivided into focused sub-phases during the post-16 super-review cycle. Each ships atomically and cascades to `main`.
+
+```
+   ╔═══════════ SHIPPED ═══════════════════════════════════════════╗
+   ║  17.PRE  Camera/zoom unfuck — kill GalaxyView remount loop    ║
+   ║  17.A    Fog of war HIDES planets + placeBuilding canonical    ║
+   ║          + depth-cue bump (camera parallax registers)          ║
+   ║  17.B    Economy plumbing — BUILDING_PRODUCTION audit +        ║
+   ║          outpost-driven miners + balance-constants module     ║
+   ║          + NO_SIGNAL crawl-home + match-length 1h/10h/24h     ║
+   ║  17.I    Solar-system galaxy structure — Star entity + 4× star ║
+   ║          scale + collision-free wrap-aware placement +         ║
+   ║          spectral classes (O/B/A/F/G/K/M)                      ║
+   ║  SR×1    Super-review remediation — 14 fixes (determinism,    ║
+   ║          log-depth, NO_SIGNAL trigger, AI outpost branch,     ║
+   ║          owner-flag distance fade, …)                          ║
+   ║  SR×2    Super-review ROUND 2 — 16 follow-on fixes (shader     ║
+   ║          chunks, O-class star/orbit collision, server AI       ║
+   ║          mining context, indigenous fade, tilesById cache, …)  ║
+   ╚════════════════════════════════════════════════════════════════╝
+
+   ╔═══════════ ACTIVE ═════════════════════════════════════════════╗
+   ║  17.J    UMS-faithful feature richness                         ║
+   ║          ▸ Draggable/floating panel framework                   ║
+   ║          ▸ Unified top toolbar (resources + citizen tiers)     ║
+   ║          ▸ Quick-toggle bar for every panel                    ║
+   ║          ▸ Modular 8-slot ship builder + saved blueprints      ║
+   ║          ▸ Reactor fuel loading (radioactives → reactors)      ║
+   ║          ▸ Planet energy panel (capacity / draw / surplus)     ║
+   ║          ▸ Battery storage + 3 reactor buildings               ║
+   ║          ▸ Citizen-tier panel with ship-duty sliders           ║
+   ║          ▸ Per-launch crew + cargo loading UI                  ║
+   ║                                                                ║
+   ║          Estimated 8-12 working days end-to-end.               ║
+   ╚════════════════════════════════════════════════════════════════╝
+
+   ╔═══════════ DESIGNED, NOT YET IMPLEMENTED ══════════════════════╗
+   ║  17.C    UMS feature restoration tail (pad polish + Sankey +   ║
+   ║          save/load + tech-tree expansion to 60+ nodes + …)     ║
+   ║  17.D    Auth overhaul tail (Discord/Apple/email-passwordless) ║
+   ║  17.E    Multiplayer-at-scale + Mobile + Replay + Diplomacy +  ║
+   ║          Cinematics + Localization (was PHASE 18)              ║
+   ║  17.F    Star rendering polish (comet-debris fix — circular    ║
+   ║          alpha mask, power-law distribution, twinkle)          ║
+   ║  17.G    Planet surface terrain visuals (procedural texture    ║
+   ║          per planet, clouds, terraforming visuals)             ║
+   ║  17.H    Open-planet model (anyone builds on any planet,       ║
+   ║          dominant civ gets naming rights, combat is colony-    ║
+   ║          ship-only)                                            ║
+   ╚════════════════════════════════════════════════════════════════╝
+```
+
+### PHASE 17.J — Detail (current active work)
+
+User verbatim drives the spec (LAW #0 quote captured in `.claude/TODO.md` PHASE 17.J header):
+
+> *"customize what part my ships use and what crew and supplies and the loading of ammunition and radioactives for reactors, build solar panels with fuel/battery/energy/reactor all that shit tracked in the UMS like panels, all panels are full draggable and moveable all over the screen by the user, HUD up display and quick panel toggle for all the panels, toolbar and resources at the top with citizens and its panel setting slider for work and ship duties"*
+
+13 sub-tasks captured in TODO. Sequencing recommendation:
+
+```
+   1. 17.J.1-3   Panel framework + top toolbar + quick toggles  ~2-3 days
+   2. 17.J.6-8   Planet energy + battery + reactor buildings    ~2-3 days
+   3. 17.J.4-5-10-11  Modular ship builder + reactor fuel +     ~3-5 days
+                       launch UI + saved blueprints
+   4. 17.J.9     Citizen panel + ship-duty sliders              ~1 day
+   5. 17.J.12    Production-chain Sankey                        polish
+```
+
+**Acceptance:** user playtests post-17.J and **CAN'T NAME a missing feature** from the original UMS-faithful immersion quote.
+
+---
+
+## 🔄 PHASE 17.E + Beyond — Late-Stage Expansion
 
 **Goal:** Late-stage feature expansion building on the core game.
 
