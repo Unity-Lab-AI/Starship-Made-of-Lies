@@ -168,6 +168,18 @@ export function attachCameraController(
     rightDown = false
   }
 
+  // PHASE 17.PRE.3 — stuck-key guard. onKeyUp skips when focus is on a text field (browser
+  // doesn't deliver the keyup to window in some cases), so W/A/S/D can get stuck "down" in
+  // the keys map forever, causing the camera to pan indefinitely. Clear the entire keys map
+  // on any focus loss or visibility change — defensive sweep.
+  const clearAllKeys = (): void => {
+    for (const k of Object.keys(keys)) keys[k] = false
+  }
+  const onWindowBlur = (): void => clearAllKeys()
+  const onVisibilityChange = (): void => {
+    if (document.visibilityState !== 'visible') clearAllKeys()
+  }
+
   canvasEl.addEventListener('wheel', onWheel, { passive: false })
   canvasEl.addEventListener('mousemove', onMouseMove)
   canvasEl.addEventListener('mousedown', onMouseDown)
@@ -176,6 +188,8 @@ export function attachCameraController(
   canvasEl.addEventListener('contextmenu', onContextMenu)
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
+  window.addEventListener('blur', onWindowBlur)
+  document.addEventListener('visibilitychange', onVisibilityChange)
 
   return {
     destroy: () => {
@@ -187,6 +201,8 @@ export function attachCameraController(
       canvasEl.removeEventListener('contextmenu', onContextMenu)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
+      window.removeEventListener('blur', onWindowBlur)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     },
     getKeyState: () => keys,
     getMouseEdgeState: () => edge,

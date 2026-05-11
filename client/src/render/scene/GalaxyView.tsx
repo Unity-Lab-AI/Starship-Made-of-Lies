@@ -106,6 +106,15 @@ interface GalaxyViewProps {
   readonly onContextMenuPlanet?: (planetId: PlanetId) => void
 }
 
+// PHASE 17.PRE.4 — persistent camera state across GalaxyView re-mounts. Keyed by Galaxy
+// reference so a brand-new match (different galaxy) starts fresh, but legitimate re-mounts
+// of the same galaxy (e.g. ownership-membership change after a capture) restore the last
+// known camera position/zoom/rotation instead of jumping back to defaults.
+const persistedCameraState = new WeakMap<
+  Galaxy,
+  { zoomT: number; targetX: number; targetY: number; targetZ: number; yaw: number; pitch: number }
+>()
+
 export function GalaxyView({
   galaxy,
   humanCivId,
@@ -134,6 +143,8 @@ export function GalaxyView({
   const alertedPlanetIdsRef = useRef(alertedPlanetIds)
   const ownerByPlanetRef = useRef(ownerByPlanet)
   const themeByCivRef = useRef(themeByCiv)
+  const ownedPlanetIdsRef = useRef(ownedPlanetIds)
+  const onSelectPlanetRef = useRef(onSelectPlanet)
   const rangeVisibleRef = useRef(rangeOverlayVisible)
   const onSurfaceTileClickRef = useRef(onSurfaceTileClick)
   const miningBeaconsRef = useRef<ReadonlyArray<ShipBeaconBroadcast>>(miningBeacons ?? [])
@@ -155,6 +166,8 @@ export function GalaxyView({
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
   themeByCivRef.current = themeByCiv
+  ownedPlanetIdsRef.current = ownedPlanetIds
+  onSelectPlanetRef.current = onSelectPlanet
   rangeVisibleRef.current = rangeOverlayVisible
   onSurfaceTileClickRef.current = onSurfaceTileClick
   miningBeaconsRef.current = miningBeacons ?? []
@@ -184,23 +197,31 @@ export function GalaxyView({
     const galaxyHandle = buildGalaxyLayer(galaxy)
     scene.add(galaxyHandle.group)
 
-    // Frame camera on home planet
-    const homeMesh = galaxyHandle.planetMeshes.get(homePlanetId)
-    if (homeMesh) {
-      cameraState.target.copy(homeMesh.position)
+    // PHASE 17.PRE.4 — restore persisted camera state if this Galaxy was previously mounted.
+    // Fall back to home-planet framing on first mount of a given galaxy.
+    const persisted = persistedCameraState.get(galaxy)
+    if (persisted) {
+      cameraState.zoomT = persisted.zoomT
+      cameraState.target.set(persisted.targetX, persisted.targetY, persisted.targetZ)
+      cameraState.yaw = persisted.yaw
+      cameraState.pitch = persisted.pitch
+    } else {
+      const homeMesh = galaxyHandle.planetMeshes.get(homePlanetId)
+      if (homeMesh) {
+        cameraState.target.copy(homeMesh.position)
+      }
     }
     applyCameraTransform(cameraState)
 
-    // Ring meshes for ownership
+    // PHASE 17.PRE.1 — ownership rings are now reconciled per-frame against `ownedPlanetIdsRef`
+    // so that ownership changes (planet captures) don't tear down the scene. The initial pass
+    // populates whatever the player already owns on mount; the RAF loop adds/removes meshes as
+    // membership shifts.
     const ringMaterials = new Map<PlanetId, THREE.Mesh>()
-    for (const [id, mesh] of galaxyHandle.planetMeshes) {
-      if (!ownedPlanetIds.has(id)) continue
+    const buildRingForPlanet = (id: PlanetId, mesh: THREE.Mesh): THREE.Mesh => {
+      const r = mesh.geometry.boundingSphere?.radius ?? 80
       const ring = new THREE.Mesh(
-        new THREE.RingGeometry(
-          mesh.geometry.boundingSphere?.radius ?? 80,
-          (mesh.geometry.boundingSphere?.radius ?? 80) + 12,
-          32,
-        ),
+        new THREE.RingGeometry(r, r + 12, 32),
         new THREE.MeshBasicMaterial({
           color: 0xd4a13a,
           side: THREE.DoubleSide,
@@ -211,7 +232,11 @@ export function GalaxyView({
       ring.position.copy(mesh.position)
       ring.userData = { kind: 'owned-ring', planetId: id }
       scene.add(ring)
-      ringMaterials.set(id, ring)
+      return ring
+    }
+    for (const [id, mesh] of galaxyHandle.planetMeshes) {
+      if (!ownedPlanetIdsRef.current.has(id)) continue
+      ringMaterials.set(id, buildRingForPlanet(id, mesh))
     }
 
     // Build the additional layers
@@ -347,7 +372,7 @@ export function GalaxyView({
           targetZoomT: 0.32,
           startedAt: performance.now(),
           durationMs: 1200,
-          onComplete: () => onSelectPlanet(id),
+          onComplete: () => onSelectPlanetRef.current(id),
         }
       }
     }
@@ -468,6 +493,23 @@ export function GalaxyView({
       }
       applyCameraTransform(cameraState)
 
+      // PHASE 17.PRE.1 — reconcile ownership rings against the live ref. Add rings for newly
+      // owned planets (capture), remove rings for planets we lost (defeated / re-captured by
+      // enemy). Done in the RAF loop so the scene never tears down on ownership changes.
+      const ownedSet = ownedPlanetIdsRef.current
+      for (const [id, mesh] of galaxyHandle.planetMeshes) {
+        const has = ringMaterials.has(id)
+        const owns = ownedSet.has(id)
+        if (owns && !has) {
+          ringMaterials.set(id, buildRingForPlanet(id, mesh))
+        } else if (!owns && has) {
+          const ring = ringMaterials.get(id)!
+          scene.remove(ring)
+          ring.geometry.dispose()
+          ;(ring.material as THREE.Material).dispose()
+          ringMaterials.delete(id)
+        }
+      }
       // Pulse owned-planet rings
       const phase = (now / 1000) * 1.5
       for (const ring of ringMaterials.values()) {
@@ -562,6 +604,16 @@ export function GalaxyView({
     raf = requestAnimationFrame(tick)
 
     return () => {
+      // PHASE 17.PRE.4 — persist camera state so the next mount of this Galaxy restores it
+      // (instead of jumping back to home + zoomT=0.78 defaults).
+      persistedCameraState.set(galaxy, {
+        zoomT: cameraState.zoomT,
+        targetX: cameraState.target.x,
+        targetY: cameraState.target.y,
+        targetZ: cameraState.target.z,
+        yaw: cameraState.yaw,
+        pitch: cameraState.pitch,
+      })
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', onResize)
       window.removeEventListener('keydown', onKeyDown)
@@ -593,7 +645,11 @@ export function GalaxyView({
         renderer.domElement.parentElement.removeChild(renderer.domElement)
       }
     }
-  }, [galaxy, homePlanetId, onSelectPlanet, ownedPlanetIds])
+    // PHASE 17.PRE.1 — `ownedPlanetIds` and `onSelectPlanet` deliberately omitted: ownership
+    // is reconciled per-frame from `ownedPlanetIdsRef`, and the click handler closes over
+    // `onSelectPlanetRef.current` instead of the direct prop. Adding either back to the dep
+    // array would re-fire the CRITICAL remount-per-tick bug that PHASE 17.PRE.1 exists to kill.
+  }, [galaxy, homePlanetId])
 
   const hoveredPlanet: Planet | null = hoveredPlanetId
     ? (galaxy.planets.find((p) => p.id === hoveredPlanetId) ?? null)
