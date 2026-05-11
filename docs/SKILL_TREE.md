@@ -76,6 +76,7 @@
    │   Brownout building auto-disable              ✅ 17.L.A.3   │
    │   NO TRUNCATION audit (10 CSS patterns fixed) ✅ 17.L.B.7   │
    │   Profanity scrub in game code                ✅ 17.L.B.8   │
+   │   TelemetryRack POWER-slot mirror             ✅ 17.L.B.6   │
    ├─────────────────────────────────────────────────────────────┤
    │   ACTIVE — PHASE 17.L tail (super-review additions)         │
    ├─────────────────────────────────────────────────────────────┤

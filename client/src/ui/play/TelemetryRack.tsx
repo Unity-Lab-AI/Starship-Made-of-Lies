@@ -1,15 +1,18 @@
 import { useMemo, useState } from 'react'
 import {
+  type BuildingDefId,
   type ColonyShipFlight,
   type LaunchPad,
   type PlanetInventory,
   type ShipBeaconBroadcast,
   type SparklineBuffer,
   type SparklineMetricId,
+  RESOURCE_FUEL,
   SPARKLINE_CYCLE_ORDER,
   SPARKLINE_DISPLAY,
   TARGETING_MODE_EMOJI,
   flightTelemetrySnapshot,
+  getBuildingProduction,
   getColonyShipDef,
 } from '@smol/shared'
 import { Sparkline } from './Sparkline'
@@ -44,6 +47,11 @@ export interface TelemetryRackProps {
     readonly ammo: number
     readonly gas: number
   }
+  // PHASE 17.L.B.6 — active-planet POWER mirror for LCD slot 5. Compact at-a-glance view of
+  // capacity / draw / surplus / brownout from the same source data PlanetEnergyPanel uses.
+  // Optional — when missing, slot 5 falls back to the pre-17.L.B.6 empire-stats stub.
+  readonly activePlanetBuildings?: Map<BuildingDefId, number>
+  readonly techProductionMultiplier?: number
 }
 
 type LCDStatus = 'live' | 'stub'
@@ -78,6 +86,8 @@ export function TelemetryRack({
   activePlanetInventory,
   sparklines,
   empirePersonalEquip,
+  activePlanetBuildings,
+  techProductionMultiplier,
 }: TelemetryRackProps) {
   const [expanded, setExpanded] = useState(false)
   // PHASE 16.35 — LCD slot 6 GRAPHS cycle index. Auto-advances every SPARKLINE_AUTO_ADVANCE_TICKS
@@ -451,13 +461,61 @@ export function TelemetryRack({
           </LCDSlot>
 
           <LCDSlot slot={5} title="POWER" status="live">
-            <div>
-              Pop: <strong>{populationTotal.toLocaleString()}</strong>
-            </div>
-            <div className="telemetry-rack__line">
-              Stock: <strong>{resourceTotals.toLocaleString()}</strong>
-            </div>
-            <div className="telemetry-rack__line">Techs: {empireTechs}</div>
+            {/* PHASE 17.L.B.6 — POWER mirror. Compact capacity / draw / surplus + brownout
+               warning + fuel stock. Falls back to empire-stats stub when no active-planet
+               building data is threaded through (e.g. early boot or no-planet-selected). */}
+            {(() => {
+              if (!activePlanetBuildings) {
+                return (
+                  <>
+                    <div>
+                      Pop: <strong>{populationTotal.toLocaleString()}</strong>
+                    </div>
+                    <div className="telemetry-rack__line">
+                      Stock: <strong>{resourceTotals.toLocaleString()}</strong>
+                    </div>
+                    <div className="telemetry-rack__line">Techs: {empireTechs}</div>
+                  </>
+                )
+              }
+              const techMult = techProductionMultiplier ?? 1
+              let capacity = 0
+              let draw = 0
+              for (const [defId, count] of activePlanetBuildings) {
+                if (count === 0) continue
+                const prod = getBuildingProduction(defId)
+                if (!prod) continue
+                const fuelOut = prod.outputs.find((o) => o.resource === RESOURCE_FUEL)?.amount ?? 0
+                if (fuelOut > 0) capacity += fuelOut * count * techMult
+                const fuelIn = prod.inputs.find((i) => i.resource === RESOURCE_FUEL)?.amount ?? 0
+                if (fuelIn > 0) draw += fuelIn * count
+              }
+              const surplus = capacity - draw
+              const fuelStock = activePlanetInventory?.stocks.get(RESOURCE_FUEL) ?? 0
+              const brownout = surplus < 0 && fuelStock <= 0
+              return (
+                <>
+                  <div>
+                    Capacity: <strong>{capacity.toFixed(1)}</strong> ⛽/t
+                  </div>
+                  <div className="telemetry-rack__line">
+                    Draw: <strong>{draw.toFixed(1)}</strong> ⛽/t
+                  </div>
+                  <div className="telemetry-rack__line">
+                    Surplus:{' '}
+                    <strong style={{ color: surplus >= 0 ? '#7dd87d' : '#e07b6f' }}>
+                      {surplus >= 0 ? '+' : ''}
+                      {surplus.toFixed(1)}
+                    </strong>{' '}
+                    ⛽/t
+                  </div>
+                  <div className="telemetry-rack__line">
+                    Stock: <strong>{Math.round(fuelStock)}</strong> ⛽
+                    {brownout ? <span style={{ marginLeft: '0.4em' }}>⚠ Brownout</span> : null}
+                  </div>
+                </>
+              )
+            })()}
           </LCDSlot>
 
           <LCDSlot slot={6} title="GRAPHS" status="live">
