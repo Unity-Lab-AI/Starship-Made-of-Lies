@@ -1,5 +1,5 @@
 @echo off
-REM SMoL local self-host launcher — opens 4 PowerShell terminals, one per process.
+REM SMoL local self-host launcher (Windows) — opens 4 PowerShell terminals, one per process.
 REM Double-click this file (or run from any shell). No args. No setup.
 REM
 REM Terminal 1: Vite dev server   (http://localhost:5173)
@@ -10,7 +10,9 @@ REM
 REM Restart-safe: aggressively kills any prior SMoL-titled PowerShell + processes
 REM listening on 5173/2567/2568/8080 + caddy.exe + cloudflared.exe.
 
-cd /d "%~dp0"
+REM Resolve project root — this script lives in `windows/`, so climb one dir up.
+set ROOT=%~dp0..
+cd /d "%ROOT%"
 
 echo.
 echo === STOPPING any existing SMoL processes + windows ===
@@ -51,19 +53,19 @@ echo.
 
 REM --- Terminal 1: Vite dev server ---
 start "SMoL Vite [client]" powershell -NoExit -NoProfile -Command ^
-  "$Host.UI.RawUI.WindowTitle = 'SMoL Vite [client]'; cd '%~dp0client'; Write-Host 'Starting Vite dev server...' -ForegroundColor Cyan; corepack pnpm dev"
+  "$Host.UI.RawUI.WindowTitle = 'SMoL Vite [client]'; cd '%ROOT%\client'; Write-Host 'Starting Vite dev server...' -ForegroundColor Cyan; corepack pnpm dev"
 
 REM --- Terminal 2: SMoL server (Colyseus + auth HTTP) ---
 start "SMoL Server [api+ws]" powershell -NoExit -NoProfile -Command ^
-  "$Host.UI.RawUI.WindowTitle = 'SMoL Server [api+ws]'; cd '%~dp0server'; Write-Host 'Starting SMoL server (Colyseus 2567 + auth HTTP 2568)...' -ForegroundColor Green; corepack pnpm dev"
+  "$Host.UI.RawUI.WindowTitle = 'SMoL Server [api+ws]'; cd '%ROOT%\server'; Write-Host 'Starting SMoL server (Colyseus 2567 + auth HTTP 2568)...' -ForegroundColor Green; corepack pnpm dev"
 
 REM --- Terminal 3: Caddy reverse proxy ---
 start "SMoL Caddy [proxy]" powershell -NoExit -NoProfile -Command ^
-  "$Host.UI.RawUI.WindowTitle = 'SMoL Caddy [proxy]'; cd '%~dp0'; Write-Host 'Starting Caddy reverse proxy...' -ForegroundColor Yellow; & 'C:\caddy\caddy.exe' run --config 'local-server\Caddyfile'"
+  "$Host.UI.RawUI.WindowTitle = 'SMoL Caddy [proxy]'; cd '%ROOT%'; Write-Host 'Starting Caddy reverse proxy...' -ForegroundColor Yellow; & 'C:\caddy\caddy.exe' run --config 'local-server\Caddyfile'"
 
 REM --- Terminal 4: Cloudflared tunnel ---
 start "SMoL Cloudflared [tunnel]" powershell -NoExit -NoProfile -Command ^
-  "$Host.UI.RawUI.WindowTitle = 'SMoL Cloudflared [tunnel]'; cd '%~dp0'; Write-Host 'Starting Cloudflared tunnel smol-alpha...' -ForegroundColor Magenta; & 'C:\Program Files (x86)\cloudflared\cloudflared.exe' tunnel run smol-alpha"
+  "$Host.UI.RawUI.WindowTitle = 'SMoL Cloudflared [tunnel]'; cd '%ROOT%'; Write-Host 'Starting Cloudflared tunnel smol-alpha...' -ForegroundColor Magenta; & 'C:\Program Files (x86)\cloudflared\cloudflared.exe' tunnel run smol-alpha"
 
 echo.
 echo === All 4 terminals launched ===

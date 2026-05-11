@@ -8,7 +8,9 @@ REM      (every active match snapshots to ./data/snapshots/ + all clients discon
 REM   2. Wait 3 seconds for server to drain
 REM   3. Hard-kill any remaining SMoL processes (Vite, Caddy, Cloudflared, orphan node)
 
-cd /d "%~dp0"
+REM Resolve project root — this script lives in `windows/`, so climb one dir up.
+set ROOT=%~dp0..
+cd /d "%ROOT%"
 
 echo.
 echo === SMoL graceful shutdown ===
@@ -57,6 +59,6 @@ powershell -NoProfile -Command ^
 echo.
 echo === SMoL stopped. Snapshots saved to ./data/snapshots/ ===
 echo.
-echo Run start-smol.bat to bring it back up.
+echo Run windows\start-smol.bat to bring it back up.
 echo.
 pause

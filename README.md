@@ -422,9 +422,16 @@ Every flight is **server-authoritative + deterministic per seed**. No RNG re-rol
 ```
 Starship Made of Lies/
 ├── README.md                  ← you are here
-├── ROADMAP.md                 ← phase milestones + intended-design map
-├── SKILL_TREE.md              ← capability map by domain
-├── BUILD.md                   ← setup / build / run instructions
+├── docs/                      ← all secondary docs
+│   ├── ROADMAP.md             ← phase milestones + intended-design map
+│   ├── SKILL_TREE.md          ← capability map by domain
+│   └── BUILD.md               ← setup / build / run instructions
+├── windows/                   ← Windows hosting scripts (.bat)
+│   ├── start-smol.bat
+│   └── stop-smol.bat
+├── linux/                     ← Linux hosting scripts (.sh)
+│   ├── start-smol.sh
+│   └── stop-smol.sh
 ├── Starship Made of Lies.png  ← key art (hero asset)
 │
 ├── client/                    ← Vite-built frontend (React + Three.js)
@@ -485,7 +492,9 @@ Source-available, all-rights-reserved during alpha. Repo is public for code revi
 
 ## 🚧 Development Status
 
-Active development. The full game vision above is the **intended design** — see [`ROADMAP.md`](./ROADMAP.md) for phase milestones and current implementation progress. The TypeScript stack is scaffolded and running; many systems are partially wired with their full game-vision behavior tracked through ongoing development. Honest implementation-state-vs-design-intent breakdown lives in `ROADMAP.md`.
+Active development. The full game vision above is the **intended design** — see [`docs/ROADMAP.md`](./docs/ROADMAP.md) for phase milestones and current implementation progress. The TypeScript stack is scaffolded and running; many systems are partially wired with their full game-vision behavior tracked through ongoing development. Honest implementation-state-vs-design-intent breakdown lives in [`docs/ROADMAP.md`](./docs/ROADMAP.md).
+
+**Quickstart:** see [`docs/BUILD.md`](./docs/BUILD.md). **Hosting scripts:** `windows/start-smol.bat` (Windows) or `linux/start-smol.sh` (Linux).
 
 ---
 

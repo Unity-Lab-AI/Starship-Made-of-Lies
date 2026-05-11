@@ -221,21 +221,37 @@ Alpha hosting runs on the founder's local Windows PC at `https://smol.unityailab
    └──────────────────────────────────────────────────────────┘
 ```
 
-Full setup walkthrough: [`local-server/README.md`](local-server/README.md)
+Full setup walkthrough: [`../local-server/README.md`](../local-server/README.md)
 
 **Quick commands:**
 
 ```powershell
+# === Windows ===
+
 # First-time scaffolding (run as admin)
 local-server\scripts\install-services.bat
 
+# Start all 4 services (Vite + SMoL server + Caddy + Cloudflared)
+windows\start-smol.bat
+
+# Graceful shutdown (saves active matches + clean disconnect)
+windows\stop-smol.bat
+
 # Deploy a code change
 pnpm deploy:local           # rebuild + regenerate manifest + reload Caddy
+```
 
-# Maintenance window — graceful shutdown
-sc stop smol-node-server    # waits for snapshot capture
-sc stop smol-cloudflared
-sc stop smol-caddy
+```bash
+# === Linux ===
+
+# Start all 4 services in background (PIDs + logs under local-server/)
+linux/start-smol.sh
+
+# Graceful shutdown (saves active matches + clean disconnect)
+linux/stop-smol.sh
+
+# Watch a service log live
+tail -f local-server/logs/server.log
 ```
 
 **Graceful shutdown policy:** the Node server snapshots all active matches before exit; on boot it resumes matches with `endedAtTick IS NULL` from the persistence layer. No active match is lost during maintenance.
@@ -272,9 +288,20 @@ sc stop smol-caddy
    ├── src-tauri/            ─ Tauri desktop shell (Rust + .conf.json + icons)
    ├── tools/                ─ build-asset-manifest.cjs + other build helpers
    ├── assets/               ─ Per-government audio + emoji manifests + sprites
+   ├── docs/                 ─ Project documentation
+   │   ├── ROADMAP.md
+   │   ├── SKILL_TREE.md
+   │   └── BUILD.md          ─ This file
+   ├── windows/              ─ Windows hosting scripts
+   │   ├── start-smol.bat
+   │   └── stop-smol.bat
+   ├── linux/                ─ Linux hosting scripts
+   │   ├── start-smol.sh
+   │   └── stop-smol.sh
+   ├── local-server/         ─ Per-host config (Caddyfile, cloudflared, pids/, logs/)
    ├── capacitor.config.ts   ─ iOS/Android shell config
    ├── pnpm-workspace.yaml   ─ Workspace definition
-   └── BUILD.md              ─ This file
+   └── README.md             ─ Game pitch (stays in root per GitHub convention)
 ```
 
 ---
