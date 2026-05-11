@@ -952,6 +952,8 @@ export function PlayPage() {
           activePlanetInventory={activePlanet.inventory}
           sparklines={sim.state.sparklines}
           empirePersonalEquip={empirePersonalEquip}
+          activePlanetBuildings={activePlanet.buildingsByDef}
+          techProductionMultiplier={techEffects.buildingProductionMultiplier}
         />
 
         {/* === Picker popups (centered) === */}
