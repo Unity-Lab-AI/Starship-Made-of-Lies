@@ -1,4 +1,5 @@
 import { type CivId, type PlanetId, type Vec3 } from '../types/index'
+import { UNIVERSE_HALF_EXTENT } from './balance-constants'
 import { type ColonyShipDef, type ColonyShipVariantId, getColonyShipDef } from './colony-ship'
 import { type PadOutcome } from './launch-pad'
 import {
@@ -141,11 +142,12 @@ const SIGNAL_RANGE_PROGRESS_THRESHOLD = 0.6
 //   debris in long matches.
 // GALACTIC_WRAP_BOUND: toroidal space half-width. Positions wrap modulo 2 × this on each axis.
 //   Per user verbatim "space needs a universal wrap to it so ship going off right edge pops
-//   back in on left edge". Galaxy gen puts planets within ±5000 typically; 8000 leaves buffer.
+//   back in on left edge". PHASE 17.I — source-of-truth is now UNIVERSE_HALF_EXTENT in
+//   balance-constants; this module re-binds the const so existing call sites stay readable.
 const SIGNAL_LOST_TRIGGER_TICKS = 30
 const STARVATION_TIMER_TICKS = 30
 const MAX_HULK_DRIFT_TICKS = 200
-const GALACTIC_WRAP_BOUND = 8000
+const GALACTIC_WRAP_BOUND = UNIVERSE_HALF_EXTENT
 
 // Variant guidance baseline. A nominal ship (speedMultiplier=1, evasionMultiplier=1) gets
 // BASE_DISPERSION_RADIUS scatter when seedNoise=1. High-tier variants (Scout: 1.6 × 1.4 ≈ 2.24

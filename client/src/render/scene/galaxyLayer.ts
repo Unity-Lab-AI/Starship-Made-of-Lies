@@ -42,6 +42,9 @@ export interface GalaxyLayerHandle {
   readonly group: THREE.Group
   readonly planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>
   readonly atmosphereMeshes: ReadonlyMap<PlanetId, THREE.Mesh>
+  // PHASE 17.I — real stars (one mesh per Galaxy.stars entry, sized by 4× galaxy-wide max
+  // planet radius). Replaces the singular decorative origin-sun from PHASE 16.17.
+  readonly starMeshes: ReadonlyMap<string, THREE.Mesh>
   readonly galaxyCenter: THREE.Vector3
   readonly destroy: () => void
 }
@@ -50,6 +53,7 @@ export function buildGalaxyLayer(galaxy: Galaxy): GalaxyLayerHandle {
   const group = new THREE.Group()
   const planetMeshes = new Map<PlanetId, THREE.Mesh>()
   const atmosphereMeshes = new Map<PlanetId, THREE.Mesh>()
+  const starMeshes = new Map<string, THREE.Mesh>()
 
   // Starfield background
   const starfield = makeStarfield(galaxy.seed ?? 12345)
@@ -72,57 +76,22 @@ export function buildGalaxyLayer(galaxy: Galaxy): GalaxyLayerHandle {
   directional.position.set(1, 1, 0.5)
   group.add(ambient, directional)
 
-  // PHASE 16.17 complete-3D-world-space: galactic-center anchor sun. The galaxy is centered
-  // on its mean planet position so origin (0,0,0) IS the galactic center after offsetting.
-  // A glowing yellow sphere at origin gives the player a visual anchor — and emissive
-  // adds a free directional accent to nearby planets at galactic zoom.
-  const sunGeom = new THREE.SphereGeometry(380, 32, 24)
-  const sunMat = new THREE.MeshBasicMaterial({
-    color: 0xffe28a,
-    transparent: true,
-    opacity: 0.95,
-  })
-  const sun = new THREE.Mesh(sunGeom, sunMat)
-  sun.userData = { kind: 'galactic-sun' }
-  group.add(sun)
-  const sunHaloGeom = new THREE.SphereGeometry(580, 24, 16)
-  const sunHaloMat = new THREE.ShaderMaterial({
-    uniforms: { uColor: { value: new THREE.Color(0xffd560) } },
-    vertexShader: `
-      varying vec3 vNormal;
-      varying vec3 vView;
-      void main() {
-        vNormal = normalize(normalMatrix * normal);
-        vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
-        vView = normalize(-mvPos.xyz);
-        gl_Position = projectionMatrix * mvPos;
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 uColor;
-      varying vec3 vNormal;
-      varying vec3 vView;
-      void main() {
-        float fres = pow(1.0 - dot(normalize(vNormal), normalize(vView)), 2.5);
-        gl_FragColor = vec4(uColor, fres * 0.65);
-      }
-    `,
-    transparent: true,
-    side: THREE.BackSide,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  })
-  const sunHalo = new THREE.Mesh(sunHaloGeom, sunHaloMat)
-  sunHalo.userData = { kind: 'galactic-sun-halo' }
-  group.add(sunHalo)
-  const sunLight = new THREE.PointLight(0xffe28a, 0.55, 0, 0.7)
-  sunLight.position.set(0, 0, 0)
-  group.add(sunLight)
+  // PHASE 17.I — real Stars from solar-system gen. Each star.position becomes a glowing
+  // sphere sized to star.radius (4× galaxy-wide largest planet per LAW #0 2026-05-11).
+  // Replaces the singular decorative origin-sun from PHASE 16.17 — actual stars carry the
+  // galactic anchor role now, one per solar system, all at the same scale.
+  for (const star of galaxy.stars) {
+    const starGroup = makeStarMesh(star, center)
+    group.add(starGroup.core)
+    group.add(starGroup.halo)
+    starMeshes.set(String(star.id), starGroup.core)
+  }
 
   return {
     group,
     planetMeshes,
     atmosphereMeshes,
+    starMeshes,
     galaxyCenter: center,
     destroy: () => {
       group.traverse((obj) => {
@@ -177,6 +146,64 @@ function makePlanetMesh(planet: Planet, center: THREE.Vector3): THREE.Mesh {
   )
   mesh.userData = { kind: 'planet', planetId: planet.id, sizeTier: planet.sizeTier }
   return mesh
+}
+
+// PHASE 17.I — Star rendering. Each Star from generateGalaxy becomes a glowing sphere at
+// star.position with star.radius = 4 × galaxy-wide largest planet's surface radius. Glowing
+// emissive core + back-faced Fresnel halo (same pattern as the legacy decorative sun but at
+// per-star scale and position).
+interface StarMeshGroup {
+  readonly core: THREE.Mesh
+  readonly halo: THREE.Mesh
+}
+
+function makeStarMesh(star: import('@smol/shared').Star, center: THREE.Vector3): StarMeshGroup {
+  const coreGeom = new THREE.SphereGeometry(star.radius, 32, 24)
+  const coreMat = new THREE.MeshBasicMaterial({
+    color: star.color,
+    transparent: true,
+    opacity: 0.95,
+  })
+  const core = new THREE.Mesh(coreGeom, coreMat)
+  core.position.set(
+    star.position.x - center.x,
+    star.position.y - center.y,
+    star.position.z - center.z,
+  )
+  core.userData = { kind: 'star', starId: String(star.id) }
+
+  const haloRadius = star.radius * 1.4
+  const haloGeom = new THREE.SphereGeometry(haloRadius, 28, 20)
+  const haloMat = new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(star.color) } },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vView;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+        vView = normalize(-mvPos.xyz);
+        gl_Position = projectionMatrix * mvPos;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      varying vec3 vNormal;
+      varying vec3 vView;
+      void main() {
+        float fres = pow(1.0 - dot(normalize(vNormal), normalize(vView)), 2.5);
+        gl_FragColor = vec4(uColor, fres * 0.7);
+      }
+    `,
+    transparent: true,
+    side: THREE.BackSide,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  })
+  const halo = new THREE.Mesh(haloGeom, haloMat)
+  halo.position.copy(core.position)
+  halo.userData = { kind: 'star-halo', starId: String(star.id) }
+  return { core, halo }
 }
 
 function makeAtmosphereGlow(planet: Planet, center: THREE.Vector3): THREE.Mesh {

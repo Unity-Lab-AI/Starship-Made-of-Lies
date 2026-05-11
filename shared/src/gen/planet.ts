@@ -1,4 +1,11 @@
-import { type CivId, type PlanetId, type ResourceId, tileId, type Vec3 } from '../types/index'
+import {
+  type CivId,
+  type PlanetId,
+  type ResourceId,
+  type StarId,
+  tileId,
+  type Vec3,
+} from '../types/index'
 import { type Tile } from '../sim/tile'
 import { type BiomeDef, BIOMES, getBiome } from './biome'
 import { buildIcosphere, subdivisionForSizeTier } from './icosphere'
@@ -30,6 +37,13 @@ export interface Planet {
   readonly tiles: Tile[]
   readonly resourceNodes: ResourceNode[]
   ownerCivId: CivId | null
+  // PHASE 17.I — solar-system arrangement. Every planet is generated as one of 4-10 children
+  // of a parent Star. parentStarId references Galaxy.stars[i].id. null only for legacy /
+  // hand-rolled test planets that didn't go through generateGalaxy.
+  readonly parentStarId: StarId | null
+  // PHASE 17.I — position relative to the parent star (star.position + localOffset = position).
+  // Stored so render/UI can frame a single solar system without recomputing relative geometry.
+  readonly localOffset: Vec3
 }
 
 export interface PlanetGenContext {
@@ -39,6 +53,8 @@ export interface PlanetGenContext {
   readonly radius: number
   readonly sizeTier: PlanetSizeTier
   readonly rng: () => number
+  readonly parentStarId?: StarId | null
+  readonly localOffset?: Vec3
 }
 
 const DEPOSIT_RESOURCE_CATALOG = {
@@ -238,6 +254,8 @@ export function generatePlanet(ctx: PlanetGenContext): Planet {
     tiles,
     resourceNodes,
     ownerCivId: null,
+    parentStarId: ctx.parentStarId ?? null,
+    localOffset: ctx.localOffset ?? { x: 0, y: 0, z: 0 },
   }
 }
 

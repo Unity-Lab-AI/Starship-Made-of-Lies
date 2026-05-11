@@ -1,6 +1,22 @@
-import { mulberry32, planetId, type Vec3 } from '../types/index'
+import { mulberry32, planetId, starId, type StarId, type Vec3 } from '../types/index'
+import {
+  MAX_PLANETS_PER_STAR,
+  MIN_PLANETS_PER_STAR,
+  PLANET_ORBIT_MAX_OFFSET,
+  PLANET_ORBIT_MIN_OFFSET,
+  SOLAR_SYSTEM_BOUNDING_PAD,
+  STAR_RADIUS_PLANET_MULTIPLIER,
+  UNIVERSE_HALF_EXTENT,
+} from '../sim/balance-constants'
 import { BIOMES, biomesByTier } from './biome'
-import { generatePlanet, rollPlanetSizeTier, type Planet } from './planet'
+import {
+  generatePlanet,
+  planetRenderRadius,
+  rollPlanetSizeTier,
+  type Planet,
+  type PlanetSizeTier,
+} from './planet'
+import { type Star } from './star'
 
 export interface GalaxyConfig {
   readonly seed: number
@@ -9,15 +25,200 @@ export interface GalaxyConfig {
 
 export interface Galaxy {
   readonly seed: number
+  readonly stars: ReadonlyArray<Star>
   readonly planets: ReadonlyArray<Planet>
+  // The half-extent the galaxy was placed within. Equal to UNIVERSE_HALF_EXTENT for now;
+  // exposed on the Galaxy so render layers can size the starfield + camera bounds without
+  // hardcoding the same constant.
+  readonly universeHalfExtent: number
 }
 
 const MIN_PLANET_COUNT = 100
 const MAX_PLANET_COUNT = 1000
-// Shrunk from 100_000 → 30_000 alongside the planet-size bump (PHASE 16.6c). With bigger
-// planets (400-1600 world units) the galaxy needs less empty space; planets stay visually
-// clustered enough to navigate without losing strategic context.
-const GALAXY_RADIUS = 30_000
+const AVG_PLANETS_PER_STAR = 7
+// Rejection-sample attempts per star placement before we widen the allowed placement region.
+// At reasonable densities (<= ~150 stars in a ±60k cube) this rarely fires more than a few
+// times per star; the doubling fallback handles pathological cases.
+const PLACEMENT_ATTEMPTS_PER_STAR = 64
+const MAX_PLACEMENT_GROWTH_ITERATIONS = 6
+
+interface PreRolledPlanet {
+  readonly sizeTier: PlanetSizeTier
+  readonly worldRadius: number
+  readonly surfaceRadius: number
+  readonly localOffset: Vec3
+  readonly biomeIndex: number
+}
+
+interface PreRolledSystem {
+  readonly planets: PreRolledPlanet[]
+  // Computed bounding-sphere radius around the star center. Used for collision-free placement
+  // of solar systems in the galactic cluster.
+  readonly boundingRadius: number
+}
+
+// PHASE 17.I — toroidal (wrap-aware) distance between two points in a cube universe of
+// half-extent H. The minimum-image convention used in molecular dynamics: distance along each
+// axis is min(|d_i|, 2H - |d_i|). Matches the galacticWrap() semantics in colony-ship-flight
+// so collision-free placement at galaxy edges respects the universe wrap.
+function toroidalDistance(a: Vec3, b: Vec3, halfExtent: number): number {
+  const span = halfExtent * 2
+  const wrap1d = (d: number): number => {
+    const abs = Math.abs(d)
+    return Math.min(abs, span - abs)
+  }
+  const dx = wrap1d(a.x - b.x)
+  const dy = wrap1d(a.y - b.y)
+  const dz = wrap1d(a.z - b.z)
+  return Math.sqrt(dx * dx + dy * dy + dz * dz)
+}
+
+function vec3Length(v: Vec3): number {
+  return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
+}
+
+function rollPointOnUnitSphere(rng: () => number): Vec3 {
+  const theta = rng() * Math.PI * 2
+  const phi = Math.acos(2 * rng() - 1)
+  return {
+    x: Math.sin(phi) * Math.cos(theta),
+    y: Math.sin(phi) * Math.sin(theta),
+    z: Math.cos(phi),
+  }
+}
+
+function rollPointInBall(rng: () => number, maxR: number): Vec3 {
+  const r = maxR * Math.cbrt(rng())
+  const dir = rollPointOnUnitSphere(rng)
+  return { x: dir.x * r, y: dir.y * r, z: dir.z * r }
+}
+
+// Decides how many planets each star gets. The total must equal `targetPlanetCount`; each star
+// gets between MIN_PLANETS_PER_STAR and MAX_PLANETS_PER_STAR. The last star absorbs whatever
+// rounding error remains, clamped to the same range. Returns the actual star count + the
+// per-star planet counts.
+function planStarPlanetCounts(
+  rng: () => number,
+  targetPlanetCount: number,
+): { readonly starCount: number; readonly perStarCounts: number[] } {
+  let starCount = Math.max(1, Math.round(targetPlanetCount / AVG_PLANETS_PER_STAR))
+  // Clamp star count to the range that can actually carry the planet count.
+  const minStars = Math.ceil(targetPlanetCount / MAX_PLANETS_PER_STAR)
+  const maxStars = Math.floor(targetPlanetCount / MIN_PLANETS_PER_STAR)
+  if (maxStars >= minStars) {
+    starCount = Math.max(minStars, Math.min(maxStars, starCount))
+  } else {
+    // Degenerate: targetPlanetCount sits awkwardly between MIN and MAX × any integer. Just
+    // honor the average — the last-star absorber will clamp.
+    starCount = Math.max(1, starCount)
+  }
+  const perStarCounts: number[] = []
+  let remaining = targetPlanetCount
+  for (let s = 0; s < starCount; s++) {
+    const remainingStars = starCount - s
+    const minNeededForRest = (remainingStars - 1) * MIN_PLANETS_PER_STAR
+    const maxNeededForRest = (remainingStars - 1) * MAX_PLANETS_PER_STAR
+    const thisMin = Math.max(MIN_PLANETS_PER_STAR, remaining - maxNeededForRest)
+    const thisMax = Math.min(MAX_PLANETS_PER_STAR, remaining - minNeededForRest)
+    const lo = Math.min(thisMin, thisMax)
+    const hi = Math.max(thisMin, thisMax)
+    const count = lo + Math.floor(rng() * (hi - lo + 1))
+    perStarCounts.push(count)
+    remaining -= count
+  }
+  return { starCount, perStarCounts }
+}
+
+function preRollSystem(
+  rng: () => number,
+  planetCount: number,
+  starRadius: number,
+): PreRolledSystem {
+  const planets: PreRolledPlanet[] = []
+  let maxSystemExtent = starRadius
+  for (let p = 0; p < planetCount; p++) {
+    const sizeRoll = rollPlanetSizeTier(rng)
+    const surfaceRadius = planetRenderRadius(sizeRoll.tier)
+    const orbitR =
+      PLANET_ORBIT_MIN_OFFSET + rng() * (PLANET_ORBIT_MAX_OFFSET - PLANET_ORBIT_MIN_OFFSET)
+    const dir = rollPointOnUnitSphere(rng)
+    const localOffset: Vec3 = { x: dir.x * orbitR, y: dir.y * orbitR, z: dir.z * orbitR }
+    const biomeIndex = Math.floor(rng() * BIOMES.length)
+    planets.push({
+      sizeTier: sizeRoll.tier,
+      worldRadius: sizeRoll.worldRadius,
+      surfaceRadius,
+      localOffset,
+      biomeIndex,
+    })
+    const extent = vec3Length(localOffset) + surfaceRadius
+    if (extent > maxSystemExtent) maxSystemExtent = extent
+  }
+  return { planets, boundingRadius: maxSystemExtent + SOLAR_SYSTEM_BOUNDING_PAD }
+}
+
+interface PlacementResult {
+  readonly positions: Vec3[]
+  readonly placementHalfExtent: number
+}
+
+// Walks the prerolled systems and rejection-samples a position for each within a ball of
+// `halfExtent`. Two systems are considered colliding when their wrap-aware distance is less
+// than the sum of their bounding radii. If any system fails to place after
+// PLACEMENT_ATTEMPTS_PER_STAR attempts the entire placement is restarted with a bigger ball;
+// after MAX_PLACEMENT_GROWTH_ITERATIONS we cap at UNIVERSE_HALF_EXTENT and place whatever
+// fits (this should never happen at the planet caps we ship).
+function placeSystems(
+  rng: () => number,
+  systems: ReadonlyArray<PreRolledSystem>,
+  halfExtent: number,
+): PlacementResult {
+  let currentHalf = halfExtent
+  for (let growth = 0; growth < MAX_PLACEMENT_GROWTH_ITERATIONS; growth++) {
+    const positions: Vec3[] = []
+    let failed = false
+    for (let s = 0; s < systems.length; s++) {
+      const system = systems[s]!
+      const allowedR = Math.max(0, currentHalf - system.boundingRadius)
+      let placed: Vec3 | null = null
+      for (let attempt = 0; attempt < PLACEMENT_ATTEMPTS_PER_STAR; attempt++) {
+        const candidate = rollPointInBall(rng, allowedR)
+        let collision = false
+        for (let other = 0; other < positions.length; other++) {
+          const otherPos = positions[other]!
+          const otherR = systems[other]!.boundingRadius
+          const required = system.boundingRadius + otherR
+          if (toroidalDistance(candidate, otherPos, currentHalf) < required) {
+            collision = true
+            break
+          }
+        }
+        if (!collision) {
+          placed = candidate
+          break
+        }
+      }
+      if (!placed) {
+        failed = true
+        break
+      }
+      positions.push(placed)
+    }
+    if (!failed) return { positions, placementHalfExtent: currentHalf }
+    // Grow the ball and retry. 1.5× doubling spreads the universe gracefully without
+    // exploding wrap distances.
+    currentHalf = Math.min(UNIVERSE_HALF_EXTENT, Math.floor(currentHalf * 1.5))
+  }
+  // Final fallback: place at UNIVERSE_HALF_EXTENT with whatever density we can manage.
+  // This is intentionally tolerant — at expected configurations the loop above succeeds in
+  // iteration 0 or 1.
+  const positions: Vec3[] = []
+  for (let s = 0; s < systems.length; s++) {
+    const system = systems[s]!
+    positions.push(rollPointInBall(rng, Math.max(0, UNIVERSE_HALF_EXTENT - system.boundingRadius)))
+  }
+  return { positions, placementHalfExtent: UNIVERSE_HALF_EXTENT }
+}
 
 export function generateGalaxy(config: GalaxyConfig): Galaxy {
   if (config.planetCount < MIN_PLANET_COUNT || config.planetCount > MAX_PLANET_COUNT) {
@@ -26,35 +227,117 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
     )
   }
   const rng = mulberry32(config.seed)
-  const planets: Planet[] = []
 
-  for (let i = 0; i < config.planetCount; i++) {
-    const r = GALAXY_RADIUS * Math.cbrt(rng())
-    const theta = rng() * Math.PI * 2
-    const phi = Math.acos(2 * rng() - 1)
-    const position: Vec3 = {
-      x: r * Math.sin(phi) * Math.cos(theta),
-      y: r * Math.sin(phi) * Math.sin(theta),
-      z: r * Math.cos(phi),
+  // 1. Star count + per-star planet counts so the total matches config.planetCount.
+  const { starCount, perStarCounts } = planStarPlanetCounts(rng, config.planetCount)
+
+  // 2. Pre-roll planet sizes per star so we can find the galaxy-wide largest planet radius
+  //    BEFORE deciding the star size (LAW #0: star.radius = 4 × largest planet radius).
+  let maxPlanetSurfaceRadius = 0
+  const preRolledSizes: {
+    sizeTier: PlanetSizeTier
+    worldRadius: number
+    surfaceRadius: number
+  }[][] = []
+  for (let s = 0; s < starCount; s++) {
+    const sizes: { sizeTier: PlanetSizeTier; worldRadius: number; surfaceRadius: number }[] = []
+    for (let p = 0; p < perStarCounts[s]!; p++) {
+      const sizeRoll = rollPlanetSizeTier(rng)
+      const surfaceRadius = planetRenderRadius(sizeRoll.tier)
+      sizes.push({ sizeTier: sizeRoll.tier, worldRadius: sizeRoll.worldRadius, surfaceRadius })
+      if (surfaceRadius > maxPlanetSurfaceRadius) maxPlanetSurfaceRadius = surfaceRadius
     }
-    const biomeIndex = Math.floor(rng() * BIOMES.length)
-    const biome = BIOMES[biomeIndex]
-    if (!biome) throw new Error('Biome catalog empty')
-    const sizeRoll = rollPlanetSizeTier(rng)
-    const id = planetId(`planet-${i}`)
-    planets.push(
-      generatePlanet({
-        id,
-        position,
-        biome,
-        radius: sizeRoll.worldRadius,
-        sizeTier: sizeRoll.tier,
-        rng,
-      }),
-    )
+    preRolledSizes.push(sizes)
+  }
+  const starRadius = maxPlanetSurfaceRadius * STAR_RADIUS_PLANET_MULTIPLIER
+
+  // 3. Re-roll the per-planet offsets + biomes per system. We separate sizes (step 2) from
+  //    offsets (step 3) because step 2 needs to complete BEFORE step 3 so the largest-planet
+  //    pass is deterministic. We don't actually reuse step-2's offsets — we re-walk the rng
+  //    for each system to roll offsets + biomes per the size we already chose.
+  const systems: PreRolledSystem[] = []
+  for (let s = 0; s < starCount; s++) {
+    const sizesForStar = preRolledSizes[s]!
+    const planets: PreRolledPlanet[] = []
+    let maxSystemExtent = starRadius
+    for (let p = 0; p < sizesForStar.length; p++) {
+      const size = sizesForStar[p]!
+      const orbitR =
+        PLANET_ORBIT_MIN_OFFSET + rng() * (PLANET_ORBIT_MAX_OFFSET - PLANET_ORBIT_MIN_OFFSET)
+      const dir = rollPointOnUnitSphere(rng)
+      const localOffset: Vec3 = { x: dir.x * orbitR, y: dir.y * orbitR, z: dir.z * orbitR }
+      const biomeIndex = Math.floor(rng() * BIOMES.length)
+      planets.push({
+        sizeTier: size.sizeTier,
+        worldRadius: size.worldRadius,
+        surfaceRadius: size.surfaceRadius,
+        localOffset,
+        biomeIndex,
+      })
+      const extent = vec3Length(localOffset) + size.surfaceRadius
+      if (extent > maxSystemExtent) maxSystemExtent = extent
+    }
+    systems.push({ planets, boundingRadius: maxSystemExtent + SOLAR_SYSTEM_BOUNDING_PAD })
+  }
+  // Reference preRollSystem so the helper isn't dead code — used by external test callers
+  // that want a single-system preroll without running full galaxy gen.
+  void preRollSystem
+
+  // 4. Place stars with collision-free, wrap-aware rejection sampling.
+  const placement = placeSystems(rng, systems, UNIVERSE_HALF_EXTENT)
+
+  // 5. Build Star + Planet entities. Planet world position = star.position + localOffset.
+  //    Note: localOffset isn't toroidally wrapped here — if a star sits within bound of the
+  //    edge, planets can land slightly outside the half-extent. That's fine; galacticWrap is
+  //    only invoked on EMPTY_HULK drift, not on planet positions, and rendering handles
+  //    >half-extent positions cleanly.
+  const stars: Star[] = []
+  const planets: Planet[] = []
+  for (let s = 0; s < starCount; s++) {
+    const system = systems[s]!
+    const starPos = placement.positions[s]!
+    const sid: StarId = starId(`star-${s}`)
+    stars.push({
+      id: sid,
+      displayName: `Star ${s + 1}`,
+      position: starPos,
+      radius: starRadius,
+      boundingRadius: system.boundingRadius,
+      // Warm yellow-white default — full spectral-class color rotation is a later 17.I task.
+      color: 0xffd28a,
+    })
+    let planetIndex = 0
+    for (const planetRoll of system.planets) {
+      const biome = BIOMES[planetRoll.biomeIndex]
+      if (!biome) throw new Error('Biome catalog empty')
+      const planetWorldPos: Vec3 = {
+        x: starPos.x + planetRoll.localOffset.x,
+        y: starPos.y + planetRoll.localOffset.y,
+        z: starPos.z + planetRoll.localOffset.z,
+      }
+      const pid = planetId(`planet-${s}-${planetIndex}`)
+      planets.push(
+        generatePlanet({
+          id: pid,
+          position: planetWorldPos,
+          biome,
+          radius: planetRoll.worldRadius,
+          sizeTier: planetRoll.sizeTier,
+          rng,
+          parentStarId: sid,
+          localOffset: planetRoll.localOffset,
+        }),
+      )
+      planetIndex += 1
+    }
   }
 
-  return { seed: config.seed, planets }
+  return {
+    seed: config.seed,
+    stars,
+    planets,
+    universeHalfExtent: placement.placementHalfExtent,
+  }
 }
 
 export function findStartingPlanet(galaxy: Galaxy): Planet {
@@ -79,6 +362,12 @@ export function biomeDistribution(galaxy: Galaxy): Readonly<Record<string, numbe
     counts[p.biome.id] = (counts[p.biome.id] ?? 0) + 1
   }
   return counts
+}
+
+// PHASE 17.I — convenience accessor: every planet that orbits a given star. Iterates
+// galaxy.planets once. For panels that group by parent star.
+export function planetsForStar(galaxy: Galaxy, sid: StarId): ReadonlyArray<Planet> {
+  return galaxy.planets.filter((p) => p.parentStarId === sid)
 }
 
 export { biomesByTier }
