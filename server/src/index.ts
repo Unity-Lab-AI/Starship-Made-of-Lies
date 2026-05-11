@@ -50,32 +50,34 @@ async function gracefulShutdown(server: Server): Promise<void> {
   console.info('[smol/server] === Shutdown sequence complete ===')
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const server = createServer()
-  server.listen(PORT)
-  console.info(`[smol/server] listening on ws://localhost:${PORT}`)
-  startAuthHttpServer(AUTH_PORT)
+// NOTE: previously gated on `import.meta.url === file://${process.argv[1]}` which broke on
+// Windows (backslash vs forward-slash mismatch in file:// URL → process.argv[1]). The check is
+// defensive against being imported, but this file is always invoked as the tsx entry — so
+// run unconditionally.
+const server = createServer()
+server.listen(PORT)
+console.info(`[smol/server] listening on ws://localhost:${PORT}`)
+startAuthHttpServer(AUTH_PORT)
 
-  // Wire shutdown hook into the auth HTTP server's /api/admin/shutdown endpoint
-  registerShutdownHook(async () => {
+// Wire shutdown hook into the auth HTTP server's /api/admin/shutdown endpoint
+registerShutdownHook(async () => {
+  await gracefulShutdown(server)
+})
+
+// Also handle Ctrl+C / SIGTERM
+process.on('SIGINT', () => {
+  void (async () => {
+    console.info('[smol/server] SIGINT received')
     await gracefulShutdown(server)
-  })
+    process.exit(0)
+  })()
+})
+process.on('SIGTERM', () => {
+  void (async () => {
+    console.info('[smol/server] SIGTERM received')
+    await gracefulShutdown(server)
+    process.exit(0)
+  })()
+})
 
-  // Also handle Ctrl+C / SIGTERM
-  process.on('SIGINT', () => {
-    void (async () => {
-      console.info('[smol/server] SIGINT received')
-      await gracefulShutdown(server)
-      process.exit(0)
-    })()
-  })
-  process.on('SIGTERM', () => {
-    void (async () => {
-      console.info('[smol/server] SIGTERM received')
-      await gracefulShutdown(server)
-      process.exit(0)
-    })()
-  })
-
-  console.info('[smol/server] Shutdown hooks wired (SIGINT, SIGTERM, POST /api/admin/shutdown)')
-}
+console.info('[smol/server] Shutdown hooks wired (SIGINT, SIGTERM, POST /api/admin/shutdown)')
