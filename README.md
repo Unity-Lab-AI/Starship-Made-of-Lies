@@ -513,22 +513,27 @@ Active development. The full game vision above is the **intended design**. Hones
    ┌─────────────────────────────────────────────────────────────┐
    │   Code-review fixes (super-review × 2):       100% ✓        │
    │   Core game loop (build→economy→launch→win):  ~85%          │
-   │   UMS-faithful immersion (panels/UI):         ~50% (17.J)   │
+   │   UMS-faithful immersion (panels/UI):         ~91% (17.J)   │
    │   Ready-to-sell business surface:             ~20%          │
    └─────────────────────────────────────────────────────────────┘
 ```
 
-**Working today:** everything described in the **🌍 The 3D Universe**, **🛸 Colony Ship System**, **🎭 Citizen Tier System**, **🏛️ Governments**, **🌱 Empire Mechanics**, **🛡️ Defense**, **📡 UMS Telemetry Heritage** sections above.
+**Working today:** everything described in the **🌍 The 3D Universe**, **🛸 Colony Ship System**, **🎭 Citizen Tier System**, **🏛️ Governments**, **🌱 Empire Mechanics**, **🛡️ Defense**, **📡 UMS Telemetry Heritage** sections above — PLUS the entire **PHASE 17.J UMS-faithful immersion layer** (see below).
 
-**Active feature work (PHASE 17.J — ~8-12 working days):**
-- Draggable / floating panel framework
-- Unified top toolbar (all resources + citizen-tier breakdown)
-- Quick-toggle bar per panel
-- Modular 8-slot ship builder + saved blueprints
-- Reactor fuel loading (radioactives → ship reactors)
-- Planet energy panel (capacity / draw / surplus / battery storage)
-- Citizen panel with ship-duty sliders
-- Per-launch crew + cargo loading UI
+**SHIPPED in PHASE 17.J (10 of 11 sub-tasks live on `main`):**
+- ✅ Draggable / floating panel framework (every popup panel — drag by header, position persisted, click-to-raise z-index, "Reset Layout" button)
+- ✅ Unified top toolbar with every empire-aggregate resource + per-tick delta + 5-tier citizen breakdown + per-resource per-planet tooltip
+- ✅ Quick-toggle bar per panel + persistent open-panels set across reloads
+- ✅ Modular 8-slot ship builder (28 pieces × 8 slots — hull / propulsion / life support / landing gear / payload / sensors / weapons / comms) with live cost + stat resolution + tech-lock indicators
+- ✅ Saved blueprints library (localStorage, named blueprints, load + delete actions)
+- ✅ Reactor fuel loading at launch — reactor-class colony ships consume tier-specific radioactives (fission tier → rare metals; tier 3 → fusion fuel; tier 4 → antimatter)
+- ✅ Planet Energy panel — per-planet capacity (solar + power plant + reactors × tech multiplier) / draw / surplus / battery fill bar / per-producer breakdown / brownout warning
+- ✅ Battery Bank building (storage capacity per bank; gated on Electric Power)
+- ✅ Three planet-level reactor buildings — Fission (8× a power plant) / Fusion (16×) / Antimatter (32×) — tech-gated on Nuclear Fission / Fusion Power / Antimatter
+- ✅ Citizens panel with per-tier breakdown + ship-duty sliders (per-tier %0–100 reserved for the colony-ship volunteer pool — feeds `volunteerPool()` in the sim)
+
+**Open in PHASE 17.J (1 of 11 sub-tasks remaining):**
+- 🚧 Per-launch crew + cargo loading UI + quick-launch-from-blueprint integration. Blueprint LIBRARY is functional standalone; the LAUNCH flow still uses the COLONY_SHIPS catalog via ShipBuildPanel. Wiring blueprints into the launch path needs a structural addition to `ColonyShipFlight` (custom-build stats) or a blueprint-id route through `launchShipFromPad`.
 
 **Aspirational (PHASE 17.D/E — business-decision gated):** OAuth tail (Discord/Apple/email) · Tauri desktop + Capacitor mobile packaging · replay archive · diplomacy + treaties · cinematics · localization · GDPR + payment integration.
 

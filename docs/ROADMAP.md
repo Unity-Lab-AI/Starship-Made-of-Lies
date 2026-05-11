@@ -33,14 +33,14 @@ A real-time, multi-hour, planet-scale strategy game where every "starship" your 
    ╔═════════════════════════════════════════════════════════════╗
    ║   Code-review fixes:                          100% ✓        ║
    ║   Core game loop (build→economy→launch→win):  ~85%          ║
-   ║   UMS-faithful immersion (panels, UI):        ~50%          ║
+   ║   UMS-faithful immersion (panels, UI):        ~91% (17.J)   ║
    ║   Ready-to-sell business surface:             ~20%          ║
    ╚═════════════════════════════════════════════════════════════╝
 ```
 
-**Working today:** build emoji buildings on planet hex tiles · planet-level economy (30+ resources, 24 buildings, audited production catalog) · workforce sliders (food/industry/research/propaganda/military) · launch colony ships at enemies · 6 targeting modes · counter-colony-ship interception · mine fields · 18 colony ship variants · 38+ tech-tree nodes · 15+ government themes · indigenous civilizations · 4-tier AI difficulty × 4 personality archetypes · solar-system clustered galaxy with 4× star scale + collision-free wrap-aware placement · spectral-class stars (O/B/A/F/G/K/M) · outpost-driven mining-ship economy · fog of war (hidden planets) · 11-LCD telemetry rack · Auto-Fire salvo orchestrator · god-control mid-flight redirect.
+**Working today:** build emoji buildings on planet hex tiles · planet-level economy (30+ resources, 28+ buildings, audited production catalog) · workforce sliders (food/industry/research/propaganda/military) · launch colony ships at enemies · 6 targeting modes · counter-colony-ship interception · mine fields · 18 colony ship variants · 38+ tech-tree nodes · 15+ government themes · indigenous civilizations · 4-tier AI difficulty × 4 personality archetypes · solar-system clustered galaxy with 4× star scale + collision-free wrap-aware placement · spectral-class stars (O/B/A/F/G/K/M) · outpost-driven mining-ship economy · fog of war (hidden planets) · 11-LCD telemetry rack · Auto-Fire salvo orchestrator · god-control mid-flight redirect · **draggable / position-persisted panels** · **unified top toolbar (every resource + citizen tier breakdown)** · **Reset Layout** · **Planet Energy panel** · **Battery Bank + Fission/Fusion/Antimatter reactor buildings** · **reactor-class colony ships consume tier-specific radioactives at launch** · **Citizens panel with ship-duty sliders driving the volunteer pool** · **modular 8-slot ship builder + saved-blueprints library**.
 
-**Active feature work (PHASE 17.J):** modular 8-slot ship builder · draggable/floating panel framework · planet energy/battery/reactor mechanics · radioactives loaded into ship reactors · unified top toolbar with all-resources + citizen-tier breakdown · quick-toggle bar for every panel · ship-duty sliders for crew assignment · saved ship blueprints. **Estimated 8-12 working days** to deliver the full "UMS-faithful immersion" surface.
+**Open in PHASE 17.J (1 of 11 sub-tasks remaining):** per-launch crew + cargo loading UI + quick-launch-from-blueprint integration. Blueprint LIBRARY is functional standalone; LAUNCH flow still uses the COLONY_SHIPS catalog via ShipBuildPanel. Wiring blueprints into the launch path needs a structural addition to `ColonyShipFlight` (custom-build stats) or a blueprint-id route through `launchShipFromPad`.
 
 **Aspirational (PHASE 17.D / 17.E):** real OAuth tail (Discord/Apple/email-passwordless) · Postgres-backed multiplayer at scale · cross-device sync · mobile (Capacitor) + desktop (Tauri) packaging · replay archive · diplomacy + treaty system · cinematics · localization. Gated on business decisions.
 
@@ -625,21 +625,27 @@ PHASE 17 subdivided into focused sub-phases during the post-16 super-review cycl
    ║  SR×2    Super-review ROUND 2 — 16 follow-on fixes (shader     ║
    ║          chunks, O-class star/orbit collision, server AI       ║
    ║          mining context, indigenous fade, tilesById cache, …)  ║
+   ║  17.J.1-3  Panel framework foundation — draggable panels +     ║
+   ║           unified TopToolbar (resources + citizen tiers) +     ║
+   ║           per-panel persistent open-state + Reset Layout       ║
+   ║  17.J.6-8  Planet energy + Battery Bank + 3-tier reactor       ║
+   ║           buildings (Fission/Fusion/Antimatter) tech-gated     ║
+   ║  17.J.5  Reactor fuel loading at launch — tier-specific        ║
+   ║           radioactives consumed from planet stockpile          ║
+   ║  17.J.9-4-11  Citizens panel + ship-duty sliders + modular    ║
+   ║           8-slot ship builder + saved blueprints library       ║
    ╚════════════════════════════════════════════════════════════════╝
 
    ╔═══════════ ACTIVE ═════════════════════════════════════════════╗
-   ║  17.J    UMS-faithful feature richness                         ║
-   ║          ▸ Draggable/floating panel framework                   ║
-   ║          ▸ Unified top toolbar (resources + citizen tiers)     ║
-   ║          ▸ Quick-toggle bar for every panel                    ║
-   ║          ▸ Modular 8-slot ship builder + saved blueprints      ║
-   ║          ▸ Reactor fuel loading (radioactives → reactors)      ║
-   ║          ▸ Planet energy panel (capacity / draw / surplus)     ║
-   ║          ▸ Battery storage + 3 reactor buildings               ║
-   ║          ▸ Citizen-tier panel with ship-duty sliders           ║
-   ║          ▸ Per-launch crew + cargo loading UI                  ║
+   ║  17.J.10 Per-launch crew + cargo loading UI                    ║
+   ║          + quick-launch-from-blueprint integration             ║
+   ║          (only 17.J sub-task still open — 10/11 shipped)       ║
    ║                                                                ║
-   ║          Estimated 8-12 working days end-to-end.               ║
+   ║          Needs structural addition to ColonyShipFlight         ║
+   ║          (custom-build stats) or blueprint-id route through    ║
+   ║          launchShipFromPad — blueprint LIBRARY functional      ║
+   ║          standalone, LAUNCH flow still uses COLONY_SHIPS       ║
+   ║          catalog via ShipBuildPanel.                           ║
    ╚════════════════════════════════════════════════════════════════╝
 
    ╔═══════════ DESIGNED, NOT YET IMPLEMENTED ══════════════════════╗
@@ -658,21 +664,64 @@ PHASE 17 subdivided into focused sub-phases during the post-16 super-review cycl
    ╚════════════════════════════════════════════════════════════════╝
 ```
 
-### PHASE 17.J — Detail (current active work)
+### PHASE 17.J — Detail (10/11 shipped, 1 still open)
 
 User verbatim drives the spec (LAW #0 quote captured in `.claude/TODO.md` PHASE 17.J header):
 
 > *"customize what part my ships use and what crew and supplies and the loading of ammunition and radioactives for reactors, build solar panels with fuel/battery/energy/reactor all that shit tracked in the UMS like panels, all panels are full draggable and moveable all over the screen by the user, HUD up display and quick panel toggle for all the panels, toolbar and resources at the top with citizens and its panel setting slider for work and ship duties"*
 
-13 sub-tasks captured in TODO. Sequencing recommendation:
+**Ship history (4 atomic commits on `feature/17.J-feature-richness`, cascaded to `main`):**
 
 ```
-   1. 17.J.1-3   Panel framework + top toolbar + quick toggles  ~2-3 days
-   2. 17.J.6-8   Planet energy + battery + reactor buildings    ~2-3 days
-   3. 17.J.4-5-10-11  Modular ship builder + reactor fuel +     ~3-5 days
-                       launch UI + saved blueprints
-   4. 17.J.9     Citizen panel + ship-duty sliders              ~1 day
-   5. 17.J.12    Production-chain Sankey                        polish
+   55167940  17.J.1 + 17.J.2 + 17.J.3
+             Panel framework — draggable panels with header drag handles,
+             localStorage position persistence, click-to-raise z-index,
+             bounds-clamp on load, unified TopToolbar showing every
+             empire-aggregate resource + per-tick delta + 5-tier citizen
+             breakdown + per-resource per-planet tooltips, persistent
+             open-panels Set, Reset Layout button in HUD footer.
+
+   5009c8c4  17.J.6 + 17.J.7 + 17.J.8
+             Planet Energy panel (per-planet capacity / draw / surplus /
+             battery fill bar / per-producer breakdown / brownout warning)
+             + Battery Bank (utility, gated on Electric Power) + Fission
+             Reactor (consumes rare metals → 8× a power plant) + Fusion
+             Reactor (consumes fusion fuel → 16×) + Antimatter Reactor
+             (consumes antimatter → 32×). Tech-gated on TECH_NUCLEAR_FISSION,
+             TECH_FUSION_POWER, TECH_ANTIMATTER. ⚡ toolbar + Y hotkey.
+
+   fc337b8a  17.J.5
+             Reactor fuel loading at launch. ColonyShipDef gains
+             reactorFuelType + reactorFuelAmount derived from powerSource +
+             payloadTierRequired. launchShipFromPadAction validates planet
+             stockpile + consumes the radioactive at liftoff or aborts the
+             launch with an event message.
+
+   bb301f36  17.J.9 + 17.J.4 + 17.J.11
+             Citizens panel — empire-aggregate header + per-planet
+             collapsible row with 5 ship-duty sliders per planet (0-100%
+             per tier). PlanetPopulation gains shipDutyPercentByTier;
+             volunteerPool() extended so reserved citizens from tier 1-3
+             add to the tier 4-5 base. 👥 toolbar + N hotkey.
+
+             Ship Builder — 8-slot picker (hull / propulsion / life support /
+             landing gear / payload / sensors / weapons / comms) with live
+             resolved stats + total cost + missing-tech warnings + validation.
+             Saved blueprints persist to localStorage.v1; Load / Delete
+             actions per saved blueprint. 🛠 toolbar + U hotkey.
+```
+
+**Open in 17.J:**
+
+```
+   17.J.10  Per-launch crew + cargo loading UI + quick-launch-from-blueprint
+            integration. Blueprint LIBRARY is functional standalone; the
+            LAUNCH flow still uses the COLONY_SHIPS catalog via the existing
+            ShipBuildPanel. Wiring blueprints into the launch path needs
+            either a "custom" ship category in ColonyShipFlight (new field
+            customBuildStats) or a blueprint-id route through
+            launchShipFromPad. Crew preset + cargo preset persistence
+            extending the blueprint format also lands in this sub-task.
 ```
 
 **Acceptance:** user playtests post-17.J and **CAN'T NAME a missing feature** from the original UMS-faithful immersion quote.
