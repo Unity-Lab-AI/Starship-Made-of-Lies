@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   const config: UserConfig = {
     plugins: [react()],
     base: process.env['SMOL_BASE_PATH'] ?? '/',
+    envDir: resolve(__dirname, '..'),
     resolve: {
       alias: {
         '@smol/shared': resolve(__dirname, '../shared/src/index.ts'),
