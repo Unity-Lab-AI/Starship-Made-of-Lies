@@ -5,6 +5,7 @@ import {
   type LootDropId,
   type PlanetId,
   abortFlight,
+  resetPadCitizenLoad,
   setShipDutyPercent as setShipDutyPercentImpl,
 } from '@smol/shared'
 import {
@@ -235,7 +236,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
         pad.buildTicksRemaining = 0
         pad.fuelLoaded = 0
         pad.ammoLoaded = 0
-        pad.citizensLoaded = 0
+        resetPadCitizenLoad(pad)
         pad.lastOutcome = 'ABORTED'
         touched += 1
       }

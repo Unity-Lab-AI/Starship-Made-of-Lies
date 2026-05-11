@@ -1,6 +1,7 @@
 import { type CivId, type PlanetId, type TileId } from '../types/index'
 import { type ColonyShipVariantId, getColonyShipDef } from './colony-ship'
 import { type PlanetInventory, stockOf, tryConsumeAll } from './inventory'
+import { type CitizenTier, type PlanetPopulation } from './population'
 import { RESOURCE_AMMUNITION, RESOURCE_FUEL } from './resources'
 
 export type PadState =
@@ -50,6 +51,13 @@ export interface LaunchPad {
   fuelLoaded: number
   ammoLoaded: number
   citizensLoaded: number
+  // PHASE 17.L.A.6 — tier-aware citizen loading per SMOL_DESIGN_COLONY_SHIPS.md §9-NEW. The
+  // scalar citizensLoaded is the SUM of this breakdown. Suicide ships only load from tier 4-5
+  // (per user verbatim "above all citizens dont want to kill them selves but for the most
+  // high tiered/happy/statas we have"); non-suicide ships fill from tier 1 upward. The
+  // breakdown lets launchShipFromPadAction enforce the tier gate AND lets the deception ledger
+  // record WHICH tiers were sent to their deaths for downstream propaganda-fallout math.
+  citizensLoadedByTier: Record<CitizenTier, number>
   targetQueue: PadTargetWaypoint[]
   activeTargetIdx: number
   lastOutcome: PadOutcome | null
@@ -74,6 +82,7 @@ export function newLaunchPad(
     fuelLoaded: 0,
     ammoLoaded: 0,
     citizensLoaded: 0,
+    citizensLoadedByTier: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
     targetQueue: [],
     activeTargetIdx: 0,
     lastOutcome: null,
@@ -196,10 +205,22 @@ export function startPrint(
   pad.buildTicksRemaining = Math.max(1, Math.round(def.buildTimeTicks * buildTimeMultiplier))
   pad.fuelLoaded = 0
   pad.ammoLoaded = 0
-  pad.citizensLoaded = 0
+  zeroCitizenLoad(pad)
   pad.state = 'PRINT'
   pad.lastOutcome = null
   return true
+}
+
+// PHASE 17.L.A.6 — zero both the scalar citizensLoaded AND the per-tier breakdown together so
+// they never drift. Every reset path (startPrint / startPrintFromBlueprint / abort / GONE
+// transition / external resets) routes through this helper.
+function zeroCitizenLoad(pad: LaunchPad): void {
+  pad.citizensLoaded = 0
+  pad.citizensLoadedByTier = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+}
+
+export function resetPadCitizenLoad(pad: LaunchPad): void {
+  zeroCitizenLoad(pad)
 }
 
 // PHASE 17.J.10 — start a print run from a saved blueprint. The pad's loadedShipVariantId is
@@ -231,7 +252,7 @@ export function startPrintFromBlueprint(
   pad.buildTicksRemaining = buildTime
   pad.fuelLoaded = 0
   pad.ammoLoaded = 0
-  pad.citizensLoaded = 0
+  zeroCitizenLoad(pad)
   pad.state = 'PRINT'
   pad.lastOutcome = null
   return true
@@ -255,14 +276,63 @@ export function loadAmmo(pad: LaunchPad, amount: number): number {
   return taken
 }
 
-export function loadCitizens(pad: LaunchPad, count: number): number {
-  if (pad.state !== 'AMMO' && pad.state !== 'READY') return 0
+// PHASE 17.L.A.6 — tier-aware citizen loading per SMOL_DESIGN_COLONY_SHIPS.md §9-NEW.
+// User verbatim (LAW #0): "remember above all citizens dont want to kill them selves but for
+// the most high tiered/happy/statas we have". Suicide ships pull tier 5 first, then tier 4,
+// and REFUSE to dip below tier 4 — that's the hard gate that makes the darkness arc work.
+// Non-suicide ships fill from tier 1 upward (workers volunteer for normal colonies).
+// Drains the planet population's tier counts as a side-effect — caller does NOT need to
+// manually subtract. Returns the count actually loaded (may be less than requested).
+export function loadCitizensFromVolunteerPool(
+  pad: LaunchPad,
+  population: PlanetPopulation,
+  count: number,
+  isSuicideShip: boolean,
+): number {
+  if (
+    pad.state !== 'AMMO' &&
+    pad.state !== 'READY' &&
+    pad.state !== 'DOCK' &&
+    pad.state !== 'FUEL'
+  ) {
+    return 0
+  }
   if (!pad.loadedShipVariantId) return 0
   const def = getColonyShipDef(pad.loadedShipVariantId)
   const remaining = Math.max(0, def.payload.citizenCapacity - pad.citizensLoaded)
-  const taken = Math.min(count, remaining)
-  pad.citizensLoaded += taken
-  return taken
+  if (remaining <= 0 || count <= 0) return 0
+  const want = Math.min(count, remaining)
+  // Suicide ships: tier 5 → tier 4 only. Non-suicide: tier 1 → 2 → 3 → 4 → 5 (lowest first).
+  // The volunteer-pool reservation slider (PHASE 17.J.9) is honored implicitly — reserved
+  // citizens stay in tierCounts so they're available to draw from here; the workforce side
+  // (17.L.A.4) is what subtracts them from worker assignment.
+  const tierOrder: ReadonlyArray<CitizenTier> = isSuicideShip ? [5, 4] : [1, 2, 3, 4, 5]
+  let drawn = 0
+  for (const tier of tierOrder) {
+    if (drawn >= want) break
+    const avail = population.tierCounts[tier]
+    const pull = Math.min(want - drawn, avail)
+    if (pull <= 0) continue
+    population.tierCounts[tier] -= pull
+    pad.citizensLoadedByTier[tier] += pull
+    drawn += pull
+  }
+  pad.citizensLoaded += drawn
+  return drawn
+}
+
+// PHASE 17.L.A.6 — citizen-tier gate enforcement for the launch action. Returns true when the
+// pad's loaded citizen mix satisfies the ship's payloadTierRequired. Suicide ships demand
+// 100% tier 4-5 aboard; non-suicide ships have no gate. Caller (launchShipFromPadAction) uses
+// the false return to push an "Insufficient Volunteers" event and refuse the launch.
+export function padCitizenMixSatisfiesShip(pad: LaunchPad): boolean {
+  if (!pad.loadedShipVariantId) return false
+  const def = getColonyShipDef(pad.loadedShipVariantId)
+  if (!def.suicideShip) return true
+  // All aboard must be tier 4 or 5. Lower-tier citizens aboard a suicide ship = refusal.
+  const lowerTierAboard =
+    pad.citizensLoadedByTier[1] + pad.citizensLoadedByTier[2] + pad.citizensLoadedByTier[3]
+  return lowerTierAboard === 0
 }
 
 export function arm(pad: LaunchPad): boolean {
@@ -298,7 +368,7 @@ export function abort(pad: LaunchPad): boolean {
     pad.buildTicksRemaining = 0
     pad.fuelLoaded = 0
     pad.ammoLoaded = 0
-    pad.citizensLoaded = 0
+    zeroCitizenLoad(pad)
     pad.lastOutcome = 'ABORTED'
     return true
   }
