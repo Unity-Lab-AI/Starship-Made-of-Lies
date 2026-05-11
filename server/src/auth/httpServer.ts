@@ -2,7 +2,9 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { randomUUID } from 'node:crypto'
 import {
   completeGoogleSignIn,
+  getAllowedRedirectUris,
   getGoogleOAuthServerConfig,
+  isRedirectUriAllowed,
   type GoogleOAuthServerConfig,
 } from './google'
 import { InMemoryAccountStore, type AccountStore } from '../persistence/AccountStore'
@@ -50,6 +52,11 @@ interface GoogleCallbackBody {
   readonly code?: string
   readonly codeVerifier?: string
   readonly state?: string
+  // PHASE 16.34 HOTFIX — client sends the EXACT redirect_uri used at /authorize so the
+  // server-side /token call uses the same value. Without this, Google rejects with
+  // redirect_uri_mismatch whenever the hosted origin (Cloudflare tunnel, ngrok, alt port,
+  // production domain) differs from `GOOGLE_OAUTH_REDIRECT_URI` on the server.
+  readonly redirectUri?: string
 }
 
 async function handleGoogleCallback(
@@ -63,6 +70,28 @@ async function handleGoogleCallback(
       respondJson(res, 400, { error: 'Missing code or codeVerifier in request body.' })
       return
     }
+    // PHASE 16.34 HOTFIX — validate client-supplied redirect_uri against the allowlist before
+    // forwarding to Google. If the client didn't supply one (legacy callers), fall back to the
+    // server's env-var redirect_uri so v1 behavior is preserved. If the client supplied one and
+    // it's NOT in the allowlist, return a CLEAR 403 with both the supplied + allowed values so
+    // the operator can see exactly what to whitelist.
+    let clientRedirectUri: string | undefined
+    if (body.redirectUri && body.redirectUri.length > 0) {
+      const allowed = getAllowedRedirectUris()
+      if (!isRedirectUriAllowed(body.redirectUri, allowed)) {
+        respondJson(res, 403, {
+          error:
+            `Client redirect_uri "${body.redirectUri}" is not in the server allowlist. ` +
+            `Add it to GOOGLE_OAUTH_ALLOWED_REDIRECT_URIS (comma-separated) AND register it in ` +
+            `Google Cloud Console > APIs & Services > Credentials > your OAuth client > ` +
+            `Authorized redirect URIs, then restart the auth server.`,
+          suppliedRedirectUri: body.redirectUri,
+          allowedRedirectUris: [...allowed],
+        })
+        return
+      }
+      clientRedirectUri = body.redirectUri
+    }
     const result = await completeGoogleSignIn({
       code: body.code,
       codeVerifier: body.codeVerifier,
@@ -70,6 +99,7 @@ async function handleGoogleCallback(
       store: sharedAccountStore,
       currentTick: 0,
       issueSessionToken,
+      ...(clientRedirectUri ? { clientRedirectUri } : {}),
     })
     respondJson(res, 200, {
       accountId: String(result.account.profile.accountId),

@@ -109,6 +109,13 @@ export async function exchangeGoogleCodeForSession(
   result: GoogleCallbackResult,
   authEndpoint: string,
 ): Promise<GoogleSignInResponse> {
+  // PHASE 16.34 HOTFIX — Google /token requires the EXACT redirect_uri the client sent at
+  // /authorize. The client derives that from `window.location.origin` (so it varies per host:
+  // localhost dev vs Cloudflare tunnel vs prod domain). The server previously used a fixed env
+  // var which rejected mismatched setups with redirect_uri_mismatch. We now forward the exact
+  // value here; server validates against an allowlist (GOOGLE_OAUTH_ALLOWED_REDIRECT_URIS).
+  const config = getGoogleOAuthConfig()
+  const redirectUri = config?.redirectUri ?? `${window.location.origin}/auth/google/callback`
   const response = await fetch(authEndpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -116,6 +123,7 @@ export async function exchangeGoogleCodeForSession(
       code: result.code,
       codeVerifier: result.codeVerifier,
       state: result.state,
+      redirectUri,
     }),
   })
   if (!response.ok) {
