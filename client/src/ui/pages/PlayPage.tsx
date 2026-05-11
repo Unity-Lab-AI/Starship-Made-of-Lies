@@ -25,6 +25,7 @@ import { useMatchSim } from '../../match/useMatchSim'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
 import { CommandPadPanel } from '../panels/CommandPadPanel'
+import { FlightDetailPanel } from '../panels/FlightDetailPanel'
 import { MiningFleetPanel } from '../panels/MiningFleetPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
@@ -109,6 +110,10 @@ export function PlayPage() {
   const [salvoRoundPhase, setSalvoRoundPhase] = useState<
     null | 'BUILDING' | 'ARMING' | 'LAUNCHING'
   >(null)
+
+  // PHASE 16.23: clicked-flight selection state. Set when player clicks a flight cone in
+  // GalaxyView; cleared when FlightDetailPanel close button is pressed or overlay click.
+  const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
 
   // PHASE 16.13.9: /play canvas defaults to the 3D GalaxyView. The legacy 2D TilePlacementGrid
   // is kept ONLY as a dev-debug overlay reachable via `?dev=hexgrid` URL flag. Per LAW #0
@@ -651,6 +656,7 @@ export function PlayPage() {
             }
             onSelectPlanet={handleSelectPlanet}
             onSurfaceTileClick={handleSurfaceTileClick}
+            onSelectFlight={setSelectedFlightId}
             miningBeacons={allHumanBeacons}
             civsByPlanet={civsByPlanet}
             indigenousByPlanet={indigenousByPlanet}
@@ -942,6 +948,29 @@ export function PlayPage() {
           </ul>
         </PanelFrame>
       )}
+      {/* PHASE 16.23: clicked-flight detail popup. Renders when a flight cone in 3D is clicked
+          via GalaxyView's raycaster. Shows full make-up (crew/citizens/cargo/fuel/payload) +
+          UMS UNITY_MSL live telemetry (alt/dist/closingSpeed/phase/ETA) + 💀 ABORT button
+          that calls sim.abortFlightById for self-destruct. */}
+      {selectedFlightId
+        ? (() => {
+            const flight = sim.state.flights.get(selectedFlightId)
+            if (!flight) {
+              setSelectedFlightId(null)
+              return null
+            }
+            return (
+              <FlightDetailPanel
+                flight={flight}
+                currentTick={sim.state.currentTick}
+                fromPlanetLabel={String(flight.fromPlanetId)}
+                toPlanetLabel={String(flight.targetPlanetId)}
+                onAbort={(fid) => sim.abortFlightById(fid)}
+                onClose={() => setSelectedFlightId(null)}
+              />
+            )
+          })()
+        : null}
     </div>
   )
 }

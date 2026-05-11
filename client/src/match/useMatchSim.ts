@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { type CivId, type ColonyShipVariantId, type LootDropId, type PlanetId } from '@smol/shared'
+import {
+  type CivId,
+  type ColonyShipVariantId,
+  type LootDropId,
+  type PlanetId,
+  abortFlight,
+} from '@smol/shared'
 import {
   type BuildShipInputs,
   type LaunchCampaignInputs,
@@ -43,6 +49,11 @@ export interface UseMatchSimResult {
   readonly controllerLaunchAll: (planetId: PlanetId) => number
   readonly controllerAbortAll: (planetId: PlanetId) => number
   readonly controllerCopyTarget: (planetId: PlanetId) => number
+  // PHASE 16.23: user-driven per-flight abort. Player clicks an in-flight cone in 3D, the
+  // FlightDetailPanel opens, the ABORT button fires this with the flight id. Per UMS
+  // UnityPad.cs DETONATE:{padID} IGC message — manual self-destruct. PHASE 16.24 will
+  // add AoE damage scaling from fuel + payload at detonation point.
+  readonly abortFlightById: (flightId: string) => boolean
 }
 
 export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
@@ -223,6 +234,26 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     return touched
   }, [])
 
+  // PHASE 16.23: per-flight abort fired from FlightDetailPanel's "💀 ABORT (self-destruct)"
+  // button. Look up flight by id, call shared abortFlight() — flips phase to ABORTED +
+  // outcome to ABORTED. Per UMS UnityPad.cs DETONATE:{padID} IGC manual self-destruct.
+  const abortFlightById = useCallback((flightId: string): boolean => {
+    const state = stateRef.current
+    const flight = state.flights.get(flightId)
+    if (!flight) return false
+    if (
+      flight.phase === 'DETONATE' ||
+      flight.phase === 'INTERCEPTED' ||
+      flight.phase === 'ABORTED' ||
+      flight.phase === 'CRASH_LANDED'
+    ) {
+      return false
+    }
+    abortFlight(flight)
+    setTickCount((n) => n + 1)
+    return true
+  }, [])
+
   return {
     state: stateRef.current,
     tickCount,
@@ -243,5 +274,6 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     controllerLaunchAll,
     controllerAbortAll,
     controllerCopyTarget,
+    abortFlightById,
   }
 }

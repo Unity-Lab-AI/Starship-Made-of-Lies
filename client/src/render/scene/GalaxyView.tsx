@@ -86,6 +86,10 @@ interface GalaxyViewProps {
   // billboard at the mine's world position with size keyed to detonationRadius. Visible
   // any zoom; fades as remainingDetonations depletes.
   readonly mineFields?: ReadonlyArray<MineFieldInput>
+  // PHASE 16.23: clicked in-flight cone fires this with the flight's id. Parent shows
+  // FlightDetailPanel with per-ship make-up (crew / supplies / fuel / water / speed /
+  // task / phase / ETA / signal-lost) per UMS UnityMissile.cs UNITY_MSL broadcast spec.
+  readonly onSelectFlight?: (flightId: string) => void
 }
 
 export function GalaxyView({
@@ -105,6 +109,7 @@ export function GalaxyView({
   lastHopeTriggeredPlanetIds,
   padStateGlows,
   mineFields,
+  onSelectFlight,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -127,6 +132,7 @@ export function GalaxyView({
   )
   const padStateGlowsRef = useRef<ReadonlyArray<PadStateGlowInput>>(padStateGlows ?? [])
   const mineFieldsRef = useRef<ReadonlyArray<MineFieldInput>>(mineFields ?? [])
+  const onSelectFlightRef = useRef(onSelectFlight)
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
@@ -139,6 +145,7 @@ export function GalaxyView({
   lastHopeTriggeredRef.current = lastHopeTriggeredPlanetIds ?? new Set()
   padStateGlowsRef.current = padStateGlows ?? []
   mineFieldsRef.current = mineFields ?? []
+  onSelectFlightRef.current = onSelectFlight
   void humanCivId
 
   useEffect(() => {
@@ -262,7 +269,27 @@ export function GalaxyView({
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
       raycaster.setFromCamera(ndc, cameraState.camera)
 
-      // Try surface tile pick first
+      // PHASE 16.23: in-flight ship cone selection. Try flight pick FIRST so a click on a
+      // visible flight cone opens the FlightDetailPanel before falling through to surface /
+      // planet picks. Per user verbatim "ships should be selectable" + UMS UnityMissile.cs
+      // UNITY_MSL broadcast spec.
+      const flightCones: THREE.Object3D[] = []
+      for (const entry of flightArcHandle.entries.values()) flightCones.push(entry.progressDot)
+      if (flightCones.length > 0) {
+        const flightHits = raycaster.intersectObjects(flightCones, false)
+        const fHit = flightHits[0]
+        if (
+          fHit?.object instanceof THREE.Mesh &&
+          fHit.object.userData.kind === 'flight' &&
+          onSelectFlightRef.current
+        ) {
+          const fid = fHit.object.userData.flightId as string
+          onSelectFlightRef.current(fid)
+          return
+        }
+      }
+
+      // Try surface tile pick next
       const surfaceMeshes = collectVisibleSurfaceMeshes()
       if (surfaceMeshes.length > 0) {
         const surfaceHits = raycaster.intersectObjects(

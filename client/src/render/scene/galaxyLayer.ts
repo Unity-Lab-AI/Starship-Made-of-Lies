@@ -667,6 +667,10 @@ export function syncFlightArcs(
         metalness: 0.4,
       })
       const dot = new THREE.Mesh(dotGeom, dotMat)
+      // PHASE 16.23: tag the cone mesh so GalaxyView's raycaster can pick it up and fire
+      // onSelectFlight(flightId) → opens FlightDetailPanel with crew/supplies/fuel/speed
+      // per UMS UnityMissile.cs UNITY_MSL broadcast spec.
+      dot.userData = { kind: 'flight', flightId: flightIdStr }
       handle.group.add(dot)
       entry = { flightId: flightIdStr, line, progressDot: dot, arcPoints: points }
       handle.entries.set(flightIdStr, entry)
