@@ -47,13 +47,21 @@ export async function exchangeCodeForGoogleTokens(
   code: string,
   codeVerifier: string,
   config: GoogleOAuthServerConfig,
+  // PHASE 16.34 HOTFIX — the redirect_uri sent to Google /token MUST exactly match the one
+  // the client used at /authorize. The client derives that from `window.location.origin`
+  // (so it varies by host: localhost dev vs Cloudflare tunnel vs prod domain). Caller passes
+  // the client's exact value here after allowlist-validating it; falls back to config.redirectUri
+  // for legacy callers. Without this override, server-side env-var-only flows reject every
+  // hosted setup that isn't 1:1 with the env var (redirect_uri_mismatch from Google).
+  redirectUriOverride?: string,
 ): Promise<GoogleTokenResponse> {
+  const effectiveRedirectUri = redirectUriOverride ?? config.redirectUri
   const body = new URLSearchParams({
     client_id: config.clientId,
     client_secret: config.clientSecret,
     code,
     code_verifier: codeVerifier,
-    redirect_uri: config.redirectUri,
+    redirect_uri: effectiveRedirectUri,
     grant_type: 'authorization_code',
   })
   const response = await fetch(GOOGLE_TOKEN_URL, {
@@ -131,8 +139,16 @@ export async function completeGoogleSignIn(input: {
   readonly store: AccountStore
   readonly currentTick: number
   readonly issueSessionToken: (accountId: string) => string
+  // PHASE 16.34 HOTFIX — exact redirect_uri the client used at /authorize. Server-supplied
+  // env-var redirect_uri (config.redirectUri) used as fallback for legacy callers.
+  readonly clientRedirectUri?: string
 }): Promise<GoogleSignInOutput> {
-  const tokens = await exchangeCodeForGoogleTokens(input.code, input.codeVerifier, input.config)
+  const tokens = await exchangeCodeForGoogleTokens(
+    input.code,
+    input.codeVerifier,
+    input.config,
+    input.clientRedirectUri,
+  )
   const userInfo = await fetchGoogleUserInfo(tokens.access_token)
   const account = resolveOrCreateGoogleAccount({
     userInfo,
@@ -141,4 +157,25 @@ export async function completeGoogleSignIn(input: {
   })
   const sessionToken = input.issueSessionToken(String(account.profile.accountId))
   return { account, sessionToken, email: userInfo.email }
+}
+
+// PHASE 16.34 HOTFIX — allowlist for client-supplied redirect_uri. Server-side env var
+// `GOOGLE_OAUTH_ALLOWED_REDIRECT_URIS` (comma-separated) is the primary source. The single
+// `GOOGLE_OAUTH_REDIRECT_URI` env var is automatically added to the allowlist if present so
+// existing deployments don't break. Empty allowlist = block ALL client-supplied URIs (server
+// falls back to its env-var redirect_uri, preserving v1 behavior).
+export function getAllowedRedirectUris(): ReadonlySet<string> {
+  const explicit = (process.env.GOOGLE_OAUTH_ALLOWED_REDIRECT_URIS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+  const fallback = process.env.GOOGLE_OAUTH_REDIRECT_URI
+  const all = new Set<string>(explicit)
+  if (fallback && fallback.length > 0) all.add(fallback)
+  return all
+}
+
+export function isRedirectUriAllowed(uri: string, allowed: ReadonlySet<string>): boolean {
+  if (allowed.size === 0) return false
+  return allowed.has(uri)
 }
