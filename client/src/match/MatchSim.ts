@@ -90,6 +90,7 @@ import {
   computeCrashOutcome,
   controlledPlanetCount,
   createLootDrop,
+  discoverPlanet,
   deathsInWindow,
   defaultHomeDockPosition,
   deceptionPenalties,
@@ -1249,6 +1250,13 @@ function launchAIShipFromPad(
   state.flights.set(flightIdStr, flight)
   pad.state = 'GONE'
   recordColonyShipLaunch(civState.deceptionLedger, pad.citizensLoaded)
+  // PHASE 16.38 — fog-of-war discovery: AI launching civ discovers target on launch +
+  // defender discovers attacker source.
+  discoverPlanet(civState.empire, targetPlanet.planet.id)
+  const defenderCivState = state.civs.get(targetPlanet.civId)
+  if (defenderCivState && targetPlanet.civId !== civState.civId) {
+    discoverPlanet(defenderCivState.empire, fromPlanet.planet.id)
+  }
   pushBeaconAlert(targetPlanet.beacon, {
     id: `alert-${flightIdStr}`,
     planetId: targetPlanet.planet.id,
@@ -2041,6 +2049,16 @@ export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
     const civState = inputs.state.civs.get(planet.civId)
     if (civState) {
       recordColonyShipLaunch(civState.deceptionLedger, pad.citizensLoaded)
+      // PHASE 16.38 — launching civ discovers the target planet on launch (they're aiming at
+      // it, so the destination is no longer fogged for them). Defender discovers attacker's
+      // source on incoming-flight detection — handled in tickIncomingFlight (below).
+      discoverPlanet(civState.empire, targetPlanet.planet.id)
+    }
+    // PHASE 16.38 — defender discovers attacker's source planet the moment an incoming flight
+    // is registered (UMS-faithful — UnitySignal antenna acquisition fires at launch).
+    const defenderCivState = inputs.state.civs.get(targetPlanet.civId)
+    if (defenderCivState && targetPlanet.civId !== planet.civId) {
+      discoverPlanet(defenderCivState.empire, planet.planet.id)
     }
     pushEvent(inputs.state, {
       atTick: inputs.state.currentTick,
@@ -2122,6 +2140,8 @@ export function redirectFlightAction(inputs: RedirectFlightInputs): boolean {
     signalLossSeed: flight.signalLossSeed,
     targetingMode: flight.targetingMode,
   })
+  // PHASE 16.38 — god-control redirect also discovers the new target planet for the player.
+  discoverPlanet(civState.empire, newTarget.planet.id)
   redirected.powerRemaining = flight.powerRemaining
   redirected.lifeSupportRemaining = flight.lifeSupportRemaining
   redirected.crewAlive = flight.crewAlive
