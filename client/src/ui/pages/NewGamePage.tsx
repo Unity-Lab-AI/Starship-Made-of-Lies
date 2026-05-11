@@ -80,6 +80,8 @@ export function NewGamePage() {
   const [galaxySize, setGalaxySize] = useState<GalaxyPreset>('small')
   const [aiCount, setAiCount] = useState(3)
   const [coopMode, setCoopMode] = useState(false)
+  // PHASE 17.K — host-chosen fog-of-war toggle per user verbatim 2026-05-11. Default ON.
+  const [fogOfWarEnabled, setFogOfWarEnabled] = useState(true)
   const [objectives, setObjectives] = useState<ObjectiveToggleState>(DEFAULT_OBJECTIVES)
   const [aiSlots, setAiSlots] = useState<ReadonlyArray<AISlotConfig>>(() =>
     Array.from({ length: 3 }, (_, i) => defaultAISlot(i)),
@@ -302,6 +304,20 @@ export function NewGamePage() {
             </span>
           </label>
 
+          <label className="new-game-page__field">
+            <span>Fog of war</span>
+            <input
+              type="checkbox"
+              checked={fogOfWarEnabled}
+              onChange={(e) => setFogOfWarEnabled(e.target.checked)}
+            />
+            <span className="new-game-page__field-hint">
+              {fogOfWarEnabled
+                ? 'Enemy planets hidden until you launch at them OR they launch at you'
+                : 'OFF — every civilization visible on the galactic map from match start'}
+            </span>
+          </label>
+
           <fieldset className="new-game-page__objectives">
             <legend>Win conditions</legend>
             <p className="new-game-page__objectives-hint">
@@ -428,6 +444,10 @@ export function NewGamePage() {
             <span className="new-game-page__match-status-detail">
               Win conditions: {winConditionsLabel}
             </span>
+            <br />
+            <span className="new-game-page__match-status-detail">
+              Fog of war: <strong>{fogOfWarEnabled ? 'ON' : 'OFF'}</strong>
+            </span>
           </p>
 
           <p className="new-game-page__theme-note new-game-page__theme-note--blind">
@@ -463,6 +483,7 @@ export function NewGamePage() {
                     planetCount: preset.planetCount,
                     objectives: cfgObjectives,
                     aiSlots,
+                    fogOfWarEnabled,
                   },
                 })
               }}
