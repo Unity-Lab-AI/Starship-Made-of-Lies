@@ -354,6 +354,21 @@ export function PlayPage() {
           humanCivId={String(sim.state.humanCivId)}
           ownedPlanetIds={new Set(ownedPlanets.map((p) => p.planet.id))}
           homePlanetId={humanCivState.homePlanetId}
+          activeFlights={[...sim.state.flights.values()]}
+          alertedPlanetIds={
+            new Set(
+              [...sim.state.planets.values()]
+                .filter(
+                  (p) =>
+                    p.civId === sim.state.humanCivId &&
+                    p.beacon.alerts.some(
+                      (a) =>
+                        a.kind === 'INCOMING_HOSTILE' && sim.state.currentTick - a.atTick < 200,
+                    ),
+                )
+                .map((p) => p.planet.id),
+            )
+          }
           onSelectPlanet={(id) => {
             setSelectedPlanetId(id)
             setGalaxyOpen(false)

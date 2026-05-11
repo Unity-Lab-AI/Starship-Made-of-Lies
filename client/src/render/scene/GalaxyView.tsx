@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { type Galaxy, type Planet, type PlanetId } from '@smol/shared'
+import { type ColonyShipFlight, type Galaxy, type Planet, type PlanetId } from '@smol/shared'
 import {
   applyCameraTransform,
   attachCameraController,
@@ -8,14 +8,32 @@ import {
   newCamera,
   tickCameraFromInput,
 } from './cameraController'
-import { buildGalaxyLayer } from './galaxyLayer'
+import {
+  buildBeaconPulseLayer,
+  buildFlightArcLayer,
+  buildGalaxyLayer,
+  buildRangeOverlayLayer,
+  syncBeaconPulses,
+  syncFlightArcs,
+} from './galaxyLayer'
 import './scene.css'
+
+function civColorFromId(civId: string): number {
+  let h = 0
+  for (let i = 0; i < civId.length; i++) h = (h * 31 + civId.charCodeAt(i)) >>> 0
+  const hue = (h % 360) / 360
+  const color = new THREE.Color()
+  color.setHSL(hue, 0.65, 0.6)
+  return color.getHex()
+}
 
 interface GalaxyViewProps {
   readonly galaxy: Galaxy
   readonly humanCivId: string
   readonly ownedPlanetIds: ReadonlySet<PlanetId>
   readonly homePlanetId: PlanetId
+  readonly activeFlights: ReadonlyArray<ColonyShipFlight>
+  readonly alertedPlanetIds: ReadonlySet<PlanetId>
   readonly onSelectPlanet: (id: PlanetId) => void
   readonly onClose: () => void
 }
@@ -25,11 +43,20 @@ export function GalaxyView({
   humanCivId,
   ownedPlanetIds,
   homePlanetId,
+  activeFlights,
+  alertedPlanetIds,
   onSelectPlanet,
   onClose,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
+  const [rangeOverlayVisible, setRangeOverlayVisible] = useState(false)
+  const activeFlightsRef = useRef(activeFlights)
+  const alertedPlanetIdsRef = useRef(alertedPlanetIds)
+  const rangeVisibleRef = useRef(rangeOverlayVisible)
+  activeFlightsRef.current = activeFlights
+  alertedPlanetIdsRef.current = alertedPlanetIds
+  rangeVisibleRef.current = rangeOverlayVisible
   void humanCivId
 
   useEffect(() => {
@@ -78,6 +105,17 @@ export function GalaxyView({
       ringMaterials.set(id, ring)
     }
 
+    // Build the additional layers
+    const flightArcHandle = buildFlightArcLayer(galaxyHandle.galaxyCenter)
+    scene.add(flightArcHandle.group)
+    const beaconPulseHandle = buildBeaconPulseLayer()
+    scene.add(beaconPulseHandle.group)
+    const homePlanetMesh = galaxyHandle.planetMeshes.get(homePlanetId)
+    const rangeOverlayHandle = buildRangeOverlayLayer(
+      homePlanetMesh ? homePlanetMesh.position.clone() : new THREE.Vector3(),
+    )
+    scene.add(rangeOverlayHandle.group)
+
     const controller = attachCameraController(renderer.domElement, cameraState)
     bindCameraInputs(controller)
 
@@ -86,7 +124,19 @@ export function GalaxyView({
     const ndc = new THREE.Vector2()
     let pickedPlanetId: PlanetId | null = null
 
+    // Tween state for click-to-zoom
+    let tween: {
+      startPos: THREE.Vector3
+      targetPos: THREE.Vector3
+      startZoomT: number
+      targetZoomT: number
+      startedAt: number
+      durationMs: number
+      onComplete: () => void
+    } | null = null
+
     const onClick = (e: MouseEvent): void => {
+      if (tween) return
       const rect = renderer.domElement.getBoundingClientRect()
       ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
@@ -96,7 +146,16 @@ export function GalaxyView({
       const hit = hits[0]
       if (hit?.object instanceof THREE.Mesh && hit.object.userData.kind === 'planet') {
         const id = hit.object.userData.planetId as PlanetId
-        onSelectPlanet(id)
+        const targetMesh = hit.object
+        tween = {
+          startPos: cameraState.target.clone(),
+          targetPos: targetMesh.position.clone(),
+          startZoomT: cameraState.zoomT,
+          targetZoomT: 0.32,
+          startedAt: performance.now(),
+          durationMs: 1200,
+          onComplete: () => onSelectPlanet(id),
+        }
       }
     }
     const onMouseMoveForHover = (e: MouseEvent): void => {
@@ -119,6 +178,15 @@ export function GalaxyView({
     renderer.domElement.addEventListener('click', onClick)
     renderer.domElement.addEventListener('mousemove', onMouseMoveForHover)
 
+    // R key toggles range overlay
+    const onKeyDown = (ev: KeyboardEvent): void => {
+      if (ev.key.toLowerCase() === 'r') {
+        rangeVisibleRef.current = !rangeVisibleRef.current
+        setRangeOverlayVisible(rangeVisibleRef.current)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+
     // Resize
     const onResize = (): void => {
       if (!mountRef.current) return
@@ -130,6 +198,9 @@ export function GalaxyView({
     }
     window.addEventListener('resize', onResize)
 
+    // Build civ color map (cached for the session) — keyed by stringified CivId
+    const civColorMap = new Map<string, number>()
+
     // RAF loop
     let lastT = performance.now()
     let raf = 0
@@ -137,8 +208,23 @@ export function GalaxyView({
       const now = performance.now()
       const dt = Math.min(0.1, (now - lastT) / 1000)
       lastT = now
-      tickCameraFromInput(cameraState, dt)
+
+      // Tween camera if active
+      if (tween) {
+        const t = Math.min(1, (now - tween.startedAt) / tween.durationMs)
+        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2 // ease-in-out
+        cameraState.target.lerpVectors(tween.startPos, tween.targetPos, ease)
+        cameraState.zoomT = tween.startZoomT + (tween.targetZoomT - tween.startZoomT) * ease
+        if (t >= 1) {
+          const onDone = tween.onComplete
+          tween = null
+          onDone()
+        }
+      } else {
+        tickCameraFromInput(cameraState, dt)
+      }
       applyCameraTransform(cameraState)
+
       // Pulse owned-planet rings
       const phase = (now / 1000) * 1.5
       for (const ring of ringMaterials.values()) {
@@ -146,6 +232,30 @@ export function GalaxyView({
         mat.opacity = 0.35 + Math.sin(phase) * 0.15
         ring.lookAt(cameraState.camera.position)
       }
+
+      // Sync flight arcs each tick (cheap)
+      for (const flight of activeFlightsRef.current) {
+        const civIdStr = String(flight.launchingCivId)
+        if (!civColorMap.has(civIdStr)) civColorMap.set(civIdStr, civColorFromId(civIdStr))
+      }
+      syncFlightArcs(
+        flightArcHandle,
+        activeFlightsRef.current,
+        galaxyHandle.planetMeshes,
+        civColorMap,
+      )
+
+      // Sync beacon alerts
+      syncBeaconPulses(
+        beaconPulseHandle,
+        alertedPlanetIdsRef.current,
+        galaxyHandle.planetMeshes,
+        cameraState.camera,
+      )
+
+      // Range overlay visibility
+      rangeOverlayHandle.setVisible(rangeVisibleRef.current)
+
       renderer.render(scene, cameraState.camera)
       raf = requestAnimationFrame(tick)
     }
@@ -154,9 +264,13 @@ export function GalaxyView({
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', onResize)
+      window.removeEventListener('keydown', onKeyDown)
       renderer.domElement.removeEventListener('click', onClick)
       renderer.domElement.removeEventListener('mousemove', onMouseMoveForHover)
       controller.destroy()
+      flightArcHandle.destroy()
+      beaconPulseHandle.destroy()
+      rangeOverlayHandle.destroy()
       galaxyHandle.destroy()
       for (const ring of ringMaterials.values()) {
         ring.geometry.dispose()
@@ -189,6 +303,7 @@ export function GalaxyView({
       </header>
       <aside className="galaxy-view__hint">
         <strong>WASD</strong> pan · <strong>QE</strong> rotate · <strong>wheel</strong> zoom ·
+        <strong>R</strong> {rangeOverlayVisible ? 'hide' : 'show'} range rings ·
         <strong> click</strong> a planet to view
       </aside>
       {hoveredPlanet && (
