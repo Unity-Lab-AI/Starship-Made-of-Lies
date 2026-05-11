@@ -120,6 +120,11 @@ export function ShipBuilderPanel({
   const [blueprintName, setBlueprintName] = useState<string>('')
   const [saved, setSaved] = useState<ReadonlyArray<SavedBlueprint>>(() => loadBlueprints())
   const [statusMessage, setStatusMessage] = useState<string>('')
+  // PHASE 17.L.B.4 — per-blueprint pad selection. Keyed on blueprint id. When the map has no
+  // entry, falls back to idlePads[0]. Cleared on blueprint delete.
+  const [selectedPadByBlueprint, setSelectedPadByBlueprint] = useState<
+    Map<string, LaunchPad['id']>
+  >(() => new Map())
 
   const pickedIds = useMemo(
     () => Object.values(selections).filter((id): id is string => !!id),
@@ -345,17 +350,31 @@ export function ShipBuilderPanel({
               const canAfford = bpCost.every((c) => stockOf(inventory, c.resource) >= c.amount)
               const hasMissingTech = bpResolved.missingTechs.length > 0
               const canPrint = idlePads.length > 0 && canAfford && !hasMissingTech
+              // PHASE 17.L.B.4 — multi-pad print picker. When >1 idle pad, surface a small
+              // selector so the player picks which one. Default = first idle. Pad selection
+              // tracked per-blueprint via a Map keyed on bp.id (initialized to idlePads[0]).
+              const selectedPadId = selectedPadByBlueprint.get(bp.id) ?? idlePads[0]?.id ?? null
+              // PHASE 17.L.B.3 — compact cost preview. Top-3 by amount, comma-separated.
+              const topCosts = [...bpCost]
+                .sort((a, b) => b.amount - a.amount)
+                .slice(0, 3)
+                .map((c) => `${c.amount} ${String(c.resource)}`)
+                .join(' · ')
               const printTitle = !canPrint
                 ? idlePads.length === 0
                   ? 'No idle pads on this planet — wait for a pad to reach IDLE or GONE state'
                   : hasMissingTech
                     ? `Missing techs: ${bpResolved.missingTechs.map(String).join(', ')}`
                     : 'Cannot afford — check Total Cost above'
-                : `Print on first idle pad (${String(idlePads[0]!.id)})`
+                : selectedPadId !== null
+                  ? `Print on pad ${String(selectedPadId)}`
+                  : 'Print on first idle pad'
               return (
                 <li key={bp.id} className="ship-builder-panel__library-row">
                   <span className="ship-builder-panel__library-name">{bp.name}</span>
-                  <span className="ship-builder-panel__library-meta">{bp.pieces.length} parts</span>
+                  <span className="ship-builder-panel__library-meta">
+                    {bp.pieces.length} parts{topCosts ? ` · ${topCosts}` : ''}
+                  </span>
                   <button
                     type="button"
                     className="ship-builder-panel__library-btn"
@@ -364,11 +383,34 @@ export function ShipBuilderPanel({
                   >
                     Load
                   </button>
+                  {idlePads.length > 1 ? (
+                    <select
+                      className="ship-builder-panel__library-pad-picker"
+                      value={selectedPadId !== null ? String(selectedPadId) : ''}
+                      onChange={(e) => {
+                        const next = new Map(selectedPadByBlueprint)
+                        const v = e.target.value
+                        const match = idlePads.find((p) => String(p.id) === v)
+                        if (match) {
+                          next.set(bp.id, match.id)
+                          setSelectedPadByBlueprint(next)
+                        }
+                      }}
+                      title="Pick which idle pad to print on"
+                    >
+                      {idlePads.map((p) => (
+                        <option key={String(p.id)} value={String(p.id)}>
+                          {String(p.id)}
+                        </option>
+                      ))}
+                    </select>
+                  ) : null}
                   <button
                     type="button"
                     className="ship-builder-panel__library-btn ship-builder-panel__library-btn--print"
                     onClick={() => {
-                      const pad = idlePads[0]
+                      const pad =
+                        idlePads.find((p) => p.id === selectedPadId) ?? idlePads[0] ?? null
                       if (!pad) {
                         setStatusMessage('No idle pads on this planet.')
                         return
