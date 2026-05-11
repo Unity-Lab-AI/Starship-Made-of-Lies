@@ -457,6 +457,7 @@ export function PlayPage() {
             }
             onSelectPlanet={handleSelectPlanet}
             onSurfaceTileClick={handleSurfaceTileClick}
+            miningBeacons={allHumanBeacons}
           />
         )}
       </div>

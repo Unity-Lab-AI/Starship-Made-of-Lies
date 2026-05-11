@@ -6,6 +6,7 @@ import {
   type Galaxy,
   type Planet,
   type PlanetId,
+  type ShipBeaconBroadcast,
   type Theme,
   type Tile,
 } from '@smol/shared'
@@ -20,10 +21,12 @@ import {
   buildBeaconPulseLayer,
   buildFlightArcLayer,
   buildGalaxyLayer,
+  buildMiningShipLayer,
   buildOwnerFlagLayer,
   buildRangeOverlayLayer,
   syncBeaconPulses,
   syncFlightArcs,
+  syncMiningShips,
   syncOwnerFlags,
 } from './galaxyLayer'
 import { buildSurfaceLayer, type SurfaceLayerHandle } from './surfaceLayer'
@@ -52,6 +55,10 @@ interface GalaxyViewProps {
   // visible, clicking a tile fires this with the tile's parent planet + the picked Tile object.
   // The parent decides what to do (place a building when buildMode active, inspect otherwise).
   readonly onSurfaceTileClick?: (planetId: PlanetId, tile: Tile) => void
+  // PHASE 16.x complete-3D-world-space: ship-beacon broadcasts (mining + future ship types)
+  // for live in-scene rendering. Each beacon spawns / updates a 3D ship mesh at its
+  // worldPosition. Pass empty array to disable.
+  readonly miningBeacons?: ReadonlyArray<ShipBeaconBroadcast>
 }
 
 export function GalaxyView({
@@ -65,6 +72,7 @@ export function GalaxyView({
   themeByCiv,
   onSelectPlanet,
   onSurfaceTileClick,
+  miningBeacons,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -75,12 +83,14 @@ export function GalaxyView({
   const themeByCivRef = useRef(themeByCiv)
   const rangeVisibleRef = useRef(rangeOverlayVisible)
   const onSurfaceTileClickRef = useRef(onSurfaceTileClick)
+  const miningBeaconsRef = useRef<ReadonlyArray<ShipBeaconBroadcast>>(miningBeacons ?? [])
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
   themeByCivRef.current = themeByCiv
   rangeVisibleRef.current = rangeOverlayVisible
   onSurfaceTileClickRef.current = onSurfaceTileClick
+  miningBeaconsRef.current = miningBeacons ?? []
   void humanCivId
 
   useEffect(() => {
@@ -136,6 +146,8 @@ export function GalaxyView({
     scene.add(beaconPulseHandle.group)
     const ownerFlagHandle = buildOwnerFlagLayer()
     scene.add(ownerFlagHandle.group)
+    const miningShipHandle = buildMiningShipLayer()
+    scene.add(miningShipHandle.group)
     const homePlanetMesh = galaxyHandle.planetMeshes.get(homePlanetId)
     const rangeOverlayHandle = buildRangeOverlayLayer(
       homePlanetMesh ? homePlanetMesh.position.clone() : new THREE.Vector3(),
@@ -368,6 +380,9 @@ export function GalaxyView({
         themeByCivRef.current,
       )
 
+      // Sync mining ship meshes (PHASE 16.x complete-3D-world-space)
+      syncMiningShips(miningShipHandle, miningBeaconsRef.current)
+
       // Range overlay visibility
       rangeOverlayHandle.setVisible(rangeVisibleRef.current)
 
@@ -405,6 +420,7 @@ export function GalaxyView({
       flightArcHandle.destroy()
       beaconPulseHandle.destroy()
       ownerFlagHandle.destroy()
+      miningShipHandle.destroy()
       rangeOverlayHandle.destroy()
       galaxyHandle.destroy()
       for (const surface of surfaceLayers.values()) {

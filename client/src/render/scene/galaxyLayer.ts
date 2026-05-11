@@ -5,6 +5,7 @@ import {
   type Galaxy,
   type Planet,
   type PlanetId,
+  type ShipBeaconBroadcast,
   type Theme,
   planetRenderRadius,
 } from '@smol/shared'
@@ -369,8 +370,16 @@ export function syncFlightArcs(
       const line = new THREE.Line(geom, mat)
       line.computeLineDistances()
       handle.group.add(line)
-      const dotGeom = new THREE.SphereGeometry(7, 8, 6)
-      const dotMat = new THREE.MeshBasicMaterial({ color: civColor })
+      // PHASE 16.x complete-3D-world-space: progress marker is now a directional cone
+      // (oriented along arc tangent), not a sphere. Reads as a ship traveling its arc.
+      const dotGeom = new THREE.ConeGeometry(14, 36, 6)
+      const dotMat = new THREE.MeshStandardMaterial({
+        color: civColor,
+        emissive: civColor,
+        emissiveIntensity: 0.7,
+        roughness: 0.35,
+        metalness: 0.4,
+      })
       const dot = new THREE.Mesh(dotGeom, dotMat)
       handle.group.add(dot)
       entry = { flightId: flightIdStr, line, progressDot: dot, arcPoints: points }
@@ -379,13 +388,38 @@ export function syncFlightArcs(
       // Update arc if planet positions changed (rare); just update color if needed
       const mat = entry.line.material as THREE.LineDashedMaterial
       if (mat.color.getHex() !== civColor) mat.color.setHex(civColor)
-      const dotMat = entry.progressDot.material as THREE.MeshBasicMaterial
-      if (dotMat.color.getHex() !== civColor) dotMat.color.setHex(civColor)
+      const dotMat = entry.progressDot.material as THREE.MeshStandardMaterial
+      if (dotMat.color.getHex() !== civColor) {
+        dotMat.color.setHex(civColor)
+        dotMat.emissive.setHex(civColor)
+      }
     }
-    // Place progress dot along arc
+    // Place progress dot along arc + orient along tangent so the cone "flies forward"
     const segIdx = Math.floor(progress * (entry.arcPoints.length - 1))
     const seg = entry.arcPoints[Math.min(entry.arcPoints.length - 1, segIdx)]
-    if (seg) entry.progressDot.position.copy(seg)
+    if (seg) {
+      entry.progressDot.position.copy(seg)
+      const nextSeg = entry.arcPoints[Math.min(entry.arcPoints.length - 1, segIdx + 1)] ?? seg
+      if (nextSeg !== seg) {
+        const dir = nextSeg.clone().sub(seg).normalize()
+        // Cone's local +Y points "up"; align +Y with travel direction
+        const up = new THREE.Vector3(0, 1, 0)
+        const q = new THREE.Quaternion().setFromUnitVectors(up, dir)
+        entry.progressDot.quaternion.copy(q)
+      }
+    }
+    // Phase-tinted emissive pulse for terminal phases (REENTRY/TARGET/DETONATE).
+    const dotMat = entry.progressDot.material as THREE.MeshStandardMaterial
+    const phase = flight.phase
+    if (phase === 'TARGET' || phase === 'DETONATE') {
+      dotMat.emissiveIntensity = 1.1 + 0.4 * Math.sin(performance.now() / 100)
+    } else if (phase === 'REENTRY') {
+      dotMat.emissiveIntensity = 0.9 + 0.2 * Math.sin(performance.now() / 200)
+    } else if (phase === 'INTERCEPTED' || phase === 'ABORTED' || phase === 'CRASH_LANDED') {
+      dotMat.emissiveIntensity = 0.25
+    } else {
+      dotMat.emissiveIntensity = 0.7
+    }
 
     // Animate dash offset for "moving forward" feel
     const mat = entry.line.material as THREE.LineDashedMaterial
@@ -557,4 +591,118 @@ function makeStarfield(seed: number): THREE.Points {
     opacity: 0.85,
   })
   return new THREE.Points(geom, mat)
+}
+
+// === MINING SHIP LAYER (PHASE 16.x complete-3D-world-space) ===
+// Render every MiningShip beacon as a small cone mesh at ship.worldPosition. Phase-tinted
+// color: DOCKED=blue, OUTBOUND=white, DRILLING=yellow, INBOUND=cyan, OFFLOADING=green.
+// Per LAW #0 user verbatim 2026-05-10 "the game is complete 3D game world space" —
+// ships in the sim need to be VISIBLE in the 3D scene, not just numbers in a panel.
+
+export interface MiningShipEntry {
+  readonly shipId: string
+  readonly mesh: THREE.Mesh
+  lastPosition: { x: number; y: number; z: number }
+}
+
+export interface MiningShipLayerHandle {
+  readonly group: THREE.Group
+  readonly entries: Map<string, MiningShipEntry>
+  readonly destroy: () => void
+}
+
+const MINING_SHIP_COLORS: Readonly<Record<string, number>> = {
+  DOCKED: 0x5588ff,
+  IDLE: 0x5588ff,
+  OUTBOUND_TRAVELING: 0xffffff,
+  AT_DEPOSIT_DRILLING: 0xffd960,
+  INBOUND_RETURNING: 0xc0e8ff,
+  OFFLOADING: 0x55ff88,
+  NO_SIGNAL: 0x666666,
+}
+
+const MINING_SHIP_SIZE_RADIUS = 12
+const MINING_SHIP_SIZE_HEIGHT = 28
+
+export function buildMiningShipLayer(): MiningShipLayerHandle {
+  const group = new THREE.Group()
+  const entries = new Map<string, MiningShipEntry>()
+  return {
+    group,
+    entries,
+    destroy: () => {
+      for (const entry of entries.values()) {
+        entry.mesh.geometry.dispose()
+        const mat = entry.mesh.material as THREE.Material | THREE.Material[]
+        if (Array.isArray(mat)) mat.forEach((m) => m.dispose())
+        else mat.dispose()
+      }
+      entries.clear()
+    },
+  }
+}
+
+export function syncMiningShips(
+  handle: MiningShipLayerHandle,
+  beacons: ReadonlyArray<ShipBeaconBroadcast>,
+): void {
+  const alive = new Set<string>()
+  for (const b of beacons) {
+    alive.add(b.shipId)
+    const color = MINING_SHIP_COLORS[b.status] ?? 0xffffff
+    let entry = handle.entries.get(b.shipId)
+    if (!entry) {
+      const geom = new THREE.ConeGeometry(MINING_SHIP_SIZE_RADIUS, MINING_SHIP_SIZE_HEIGHT, 6)
+      const mat = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.6,
+        roughness: 0.4,
+        metalness: 0.3,
+      })
+      const mesh = new THREE.Mesh(geom, mat)
+      mesh.userData = { kind: 'mining-ship', shipId: b.shipId }
+      handle.group.add(mesh)
+      entry = {
+        shipId: b.shipId,
+        mesh,
+        lastPosition: { ...b.worldPosition },
+      }
+      handle.entries.set(b.shipId, entry)
+    } else {
+      const mat = entry.mesh.material as THREE.MeshStandardMaterial
+      if (mat.color.getHex() !== color) {
+        mat.color.setHex(color)
+        mat.emissive.setHex(color)
+      }
+    }
+    // Orient ship cone (+Y local) along its travel direction so it "faces forward"
+    const dx = b.worldPosition.x - entry.lastPosition.x
+    const dy = b.worldPosition.y - entry.lastPosition.y
+    const dz = b.worldPosition.z - entry.lastPosition.z
+    const speedSq = dx * dx + dy * dy + dz * dz
+    if (speedSq > 0.25) {
+      const len = Math.sqrt(speedSq)
+      const dir = new THREE.Vector3(dx / len, dy / len, dz / len)
+      const up = new THREE.Vector3(0, 1, 0)
+      entry.mesh.quaternion.setFromUnitVectors(up, dir)
+    }
+    entry.lastPosition = { ...b.worldPosition }
+    entry.mesh.position.set(b.worldPosition.x, b.worldPosition.y, b.worldPosition.z)
+    // Drilling pulse — ramp emissive when at deposit
+    const mat = entry.mesh.material as THREE.MeshStandardMaterial
+    if (b.status === 'AT_DEPOSIT_DRILLING') {
+      mat.emissiveIntensity = 0.7 + 0.4 * Math.sin(performance.now() / 150 + b.atTick)
+    } else {
+      mat.emissiveIntensity = 0.6
+    }
+  }
+  // Remove dead entries
+  for (const [id, entry] of handle.entries) {
+    if (alive.has(id)) continue
+    handle.group.remove(entry.mesh)
+    entry.mesh.geometry.dispose()
+    ;(entry.mesh.material as THREE.Material).dispose()
+    handle.entries.delete(id)
+  }
 }
