@@ -1,46 +1,52 @@
 @echo off
-REM SMoL local self-host launcher — opens 3 PowerShell terminals, one per process.
+REM SMoL local self-host launcher — opens 4 PowerShell terminals, one per process.
 REM Double-click this file (or run from any shell). No args. No setup.
 REM
-REM Terminal 1: Vite dev server  (http://localhost:5173)
-REM Terminal 2: Caddy reverse proxy  (http://localhost:8080)
-REM Terminal 3: Cloudflared tunnel   (smol.unityailab.com -> Caddy)
+REM Terminal 1: Vite dev server   (http://localhost:5173)
+REM Terminal 2: SMoL Server       (Colyseus ws://localhost:2567 + auth http://localhost:2568)
+REM Terminal 3: Caddy reverse proxy (http://localhost:8080)
+REM Terminal 4: Cloudflared tunnel  (smol.unityailab.com -> Caddy)
 REM
-REM Restart-safe: kills any existing caddy/cloudflared/vite instances first.
-REM Close any terminal to stop that process. Close all three to stop everything.
+REM Restart-safe: aggressively kills any prior SMoL-titled PowerShell + processes
+REM listening on 5173/2567/2568/8080 + caddy.exe + cloudflared.exe.
 
 cd /d "%~dp0"
 
-echo Stopping any existing SMoL processes and windows...
+echo.
+echo === STOPPING any existing SMoL processes + windows ===
+echo.
 
-REM Kill caddy.exe (safe — only Caddy uses this binary name)
+REM --- 1. Kill all PowerShell windows whose title starts with "SMoL" ---
+REM Uses Get-Process + MainWindowTitle filter (far more reliable than taskkill /FI wildcards).
+REM Catches both legacy `powershell.exe` and modern `pwsh.exe` (PowerShell 7+).
+powershell -NoProfile -Command ^
+  "Get-Process powershell, pwsh -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like 'SMoL*' } | ForEach-Object { Write-Host ('Killing PowerShell window: ' + $_.MainWindowTitle); Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }"
+
+REM --- 2. Kill caddy.exe + cloudflared.exe (safe — unique binary names) ---
 taskkill /F /IM caddy.exe >nul 2>&1
-
-REM Kill cloudflared.exe (safe — only Cloudflare tunnel uses this binary name)
 taskkill /F /IM cloudflared.exe >nul 2>&1
 
-REM Kill anything listening on Vite port 5173 (avoids killing unrelated node.exe processes)
+REM --- 3. Kill anything listening on our 4 ports (catches orphan node.exe processes) ---
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":5173 " ^| findstr LISTENING') do (
   taskkill /F /PID %%a >nul 2>&1
 )
-
-REM Kill anything listening on Colyseus port 2567
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":2567 " ^| findstr LISTENING') do (
   taskkill /F /PID %%a >nul 2>&1
 )
-
-REM Kill anything listening on auth HTTP server port 2568
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":2568 " ^| findstr LISTENING') do (
   taskkill /F /PID %%a >nul 2>&1
 )
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8080 " ^| findstr LISTENING') do (
+  taskkill /F /PID %%a >nul 2>&1
+)
 
-REM Close any old SMoL PowerShell windows (matched by window title prefix)
-taskkill /F /FI "WINDOWTITLE eq SMoL Vite*" >nul 2>&1
-taskkill /F /FI "WINDOWTITLE eq SMoL Server*" >nul 2>&1
-taskkill /F /FI "WINDOWTITLE eq SMoL Caddy*" >nul 2>&1
-taskkill /F /FI "WINDOWTITLE eq SMoL Cloudflared*" >nul 2>&1
+REM --- 4. Kill any orphan node.exe processes whose CommandLine references our project ---
+REM Catches tsx watch / vite / pnpm child processes still alive after PowerShell parent died.
+powershell -NoProfile -Command ^
+  "Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like '*Starship Made of Lies*' } | ForEach-Object { Write-Host ('Killing orphan node.exe PID ' + $_.ProcessId); Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
 
-echo Stopped. Starting fresh stack...
+echo.
+echo === Cleanup done. Starting fresh stack... ===
 echo.
 
 REM --- Terminal 1: Vite dev server ---
@@ -60,13 +66,13 @@ start "SMoL Cloudflared [tunnel]" powershell -NoExit -NoProfile -Command ^
   "$Host.UI.RawUI.WindowTitle = 'SMoL Cloudflared [tunnel]'; cd '%~dp0'; Write-Host 'Starting Cloudflared tunnel smol-alpha...' -ForegroundColor Magenta; & 'C:\Program Files (x86)\cloudflared\cloudflared.exe' tunnel run smol-alpha"
 
 echo.
-echo All four terminals launched.
+echo === All 4 terminals launched ===
 echo.
 echo   Local dev:    http://localhost:5173
 echo   SMoL server:  ws://localhost:2567 (Colyseus) + http://localhost:2568 (auth API)
 echo   Caddy proxy:  http://localhost:8080
 echo   Public URL:   https://smol.unityailab.com
 echo.
-echo To stop: close each PowerShell window (or Ctrl+C inside it).
+echo To stop everything: close each PowerShell window (or just re-run this launcher).
 echo.
 pause
