@@ -16,7 +16,7 @@ import {
   type Planet,
   type PlanetSizeTier,
 } from './planet'
-import { type Star } from './star'
+import { rollSpectralClass, type SpectralClassDef, type Star } from './star'
 
 export interface GalaxyConfig {
   readonly seed: number
@@ -27,10 +27,6 @@ export interface Galaxy {
   readonly seed: number
   readonly stars: ReadonlyArray<Star>
   readonly planets: ReadonlyArray<Planet>
-  // The half-extent the galaxy was placed within. Equal to UNIVERSE_HALF_EXTENT for now;
-  // exposed on the Galaxy so render layers can size the starfield + camera bounds without
-  // hardcoding the same constant.
-  readonly universeHalfExtent: number
 }
 
 const MIN_PLANET_COUNT = 100
@@ -129,52 +125,26 @@ function planStarPlanetCounts(
   return { starCount, perStarCounts }
 }
 
-function preRollSystem(
-  rng: () => number,
-  planetCount: number,
-  starRadius: number,
-): PreRolledSystem {
-  const planets: PreRolledPlanet[] = []
-  let maxSystemExtent = starRadius
-  for (let p = 0; p < planetCount; p++) {
-    const sizeRoll = rollPlanetSizeTier(rng)
-    const surfaceRadius = planetRenderRadius(sizeRoll.tier)
-    const orbitR =
-      PLANET_ORBIT_MIN_OFFSET + rng() * (PLANET_ORBIT_MAX_OFFSET - PLANET_ORBIT_MIN_OFFSET)
-    const dir = rollPointOnUnitSphere(rng)
-    const localOffset: Vec3 = { x: dir.x * orbitR, y: dir.y * orbitR, z: dir.z * orbitR }
-    const biomeIndex = Math.floor(rng() * BIOMES.length)
-    planets.push({
-      sizeTier: sizeRoll.tier,
-      worldRadius: sizeRoll.worldRadius,
-      surfaceRadius,
-      localOffset,
-      biomeIndex,
-    })
-    const extent = vec3Length(localOffset) + surfaceRadius
-    if (extent > maxSystemExtent) maxSystemExtent = extent
-  }
-  return { planets, boundingRadius: maxSystemExtent + SOLAR_SYSTEM_BOUNDING_PAD }
-}
-
-interface PlacementResult {
-  readonly positions: Vec3[]
-  readonly placementHalfExtent: number
-}
-
 // Walks the prerolled systems and rejection-samples a position for each within a ball of
 // `halfExtent`. Two systems are considered colliding when their wrap-aware distance is less
 // than the sum of their bounding radii. If any system fails to place after
-// PLACEMENT_ATTEMPTS_PER_STAR attempts the entire placement is restarted with a bigger ball;
-// after MAX_PLACEMENT_GROWTH_ITERATIONS we cap at UNIVERSE_HALF_EXTENT and place whatever
-// fits (this should never happen at the planet caps we ship).
+// PLACEMENT_ATTEMPTS_PER_STAR attempts, the placement is restarted with a bigger ball; after
+// MAX_PLACEMENT_GROWTH_ITERATIONS we cap at UNIVERSE_HALF_EXTENT and place whatever fits.
+//
+// PHASE 17.B(super-review fix): placement uses a FORKED RNG substream derived from
+// `placementSeed`. Each growth iteration is `mulberry32(placementSeed ^ growth)` so:
+//   (a) the main galaxy RNG is NEVER consumed during placement (deterministic galaxy gen
+//       independent of placement retry count — required for save/load + replay)
+//   (b) each retry uses a different but deterministic substream so it actually explores new
+//       positions instead of repeating the same failed attempts.
 function placeSystems(
-  rng: () => number,
+  placementSeed: number,
   systems: ReadonlyArray<PreRolledSystem>,
   halfExtent: number,
-): PlacementResult {
+): Vec3[] {
   let currentHalf = halfExtent
   for (let growth = 0; growth < MAX_PLACEMENT_GROWTH_ITERATIONS; growth++) {
+    const placementRng = mulberry32((placementSeed ^ (growth * 0x9e3779b1)) >>> 0)
     const positions: Vec3[] = []
     let failed = false
     for (let s = 0; s < systems.length; s++) {
@@ -182,7 +152,7 @@ function placeSystems(
       const allowedR = Math.max(0, currentHalf - system.boundingRadius)
       let placed: Vec3 | null = null
       for (let attempt = 0; attempt < PLACEMENT_ATTEMPTS_PER_STAR; attempt++) {
-        const candidate = rollPointInBall(rng, allowedR)
+        const candidate = rollPointInBall(placementRng, allowedR)
         let collision = false
         for (let other = 0; other < positions.length; other++) {
           const otherPos = positions[other]!
@@ -204,20 +174,21 @@ function placeSystems(
       }
       positions.push(placed)
     }
-    if (!failed) return { positions, placementHalfExtent: currentHalf }
-    // Grow the ball and retry. 1.5× doubling spreads the universe gracefully without
-    // exploding wrap distances.
+    if (!failed) return positions
+    // Grow the ball and retry on the NEXT growth seed iteration. 1.5× doubling spreads the
+    // universe gracefully without exploding wrap distances.
     currentHalf = Math.min(UNIVERSE_HALF_EXTENT, Math.floor(currentHalf * 1.5))
   }
-  // Final fallback: place at UNIVERSE_HALF_EXTENT with whatever density we can manage.
-  // This is intentionally tolerant — at expected configurations the loop above succeeds in
-  // iteration 0 or 1.
+  // Final fallback: place at UNIVERSE_HALF_EXTENT with one last deterministic substream.
+  const finalRng = mulberry32((placementSeed ^ 0xfa11ba75) >>> 0)
   const positions: Vec3[] = []
   for (let s = 0; s < systems.length; s++) {
     const system = systems[s]!
-    positions.push(rollPointInBall(rng, Math.max(0, UNIVERSE_HALF_EXTENT - system.boundingRadius)))
+    positions.push(
+      rollPointInBall(finalRng, Math.max(0, UNIVERSE_HALF_EXTENT - system.boundingRadius)),
+    )
   }
-  return { positions, placementHalfExtent: UNIVERSE_HALF_EXTENT }
+  return positions
 }
 
 export function generateGalaxy(config: GalaxyConfig): Galaxy {
@@ -251,15 +222,19 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
   }
   const starRadius = maxPlanetSurfaceRadius * STAR_RADIUS_PLANET_MULTIPLIER
 
-  // 3. Re-roll the per-planet offsets + biomes per system. We separate sizes (step 2) from
-  //    offsets (step 3) because step 2 needs to complete BEFORE step 3 so the largest-planet
-  //    pass is deterministic. We don't actually reuse step-2's offsets — we re-walk the rng
-  //    for each system to roll offsets + biomes per the size we already chose.
+  // 3. Re-roll the per-planet offsets + biomes per system + per-star spectral class. We
+  //    separate sizes (step 2) from offsets (step 3) because step 2 needs to complete BEFORE
+  //    step 3 so the largest-planet pass is deterministic. Spectral class is rolled here so
+  //    bounding sphere can include the spectral-scaled star radius.
   const systems: PreRolledSystem[] = []
+  const spectralClasses: SpectralClassDef[] = []
   for (let s = 0; s < starCount; s++) {
     const sizesForStar = preRolledSizes[s]!
+    const spectral = rollSpectralClass(rng)
+    spectralClasses.push(spectral)
+    const starRadiusForThisSystem = starRadius * spectral.radiusMultiplier
     const planets: PreRolledPlanet[] = []
-    let maxSystemExtent = starRadius
+    let maxSystemExtent = starRadiusForThisSystem
     for (let p = 0; p < sizesForStar.length; p++) {
       const size = sizesForStar[p]!
       const orbitR =
@@ -279,12 +254,12 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
     }
     systems.push({ planets, boundingRadius: maxSystemExtent + SOLAR_SYSTEM_BOUNDING_PAD })
   }
-  // Reference preRollSystem so the helper isn't dead code — used by external test callers
-  // that want a single-system preroll without running full galaxy gen.
-  void preRollSystem
 
-  // 4. Place stars with collision-free, wrap-aware rejection sampling.
-  const placement = placeSystems(rng, systems, UNIVERSE_HALF_EXTENT)
+  // 4. Place stars with collision-free, wrap-aware rejection sampling. Placement uses a
+  //    FORKED rng substream so retries can't perturb the main galaxy rng state — same seed
+  //    → same galaxy, guaranteed, regardless of how many collision retries happened.
+  const placementSeed = (config.seed ^ 0x70_15_45_e1) >>> 0
+  const starPositions = placeSystems(placementSeed, systems, UNIVERSE_HALF_EXTENT)
 
   // 5. Build Star + Planet entities. Planet world position = star.position + localOffset.
   //    Note: localOffset isn't toroidally wrapped here — if a star sits within bound of the
@@ -295,16 +270,17 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
   const planets: Planet[] = []
   for (let s = 0; s < starCount; s++) {
     const system = systems[s]!
-    const starPos = placement.positions[s]!
+    const starPos = starPositions[s]!
+    const spectral = spectralClasses[s]!
     const sid: StarId = starId(`star-${s}`)
     stars.push({
       id: sid,
-      displayName: `Star ${s + 1}`,
+      displayName: `${spectral.id}-${s + 1}`,
       position: starPos,
-      radius: starRadius,
+      radius: starRadius * spectral.radiusMultiplier,
       boundingRadius: system.boundingRadius,
-      // Warm yellow-white default — full spectral-class color rotation is a later 17.I task.
-      color: 0xffd28a,
+      color: spectral.color,
+      spectralClass: spectral.id,
     })
     let planetIndex = 0
     for (const planetRoll of system.planets) {
@@ -336,7 +312,6 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
     seed: config.seed,
     stars,
     planets,
-    universeHalfExtent: placement.placementHalfExtent,
   }
 }
 

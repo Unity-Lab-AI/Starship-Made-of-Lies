@@ -259,24 +259,30 @@ export const UTILITY_BUILDINGS_NO_PRODUCTION: ReadonlySet<BuildingDefId> = new S
   BLDG_GOD_CONTROL,
 ])
 
-// PHASE 17.B.1 — module-load audit. Drift gate: every BLDG_* shipped in BUILDINGS must
-// either appear in BUILDING_PRODUCTION or in UTILITY_BUILDINGS_NO_PRODUCTION. Catches the
-// "new building added but production entry forgotten" bug at module import time.
-for (const def of BUILDINGS) {
-  const hasProd = BUILDING_PRODUCTION.has(def.id)
-  const isUtility = UTILITY_BUILDINGS_NO_PRODUCTION.has(def.id)
-  if (!hasProd && !isUtility) {
-    throw new Error(
-      `[production.ts] Building ${String(def.id)} (${def.name}) has no production entry ` +
-        `and is not declared utility-only. Add to BUILDING_PRODUCTION or to ` +
-        `UTILITY_BUILDINGS_NO_PRODUCTION.`,
-    )
-  }
-  if (hasProd && isUtility) {
-    throw new Error(
-      `[production.ts] Building ${String(def.id)} (${def.name}) is BOTH in BUILDING_PRODUCTION ` +
-        `and UTILITY_BUILDINGS_NO_PRODUCTION. Pick one.`,
-    )
+// PHASE 17.B.1 + super-review fix: drift gate is now an exported function instead of a
+// module-load throw. Reason: throwing at import time means any tooling that imports this
+// module (tests, type-check, SSR, storybook) explodes on misconfiguration with no chance to
+// surface a friendly dev-console error. Call this once at app boot under DEV-only gating.
+//
+// `validateBuildingProductionCatalog` checks that every BLDG_* in BUILDINGS either has a
+// production entry OR is declared utility-only. Throws on drift so dev catches it loudly.
+export function validateBuildingProductionCatalog(): void {
+  for (const def of BUILDINGS) {
+    const hasProd = BUILDING_PRODUCTION.has(def.id)
+    const isUtility = UTILITY_BUILDINGS_NO_PRODUCTION.has(def.id)
+    if (!hasProd && !isUtility) {
+      throw new Error(
+        `[production.ts] Building ${String(def.id)} (${def.name}) has no production entry ` +
+          `and is not declared utility-only. Add to BUILDING_PRODUCTION or to ` +
+          `UTILITY_BUILDINGS_NO_PRODUCTION.`,
+      )
+    }
+    if (hasProd && isUtility) {
+      throw new Error(
+        `[production.ts] Building ${String(def.id)} (${def.name}) is BOTH in BUILDING_PRODUCTION ` +
+          `and UTILITY_BUILDINGS_NO_PRODUCTION. Pick one.`,
+      )
+    }
   }
 }
 

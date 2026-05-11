@@ -27,6 +27,10 @@ export interface ShipBeaconBroadcast {
   readonly batteryPercent: number
   readonly etaTicks: number
   readonly atTick: number
+  // Super-review fix: ticks-spent in NO_SIGNAL state. 0 when status !== 'NO_SIGNAL'. UI
+  // surfaces this as "stranded for N ticks" so player can decide whether to abandon vs.
+  // rescue (PHASE 17.B.5 contract — "beacon broadcasts stranded status").
+  readonly ticksInNoSignal: number
 }
 
 export interface PlanetShipBeaconBuffer {
@@ -144,5 +148,6 @@ export function emptyCargoBeacon(
     batteryPercent: 100,
     etaTicks: 0,
     atTick,
+    ticksInNoSignal: 0,
   }
 }

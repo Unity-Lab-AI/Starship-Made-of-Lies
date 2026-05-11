@@ -48,10 +48,13 @@ const PHASE_VARIANT: Readonly<Record<LobbyPhaseLabel, 'amber' | 'green' | 'blue'
   COMPLETE: 'red',
 }
 
+// PHASE 17.B.4 + super-review fix: surface the REAL durations from balance-constants. Blitz
+// = 18k ticks ≈ 1h, Standard = 180k ≈ 10h, Epic = 432k ≈ 24h. Player needs to see what
+// they're signing up for, not stale 3k/9k/18k labels.
 const MATCH_LENGTH_LABELS: Readonly<Record<LobbyPreviewSummary['matchLength'], string>> = {
-  blitz: 'Blitz · 3000 ticks',
-  standard: 'Standard · 9000 ticks',
-  epic: 'Epic · 18000 ticks',
+  blitz: 'Blitz · ~1 hour (18 000 ticks)',
+  standard: 'Standard · ~10 hours (180 000 ticks)',
+  epic: 'Epic · ~24 hours (432 000 ticks)',
 }
 
 export function LobbyPreviewPanel({ summary }: LobbyPreviewPanelProps) {

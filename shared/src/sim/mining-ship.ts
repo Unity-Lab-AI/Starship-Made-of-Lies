@@ -160,6 +160,21 @@ function buildBeacon(ship: MiningShip, currentTick: number, etaTicks: number): S
     batteryPercent: ship.batteryPercent,
     etaTicks,
     atTick: currentTick,
+    ticksInNoSignal: ship.ticksInNoSignal,
+  }
+}
+
+// Super-review fix: NO_SIGNAL internal trigger. When a ship's battery drops to zero
+// mid-travel or mid-drill, it can no longer power its beacon/comms → signal lost. Crawl-home
+// behavior in the NO_SIGNAL case body handles the rest. Re-docking resets ticksInNoSignal.
+const NO_SIGNAL_BATTERY_THRESHOLD = 0
+function maybeEnterNoSignal(ship: MiningShip): void {
+  if (ship.status === 'NO_SIGNAL') return
+  if (ship.status === 'DOCKED' || ship.status === 'IDLE' || ship.status === 'OFFLOADING') return
+  if (ship.batteryPercent <= NO_SIGNAL_BATTERY_THRESHOLD) {
+    ship.status = 'NO_SIGNAL'
+    ship.ticksInStatus = 0
+    ship.ticksInNoSignal = 0
   }
 }
 
@@ -317,20 +332,14 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
     }
   }
 
+  // Super-review fix: signal-loss check after the case body. Battery hitting 0 mid-mission
+  // flips to NO_SIGNAL → next tick the crawl-home logic takes over.
+  maybeEnterNoSignal(ship)
+
   const statusChanged = ship.status !== prevStatus
   let beacon: ShipBeaconBroadcast | null = null
   if (currentTick % BEACON_INTERVAL_TICKS === 0 || statusChanged) {
     beacon = buildBeacon(ship, currentTick, ship.travelTicksRemaining)
   }
   return { statusChanged, beacon, drilled, offloaded }
-}
-
-// Helper for MatchSim: derive a sensible "home dock" position for a planet — offset from the
-// planet center along the world-up direction. Mining ships spawn here and return here.
-export function defaultHomeDockPosition(planetPosition: Vec3, planetSurfaceRadius: number): Vec3 {
-  return {
-    x: planetPosition.x,
-    y: planetPosition.y + planetSurfaceRadius + 30,
-    z: planetPosition.z,
-  }
 }

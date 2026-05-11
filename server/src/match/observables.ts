@@ -37,11 +37,16 @@ export function buildPlanetBuildingContext(
   for (const ps of state.planetStates.values()) {
     if (ps.ownerCivId !== perCiv.assignment.civId) continue
     const populationPressure = ps.totalPopulation > 0 ? Math.min(1, ps.totalPopulation / 5000) : 0
+    // Super-review fix: mining context for AI outpost prioritization. Server observables
+    // don't yet track miner-count or resource-node availability (deferred); pass safe
+    // defaults so the AI's outpost-rush logic stays off until the server plumbs real data.
     return {
       planetId: ps.planet.id,
       currentBuildingCounts: new Map<string, number>(),
       availableTiles: Math.max(0, ps.planet.tiles.length),
       populationPressure,
+      minerCount: 0,
+      resourceNodesAvailable: 0,
     }
   }
   return null

@@ -40,6 +40,7 @@ import {
   syncMineFields,
   syncMiningShips,
   syncOwnerFlags,
+  updateOwnerFlagDistanceFade,
   syncPadMeshes,
   syncPadStateGlows,
   type MineFieldInput,
@@ -196,7 +197,15 @@ export function GalaxyView({
   useEffect(() => {
     const mount = mountRef.current
     if (!mount) return
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    // Super-review fix: logarithmicDepthBuffer enabled. Galaxy spans 1.8 → 250000 world
+    // units (planet surface zoom → galactic far plane). At 24-bit linear depth that ratio
+    // produces severe Z-fighting at far distances. Log depth distributes precision
+    // logarithmically so meshes resolve correctly across all 6+ orders of magnitude.
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      logarithmicDepthBuffer: true,
+    })
     renderer.setPixelRatio(window.devicePixelRatio || 1)
     renderer.setSize(mount.clientWidth, mount.clientHeight)
     renderer.setClearColor(0x05050d, 1)
@@ -577,6 +586,15 @@ export function GalaxyView({
         themeByCivRef.current,
         civsByPlanetRef.current,
         indigenousByPlanetRef.current,
+      )
+
+      // Super-review fix: per-frame distance-fade + size-normalize for owner flags so the
+      // labels are readable in their useful zoom band and don't appear as "very very small
+      // text" at galactic zoom or block the view at planet zoom.
+      updateOwnerFlagDistanceFade(
+        ownerFlagHandle,
+        cameraState.camera.position,
+        galaxyHandle.planetMeshes,
       )
 
       // Sync mining ship meshes (PHASE 16.x complete-3D-world-space)
