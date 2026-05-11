@@ -158,6 +158,52 @@ export function PlayPage() {
   const techEffects = aggregateEffects(humanCivState.empire.researchedTechs)
   const firstPad = [...activePlanet.launchPads.values()][0] ?? null
 
+  // PHASE 16.16 (LAW #0 feedback_planets_green_big_multi_civ.md): per-planet multi-civ
+  // presence — for each planet, list every civ holding at least 1 tile, sorted by tile count
+  // desc. Feeds GalaxyView's flag-stack rendering so a contested planet shows multiple flags
+  // above it instead of a single owner-only flag.
+  const civsByPlanet = useMemo(
+    () => {
+      const out = new Map<
+        PlanetId,
+        ReadonlyArray<{ civId: import('@smol/shared').CivId; tileCount: number }>
+      >()
+      for (const planetState of sim.state.planets.values()) {
+        const counts = new Map<import('@smol/shared').CivId, number>()
+        for (const tile of planetState.planet.tiles) {
+          if (!tile.ownerCivId) continue
+          counts.set(tile.ownerCivId, (counts.get(tile.ownerCivId) ?? 0) + 1)
+        }
+        if (counts.size === 0) continue
+        const sorted = [...counts.entries()]
+          .map(([civId, tileCount]) => ({ civId, tileCount }))
+          .sort((a, b) => b.tileCount - a.tileCount)
+        out.set(planetState.planet.id, sorted)
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  // PHASE 16.16: explicit indigenous-civ marker per planet hosting an active indig presence.
+  const indigenousByPlanet = useMemo(
+    () => {
+      const out: Array<{ planetId: PlanetId; emoji: string; label: string }> = []
+      for (const indig of sim.state.indigenousCivs.values()) {
+        if (!indig.alive) continue
+        out.push({
+          planetId: indig.homePlanetId,
+          emoji: indig.emoji,
+          label: indig.displayName,
+        })
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
   // PHASE 16.14: aggregate ship beacons from all player planets for MiningFleetPanel +
   // TelemetryRack. Per-planet map for MiningFleetPanel's per-planet dropdown grouping.
   // Recompute on every tick (sim.state is a stable ref via useRef; currentTick mutates).
@@ -458,6 +504,8 @@ export function PlayPage() {
             onSelectPlanet={handleSelectPlanet}
             onSurfaceTileClick={handleSurfaceTileClick}
             miningBeacons={allHumanBeacons}
+            civsByPlanet={civsByPlanet}
+            indigenousByPlanet={indigenousByPlanet}
           />
         )}
       </div>

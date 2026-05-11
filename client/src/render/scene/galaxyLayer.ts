@@ -177,8 +177,22 @@ function makeAtmosphereGlow(planet: Planet, center: THREE.Vector3): THREE.Mesh {
 }
 
 // === OWNER-CIV FLAG BILLBOARDS ===
+// PHASE 16.16 (LAW #0 feedback_planets_green_big_multi_civ.md): planets can be MULTI-CIV.
+// Tiles owned by different civs on the same planet → each civ gets its own flag stacked
+// vertically above the planet, dominant first. Entries keyed by `${planetId}:${civId}` so
+// the layer naturally tracks per-civ-per-planet flags. Optional indigenous markers added
+// per planet with an active indigenous presence.
 
 export interface OwnerFlagEntry {
+  readonly key: string
+  readonly planetId: PlanetId
+  readonly civId: CivId
+  readonly sprite: THREE.Sprite
+  readonly texture: THREE.Texture
+  readonly canvas: HTMLCanvasElement
+}
+
+export interface IndigenousMarkerEntry {
   readonly planetId: PlanetId
   readonly sprite: THREE.Sprite
   readonly texture: THREE.Texture
@@ -187,24 +201,43 @@ export interface OwnerFlagEntry {
 
 export interface OwnerFlagLayerHandle {
   readonly group: THREE.Group
-  readonly entries: Map<PlanetId, OwnerFlagEntry>
+  readonly entries: Map<string, OwnerFlagEntry>
+  readonly indigenousEntries: Map<PlanetId, IndigenousMarkerEntry>
   readonly destroy: () => void
 }
 
 export function buildOwnerFlagLayer(): OwnerFlagLayerHandle {
   const group = new THREE.Group()
-  const entries = new Map<PlanetId, OwnerFlagEntry>()
+  const entries = new Map<string, OwnerFlagEntry>()
+  const indigenousEntries = new Map<PlanetId, IndigenousMarkerEntry>()
   return {
     group,
     entries,
+    indigenousEntries,
     destroy: () => {
       for (const entry of entries.values()) {
         entry.texture.dispose()
         ;(entry.sprite.material as THREE.SpriteMaterial).dispose()
       }
       entries.clear()
+      for (const ind of indigenousEntries.values()) {
+        ind.texture.dispose()
+        ;(ind.sprite.material as THREE.SpriteMaterial).dispose()
+      }
+      indigenousEntries.clear()
     },
   }
+}
+
+export interface PlanetCivPresence {
+  readonly civId: CivId
+  readonly tileCount: number
+}
+
+export interface IndigenousMarkerInput {
+  readonly planetId: PlanetId
+  readonly emoji: string
+  readonly label: string
 }
 
 export function syncOwnerFlags(
@@ -213,46 +246,112 @@ export function syncOwnerFlags(
   planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>,
   ownerByPlanet: ReadonlyMap<PlanetId, CivId>,
   themeByCiv: ReadonlyMap<CivId, Theme>,
+  // Optional: ordered list (most-tiles first) of all civs holding ground on each planet.
+  // When provided AND non-empty per-planet, replaces the single ownerByPlanet flag with
+  // the full stack. Falls back to ownerByPlanet single-flag when omitted/empty.
+  civsByPlanet?: ReadonlyMap<PlanetId, ReadonlyArray<PlanetCivPresence>>,
+  indigenousByPlanet?: ReadonlyArray<IndigenousMarkerInput>,
 ): void {
-  const liveIds = new Set<PlanetId>()
+  const liveKeys = new Set<string>()
   for (const planet of galaxy.planets) {
-    const civId = ownerByPlanet.get(planet.id)
-    if (!civId) continue
-    const theme = themeByCiv.get(civId)
-    if (!theme) continue
     const mesh = planetMeshes.get(planet.id)
     if (!mesh) continue
-    liveIds.add(planet.id)
-    const label = `${theme.emoji} ${theme.name}`
-    let entry = handle.entries.get(planet.id)
-    if (!entry) {
-      const canvas = document.createElement('canvas')
-      canvas.width = 256
-      canvas.height = 64
-      const tex = new THREE.CanvasTexture(canvas)
-      tex.minFilter = THREE.LinearFilter
-      tex.needsUpdate = true
-      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: true })
-      const sprite = new THREE.Sprite(mat)
-      const scale = (mesh.geometry.boundingSphere?.radius ?? 100) * 1.4
-      sprite.scale.set(scale, scale * 0.25, 1)
-      handle.group.add(sprite)
-      entry = { planetId: planet.id, sprite, texture: tex, canvas }
-      handle.entries.set(planet.id, entry)
-    }
-    paintFlagCanvas(entry.canvas, label)
-    entry.texture.needsUpdate = true
-    // Position flag above the planet
     const radius = mesh.geometry.boundingSphere?.radius ?? 100
-    entry.sprite.position.set(mesh.position.x, mesh.position.y + radius * 1.5, mesh.position.z)
+    const flagWidth = radius * 1.4
+    const flagHeight = flagWidth * 0.25
+    const stackSpacing = flagHeight * 1.1
+
+    // Pick the civ list: civsByPlanet if provided & non-empty, else single-owner fallback
+    const civList = civsByPlanet?.get(planet.id) ?? []
+    const fallbackCiv = civList.length === 0 ? ownerByPlanet.get(planet.id) : null
+    const civsForThisPlanet: ReadonlyArray<{ civId: CivId; tileCount: number }> =
+      civList.length > 0 ? civList : fallbackCiv ? [{ civId: fallbackCiv, tileCount: 0 }] : []
+
+    for (let i = 0; i < civsForThisPlanet.length; i++) {
+      const civPresence = civsForThisPlanet[i]!
+      const theme = themeByCiv.get(civPresence.civId)
+      if (!theme) continue
+      const key = `${String(planet.id)}:${String(civPresence.civId)}`
+      liveKeys.add(key)
+      const label =
+        civPresence.tileCount > 0
+          ? `${theme.emoji} ${theme.name} · ${civPresence.tileCount}`
+          : `${theme.emoji} ${theme.name}`
+      let entry = handle.entries.get(key)
+      if (!entry) {
+        const canvas = document.createElement('canvas')
+        canvas.width = 256
+        canvas.height = 64
+        const tex = new THREE.CanvasTexture(canvas)
+        tex.minFilter = THREE.LinearFilter
+        tex.needsUpdate = true
+        const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: true })
+        const sprite = new THREE.Sprite(mat)
+        sprite.scale.set(flagWidth, flagHeight, 1)
+        handle.group.add(sprite)
+        entry = {
+          key,
+          planetId: planet.id,
+          civId: civPresence.civId,
+          sprite,
+          texture: tex,
+          canvas,
+        }
+        handle.entries.set(key, entry)
+      }
+      paintFlagCanvas(entry.canvas, label)
+      entry.texture.needsUpdate = true
+      // Stack flags vertically above planet — dominant (i=0) at the top, others descending
+      const yOffset = radius * 1.5 + i * stackSpacing
+      entry.sprite.position.set(mesh.position.x, mesh.position.y + yOffset, mesh.position.z)
+    }
   }
-  // Remove flags for planets no longer owned (rare in this view)
-  for (const [id, entry] of handle.entries) {
-    if (liveIds.has(id)) continue
+  // Remove flag entries no longer present (civ lost all tiles on that planet, or planet gone)
+  for (const [key, entry] of handle.entries) {
+    if (liveKeys.has(key)) continue
     handle.group.remove(entry.sprite)
     entry.texture.dispose()
     ;(entry.sprite.material as THREE.SpriteMaterial).dispose()
-    handle.entries.delete(id)
+    handle.entries.delete(key)
+  }
+
+  // === Indigenous markers ===
+  const liveIndigIds = new Set<PlanetId>()
+  if (indigenousByPlanet) {
+    for (const indig of indigenousByPlanet) {
+      const mesh = planetMeshes.get(indig.planetId)
+      if (!mesh) continue
+      liveIndigIds.add(indig.planetId)
+      let entry = handle.indigenousEntries.get(indig.planetId)
+      if (!entry) {
+        const canvas = document.createElement('canvas')
+        canvas.width = 256
+        canvas.height = 56
+        const tex = new THREE.CanvasTexture(canvas)
+        tex.minFilter = THREE.LinearFilter
+        tex.needsUpdate = true
+        const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: true })
+        const sprite = new THREE.Sprite(mat)
+        const radius = mesh.geometry.boundingSphere?.radius ?? 100
+        const w = radius * 1.2
+        sprite.scale.set(w, w * 0.22, 1)
+        handle.group.add(sprite)
+        entry = { planetId: indig.planetId, sprite, texture: tex, canvas }
+        handle.indigenousEntries.set(indig.planetId, entry)
+      }
+      paintIndigenousCanvas(entry.canvas, `${indig.emoji} ${indig.label}`)
+      entry.texture.needsUpdate = true
+      // Position BELOW the planet, opposite the flag stack, so they don't crowd
+      const radius = mesh.geometry.boundingSphere?.radius ?? 100
+      entry.sprite.position.set(mesh.position.x, mesh.position.y - radius * 1.45, mesh.position.z)
+    }
+  }
+  for (const [id, entry] of handle.indigenousEntries) {
+    if (liveIndigIds.has(id)) continue
+    handle.group.remove(entry.sprite)
+    entry.texture.dispose()
+    ;(entry.sprite.material as THREE.SpriteMaterial).dispose()
+    handle.indigenousEntries.delete(id)
   }
 }
 
@@ -271,6 +370,22 @@ function paintFlagCanvas(canvas: HTMLCanvasElement, label: string): void {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.font = 'bold 28px system-ui, sans-serif'
+  ctx.fillText(label, canvas.width / 2, canvas.height / 2)
+}
+
+function paintIndigenousCanvas(canvas: HTMLCanvasElement, label: string): void {
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = 'rgba(80, 16, 16, 0.78)'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.strokeStyle = '#ef4444'
+  ctx.lineWidth = 2
+  ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2)
+  ctx.fillStyle = '#fbbcbc'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.font = 'bold 22px system-ui, sans-serif'
   ctx.fillText(label, canvas.width / 2, canvas.height / 2)
 }
 

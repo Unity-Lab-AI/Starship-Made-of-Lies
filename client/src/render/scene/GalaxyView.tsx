@@ -18,6 +18,8 @@ import {
   tickCameraFromInput,
 } from './cameraController'
 import {
+  type IndigenousMarkerInput,
+  type PlanetCivPresence,
   buildBeaconPulseLayer,
   buildFlightArcLayer,
   buildGalaxyLayer,
@@ -59,6 +61,12 @@ interface GalaxyViewProps {
   // for live in-scene rendering. Each beacon spawns / updates a 3D ship mesh at its
   // worldPosition. Pass empty array to disable.
   readonly miningBeacons?: ReadonlyArray<ShipBeaconBroadcast>
+  // PHASE 16.16 LAW #0 feedback_planets_green_big_multi_civ.md: per-planet civ presence
+  // (multiple civs holding tiles → stacked flag billboards). When omitted/empty, falls
+  // back to the ownerByPlanet single-flag behavior.
+  readonly civsByPlanet?: ReadonlyMap<PlanetId, ReadonlyArray<PlanetCivPresence>>
+  // PHASE 16.16: explicit indigenous-civ marker per planet hosting an active indig presence.
+  readonly indigenousByPlanet?: ReadonlyArray<IndigenousMarkerInput>
 }
 
 export function GalaxyView({
@@ -73,6 +81,8 @@ export function GalaxyView({
   onSelectPlanet,
   onSurfaceTileClick,
   miningBeacons,
+  civsByPlanet,
+  indigenousByPlanet,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -84,6 +94,12 @@ export function GalaxyView({
   const rangeVisibleRef = useRef(rangeOverlayVisible)
   const onSurfaceTileClickRef = useRef(onSurfaceTileClick)
   const miningBeaconsRef = useRef<ReadonlyArray<ShipBeaconBroadcast>>(miningBeacons ?? [])
+  const civsByPlanetRef = useRef<
+    ReadonlyMap<PlanetId, ReadonlyArray<PlanetCivPresence>> | undefined
+  >(civsByPlanet)
+  const indigenousByPlanetRef = useRef<ReadonlyArray<IndigenousMarkerInput>>(
+    indigenousByPlanet ?? [],
+  )
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
@@ -91,6 +107,8 @@ export function GalaxyView({
   rangeVisibleRef.current = rangeOverlayVisible
   onSurfaceTileClickRef.current = onSurfaceTileClick
   miningBeaconsRef.current = miningBeacons ?? []
+  civsByPlanetRef.current = civsByPlanet
+  indigenousByPlanetRef.current = indigenousByPlanet ?? []
   void humanCivId
 
   useEffect(() => {
@@ -371,13 +389,15 @@ export function GalaxyView({
         cameraState.camera,
       )
 
-      // Sync owner-civ flag billboards
+      // Sync owner-civ flag billboards (multi-civ-per-planet stacking + indigenous markers)
       syncOwnerFlags(
         ownerFlagHandle,
         galaxy,
         galaxyHandle.planetMeshes,
         ownerByPlanetRef.current,
         themeByCivRef.current,
+        civsByPlanetRef.current,
+        indigenousByPlanetRef.current,
       )
 
       // Sync mining ship meshes (PHASE 16.x complete-3D-world-space)
