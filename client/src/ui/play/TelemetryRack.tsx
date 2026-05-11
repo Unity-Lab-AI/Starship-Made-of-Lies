@@ -4,6 +4,7 @@ import {
   type LaunchPad,
   type PlanetInventory,
   type ShipBeaconBroadcast,
+  getColonyShipDef,
 } from '@smol/shared'
 import './telemetry-rack.css'
 
@@ -67,6 +68,71 @@ export function TelemetryRack({
     const sorted = [...activePlanetInventory.stocks.entries()].sort((a, b) => b[1] - a[1])
     return sorted.slice(0, 4).map(([id, amount]) => [String(id), amount] as const)
   }, [activePlanetInventory])
+
+  // PHASE 16.20: LCD slot 8 MISSILE STATUS live data — top 3 in-flight colony ships sorted
+  // by progress (most-traveled first), surfacing variant emoji + citizens aboard + flight
+  // progress %. Resolved flights (DETONATE/INTERCEPTED/ABORTED/CRASH_LANDED) are filtered
+  // out so the slot tracks active payloads only. UMS-faithful per-flight payload load-out
+  // (fuel/ammo/citizens columns) is roadmapped — v1 gives the panel real data.
+  const topFlightStatus = useMemo<
+    ReadonlyArray<{
+      id: string
+      label: string
+      progressPct: number
+      citizens: number
+      phase: string
+    }>
+  >(() => {
+    const out: Array<{
+      id: string
+      label: string
+      progressPct: number
+      citizens: number
+      phase: string
+    }> = []
+    for (const f of activeFlights) {
+      if (
+        f.phase === 'DETONATE' ||
+        f.phase === 'INTERCEPTED' ||
+        f.phase === 'ABORTED' ||
+        f.phase === 'CRASH_LANDED'
+      ) {
+        continue
+      }
+      const def = getColonyShipDef(f.variantId)
+      const progressPct =
+        f.totalTicks > 0 ? Math.min(100, Math.round((f.ticksFlown / f.totalTicks) * 100)) : 0
+      out.push({
+        id: String(f.id),
+        label: `${def.emoji} ${def.name}`,
+        progressPct,
+        citizens: f.citizensAboard,
+        phase: f.phase,
+      })
+    }
+    out.sort((a, b) => b.progressPct - a.progressPct)
+    return out.slice(0, 3)
+  }, [activeFlights])
+
+  // PHASE 16.20: LCD slot 10 MINER DETAIL live data — top 3 mining ships by cargo% across all
+  // planets, surfacing shipName + status + cargo % so the player sees fleet-level activity
+  // without opening the Mining Fleet panel. UMS-faithful per-ship detail (storage cycle,
+  // trajectory, battery, H2%) is roadmapped — v1 gives the panel real data.
+  const topMinerDetail = useMemo<
+    ReadonlyArray<{ id: string; shipName: string; status: string; cargoPct: number }>
+  >(() => {
+    const enriched = miningBeacons.map((b) => ({
+      id: String(b.shipId),
+      shipName: b.shipName,
+      status: b.status,
+      cargoPct:
+        b.cargoCapacity > 0
+          ? Math.min(100, Math.round((b.cargoAmount / b.cargoCapacity) * 100))
+          : 0,
+    }))
+    enriched.sort((a, b) => b.cargoPct - a.cargoPct)
+    return enriched.slice(0, 3)
+  }, [miningBeacons])
 
   const padCounts = useMemo(() => {
     let idle = 0
@@ -262,10 +328,19 @@ export function TelemetryRack({
             <div className="telemetry-rack__line">Resolved: {flightCounts.resolved}</div>
           </LCDSlot>
 
-          <LCDSlot slot={8} title="MISSILE STATUS" status="stub">
-            <div className="telemetry-rack__stub">
-              Per-flight fuel/ammo/citizens load-out — pending build-phase machine wire-up.
-            </div>
+          <LCDSlot slot={8} title="MISSILE STATUS" status="live">
+            {topFlightStatus.length === 0 ? (
+              <div className="telemetry-rack__stub">No active colony-ship flights.</div>
+            ) : (
+              <>
+                {topFlightStatus.map((f) => (
+                  <div key={f.id} className="telemetry-rack__line">
+                    {f.label} · <strong>{f.progressPct}%</strong> · 👥 {f.citizens.toLocaleString()}{' '}
+                    · {f.phase}
+                  </div>
+                ))}
+              </>
+            )}
           </LCDSlot>
 
           <LCDSlot slot={9} title="FLEET READINESS" status="live">
@@ -279,11 +354,20 @@ export function TelemetryRack({
             <div className="telemetry-rack__line">Cargo: {fleetCounts.cargoPct}%</div>
           </LCDSlot>
 
-          <LCDSlot slot={10} title="MINER DETAIL" status="stub">
-            <div className="telemetry-rack__stub">
-              Per-ship detail + storage + trajectory — open the ⛏️ Mining Fleet panel for full
-              per-ship breakdown today.
-            </div>
+          <LCDSlot slot={10} title="MINER DETAIL" status="live">
+            {topMinerDetail.length === 0 ? (
+              <div className="telemetry-rack__stub">
+                No active mining beacons — open the ⛏️ Mining Fleet panel once ships launch.
+              </div>
+            ) : (
+              <>
+                {topMinerDetail.map((s) => (
+                  <div key={s.id} className="telemetry-rack__line">
+                    {s.shipName} · <strong>{s.cargoPct}%</strong> · {s.status}
+                  </div>
+                ))}
+              </>
+            )}
           </LCDSlot>
 
           <LCDSlot slot={11} title="PERSONAL EQUIP." status="stub">

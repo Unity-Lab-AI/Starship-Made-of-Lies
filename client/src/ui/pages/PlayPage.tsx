@@ -169,23 +169,85 @@ export function PlayPage() {
   // presence — for each planet, list every civ holding at least 1 tile, sorted by tile count
   // desc. Feeds GalaxyView's flag-stack rendering so a contested planet shows multiple flags
   // above it instead of a single owner-only flag.
+  //
+  // PHASE 16.20: for each civ on a planet we also compute the cluster centroid of that civ's
+  // owned tiles in WORLD space (mean of tile centroids → normalize → lift to radius*1.18 →
+  // add planet world position). The 3D layer plants each civ's flag over its actual territory
+  // instead of stacking flags vertically above the planet's pole. Antipodal-cluster fallback:
+  // if the mean vector length is too small, anchor on the first owned tile.
   const civsByPlanet = useMemo(
     () => {
       const out = new Map<
         PlanetId,
-        ReadonlyArray<{ civId: import('@smol/shared').CivId; tileCount: number }>
+        ReadonlyArray<{
+          civId: import('@smol/shared').CivId
+          tileCount: number
+          centroidWorld?: import('@smol/shared').Vec3
+        }>
       >()
       for (const planetState of sim.state.planets.values()) {
+        const planet = planetState.planet
         const counts = new Map<import('@smol/shared').CivId, number>()
-        for (const tile of planetState.planet.tiles) {
+        const sums = new Map<
+          import('@smol/shared').CivId,
+          { x: number; y: number; z: number; firstCentroid: import('@smol/shared').Vec3 }
+        >()
+        for (const tile of planet.tiles) {
           if (!tile.ownerCivId) continue
           counts.set(tile.ownerCivId, (counts.get(tile.ownerCivId) ?? 0) + 1)
+          const sum = sums.get(tile.ownerCivId)
+          if (sum) {
+            sum.x += tile.centroid.x
+            sum.y += tile.centroid.y
+            sum.z += tile.centroid.z
+          } else {
+            sums.set(tile.ownerCivId, {
+              x: tile.centroid.x,
+              y: tile.centroid.y,
+              z: tile.centroid.z,
+              firstCentroid: tile.centroid,
+            })
+          }
         }
         if (counts.size === 0) continue
+        const liftRadius = planet.radius * 1.18
         const sorted = [...counts.entries()]
-          .map(([civId, tileCount]) => ({ civId, tileCount }))
+          .map(([civId, tileCount]) => {
+            const sum = sums.get(civId)!
+            const meanX = sum.x / tileCount
+            const meanY = sum.y / tileCount
+            const meanZ = sum.z / tileCount
+            const meanLen = Math.sqrt(meanX * meanX + meanY * meanY + meanZ * meanZ)
+            let dirX: number, dirY: number, dirZ: number
+            if (meanLen < planet.radius * 0.1) {
+              const fcLen = Math.sqrt(
+                sum.firstCentroid.x * sum.firstCentroid.x +
+                  sum.firstCentroid.y * sum.firstCentroid.y +
+                  sum.firstCentroid.z * sum.firstCentroid.z,
+              )
+              if (fcLen < 0.0001) {
+                dirX = 0
+                dirY = 1
+                dirZ = 0
+              } else {
+                dirX = sum.firstCentroid.x / fcLen
+                dirY = sum.firstCentroid.y / fcLen
+                dirZ = sum.firstCentroid.z / fcLen
+              }
+            } else {
+              dirX = meanX / meanLen
+              dirY = meanY / meanLen
+              dirZ = meanZ / meanLen
+            }
+            const centroidWorld: import('@smol/shared').Vec3 = {
+              x: planet.position.x + dirX * liftRadius,
+              y: planet.position.y + dirY * liftRadius,
+              z: planet.position.z + dirZ * liftRadius,
+            }
+            return { civId, tileCount, centroidWorld }
+          })
           .sort((a, b) => b.tileCount - a.tileCount)
-        out.set(planetState.planet.id, sorted)
+        out.set(planet.id, sorted)
       }
       return out
     },

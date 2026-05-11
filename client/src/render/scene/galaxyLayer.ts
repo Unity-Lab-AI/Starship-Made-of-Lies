@@ -282,6 +282,10 @@ export function buildOwnerFlagLayer(): OwnerFlagLayerHandle {
 export interface PlanetCivPresence {
   readonly civId: CivId
   readonly tileCount: number
+  // PHASE 16.20: when set, places the flag at this world-space point (above the civ's tile
+  // cluster) instead of stacking it above the planet's north pole. Lets each civ on a
+  // contested planet plant its flag over its actual territory in 3D.
+  readonly centroidWorld?: Vec3
 }
 
 export interface IndigenousMarkerInput {
@@ -314,7 +318,7 @@ export function syncOwnerFlags(
     // Pick the civ list: civsByPlanet if provided & non-empty, else single-owner fallback
     const civList = civsByPlanet?.get(planet.id) ?? []
     const fallbackCiv = civList.length === 0 ? ownerByPlanet.get(planet.id) : null
-    const civsForThisPlanet: ReadonlyArray<{ civId: CivId; tileCount: number }> =
+    const civsForThisPlanet: ReadonlyArray<PlanetCivPresence> =
       civList.length > 0 ? civList : fallbackCiv ? [{ civId: fallbackCiv, tileCount: 0 }] : []
 
     for (let i = 0; i < civsForThisPlanet.length; i++) {
@@ -351,9 +355,21 @@ export function syncOwnerFlags(
       }
       paintFlagCanvas(entry.canvas, label)
       entry.texture.needsUpdate = true
-      // Stack flags vertically above planet — dominant (i=0) at the top, others descending
-      const yOffset = radius * 1.5 + i * stackSpacing
-      entry.sprite.position.set(mesh.position.x, mesh.position.y + yOffset, mesh.position.z)
+      // PHASE 16.20: when the caller provides a world-space cluster centroid (per civ),
+      // float the flag above that centroid in 3D — flags now sit OVER each civ's actual
+      // territory instead of stacking above the planet's north pole. Fallback (no
+      // centroid provided) keeps the original vertical stack so the panel still works
+      // for single-owner planets / cases where centroid computation isn't wired.
+      if (civPresence.centroidWorld) {
+        entry.sprite.position.set(
+          civPresence.centroidWorld.x,
+          civPresence.centroidWorld.y,
+          civPresence.centroidWorld.z,
+        )
+      } else {
+        const yOffset = radius * 1.5 + i * stackSpacing
+        entry.sprite.position.set(mesh.position.x, mesh.position.y + yOffset, mesh.position.z)
+      }
     }
   }
   // Remove flag entries no longer present (civ lost all tiles on that planet, or planet gone)
