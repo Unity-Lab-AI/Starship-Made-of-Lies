@@ -21,9 +21,10 @@ export interface CameraInputState {
 // (which renders as nothing due to backface culling). Super planet radius = 1600 → 1800 keeps
 // camera just outside even the biggest planet at max zoom.
 const MIN_DISTANCE = 1800
-// MAX_DISTANCE must show the whole galaxy. GALAXY_RADIUS = 30000 → 60000 lets player zoom out
-// to see all planets at once.
-const MAX_DISTANCE = 60000
+// PHASE 17.I — galaxy is now solar-system-clustered inside the ±UNIVERSE_HALF_EXTENT (60000)
+// wrap. Max camera distance bumped 60000 → 140000 so a fully-zoomed-out view frames the whole
+// galaxy from outside the cluster. Camera far-plane in newCamera() bumped to match.
+const MAX_DISTANCE = 140000
 const PAN_SPEED = 4
 const ROTATE_SPEED = 0.012
 const ZOOM_TICK = 0.06
@@ -42,7 +43,9 @@ const ZOOM_DEPTH_CUE_LATERAL_WEIGHT = 0.6
 const ZOOM_DEPTH_CUE_VERTICAL_WEIGHT = 0.4
 
 export function newCamera(aspect: number): CameraState {
-  const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 50000)
+  // PHASE 17.I — far-plane bumped 50000 → 250000 so distant solar systems at the opposite
+  // edge of the wrap stay visible at full zoom-out. Near stays 0.1 for surface detail.
+  const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 250000)
   return {
     camera,
     target: new THREE.Vector3(0, 0, 0),

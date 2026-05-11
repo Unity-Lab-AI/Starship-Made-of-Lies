@@ -46,6 +46,32 @@ export const WIN_THRESHOLD_HIGHSCORE_MULTIPLIER = 8
 export const WIN_THRESHOLD_RESOURCE_MULTIPLIER = 8
 export const WIN_THRESHOLD_MAP_CONTROL_FRACTION = 0.6 // need 60% of planets vs. older 33%
 
+// --- universe spatial layout ---------------------------------------------------------
+
+// PHASE 17.I — toroidal universe wrap half-extent. Positions wrap modulo 2 × this on each
+// axis. Previously a private const in colony-ship-flight (8000), now centralized so galaxy
+// generation + flight wrap + collision math all agree. Sized large enough to contain the
+// solar-system clustered galaxy with collision-free placement at 100+ planets.
+export const UNIVERSE_HALF_EXTENT = 60000
+
+// PHASE 17.I — star scale rule (LAW #0 2026-05-11):
+// > "stars need to be 4x bigger thasn planets in scal of the largest planet"
+// Star radius = 4 × galaxy-wide largest planet's surfaceRadius. Applied globally so every
+// star in a galaxy is the same size — they are scaled against the biggest body in the
+// cluster, not against their own system.
+export const STAR_RADIUS_PLANET_MULTIPLIER = 4
+
+// PHASE 17.I — solar-system layout. 4-10 planets per star per user verbatim. Planet local
+// offsets from parent star are in this range — close enough to read as "one star's planets"
+// at solar-system zoom but spaced enough that they don't visually overlap each other.
+export const MIN_PLANETS_PER_STAR = 4
+export const MAX_PLANETS_PER_STAR = 10
+export const PLANET_ORBIT_MIN_OFFSET = 8000
+export const PLANET_ORBIT_MAX_OFFSET = 16000
+// Padding added to each solar system's bounding sphere so adjacent systems have visual
+// breathing room (no two planets ALMOST touching across system boundaries).
+export const SOLAR_SYSTEM_BOUNDING_PAD = 4000
+
 // --- mining-outpost economy (mirrored here so designers can tune in one place) -------
 
 export const MINING_OUTPOST_SHIP_INTERVAL_TICKS = 80

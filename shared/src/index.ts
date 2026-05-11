@@ -2,6 +2,7 @@ export * from './types/index'
 
 export * from './gen/biome'
 export * from './gen/planet'
+export * from './gen/star'
 export * from './gen/galaxy'
 
 export * from './sim/tile'
