@@ -144,13 +144,17 @@ const SIGNAL_RANGE_PROGRESS_THRESHOLD = 0.6
 //   Per user verbatim "space needs a universal wrap to it so ship going off right edge pops
 //   back in on left edge". PHASE 17.I — source-of-truth is now UNIVERSE_HALF_EXTENT in
 //   balance-constants; this module re-binds the const so existing call sites stay readable.
+// Super-review SR2-7 + SR2-12 — universe-size-dependent timers. SIGNAL_LOST_TRIGGER_TICKS
+// stays at 30 (comms-quality threshold, not universe-scale dependent). STARVATION + HULK
+// scale together with UNIVERSE_HALF_EXTENT so they stay consistent when the universe size
+// changes. Derive from a typical hulk velocity so the "max drift" represents twice the
+// universe traversal time at typical speed.
 const SIGNAL_LOST_TRIGGER_TICKS = 30
-const STARVATION_TIMER_TICKS = 30
-// Super-review fix: hulk drift cap rescaled for the 7.5× larger universe. Old 200 ticks
-// (~40 sec at 5 ticks/sec) was tuned for the 8000 wrap, hulks evaporated too fast for the
-// player to see them at galactic zoom. 1500 ticks ≈ 5 min — hulk has time to traverse new
-// 60000-bound space + give the player time to either ignore it or counter-launch.
-const MAX_HULK_DRIFT_TICKS = 1500
+const TYPICAL_HULK_VELOCITY_UNITS_PER_TICK = 80
+const STARVATION_TIMER_TICKS = 150
+const MAX_HULK_DRIFT_TICKS = Math.ceil(
+  ((UNIVERSE_HALF_EXTENT * 2) / TYPICAL_HULK_VELOCITY_UNITS_PER_TICK) * 2,
+)
 const GALACTIC_WRAP_BOUND = UNIVERSE_HALF_EXTENT
 
 // Variant guidance baseline. A nominal ship (speedMultiplier=1, evasionMultiplier=1) gets

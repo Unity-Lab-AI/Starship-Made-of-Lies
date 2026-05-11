@@ -132,6 +132,11 @@ function makePlanetMesh(planet: Planet, center: THREE.Vector3): THREE.Mesh {
   const subdivWidth = radius < 100 ? 24 : radius < 200 ? 32 : 48
   const subdivHeight = Math.floor(subdivWidth * 0.75)
   const geom = new THREE.SphereGeometry(radius, subdivWidth, subdivHeight)
+  // Super-review SR2-16 fix: compute boundingSphere eagerly. Three.js otherwise lazies it on
+  // first frustum check, leaving boundingSphere=null for the first 1–2 frames after mount.
+  // updateOwnerFlagDistanceFade reads boundingSphere.radius → uses fallback (100) during
+  // those frames. Pre-computing here eliminates the first-frame fade glitch.
+  geom.computeBoundingSphere()
   const mat = new THREE.MeshStandardMaterial({
     color,
     roughness: 0.85,
@@ -175,9 +180,14 @@ function makeStarMesh(star: Star, center: THREE.Vector3): StarMeshGroup {
 
   const haloRadius = star.radius * 1.4
   const haloGeom = new THREE.SphereGeometry(haloRadius, 28, 20)
+  // Super-review SR2-1 fix: include logdepthbuf shader chunks so this custom ShaderMaterial
+  // honors the WebGLRenderer's logarithmicDepthBuffer setting. Without these chunks the
+  // halo writes linear depth values that disagree with the rest of the scene → Z-fighting.
   const haloMat = new THREE.ShaderMaterial({
     uniforms: { uColor: { value: new THREE.Color(star.color) } },
     vertexShader: `
+      #include <common>
+      #include <logdepthbuf_pars_vertex>
       varying vec3 vNormal;
       varying vec3 vView;
       void main() {
@@ -185,13 +195,17 @@ function makeStarMesh(star: Star, center: THREE.Vector3): StarMeshGroup {
         vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
         vView = normalize(-mvPos.xyz);
         gl_Position = projectionMatrix * mvPos;
+        #include <logdepthbuf_vertex>
       }
     `,
     fragmentShader: `
+      #include <common>
+      #include <logdepthbuf_pars_fragment>
       uniform vec3 uColor;
       varying vec3 vNormal;
       varying vec3 vView;
       void main() {
+        #include <logdepthbuf_fragment>
         float fres = pow(1.0 - dot(normalize(vNormal), normalize(vView)), 2.5);
         gl_FragColor = vec4(uColor, fres * 0.7);
       }
@@ -215,12 +229,16 @@ function makeAtmosphereGlow(planet: Planet, center: THREE.Vector3): THREE.Mesh {
   const geom = new THREE.SphereGeometry(haloRadius, 32, 24)
   // Backside-only inverted-Fresnel halo using a custom shader-style approximation
   // via emissive + transparent material with side: BackSide
+  // Super-review SR2-1 fix: logdepthbuf chunks so the custom shader honors WebGLRenderer's
+  // logarithmicDepthBuffer setting (otherwise this halo Z-fights against standard meshes).
   const mat = new THREE.ShaderMaterial({
     uniforms: {
       uColor: { value: new THREE.Color(color) },
       uIntensity: { value: 0.85 },
     },
     vertexShader: `
+      #include <common>
+      #include <logdepthbuf_pars_vertex>
       varying vec3 vNormal;
       varying vec3 vView;
       void main() {
@@ -228,14 +246,18 @@ function makeAtmosphereGlow(planet: Planet, center: THREE.Vector3): THREE.Mesh {
         vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
         vView = normalize(-mvPos.xyz);
         gl_Position = projectionMatrix * mvPos;
+        #include <logdepthbuf_vertex>
       }
     `,
     fragmentShader: `
+      #include <common>
+      #include <logdepthbuf_pars_fragment>
       uniform vec3 uColor;
       uniform float uIntensity;
       varying vec3 vNormal;
       varying vec3 vView;
       void main() {
+        #include <logdepthbuf_fragment>
         float fres = pow(1.0 - dot(normalize(vNormal), normalize(vView)), 2.0);
         gl_FragColor = vec4(uColor, fres * uIntensity);
       }
@@ -450,47 +472,69 @@ export function syncOwnerFlags(
   }
 }
 
-// Super-review fix: distance-based opacity + scale ramp for owner flags. Called per render
-// frame from GalaxyView's RAF loop. Three zoom bands:
-//   - Too close (camera < 2× planet radius): flags fade out, they'd block the surface view.
+// Super-review fix: distance-based opacity + scale ramp for owner flags AND indigenous
+// markers. Called per render frame from GalaxyView's RAF loop. Three zoom bands:
+//   - Too close (camera < 2× planet radius): sprite fades out, would block the surface view.
 //   - Useful range (2× to 30× planet radius): full opacity.
-//   - Too far (> 80× planet radius): flags fade out — unreadable specks at galactic zoom.
-// Also scales sprite world-size by camera distance so the flag's on-screen size stays
-// roughly constant across zooms (no more "very very small text" complaints).
+//   - Too far (> 80× planet radius): sprite fades out — unreadable specks at galactic zoom.
+// Also scales sprite world-size by camera distance so the on-screen size stays roughly
+// constant across zooms (kills "very very small text" complaints).
+//
+// SR2-8 — same helper walks indigenous markers so they get identical fade behavior.
+// SR2-14 — uses sprite.getWorldPosition so group transforms don't break the distance math.
+const _fadeTempVec3 = new THREE.Vector3()
+function applyDistanceFade(
+  sprite: THREE.Sprite,
+  cameraPos: THREE.Vector3,
+  radius: number,
+  aspectRatio: number,
+): void {
+  sprite.getWorldPosition(_fadeTempVec3)
+  const d = _fadeTempVec3.distanceTo(cameraPos)
+  const nearFade = radius * 2
+  const midStart = radius * 4
+  const midEnd = radius * 30
+  const farFade = radius * 80
+
+  let opacity = 0
+  if (d < nearFade) opacity = 0
+  else if (d < midStart) opacity = (d - nearFade) / (midStart - nearFade)
+  else if (d < midEnd) opacity = 1
+  else if (d < farFade) opacity = 1 - (d - midEnd) / (farFade - midEnd)
+  else opacity = 0
+
+  opacity = Math.max(0, Math.min(1, opacity))
+  const mat = sprite.material as THREE.SpriteMaterial
+  mat.opacity = opacity
+  sprite.visible = opacity > 0.01
+
+  if (opacity > 0) {
+    const baseWidth = radius * 1.4
+    const referenceDist = radius * 8
+    const scaleFactor = Math.max(0.5, Math.min(3, d / referenceDist))
+    const w = baseWidth * scaleFactor
+    sprite.scale.set(w, w * aspectRatio, 1)
+  }
+}
+
 export function updateOwnerFlagDistanceFade(
   handle: OwnerFlagLayerHandle,
   cameraPos: THREE.Vector3,
   planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>,
 ): void {
+  // Owner-civ flag aspect = 0.25 (banner shape). Indigenous-marker aspect = 0.22 — slightly
+  // shorter banner. Both share the same fade math.
   for (const entry of handle.entries.values()) {
     const mesh = planetMeshes.get(entry.planetId)
     if (!mesh) continue
     const radius = mesh.geometry.boundingSphere?.radius ?? 100
-    const d = entry.sprite.position.distanceTo(cameraPos)
-    const nearFade = radius * 2
-    const midStart = radius * 4
-    const midEnd = radius * 30
-    const farFade = radius * 80
-
-    let opacity = 0
-    if (d < nearFade) opacity = 0
-    else if (d < midStart) opacity = (d - nearFade) / (midStart - nearFade)
-    else if (d < midEnd) opacity = 1
-    else if (d < farFade) opacity = 1 - (d - midEnd) / (farFade - midEnd)
-    else opacity = 0
-
-    opacity = Math.max(0, Math.min(1, opacity))
-    const mat = entry.sprite.material as THREE.SpriteMaterial
-    mat.opacity = opacity
-    entry.sprite.visible = opacity > 0.01
-
-    if (opacity > 0) {
-      const baseWidth = radius * 1.4
-      const referenceDist = radius * 8
-      const scaleFactor = Math.max(0.5, Math.min(3, d / referenceDist))
-      const w = baseWidth * scaleFactor
-      entry.sprite.scale.set(w, w * 0.25, 1)
-    }
+    applyDistanceFade(entry.sprite, cameraPos, radius, 0.25)
+  }
+  for (const entry of handle.indigenousEntries.values()) {
+    const mesh = planetMeshes.get(entry.planetId)
+    if (!mesh) continue
+    const radius = mesh.geometry.boundingSphere?.radius ?? 100
+    applyDistanceFade(entry.sprite, cameraPos, radius, 0.22)
   }
 }
 

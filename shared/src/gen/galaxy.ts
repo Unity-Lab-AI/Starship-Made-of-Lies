@@ -29,7 +29,10 @@ export interface Galaxy {
   readonly planets: ReadonlyArray<Planet>
 }
 
-const MIN_PLANET_COUNT = 100
+// Super-review SR2-15 fix: floor dropped 100 → 20 so future "small galaxy" presets (per
+// TODO 17.I.10) can use the same gen path. 20 / MAX_PLANETS_PER_STAR (10) = 2 stars minimum,
+// 20 / MIN_PLANETS_PER_STAR (4) = 5 stars max — `planStarPlanetCounts` handles the clamp.
+const MIN_PLANET_COUNT = 20
 const MAX_PLANET_COUNT = 1000
 const AVG_PLANETS_PER_STAR = 7
 // Rejection-sample attempts per star placement before we widen the allowed placement region.
@@ -233,12 +236,22 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
     const spectral = rollSpectralClass(rng)
     spectralClasses.push(spectral)
     const starRadiusForThisSystem = starRadius * spectral.radiusMultiplier
+    // Super-review SR2-2 fix: per-system orbit-min must clear the spectral-scaled star
+    // radius with safety margin. O-class star at 10240 radius would otherwise engulf planets
+    // orbiting at the global PLANET_ORBIT_MIN_OFFSET (8000). 1.2× clearance keeps planets
+    // visibly outside the photosphere without crowding the orbit band.
+    const STAR_CLEARANCE_FACTOR = 1.2
+    const systemOrbitMin = Math.max(
+      PLANET_ORBIT_MIN_OFFSET,
+      starRadiusForThisSystem * STAR_CLEARANCE_FACTOR,
+    )
+    // Scale orbit max proportionally so the orbit band always has the same width as designed.
+    const systemOrbitMax = systemOrbitMin + (PLANET_ORBIT_MAX_OFFSET - PLANET_ORBIT_MIN_OFFSET)
     const planets: PreRolledPlanet[] = []
     let maxSystemExtent = starRadiusForThisSystem
     for (let p = 0; p < sizesForStar.length; p++) {
       const size = sizesForStar[p]!
-      const orbitR =
-        PLANET_ORBIT_MIN_OFFSET + rng() * (PLANET_ORBIT_MAX_OFFSET - PLANET_ORBIT_MIN_OFFSET)
+      const orbitR = systemOrbitMin + rng() * (systemOrbitMax - systemOrbitMin)
       const dir = rollPointOnUnitSphere(rng)
       const localOffset: Vec3 = { x: dir.x * orbitR, y: dir.y * orbitR, z: dir.z * orbitR }
       const biomeIndex = Math.floor(rng() * BIOMES.length)
