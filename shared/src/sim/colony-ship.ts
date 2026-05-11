@@ -39,6 +39,15 @@ export interface ColonyShipBuildCost {
   readonly amount: number
 }
 
+// PHASE 16.32 — ship systems. Per user verbatim "and powered on the ship with batteries / or
+// reactor / or solar // all shit works this way // crew needs to stay alive or it may be a
+// empty hulk // just was a bomb waiting or is auto guidance attasck installed?". Every variant
+// declares its power source + life-support capacity + auto-guidance + signal-range systems.
+// tickFlight (colony-ship-flight.ts) drains these per tick and transitions to new phases
+// STRANDED (out of signal range — calls for help that never comes) and EMPTY_HULK (crew dead
+// + no auto-guidance — drifts on last-known velocity until it impacts a planet).
+export type ShipPowerSource = 'battery' | 'reactor' | 'solar'
+
 export interface ColonyShipDef {
   readonly id: ColonyShipVariantId
   readonly name: string
@@ -56,6 +65,14 @@ export interface ColonyShipDef {
   readonly evasionMultiplier: number
   readonly canIntercept: boolean
   readonly suicideShip: boolean
+  // PHASE 16.32 — ship systems config
+  readonly powerSource: ShipPowerSource
+  readonly powerCapacity: number
+  readonly powerDrainPerTick: number
+  readonly solarRegenPerTick: number
+  readonly crewSupportTicks: number
+  readonly autoGuidanceInstalled: boolean
+  readonly signalRange: number
 }
 
 export const SHIP_SCOUT = colonyShipVariantId('scout')
@@ -82,7 +99,23 @@ export const SHIP_REFUGEE = colonyShipVariantId('refugee')
 export const SHIP_EMBASSY = colonyShipVariantId('embassy')
 export const SHIP_RESUPPLY = colonyShipVariantId('resupply')
 
-export const COLONY_SHIPS: ReadonlyArray<ColonyShipDef> = [
+// PHASE 16.32 — raw catalog entries omit the ship-systems fields (powerSource / capacity /
+// drain / regen / crewSupport / autoGuidance / signalRange). They're derived by deriveShipSystems
+// below from the existing per-variant fields (citizenCapacity, fuelRequirement, canIntercept,
+// id). Per-variant overrides handled inline. This keeps the catalog readable + the tuning
+// rules in one place.
+type ColonyShipDefRaw = Omit<
+  ColonyShipDef,
+  | 'powerSource'
+  | 'powerCapacity'
+  | 'powerDrainPerTick'
+  | 'solarRegenPerTick'
+  | 'crewSupportTicks'
+  | 'autoGuidanceInstalled'
+  | 'signalRange'
+>
+
+const COLONY_SHIPS_RAW: ReadonlyArray<ColonyShipDefRaw> = [
   {
     id: SHIP_SCOUT,
     name: 'Scout',
@@ -509,6 +542,77 @@ export const COLONY_SHIPS: ReadonlyArray<ColonyShipDef> = [
     suicideShip: false,
   },
 ]
+
+// PHASE 16.32 — derive ship-systems fields from existing per-variant tunables. Heuristic with
+// per-variant overrides. Per user verbatim 2026-05-11 "all shit works this way" — every variant
+// gets a power source + life support + auto-guidance + signalRange.
+function deriveShipSystems(raw: ColonyShipDefRaw): ColonyShipDef {
+  // Power source assignment:
+  // - solar: long-duration auto-shuttles + orbital platforms + survey/beacon variants that
+  //   stay deployed for sustained periods (Mining, Surveyor, OrbitalWeaponPlatform, LaserBeacon)
+  // - battery: short-range disposables that don't need long endurance (Scout, Probe, Decoy,
+  //   Explosive)
+  // - reactor: everything else (citizen-bearing colony ships, counter-missiles, etc.)
+  let powerSource: ShipPowerSource = 'reactor'
+  if (
+    raw.id === SHIP_MINING ||
+    raw.id === SHIP_SURVEYOR ||
+    raw.id === SHIP_ORBITAL_WEAPON_PLATFORM ||
+    raw.id === SHIP_LASER_BEACON
+  ) {
+    powerSource = 'solar'
+  } else if (
+    raw.id === SHIP_DECOY ||
+    raw.id === SHIP_SCOUT ||
+    raw.id === SHIP_PROBE ||
+    raw.id === SHIP_EXPLOSIVE
+  ) {
+    powerSource = 'battery'
+  }
+
+  // Power capacity scales with fuel requirement (proxy for mission duration). Reactor variants
+  // get a +50% multiplier (long-haul); solar variants get +100% (sustainable indefinitely with
+  // regen); batteries stay at base (short missions).
+  const baseCapacity = Math.max(40, raw.fuelRequirement * 2)
+  const capacityMult = powerSource === 'reactor' ? 1.5 : powerSource === 'solar' ? 2 : 1
+  const powerCapacity = Math.round(baseCapacity * capacityMult)
+
+  // Drain rate: batteries burn fast (short ops); reactors steady; solar slow (efficient).
+  const powerDrainPerTick = powerSource === 'battery' ? 1.5 : powerSource === 'solar' ? 0.5 : 1
+  const solarRegenPerTick = powerSource === 'solar' ? 0.6 : 0
+
+  // Crew life support — only matters if crew is aboard. 60-tick base + 1 tick per 10 citizens
+  // (denser ships need proportionally more supplies).
+  const crewSupportTicks =
+    raw.payload.citizenCapacity > 0 ? 60 + Math.floor(raw.payload.citizenCapacity / 10) : 0
+
+  // Auto-guidance — installed when ship is unmanned (canIntercept variants are autonomous
+  // interceptors; cargo-only resupply runs auto). When citizens crew the ship they pilot it
+  // themselves; without auto-guidance + dead crew = empty hulk drifts.
+  const autoGuidanceInstalled = raw.payload.citizenCapacity === 0 || raw.canIntercept
+
+  // Signal range — distance from launching civ's nearest owned planet beyond which the ship
+  // goes STRANDED (UMS antennaRange concept, .claude/SMOL_REFERENCE_TRAJECTORY §11). Higher-
+  // tier ships have stronger comm gear: solar variants (constellation/relay-style) get the
+  // longest range; counter-missiles get the shortest (they're meant to die mid-flight anyway).
+  let signalRange = 5500
+  if (powerSource === 'solar') signalRange = 9000
+  else if (raw.canIntercept) signalRange = 4500
+  else if (raw.payload.citizenCapacity > 0) signalRange = 6500
+
+  return {
+    ...raw,
+    powerSource,
+    powerCapacity,
+    powerDrainPerTick,
+    solarRegenPerTick,
+    crewSupportTicks,
+    autoGuidanceInstalled,
+    signalRange,
+  }
+}
+
+export const COLONY_SHIPS: ReadonlyArray<ColonyShipDef> = COLONY_SHIPS_RAW.map(deriveShipSystems)
 
 const COLONY_SHIP_INDEX: ReadonlyMap<ColonyShipVariantId, ColonyShipDef> = new Map(
   COLONY_SHIPS.map((s) => [s.id, s]),

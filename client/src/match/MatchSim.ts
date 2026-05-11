@@ -572,6 +572,42 @@ export function tickMatch(state: MatchState): void {
         attemptDefenderCounterLaunch(state, flight, flightIdStr)
       }
     }
+    // PHASE 16.32: EMPTY_HULK drift collision check. A "bomb waiting" hulk drifts on its
+    // frozen velocity through wrapped space; if it passes within (planet.surfaceRadius × 1.2)
+    // of any planet it impacts. AoE fires when the variant has payload AND the impacted planet
+    // isn't the launching civ's own (friendly-fire prevention). Per user verbatim "just was
+    // a bomb waiting or is auto guidance attasck installed?". Hulks without auto-guidance
+    // are the bombs; hulks with auto-guidance never enter EMPTY_HULK to begin with.
+    if (flight.phase === 'EMPTY_HULK' && flight.hulkPosition) {
+      const hulkPos = flight.hulkPosition
+      for (const candidatePlanet of state.planets.values()) {
+        const dx = hulkPos.x - candidatePlanet.planet.position.x
+        const dy = hulkPos.y - candidatePlanet.planet.position.y
+        const dz = hulkPos.z - candidatePlanet.planet.position.z
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
+        if (dist < candidatePlanet.planet.surfaceRadius * 1.2) {
+          const launchingCiv = state.civs.get(flight.launchingCivId)
+          const def = getColonyShipDef(flight.variantId)
+          if (
+            launchingCiv &&
+            candidatePlanet.civId !== launchingCiv.civId &&
+            (def.suicideShip || def.payload.explosiveYield > 0 || def.payload.weaponPayload > 0)
+          ) {
+            applyDetonationAoE(state, flight, launchingCiv, candidatePlanet)
+          } else {
+            pushEvent(state, {
+              atTick: state.currentTick,
+              civId: flight.launchingCivId,
+              kind: 'crash',
+              message: `🪦 Empty hulk ${String(flight.id)} crashed on ${String(candidatePlanet.planet.id)} (no payload, no AoE).`,
+            })
+          }
+          flight.phase = 'CRASH_LANDED'
+          flight.outcome = 'SIGNAL_LOST'
+          break
+        }
+      }
+    }
     // PHASE 16.22: per-tick mine-field intercept check per UMS UnityPad.cs mine logic +
     // SMOL_REFERENCE_TRAJECTORY §17. For each in-flight ship, walk the target planet's
     // mineFields[] and call mineFieldCheckIntercept — flips flight.phase to INTERCEPTED

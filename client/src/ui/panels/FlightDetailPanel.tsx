@@ -55,6 +55,10 @@ function phaseDescription(phase: ColonyShipFlight['phase']): string {
       return 'aborted by operator'
     case 'CRASH_LANDED':
       return 'crash-landed'
+    case 'STRANDED':
+      return 'out of signal range — LASER_HOME beacon active, help never coming'
+    case 'EMPTY_HULK':
+      return 'crew dead, no auto-guidance — drifting on last velocity through wrapped space'
   }
 }
 
@@ -79,6 +83,11 @@ export function FlightDetailPanel({
   // the ABORT button (the defender doesn't manually abort their own counter — it self-
   // destructs automatically when its target is intercepted, gone, or out of fuel).
   const isCounter = def.canIntercept
+  // PHASE 16.32: ship-systems state. STRANDED → 🛰️ HELP ME beacon banner (help never comes
+  // per user verbatim). EMPTY_HULK → 🪦 drifting-bomb banner. Starving crew → ⚠️ warning.
+  const isStranded = flight.phase === 'STRANDED'
+  const isEmptyHulk = flight.phase === 'EMPTY_HULK'
+  const isStarving = tel.crewStarvationTimer > 0 && flight.crewAlive > 0
 
   const fromLabel = fromPlanetLabel ?? String(flight.fromPlanetId)
   const toLabel = toPlanetLabel ?? String(flight.targetPlanetId)
@@ -96,6 +105,12 @@ export function FlightDetailPanel({
           </span>
           {isCounter ? (
             <span className="flight-detail-panel__interceptor-badge">🛡️ INTERCEPTOR</span>
+          ) : null}
+          {isStranded ? (
+            <span className="flight-detail-panel__stranded-badge">🛰️ STRANDED — HELP ME</span>
+          ) : null}
+          {isEmptyHulk ? (
+            <span className="flight-detail-panel__hulk-badge">🪦 EMPTY HULK — DRIFTING</span>
           ) : null}
           <span className="flight-detail-panel__tier">Darkness Tier {def.darknessTier}</span>
           <button
@@ -144,6 +159,54 @@ export function FlightDetailPanel({
                   : 'no payload — small boom'
               }
             />
+          </div>
+        </section>
+
+        <section className="flight-detail-panel__systems">
+          <h4 className="flight-detail-panel__section-title">Ship systems (PHASE 16.32)</h4>
+          <div className="flight-detail-panel__grid">
+            <FlightCell
+              label="Power source"
+              value={`${tel.powerSource.toUpperCase()}${tel.powerSource === 'solar' ? ' (regen)' : ''}`}
+            />
+            <FlightCell
+              label="Power remaining"
+              value={`${tel.powerRemaining.toFixed(0)}/${tel.powerAtLaunch} (${Math.round(tel.powerPct * 100)}%)`}
+            />
+            <FlightCell
+              label="Life support"
+              value={
+                tel.lifeSupportAtLaunch === 0
+                  ? 'unmanned — N/A'
+                  : `${tel.lifeSupportRemaining.toFixed(0)}/${tel.lifeSupportAtLaunch}t (${Math.round(tel.lifeSupportPct * 100)}%)`
+              }
+            />
+            <FlightCell
+              label="Crew alive"
+              value={
+                flight.citizensAboard === 0
+                  ? 'unmanned'
+                  : `${tel.crewAlive.toLocaleString()}/${flight.citizensAboard.toLocaleString()}${
+                      isStarving ? ` ⚠️ STARVING (${tel.crewStarvationTimer}t left)` : ''
+                    }`
+              }
+            />
+            <FlightCell
+              label="Auto-guidance"
+              value={tel.autoGuidanceInstalled ? '✓ installed' : '✕ not installed (crew flies)'}
+            />
+            <FlightCell
+              label="Signal range"
+              value={`${tel.distFromLaunch.toFixed(0)}/${tel.signalRangeUnits}u${
+                tel.signalLostTicks > 0 ? ` ⚠️ LOST ${tel.signalLostTicks}t` : ''
+              }`}
+            />
+            {isEmptyHulk ? (
+              <FlightCell
+                label="Hulk drifted"
+                value={`${tel.hulkTicksDrifted}t through wrapped space`}
+              />
+            ) : null}
           </div>
         </section>
 

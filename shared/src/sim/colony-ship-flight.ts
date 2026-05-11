@@ -51,6 +51,15 @@ export type FlightPhase =
   | 'INTERCEPTED'
   | 'ABORTED'
   | 'CRASH_LANDED'
+  // PHASE 16.32 — ship out of comms range from launching civ. UMS BLACKOUT_SAT analog
+  // (SMOL_REFERENCE_TRAJECTORY §11) — ship halts, activates LASER_HOME beacon, calls for help
+  // that never comes (per user verbatim "send help but help never comes"). Can transition to
+  // EMPTY_HULK when crew dies of starvation while stranded.
+  | 'STRANDED'
+  // PHASE 16.32 — crew all dead + no auto-guidance installed. Ship becomes a "bomb waiting"
+  // (per user verbatim) — drifts on last-known velocity through toroidal space until it
+  // collides with a planet (applyDetonationAoE at impact) or burns out after MAX_HULK_TICKS.
+  | 'EMPTY_HULK'
 
 export type ColonyShipOutcome = PadOutcome
 
@@ -70,6 +79,23 @@ export const colonyShipFlightId = (s: string): ColonyShipFlightId => s as Colony
 const TERMINAL_HIT_DIST = 100
 const TERMINAL_PROBABLE_DIST = 500
 const SIGNAL_RANGE_PROGRESS_THRESHOLD = 0.6
+
+// PHASE 16.32 — ship systems thresholds.
+// SIGNAL_LOST_TRIGGER_TICKS: ship needs to be outside signalRange for this many consecutive
+//   ticks before transitioning to STRANDED. Matches UMS BLACKOUT_SAT 30-tick threshold.
+// STARVATION_TIMER_TICKS: when life support exhausted, crew enters starvation countdown.
+//   Crew dies 1-by-1 over this many ticks. Per user verbatim "crew lasts till food and water
+//   funs out then a timer until death".
+// MAX_HULK_DRIFT_TICKS: empty-hulk drift cap. If a hulk doesn't impact within this window,
+//   it burns out (CRASH_LANDED outcome=SIGNAL_LOST — "lost in the void"). Prevents infinite
+//   debris in long matches.
+// GALACTIC_WRAP_BOUND: toroidal space half-width. Positions wrap modulo 2 × this on each axis.
+//   Per user verbatim "space needs a universal wrap to it so ship going off right edge pops
+//   back in on left edge". Galaxy gen puts planets within ±5000 typically; 8000 leaves buffer.
+const SIGNAL_LOST_TRIGGER_TICKS = 30
+const STARVATION_TIMER_TICKS = 30
+const MAX_HULK_DRIFT_TICKS = 200
+const GALACTIC_WRAP_BOUND = 8000
 
 // Variant guidance baseline. A nominal ship (speedMultiplier=1, evasionMultiplier=1) gets
 // BASE_DISPERSION_RADIUS scatter when seedNoise=1. High-tier variants (Scout: 1.6 × 1.4 ≈ 2.24
@@ -98,6 +124,24 @@ export interface ColonyShipFlight {
   // with fuel-remaining + payload (more fuel = bigger boom, less fuel = smaller).
   readonly fuelAtLaunch: number
   fuelRemaining: number
+  // PHASE 16.32 — ship systems state. powerRemaining/lifeSupportRemaining drain per tick;
+  // crewAlive starts at citizensAboard + decrements during starvation; crewStarvationTimer
+  // counts down once life support hits 0. signalLostTicks accumulates while ship is outside
+  // launching civ's signalRange — at 30 consecutive ticks the ship goes STRANDED. hulkPosition
+  // + hulkVelocity captured at EMPTY_HULK transition, drives drift simulation thereafter.
+  readonly powerAtLaunch: number
+  readonly lifeSupportAtLaunch: number
+  readonly signalRangeUnits: number
+  readonly autoGuidanceInstalled: boolean
+  readonly powerSource: 'battery' | 'reactor' | 'solar'
+  powerRemaining: number
+  lifeSupportRemaining: number
+  crewAlive: number
+  crewStarvationTimer: number
+  signalLostTicks: number
+  hulkPosition: Vec3 | null
+  hulkVelocity: Vec3 | null
+  hulkTicksDrifted: number
   ticksFlown: number
   phase: FlightPhase
   outcome: ColonyShipOutcome | null
@@ -187,12 +231,43 @@ export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight
     dispersionOffsetMagnitude,
     fuelAtLaunch: def.fuelRequirement,
     fuelRemaining: def.fuelRequirement,
+    // PHASE 16.32 — ship-systems state initialized from variant def. crewAlive starts at
+    // citizensAboard (the citizens being shipped — they need to survive the trip too); for
+    // unmanned variants citizensAboard=0 so crewAlive=0 and starvation never fires.
+    powerAtLaunch: def.powerCapacity,
+    lifeSupportAtLaunch: def.crewSupportTicks,
+    signalRangeUnits: def.signalRange,
+    autoGuidanceInstalled: def.autoGuidanceInstalled,
+    powerSource: def.powerSource,
+    powerRemaining: def.powerCapacity,
+    lifeSupportRemaining: def.crewSupportTicks,
+    crewAlive: opts.citizensAboard,
+    crewStarvationTimer: 0,
+    signalLostTicks: 0,
+    hulkPosition: null,
+    hulkVelocity: null,
+    hulkTicksDrifted: 0,
     ticksFlown: 0,
     phase: 'CLIMB',
     outcome: null,
     signalLossSeed: seed,
     citizensAboard: opts.citizensAboard,
   }
+}
+
+// PHASE 16.32 — toroidal universal-space wrap. Per user verbatim 2026-05-11 "space needs a
+// universal wrap to it so ship going off right edge pops back in on left edge". Wraps a Vec3
+// modulo 2 × GALACTIC_WRAP_BOUND on each axis (positions stay in [-bound, +bound]). Pure
+// function — no mutation. Used by tickFlight + the EMPTY_HULK drift step.
+export function galacticWrap(pos: Vec3): Vec3 {
+  const bound = GALACTIC_WRAP_BOUND
+  const span = bound * 2
+  const wrap = (v: number): number => {
+    let w = ((((v + bound) % span) + span) % span) - bound
+    if (w === bound) w = -bound
+    return w
+  }
+  return { x: wrap(pos.x), y: wrap(pos.y), z: wrap(pos.z) }
 }
 
 export interface FlightTickResult {
@@ -210,6 +285,9 @@ export interface FlightTickResult {
   readonly signalLost: boolean
 }
 
+// PHASE 16.32 note: STRANDED + EMPTY_HULK are intentionally NOT in TERMINAL_PHASES — STRANDED
+// can transition to EMPTY_HULK when stranded crew finally dies; EMPTY_HULK drifts and can
+// transition to CRASH_LANDED via burn-out timeout OR planet impact (handled in MatchSim).
 const TERMINAL_PHASES: ReadonlySet<FlightPhase> = new Set<FlightPhase>([
   'DETONATE',
   'INTERCEPTED',
@@ -240,6 +318,62 @@ export function tickFlight(flight: ColonyShipFlight): FlightTickResult {
     }
   }
 
+  // PHASE 16.32 — STRANDED: ship has halted (out of signal range, calling for help that never
+  // comes). No arc progression, no position update. Life support + power still drain — crew
+  // starves in place. Once crew dies, transition to EMPTY_HULK + drift begins. Position stays
+  // at where the ship halted (arc-frozen at strandedProgress, computed from ticksFlown).
+  if (flight.phase === 'STRANDED') {
+    const frozenProgress = Math.min(1, flight.ticksFlown / Math.max(1, flight.totalTicks))
+    const frozenPos = pointAlongArc(flight.arc, frozenProgress)
+    tickLifeSupportAndCrew(flight)
+    // If crew dies while stranded + no auto-guidance → EMPTY_HULK at current frozen position
+    // with zero initial velocity (no momentum from arc since halted).
+    if (
+      flight.crewAlive <= 0 &&
+      flight.lifeSupportRemaining <= 0 &&
+      !flight.autoGuidanceInstalled
+    ) {
+      flight.phase = 'EMPTY_HULK'
+      flight.hulkPosition = { ...frozenPos }
+      flight.hulkVelocity = { x: 0, y: 0, z: 0 }
+    }
+    return {
+      phaseChanged: flight.phase !== prevPhase,
+      newPhase: flight.phase,
+      currentPosition: frozenPos,
+      progress: frozenProgress,
+      outcome: null,
+      altitude: vec3Length(frozenPos),
+      distToTarget: vec3Distance(frozenPos, flight.trueTargetPosition),
+      closingSpeed: 0,
+      signalLost: true,
+    }
+  }
+
+  // PHASE 16.32 — EMPTY_HULK: linear drift through wrapped space. No arc, no phase machine.
+  // MatchSim handles collision-with-planet detection per tick (needs state.planets access).
+  if (flight.phase === 'EMPTY_HULK' && flight.hulkPosition && flight.hulkVelocity) {
+    const next: Vec3 = vec3Add(flight.hulkPosition, flight.hulkVelocity)
+    flight.hulkPosition = galacticWrap(next)
+    flight.hulkTicksDrifted += 1
+    // Burn-out after MAX_HULK_DRIFT_TICKS — "lost in the void" CRASH_LANDED outcome=SIGNAL_LOST.
+    if (flight.hulkTicksDrifted >= MAX_HULK_DRIFT_TICKS) {
+      flight.phase = 'CRASH_LANDED'
+      flight.outcome = 'SIGNAL_LOST'
+    }
+    return {
+      phaseChanged: flight.phase !== prevPhase,
+      newPhase: flight.phase,
+      currentPosition: flight.hulkPosition,
+      progress: 1,
+      outcome: flight.outcome,
+      altitude: vec3Length(flight.hulkPosition),
+      distToTarget: vec3Distance(flight.hulkPosition, flight.trueTargetPosition),
+      closingSpeed: 0,
+      signalLost: true,
+    }
+  }
+
   flight.ticksFlown += 1
   const progress = Math.min(1, flight.ticksFlown / Math.max(1, flight.totalTicks))
   const currentPosition = pointAlongArc(flight.arc, progress)
@@ -254,6 +388,54 @@ export function tickFlight(flight: ColonyShipFlight): FlightTickResult {
   if (flight.phase === 'CLIMB' || flight.phase === 'REENTRY') phaseFuelMult = 1.5
   else if (flight.phase === 'COAST') phaseFuelMult = 0.5
   flight.fuelRemaining = Math.max(0, flight.fuelRemaining - baseFuelPerTick * phaseFuelMult)
+
+  // PHASE 16.32 — life-support + power drain + signal-range check + starvation timer. Has
+  // to run BEFORE arc-progress phase transitions so STRANDED / EMPTY_HULK transitions can
+  // pre-empt them.
+  tickLifeSupportAndCrew(flight)
+  tickPowerSystem(flight)
+  const distFromLaunch = vec3Distance(currentPosition, flight.arc.start)
+  if (distFromLaunch > flight.signalRangeUnits) {
+    flight.signalLostTicks += 1
+    if (flight.signalLostTicks >= SIGNAL_LOST_TRIGGER_TICKS) {
+      flight.phase = 'STRANDED'
+      const distToTarget = vec3Distance(currentPosition, flight.trueTargetPosition)
+      return {
+        phaseChanged: true,
+        newPhase: 'STRANDED',
+        currentPosition,
+        progress,
+        outcome: null,
+        altitude: vec3Length(currentPosition),
+        distToTarget,
+        closingSpeed: 0,
+        signalLost: true,
+      }
+    }
+  } else if (flight.signalLostTicks > 0) {
+    flight.signalLostTicks = Math.max(0, flight.signalLostTicks - 1)
+  }
+  // Empty-hulk transition from active flight: crew dead + no auto-guidance → freeze velocity
+  // at current arc tangent and drift from current position.
+  if (flight.crewAlive <= 0 && flight.lifeSupportRemaining <= 0 && !flight.autoGuidanceInstalled) {
+    const prevProgress = Math.max(0, (flight.ticksFlown - 1) / Math.max(1, flight.totalTicks))
+    const prevPos = pointAlongArc(flight.arc, prevProgress)
+    const velocity: Vec3 = vec3Sub(currentPosition, prevPos)
+    flight.phase = 'EMPTY_HULK'
+    flight.hulkPosition = { ...currentPosition }
+    flight.hulkVelocity = velocity
+    return {
+      phaseChanged: true,
+      newPhase: 'EMPTY_HULK',
+      currentPosition,
+      progress,
+      outcome: null,
+      altitude: vec3Length(currentPosition),
+      distToTarget: vec3Distance(currentPosition, flight.trueTargetPosition),
+      closingSpeed: 0,
+      signalLost: true,
+    }
+  }
 
   // UMS-faithful phase transitions — progress thresholds are tunable. UMS uses altitude/
   // distance-to-target on flat-Earth math; on SMoL's great-circle arc the analogous
@@ -296,6 +478,40 @@ export function tickFlight(flight: ColonyShipFlight): FlightTickResult {
   }
 }
 
+// PHASE 16.32 — life-support + crew tick. Drains lifeSupportRemaining per tick. When out of
+// life support: starvation timer counts down (STARVATION_TIMER_TICKS) and crewAlive
+// decrements as starvation progresses (1 citizen dies per starvation-tick proportionally).
+// Per user verbatim "the crew lasts till food and water funs out then a timer until death".
+function tickLifeSupportAndCrew(flight: ColonyShipFlight): void {
+  if (flight.crewAlive <= 0) return
+  if (flight.lifeSupportRemaining > 0) {
+    flight.lifeSupportRemaining = Math.max(0, flight.lifeSupportRemaining - 1)
+    flight.crewStarvationTimer = 0
+    return
+  }
+  // Out of food/water — starvation countdown begins.
+  if (flight.crewStarvationTimer === 0) {
+    flight.crewStarvationTimer = STARVATION_TIMER_TICKS
+  }
+  // Each starvation tick: kill ceil(crewAlive / starvationTimer) citizens. Gradual death.
+  const willDie = Math.max(1, Math.ceil(flight.crewAlive / Math.max(1, flight.crewStarvationTimer)))
+  flight.crewAlive = Math.max(0, flight.crewAlive - willDie)
+  flight.crewStarvationTimer = Math.max(0, flight.crewStarvationTimer - 1)
+}
+
+// PHASE 16.32 — power tick. Reactor/battery drain at variant-tuned rate. Solar variants
+// regenerate at solarRegenPerTick (capped at powerAtLaunch). When powerRemaining hits 0,
+// life support drain rate doubles (no heat, no water reclamation) — implicit penalty handled
+// by simply not regenerating life support (already mono-directional decrement).
+function tickPowerSystem(flight: ColonyShipFlight): void {
+  const drain = flight.powerSource === 'battery' ? 1.5 : flight.powerSource === 'solar' ? 0.5 : 1
+  const regen = flight.powerSource === 'solar' ? 0.6 : 0
+  flight.powerRemaining = Math.max(
+    0,
+    Math.min(flight.powerAtLaunch, flight.powerRemaining - drain + regen),
+  )
+}
+
 // PHASE 16.21 UMS-faithful outcome — replaces RNG roll. SMOL_REFERENCE_TRAJECTORY.md §19:
 // fnlDTT < detDist*2 (~100m) → TARGET_HIT. phase reached TARGET and fnlDTT < 500m →
 // PROBABLE_HIT. Otherwise → SIGNAL_LOST. Same flight seed always resolves to same outcome.
@@ -331,6 +547,10 @@ export function markCrashLanded(flight: ColonyShipFlight): void {
 }
 
 export function flightCurrentPosition(flight: ColonyShipFlight): Vec3 {
+  // PHASE 16.32 — EMPTY_HULK uses stored drift position (linear extrapolation from death tick).
+  // STRANDED freezes at the position where the ship halted (ticksFlown didn't advance after
+  // transition). All other phases use arc interpolation.
+  if (flight.phase === 'EMPTY_HULK' && flight.hulkPosition) return flight.hulkPosition
   const t = Math.min(1, flight.ticksFlown / Math.max(1, flight.totalTicks))
   return pointAlongArc(flight.arc, t)
 }
@@ -358,25 +578,58 @@ export interface FlightTelemetrySnapshot {
   readonly fuelRemaining: number
   readonly fuelAtLaunch: number
   readonly fuelPct: number
+  // PHASE 16.32: ship-systems telemetry. Power source + capacities + starvation status are
+  // surfaced so FlightDetailPanel can render the per-ship systems block ("BATTERY 42%", "CREW
+  // STARVING 18t left", "STRANDED — LASER HOME", etc.).
+  readonly powerSource: 'battery' | 'reactor' | 'solar'
+  readonly powerRemaining: number
+  readonly powerAtLaunch: number
+  readonly powerPct: number
+  readonly lifeSupportRemaining: number
+  readonly lifeSupportAtLaunch: number
+  readonly lifeSupportPct: number
+  readonly crewAlive: number
+  readonly crewStarvationTimer: number
+  readonly signalLostTicks: number
+  readonly signalRangeUnits: number
+  readonly autoGuidanceInstalled: boolean
+  readonly distFromLaunch: number
+  readonly hulkTicksDrifted: number
 }
 
 export function flightTelemetrySnapshot(flight: ColonyShipFlight): FlightTelemetrySnapshot {
   const totalTicks = Math.max(1, flight.totalTicks)
   const progress = Math.min(1, flight.ticksFlown / totalTicks)
-  const currentPos = pointAlongArc(flight.arc, progress)
+  // PHASE 16.32 — position source depends on phase. EMPTY_HULK uses stored hulkPosition;
+  // STRANDED uses arc position frozen at ticksFlown (ticksFlown stopped advancing on entry);
+  // active flights use arc interpolation.
+  const currentPos =
+    flight.phase === 'EMPTY_HULK' && flight.hulkPosition
+      ? flight.hulkPosition
+      : pointAlongArc(flight.arc, progress)
   const altitude = vec3Length(currentPos)
   const distToTarget = vec3Distance(currentPos, flight.trueTargetPosition)
   let closingSpeed = 0
-  if (flight.ticksFlown > 0) {
+  if (flight.ticksFlown > 0 && flight.phase !== 'STRANDED' && flight.phase !== 'EMPTY_HULK') {
     const prevProgress = Math.max(0, (flight.ticksFlown - 1) / totalTicks)
     const prevPos = pointAlongArc(flight.arc, prevProgress)
     const prevDist = vec3Distance(prevPos, flight.trueTargetPosition)
     closingSpeed = Math.max(0, prevDist - distToTarget)
   }
-  const signalLost =
+  // PHASE 16.32 — signal-lost flag now reflects either the cruise-blackout window OR the
+  // new STRANDED / EMPTY_HULK states (both are out-of-comms by definition).
+  const cruiseBlackout =
     progress >= SIGNAL_RANGE_PROGRESS_THRESHOLD && progress < 0.9 && flight.phase !== 'TARGET'
+  const signalLost = cruiseBlackout || flight.phase === 'STRANDED' || flight.phase === 'EMPTY_HULK'
   const fuelPct =
     flight.fuelAtLaunch > 0 ? Math.max(0, flight.fuelRemaining / flight.fuelAtLaunch) : 0
+  const powerPct =
+    flight.powerAtLaunch > 0 ? Math.max(0, flight.powerRemaining / flight.powerAtLaunch) : 0
+  const lifeSupportPct =
+    flight.lifeSupportAtLaunch > 0
+      ? Math.max(0, flight.lifeSupportRemaining / flight.lifeSupportAtLaunch)
+      : 0
+  const distFromLaunch = vec3Distance(currentPos, flight.arc.start)
   return {
     altitude,
     distToTarget,
@@ -386,6 +639,20 @@ export function flightTelemetrySnapshot(flight: ColonyShipFlight): FlightTelemet
     fuelRemaining: flight.fuelRemaining,
     fuelAtLaunch: flight.fuelAtLaunch,
     fuelPct,
+    powerSource: flight.powerSource,
+    powerRemaining: flight.powerRemaining,
+    powerAtLaunch: flight.powerAtLaunch,
+    powerPct,
+    lifeSupportRemaining: flight.lifeSupportRemaining,
+    lifeSupportAtLaunch: flight.lifeSupportAtLaunch,
+    lifeSupportPct,
+    crewAlive: flight.crewAlive,
+    crewStarvationTimer: flight.crewStarvationTimer,
+    signalLostTicks: flight.signalLostTicks,
+    signalRangeUnits: flight.signalRangeUnits,
+    autoGuidanceInstalled: flight.autoGuidanceInstalled,
+    distFromLaunch,
+    hulkTicksDrifted: flight.hulkTicksDrifted,
   }
 }
 
