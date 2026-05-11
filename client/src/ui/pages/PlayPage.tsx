@@ -30,9 +30,7 @@ import { LootDropPanel } from '../panels/LootDropPanel'
 import { ResourcesPanel } from '../panels/ResourcesPanel'
 import { ShipBuildPanel } from '../panels/ShipBuildPanel'
 import { TechTreePanel } from '../panels/TechTreePanel'
-// TilePlacementGrid retired — 3D GalaxyView is the canvas per PHASE 16.6 (user verbatim
-// LAW #0: 'I want you to build the 3D rendered universe in a 3D engine'). Tile-click
-// placement on the 3D surface InstancedMesh ships in PHASE 16.5.6 follow-up.
+import { TilePlacementGrid } from '../panels/TilePlacementGrid'
 import { GalaxyView } from '../../render/scene/GalaxyView'
 import { BuildPicker } from '../play/BuildPicker'
 import { CampaignPicker } from '../play/CampaignPicker'
@@ -219,9 +217,7 @@ export function PlayPage() {
     setBuildMode(null)
   }, [])
 
-  // Tile-click handler — wired in PHASE 16.5.6 to the 3D surface InstancedMesh raycaster.
-  // Retained as a hook so the call site is ready when GalaxyView exposes onSurfaceTileClick.
-  void ((tile: Tile): void => {
+  const handleTileClick = (tile: Tile): void => {
     if (!buildMode) return
     if (tile.occupancy !== 'empty') return
     sim.placeBuilding({
@@ -229,7 +225,7 @@ export function PlayPage() {
       tileId: tile.id,
       defId: buildMode,
     })
-  })
+  }
 
   const handleSelectCampaign = (archetype: CampaignArchetype): void => {
     sim.launchCampaign({
@@ -333,8 +329,32 @@ export function PlayPage() {
       className={`play-shell ${buildMode ? 'play-shell--build-mode' : ''}`}
       style={styleVars as React.CSSProperties}
     >
-      {/* World view — 3D Three.js galaxy is the canvas (PHASE 16.6 pivot per user 'I want you to build the 3D rendered universe in a 3D engine'). 2D TilePlacementGrid retired as default. */}
-      <div className="play-shell__world play-shell__world--3d">
+      {/* World view — currently the SVG hex grid; replaced by Three.js scene in 16.2 */}
+      <div className="play-shell__world">
+        <TilePlacementGrid
+          tiles={activePlanet.planet.tiles.slice(0, 37)}
+          biome={activePlanet.planet.biome}
+          civResearchedTechs={humanCivState.empire.researchedTechs}
+          selectedBuildingDefId={buildMode}
+          onTileClick={handleTileClick}
+        />
+      </div>
+
+      <HUDOverlay
+        theme={humanTheme}
+        currentTick={sim.state.currentTick}
+        running={sim.running}
+        speed={sim.speed}
+        togglePause={sim.togglePause}
+        setSpeed={sim.setSpeed}
+        openPanels={openPanels}
+        togglePanel={togglePanel}
+        onGalaxyClick={() => setGalaxyOpen((v) => !v)}
+        buildModeBuildingDefId={buildMode}
+        onCancelBuildMode={handleCancelBuildMode}
+      />
+
+      {galaxyOpen && (
         <GalaxyView
           galaxy={sim.state.galaxy}
           humanCivId={String(sim.state.humanCivId)}
@@ -361,30 +381,11 @@ export function PlayPage() {
           themeByCiv={new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))}
           onSelectPlanet={(id) => {
             setSelectedPlanetId(id)
+            setGalaxyOpen(false)
           }}
-          onClose={() => {
-            // Galaxy IS the canvas — no close. Kept for prop compat; no-op.
-          }}
+          onClose={() => setGalaxyOpen(false)}
         />
-      </div>
-
-      <HUDOverlay
-        theme={humanTheme}
-        currentTick={sim.state.currentTick}
-        running={sim.running}
-        speed={sim.speed}
-        togglePause={sim.togglePause}
-        setSpeed={sim.setSpeed}
-        openPanels={openPanels}
-        togglePanel={togglePanel}
-        onGalaxyClick={() => {
-          // No-op — galaxy is always the canvas. The 🌌 button is contextual zoom-out only.
-        }}
-        buildModeBuildingDefId={buildMode}
-        onCancelBuildMode={handleCancelBuildMode}
-      />
-      {/* setGalaxyOpen retained for future-use but no longer modal-toggles */}
-      {galaxyOpen ? null : null}
+      )}
 
       <Toasts toasts={toasts} onDismiss={dismissToast} />
 
