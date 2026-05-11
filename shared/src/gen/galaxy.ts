@@ -14,7 +14,10 @@ export interface Galaxy {
 
 const MIN_PLANET_COUNT = 100
 const MAX_PLANET_COUNT = 1000
-const GALAXY_RADIUS = 100_000
+// Shrunk from 100_000 → 30_000 alongside the planet-size bump (PHASE 16.6c). With bigger
+// planets (400-1600 world units) the galaxy needs less empty space; planets stay visually
+// clustered enough to navigate without losing strategic context.
+const GALAXY_RADIUS = 30_000
 
 export function generateGalaxy(config: GalaxyConfig): Galaxy {
   if (config.planetCount < MIN_PLANET_COUNT || config.planetCount > MAX_PLANET_COUNT) {

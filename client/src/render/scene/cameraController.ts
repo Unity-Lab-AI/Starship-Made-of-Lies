@@ -17,8 +17,13 @@ export interface CameraInputState {
   zoomDelta: number
 }
 
-const MIN_DISTANCE = 50
-const MAX_DISTANCE = 15000
+// MIN_DISTANCE must be > largest planet radius so camera doesn't end up inside a planet sphere
+// (which renders as nothing due to backface culling). Super planet radius = 1600 → 1800 keeps
+// camera just outside even the biggest planet at max zoom.
+const MIN_DISTANCE = 1800
+// MAX_DISTANCE must show the whole galaxy. GALAXY_RADIUS = 30000 → 60000 lets player zoom out
+// to see all planets at once.
+const MAX_DISTANCE = 60000
 const PAN_SPEED = 4
 const ROTATE_SPEED = 0.012
 const ZOOM_TICK = 0.06

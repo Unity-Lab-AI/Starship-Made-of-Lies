@@ -52,17 +52,21 @@ const DEPOSIT_RESOURCE_CATALOG = {
 } as const
 
 export function planetRenderRadius(tier: PlanetSizeTier): number {
+  // Per user verbatim 2026-05-10 LAW #0: planets must be BIG with visible surface area
+  // for multi-civ multi-settlement on a single planet. Sizes bumped ~5-6× from PHASE 16.4
+  // values (70-280) → 400-1600. MIN_DISTANCE in cameraController must stay > super radius
+  // (1600) so camera doesn't end up inside the planet sphere.
   switch (tier) {
     case 'moon':
-      return 70
+      return 400
     case 'small':
-      return 100
+      return 600
     case 'standard':
-      return 140
+      return 900
     case 'large':
-      return 200
+      return 1200
     case 'super':
-      return 280
+      return 1600
   }
 }
 
