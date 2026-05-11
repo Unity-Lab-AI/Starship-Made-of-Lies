@@ -171,12 +171,8 @@ export function LaunchPadPanel({ pad, onAfterAction }: LaunchPadPanelProps) {
         <button
           type="button"
           className="launch-pad-panel__abort"
-          disabled={
-            pad.state === 'IDLE' ||
-            pad.state === 'INIT' ||
-            pad.state === 'GONE' ||
-            pad.state === 'LAUNCH'
-          }
+          disabled={pad.state === 'IDLE' || pad.state === 'INIT' || pad.state === 'GONE'}
+          title="Abort the pad at any in-progress state — PRINT / BUILD / DOCK / FUEL / AMMO / READY / ARM / LAUNCH. Resources already spent are NOT refunded (UMS-faithful — pad goes IDLE, lastOutcome = ABORTED). Per user verbatim 2026-05-11 'all ships have abort that can be triggered by the player at any time'."
           onClick={() => {
             abort(pad)
             onAfterAction?.()

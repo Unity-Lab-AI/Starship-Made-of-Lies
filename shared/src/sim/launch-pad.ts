@@ -355,16 +355,27 @@ export function launch(pad: LaunchPad): boolean {
   return true
 }
 
+// PHASE 17.L.A.16 — pad-side abort per user verbatim 2026-05-11 (LAW #0): "hold up now all
+// ships have abort that can be triggered by the player at any time". Previously refused to
+// abort during PRINT / BUILD / DOCK — meaning a player who started a print couldn't cancel
+// it even if they realized they picked the wrong variant or wanted to redirect resources.
+// Now aborts during EVERY in-progress state (PRINT through LAUNCH). Only IDLE / INIT / GONE
+// stay non-abortable — those are either "nothing happening" or "ship already gone" states
+// where there's nothing to abort.
 export function abort(pad: LaunchPad): boolean {
   if (
-    pad.state === 'LAUNCH' ||
-    pad.state === 'ARM' ||
-    pad.state === 'READY' ||
+    pad.state === 'PRINT' ||
+    pad.state === 'BUILD' ||
+    pad.state === 'DOCK' ||
+    pad.state === 'FUEL' ||
     pad.state === 'AMMO' ||
-    pad.state === 'FUEL'
+    pad.state === 'READY' ||
+    pad.state === 'ARM' ||
+    pad.state === 'LAUNCH'
   ) {
     pad.state = 'IDLE'
     pad.loadedShipVariantId = null
+    pad.loadedCustomBuild = null
     pad.buildTicksRemaining = 0
     pad.fuelLoaded = 0
     pad.ammoLoaded = 0

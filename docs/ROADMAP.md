@@ -648,6 +648,13 @@ PHASE 17 subdivided into focused sub-phases during the post-16 super-review cycl
    ║           Per SMOL_DESIGN_COLONY_SHIPS §9-NEW + user verbatim  ║
    ║           "citizens dont want to kill them selves but for the  ║
    ║           most high tiered/happy/statas we have".              ║
+   ║  17.L.A.16 All ships abortable at any time. Pad-abort covers   ║
+   ║           PRINT/BUILD/DOCK/FUEL/AMMO/READY/ARM/LAUNCH (was     ║
+   ║           limited to FUEL onward). Counter-colony-ships no     ║
+   ║           longer hide Abort — defender can self-destruct own   ║
+   ║           interceptor. Per user verbatim "hold up now all      ║
+   ║           ships have abort that can be triggered by the        ║
+   ║           player at any time".                                 ║
    ╚════════════════════════════════════════════════════════════════╝
 
    ╔═══════════ ACTIVE ═════════════════════════════════════════════╗
