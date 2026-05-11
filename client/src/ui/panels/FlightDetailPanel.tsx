@@ -279,14 +279,22 @@ export function FlightDetailPanel({
               <button
                 type="button"
                 className="flight-detail-panel__btn flight-detail-panel__btn--abort"
+                disabled={!flight.selfDestructInstalled}
                 onClick={() => {
+                  if (!flight.selfDestructInstalled) return
                   onAbort(String(flight.id))
                   onClose()
                 }}
                 title={
-                  isCounter
-                    ? 'Self-destruct this counter-interceptor (player override — per user verbatim 2026-05-11 "all ships have abort that can be triggered by the player at any time"). AoE damage scales with fuel + payload at detonation.'
-                    : 'Self-destruct the ship in-flight (UMS-faithful abort). AoE damage scales with fuel + payload at detonation.'
+                  !flight.selfDestructInstalled
+                    ? `🚫 Cannot self-destruct: ${
+                        def.selfDestructCapable
+                          ? 'research "Self-Destruct Systems" (tier 1 industrial). Ship has detonation hardware but the trigger network is not researched.'
+                          : 'this variant has no detonation hardware (no warhead / no explosive payload / no interceptor charge). Ship can only end via planet impact, crash, crew starvation, power-out, fuel-out, or reactor end-of-life.'
+                      } — per user verbatim 2026-05-11 "research and installed on the ship before u can self destruct ships".`
+                    : isCounter
+                      ? 'Self-destruct this counter-interceptor (player override — per user verbatim 2026-05-11 "all ships have abort that can be triggered by the player at any time"). AoE damage scales with fuel + payload at detonation.'
+                      : 'Self-destruct the ship in-flight (UMS-faithful abort). AoE damage scales with fuel + payload at detonation.'
                 }
               >
                 💀 ABORT (self-destruct)

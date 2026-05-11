@@ -69,6 +69,7 @@
    │   Fog-of-war host toggle in New Game          ✅ 17.K       │
    │   Citizen tier-gate enforcement at launch     ✅ 17.L.A.6   │
    │   All ships abortable at any time             ✅ 17.L.A.16  │
+   │   Self-Destruct Systems tech + flight gate    ✅ 17.L.A.17  │
    ├─────────────────────────────────────────────────────────────┤
    │   ACTIVE — PHASE 17.L tail (super-review additions)         │
    ├─────────────────────────────────────────────────────────────┤

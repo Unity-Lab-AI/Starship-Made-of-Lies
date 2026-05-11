@@ -266,21 +266,18 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
   // PHASE 16.23: per-flight abort fired from FlightDetailPanel's "💀 ABORT (self-destruct)"
   // button. Look up flight by id, call shared abortFlight() — flips phase to ABORTED +
   // outcome to ABORTED. Per UMS UnityPad.cs DETONATE:{padID} IGC manual self-destruct.
+  //
+  // PHASE 17.L.A.17 — abortFlight now returns boolean (true = succeeded, false = refused for
+  // terminal phase OR no self-destruct system installed per user verbatim "researched and
+  // installed on the ship"). The early-return phase checks here are defensive; the shared
+  // abortFlight has the authoritative gate.
   const abortFlightById = useCallback((flightId: string): boolean => {
     const state = stateRef.current
     const flight = state.flights.get(flightId)
     if (!flight) return false
-    if (
-      flight.phase === 'DETONATE' ||
-      flight.phase === 'INTERCEPTED' ||
-      flight.phase === 'ABORTED' ||
-      flight.phase === 'CRASH_LANDED'
-    ) {
-      return false
-    }
-    abortFlight(flight)
-    setTickCount((n) => n + 1)
-    return true
+    const succeeded = abortFlight(flight)
+    if (succeeded) setTickCount((n) => n + 1)
+    return succeeded
   }, [])
 
   // PHASE 16.31 — god-control redirect action. Validates tech + building gate inside

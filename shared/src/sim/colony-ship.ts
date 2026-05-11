@@ -66,6 +66,11 @@ export interface ColonyShipDef {
   readonly evasionMultiplier: number
   readonly canIntercept: boolean
   readonly suicideShip: boolean
+  // PHASE 17.L.A.17 — derived flag. true when the variant has detonation intent baked in
+  // (suicide ships / counter-interceptors / variants with explosive payload). Self-destruct
+  // (mid-flight abort) requires BOTH this flag AND the launching civ having researched
+  // TECH_SELF_DESTRUCT_SYSTEMS. Per user verbatim "researched and installed on the ship".
+  readonly selfDestructCapable: boolean
   // PHASE 16.32 — ship systems config
   readonly powerSource: ShipPowerSource
   readonly powerCapacity: number
@@ -124,6 +129,7 @@ type ColonyShipDefRaw = Omit<
   | 'signalRange'
   | 'reactorFuelType'
   | 'reactorFuelAmount'
+  | 'selfDestructCapable'
 >
 
 const COLONY_SHIPS_RAW: ReadonlyArray<ColonyShipDefRaw> = [
@@ -628,6 +634,17 @@ function deriveShipSystems(raw: ColonyShipDefRaw): ColonyShipDef {
     reactorFuelAmount = Math.max(1, Math.ceil(powerCapacity * 0.05))
   }
 
+  // PHASE 17.L.A.17 — derive selfDestructCapable from existing per-variant flags. Anything
+  // with detonation intent baked in: suicide ships, counter-interceptors, explosive payloads,
+  // or weapon-payload variants. Scouts / surveyors / mining / refugee / embassy / resupply
+  // ships are NOT capable — they have no warhead, no detonator, no explosive cargo. The
+  // tech research is the SECOND condition; this flag is the per-variant capability.
+  const selfDestructCapable =
+    raw.suicideShip ||
+    raw.canIntercept ||
+    raw.payload.explosiveYield > 0 ||
+    raw.payload.weaponPayload > 0
+
   return {
     ...raw,
     powerSource,
@@ -639,6 +656,7 @@ function deriveShipSystems(raw: ColonyShipDefRaw): ColonyShipDef {
     signalRange,
     reactorFuelType,
     reactorFuelAmount,
+    selfDestructCapable,
   }
 }
 

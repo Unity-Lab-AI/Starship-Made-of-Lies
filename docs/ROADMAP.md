@@ -655,6 +655,16 @@ PHASE 17 subdivided into focused sub-phases during the post-16 super-review cycl
    ║           interceptor. Per user verbatim "hold up now all      ║
    ║           ships have abort that can be triggered by the        ║
    ║           player at any time".                                 ║
+   ║  17.L.A.17 Self-Destruct Systems tech + flight gate. New       ║
+   ║           TECH_SELF_DESTRUCT_SYSTEMS (tier 1 industrial) +     ║
+   ║           ColonyShipDef.selfDestructCapable derived flag +     ║
+   ║           ColonyShipFlight.selfDestructInstalled per-flight    ║
+   ║           gate. abortFlight refuses when no tech OR variant    ║
+   ║           has no detonation hardware. Ships can otherwise      ║
+   ║           only end via planet impact / crash / starvation /    ║
+   ║           power-out / fuel-out / reactor end-of-life. Per      ║
+   ║           user verbatim "research and installed on the ship    ║
+   ║           before u can self destruct ships".                   ║
    ╚════════════════════════════════════════════════════════════════╝
 
    ╔═══════════ ACTIVE ═════════════════════════════════════════════╗
