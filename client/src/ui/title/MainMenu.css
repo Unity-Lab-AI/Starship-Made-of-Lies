@@ -5,6 +5,39 @@
   width: min(360px, 100%);
 }
 
+.main-menu__signed-in-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: min(360px, 100%);
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.75rem;
+  background: rgba(40, 80, 50, 0.55);
+  border: 1px solid rgba(120, 200, 140, 0.45);
+  border-radius: 4px;
+  color: rgba(220, 240, 230, 0.95);
+  font-size: 0.9rem;
+  backdrop-filter: blur(4px);
+}
+
+.main-menu__signed-in-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.main-menu__signed-in-text {
+  flex: 1;
+  word-break: break-word;
+}
+
+.main-menu__signed-in-email {
+  display: block;
+  font-size: 0.8rem;
+  font-family: monospace;
+  color: rgba(180, 200, 190, 0.85);
+  margin-top: 0.15rem;
+}
+
 .menu-button {
   display: flex;
   align-items: center;
