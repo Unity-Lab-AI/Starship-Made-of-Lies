@@ -1,221 +1,334 @@
-# SMoL — Build & Packaging
+<div align="center">
 
-This doc covers prerequisites, per-platform build commands, and known blockers for getting Starship Made of Lies running locally and producing distributable artifacts.
+# 🛠️ Starship Made of Lies — Build & Setup
+
+### _Get the game running locally + produce distributable artifacts._
+
+</div>
+
+---
 
 **Version:** v0.01.0 — Alpha (stays at this version until explicitly bumped)
+**Community:** Discord — [`discord.gg/YWYk4CBr`](https://discord.gg/YWYk4CBr) — bug reports, ideas, weirdest match stories
+**Live alpha host:** `https://smol.unityailab.com` (self-hosted on Gee's Windows PC during alpha)
 
-**Community / Feedback:** Single channel — Discord (`https://discord.gg/YWYk4CBr`). Drop bugs, ideas, weirdest match stories there. Per-build "Open Discord" button is wired into the in-app footer via `client/src/services/community.ts`.
+---
 
-## Prerequisites
+## 🧰 Prerequisites
 
-| Tool         | Min Version | Used For                                       |
-| ------------ | ----------- | ---------------------------------------------- |
-| Node.js      | 20.x        | Vite dev server, TypeScript build, all scripts |
-| pnpm         | 9.15.0      | Workspace dependency manager                   |
-| Rust + Cargo | 1.77+       | Tauri desktop builds (Win/Mac/Linux)           |
-| Xcode        | 15+         | iOS builds (macOS only)                        |
-| Android SDK  | 34+         | Android builds (Linux/macOS/Windows)           |
-| Java         | 17          | Android Gradle builds                          |
-| Cocoapods    | 1.15+       | iOS pod install                                |
+| Tool         | Min Version | Required for                                 |
+| ------------ | ----------- | -------------------------------------------- |
+| Node.js      | 20.x        | Vite dev server + TypeScript build + scripts |
+| pnpm         | 9.15.0      | Workspace dependency manager                 |
+| Rust + Cargo | 1.77+       | Tauri desktop builds (Win/Mac/Linux)         |
+| Xcode        | 15+         | iOS builds (macOS only)                      |
+| Android SDK  | 34+         | Android builds (Linux/macOS/Windows)         |
+| Java         | 17          | Android Gradle builds                        |
+| Cocoapods    | 1.15+       | iOS pod install                              |
 
-Install Node + pnpm first; everything else is per-platform target. The web build only needs Node + pnpm.
+Install Node + pnpm first — everything else is **per-platform-target opt-in**. Web-only builds need only Node + pnpm.
 
-## Quickstart
+---
+
+## ⚡ Quickstart
 
 ```bash
-# install dependencies
+# Install dependencies
 pnpm install
 
-# dev server (web)
+# Dev server (web)
 pnpm dev                    # → http://localhost:5173/preview
 
-# dev server (multiplayer backend)
+# Dev server (multiplayer backend)
 pnpm dev:server             # → ws://localhost:2567
 
-# typecheck + lint
+# Static validation
 pnpm typecheck
 pnpm lint
 ```
 
-## Web build
+```
+   ┌───────────────────────────────────────────────────────────┐
+   │  Open http://localhost:5173/preview in a browser          │
+   │                                                           │
+   │  ─ Click "Start Match" → instant solo run                 │
+   │  ─ Click "Multiplayer" → joins ws://localhost:2567        │
+   │     (start backend first with `pnpm dev:server`)          │
+   │  ─ Tweak `/play` settings + camera controls in Settings   │
+   └───────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🌐 Web Build
 
 ```bash
 pnpm build:web
-
-# artifacts in client/dist/
-# entries/, chunks/, assets/ — content-hashed for CDN cache invalidation
+# → artifacts in client/dist/
 ```
 
-Manual chunks split bundle into:
+```
+   client/dist/
+   ├── index.html            ← entry
+   ├── assets/               ← content-hashed chunks (CDN-cache-friendly)
+   │   ├── vendor.[hash].js          ← general node_modules
+   │   ├── vendor-react.[hash].js    ← React + react-dom + router
+   │   ├── vendor-three.[hash].js    ← Three.js
+   │   ├── vendor-colyseus.[hash].js ← WebSocket multiplayer client
+   │   ├── sim.[hash].js             ← simulation rules
+   │   ├── protocol.[hash].js        ← message types
+   │   ├── audio.[hash].js           ← audio system
+   │   └── ui-panels.[hash].js       ← side panels
+   └── manifest.webmanifest  ← PWA installability
+```
 
-- `vendor` (general node_modules)
-- `vendor-react` / `vendor-three` / `vendor-colyseus` (large libs)
-- `sim` / `protocol` / `audio` / `ui-panels` (per-domain app code)
+**Deploy under a non-root path:** set `SMOL_BASE_PATH=/some/sub/path/` env var before `pnpm build:web`.
 
-Set `SMOL_BASE_PATH=/some/sub/path/` env var if deploying under a non-root path.
+### PWA / offline play
 
-## PWA / offline web play
+`client/public/manifest.webmanifest` declares the installable PWA shape (display=standalone, landscape orientation, icons, shortcuts).
+`client/public/sw.js` ships a service worker — **cache-first** for hashed assets, **network-first** for `/api/` + `/ws`, **stale-while-revalidate** for everything else.
 
-`client/public/manifest.webmanifest` declares the installable PWA shape (display=standalone, landscape orientation, icons, shortcuts). `client/public/sw.js` ships a service worker with cache-first for hashed assets, network-first for `/api/`+`/ws`, and stale-while-revalidate for everything else. Registration auto-fires from `client/src/main.tsx` in production builds.
+Service worker auto-registers from `client/src/main.tsx` in production builds. Skipped in dev.
 
-## Asset manifest
+### Asset manifest
 
 ```bash
 node tools/build-asset-manifest.cjs
 ```
 
-Scans `assets/themes/**` and emits `client/public/assets-manifest.json` with per-theme file listings + sizes + sha-256 (16-char prefix) checksums. Run before `build:web` if you want CDN deploy steps to know what to upload + invalidate.
+Scans `assets/themes/**` and emits `client/public/assets-manifest.json` with per-theme file listings + sizes + sha-256 (16-char prefix) checksums. Run before `pnpm build:web` so CDN deploy steps know what to upload + invalidate.
 
-## Desktop build (Tauri)
+---
+
+## 🖥️ Desktop Build (Tauri)
 
 ```bash
 pnpm build:desktop
-
-# bundles in src-tauri/target/release/bundle/
-# Win: msi + nsis exe
-# Mac: dmg + app
-# Linux: deb + appimage + rpm
+# → bundles in src-tauri/target/release/bundle/
 ```
 
-**Toolchain blockers:**
+```
+   PLATFORM TARGETS
+   ┌────────────────────────────────────────────────────┐
+   │  Windows ──► .msi installer + nsis .exe            │
+   │  macOS   ──► .dmg disk image + .app bundle         │
+   │  Linux   ──► .deb + .AppImage + .rpm               │
+   └────────────────────────────────────────────────────┘
+```
 
-- Rust + Cargo (rustup default-stable)
-- Linux: `libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libssl-dev pkg-config`
-- macOS: Xcode CLI tools
-- Windows: WebView2 runtime (usually pre-installed on Win11)
+**Toolchain blockers per platform:**
 
-Code signing keys go in env vars `TAURI_SIGNING_PRIVATE_KEY` + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. CI pulls these from repo secrets.
+- **Linux:** `libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libssl-dev pkg-config`
+- **macOS:** Xcode CLI tools
+- **Windows:** WebView2 runtime (pre-installed on Win 11; download from MS for Win 10)
+- **All platforms:** `rustup default stable`
 
-## Mobile build (Capacitor)
+**Code signing keys** (release builds):
+
+- `TAURI_SIGNING_PRIVATE_KEY` + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` env vars
+- CI pulls these from GitHub repo secrets
+
+---
+
+## 📱 Mobile Build (Capacitor)
 
 ```bash
+# Build web bundle + sync to native shells
 pnpm build:web
 pnpm exec cap sync android
 pnpm exec cap sync ios
 
-# Android
-pnpm dev:android            # live reload onto device
+# Android live-reload onto device
+pnpm dev:android
+
+# Android release build
 cd android && ./gradlew bundleRelease assembleRelease
 
-# iOS (macOS only)
-pnpm dev:ios                # live reload onto simulator
+# iOS live-reload onto simulator (macOS only)
+pnpm dev:ios
+
+# iOS release build
 cd ios/App && pod install
 xcodebuild -workspace App.xcworkspace -scheme App -configuration Release archive
 ```
 
 **Toolchain blockers:**
 
-- iOS: Xcode 15+ + Apple Developer account + provisioning profile + signing cert
-- Android: Android SDK 34+ + JDK 17 + Gradle 8+ + signing keystore
+- **iOS:** Xcode 15+ · Apple Developer account · provisioning profile · signing cert
+- **Android:** Android SDK 34+ · JDK 17 · Gradle 8+ · signing keystore
 
-## CI/CD
+**Touch UX adaptations** (auto-applied on touch-platform detection):
+
+- Pinch-zoom replaces mouse-wheel zoom
+- Two-finger drag replaces WASD pan
+- Long-press replaces right-click
+- Bottom-sheet panels replace side panels
+
+---
+
+## 🤖 CI/CD
 
 GitHub Actions workflows under `.github/workflows/`:
 
-- `ci.yml` — lint + typecheck + format check on every push/PR
-- `build-web.yml` — Vite production bundle + artifact upload (push to main/develop/release/\* and PRs)
-- `build-desktop.yml` — Tauri Win/Mac/Linux 3-runner matrix (push to release/\* and manual dispatch)
-- `build-mobile.yml` — Capacitor Android (Ubuntu) + iOS (macOS) (push to release/\* and manual dispatch)
+| Workflow            | Triggers                                       | Output                                   |
+| ------------------- | ---------------------------------------------- | ---------------------------------------- |
+| `ci.yml`            | Every push + PR                                | Lint + typecheck + format check          |
+| `build-web.yml`     | push to `main` / `develop` / `release/*` + PRs | Vite production bundle + artifact upload |
+| `build-desktop.yml` | push to `release/*` + manual dispatch          | Tauri Win/Mac/Linux 3-runner matrix      |
+| `build-mobile.yml`  | push to `release/*` + manual dispatch          | Capacitor Android (Ubuntu) + iOS (macOS) |
 
-Required GitHub repo secrets for full release builds:
+**Required GitHub repo secrets** for full release builds:
 
-- `TAURI_SIGNING_PRIVATE_KEY` + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
-- `ANDROID_KEYSTORE_BASE64` + `ANDROID_KEYSTORE_PASSWORD` + `ANDROID_KEY_ALIAS` + `ANDROID_KEY_PASSWORD`
-- `APPLE_TEAM_ID`
+```
+   ┌─ Desktop signing ────────────────────────────────────────┐
+   │  TAURI_SIGNING_PRIVATE_KEY                               │
+   │  TAURI_SIGNING_PRIVATE_KEY_PASSWORD                      │
+   └──────────────────────────────────────────────────────────┘
 
-Without these, the build workflows still run + emit artifacts but signing steps fail. CI (lint/typecheck) runs without any secrets.
+   ┌─ Android signing ────────────────────────────────────────┐
+   │  ANDROID_KEYSTORE_BASE64                                 │
+   │  ANDROID_KEYSTORE_PASSWORD                               │
+   │  ANDROID_KEY_ALIAS                                       │
+   │  ANDROID_KEY_PASSWORD                                    │
+   └──────────────────────────────────────────────────────────┘
 
-## Deploying — local self-host (alpha)
+   ┌─ iOS signing ────────────────────────────────────────────┐
+   │  APPLE_TEAM_ID                                           │
+   └──────────────────────────────────────────────────────────┘
+```
 
-Alpha hosting runs on Gee's local Windows PC at `https://smol.unityailab.com`. Stack: Cloudflare Tunnel (public ingress) → Caddy (`:8080`) → Vite bundle / Colyseus WS / Node.js API.
+Without these, build workflows still run + emit artifacts but signing steps fail gracefully. CI (lint/typecheck) runs without any secrets.
+
+---
+
+## 🏠 Local Self-Host (Alpha Deploy)
+
+Alpha hosting runs on the founder's local Windows PC at `https://smol.unityailab.com`.
+
+```
+   ┌─ STACK ──────────────────────────────────────────────────┐
+   │                                                          │
+   │   public ingress    ──► Cloudflare Tunnel                │
+   │                              │                           │
+   │   reverse proxy     ──► Caddy (port :8080)               │
+   │                              │                           │
+   │           ┌──────────────────┼──────────────────┐        │
+   │           ▼                  ▼                  ▼        │
+   │     Vite bundle        Colyseus WS         Node.js API   │
+   │     (static)           (ws://...)          (REST)        │
+   │                                                          │
+   └──────────────────────────────────────────────────────────┘
+```
 
 Full setup walkthrough: [`local-server/README.md`](local-server/README.md)
 
-Quick commands:
+**Quick commands:**
 
 ```powershell
-# First-time scaffolding installed via:
-local-server\scripts\install-services.bat   # (run as admin, after Caddy + cloudflared installs)
+# First-time scaffolding (run as admin)
+local-server\scripts\install-services.bat
 
-# Deploy a code change (rebuild + regenerate asset manifest + reload Caddy)
-pnpm deploy:local
+# Deploy a code change
+pnpm deploy:local           # rebuild + regenerate manifest + reload Caddy
 
-# Maintenance window — graceful shutdown order (saves all active matches per user directive)
-sc stop smol-node-server   # waits for snapshot capture
+# Maintenance window — graceful shutdown
+sc stop smol-node-server    # waits for snapshot capture
 sc stop smol-cloudflared
 sc stop smol-caddy
 ```
 
-Per user directive (verbatim): _"down only for maintence with no warning saves all current games to host autosaves"_ — graceful-shutdown handler in the Node.js server snapshots all active matches before exit; on boot it resumes matches with `endedAtTick IS NULL` from Postgres `snapshots` table. (Implementation lands in PHASE 11+14 #3 backend wire-up.)
+**Graceful shutdown policy:** the Node server snapshots all active matches before exit; on boot it resumes matches with `endedAtTick IS NULL` from the persistence layer. No active match is lost during maintenance.
 
-## Known blockers (non-toolchain)
+---
 
-| Blocker                                        | Phase  | Resolution                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ---------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Real per-theme `.ogg` audio recordings         | 12     | Audio team / composer commission. Per-theme synth fallback ships in PHASE 14 — every theme has distinct tone arrays / LFO / waveform via `theme-polish.ts`.                                                                                                                                                                                                                                                                           |
-| LLM voice AI cameo pipeline                    | 14     | DEFERRED post-MVP per user directive — playback selection, generation, female/male templates, intro cameo.                                                                                                                                                                                                                                                                                                                            |
-| Citizen voice cameos                           | 12     | Voice acting sessions per theme. SfxOverrides API is the slot.                                                                                                                                                                                                                                                                                                                                                                        |
-| OAuth backend (email/Discord/Google/Apple)     | 11     | User picks Supabase / Firebase / self-host. All 4 providers will wire in. AccountStore interface ships today.                                                                                                                                                                                                                                                                                                                         |
-| Persistent leaderboards backend                | 11     | Same backend pick. **PHASE 14 lock-in:** ONE global Hall of Champions / leaderboard (not per-server).                                                                                                                                                                                                                                                                                                                                 |
-| Three.js 3D scene + LOD + camera               | 8 / 16 | ⚠ partial 2026-05-10 — Three.js scene + cameraController (WASD+QE+wheel+middle-pan+right-orbit+edge-scroll) + galaxy/surface layers + flight arcs SHIPPED. PHASE 16.13 (true 3D x,y,z canvas-as-default + small pan/tilt on zoom for depth + surface raycast → `placeBuilding` per LAW #0 2026-05-10) PENDING. NO 2D / hex-game / card-game fallback as canonical canvas — TilePlacementGrid is dev-debug overlay only going forward. |
-| Real Tauri desktop + Capacitor mobile binaries | 13     | Toolchain-blocked — Rust + Xcode + Android-SDK installs needed locally. Configs + CI workflows ship; signing keys + actual builds queued.                                                                                                                                                                                                                                                                                             |
-| Smarter AI (PHASE 9 AIController.tick)         | 9      | MatchSim uses a simplified random-pick AI today. Full PHASE 9 archetype/difficulty/coop logic exists in `shared/src/sim/ai-*` but is NOT wired into live solo matches. Wire-up = a follow-up phase.                                                                                                                                                                                                                                   |
-| PHASE 14 advanced mechanics not yet wired      | 14     | Modular ship pieces / indigenous civs / LAST HOPE evac / modular mines / Warning System effects / crash-loot drops have full data + interfaces but are NOT invoked by MatchSim's tick today. Wire-up = follow-up phase.                                                                                                                                                                                                               |
-| App icons (real branding)                      | 13     | Ship icons in `src-tauri/icons/` + `client/public/icons/`. Placeholders today.                                                                                                                                                                                                                                                                                                                                                        |
-| Crash + match-end telemetry endpoints          | 14     | `HttpTelemetryPipeline` interface ships in PHASE 14. POST endpoints to be configured at deploy.                                                                                                                                                                                                                                                                                                                                       |
-| ~~Real Discord invite URL~~                    | ~~14~~ | ✅ RESOLVED 2026-05-10 — real invite `discord.gg/YWYk4CBr` wired in `community.ts` + BUILD.md.                                                                                                                                                                                                                                                                                                                                        |
-
-## PHASE 14 polish surfaces (data + interfaces shipped 2026-05-10 — full tick wire-up + UI surface pending per super-review 2026-05-10)
-
-> **REALITY CHECK 2026-05-10:** the items below shipped as data structures + interfaces + partial tick wire-up. `/super-review` 2026-05-10 confirmed several items (modular ship loadouts, LAST HOPE evac, indigenous AI tick, mining ship entity, multi-pad controller mode) are still data-model-only with no reachable player UI surface. Treat the list below as a code-landed inventory, NOT a "feature-complete and reachable from /play" claim. Tracked in `.claude/TODO.md` PHASE 16.14.
-
-PHASE 14 polish surfaces — what landed in code, distinct from prior phases:
-
-- **5Hz authoritative tick** (was 10Hz). Match length recalibrated: blitz=1500 / standard=4500 / epic=9000 / open=∞.
-- **`open` match length + `tickCapOverride`** — default match is now open-ended with mission-objective overlay (per user "mostly everyone will be doing open ended always with mission objective"). All 4 mission objectives (highscore / resource / last-civ-standing / apex-tech) wired into match-end resolver.
-- **Permanent vulnerability flag** replaces `VULNERABILITY_WINDOW_TICKS=30` — 100% landing vulnerability everywhere. `isVulnerable()` always returns true.
-- **Modular ship loadouts** — `ColonyShipBuild` with 8-slot piece system (hull / propulsion / life-support / landing-gear / payload / sensors / weapons / comms). 30+ pieces. Tech-walls + resource-gates per piece. `defaultBuildFromShipDef` derives a build from any existing ColonyShipDef.
-- **Crash-landing mechanic** — `landingGearTier=0` ships CRASH on arrival. `CRASH_LANDED` flight phase + `LootDrop` system + `applyCrashLandingDeaths`.
-- **Indigenous AI civs** — every player's home planet spawns indigenous rivals via `spawnIndigenousCiv`. Theme-coupled hostility (allied/neutral/hostile) drives intra-planet warfare phase before inter-planet. Cult/refugee themes = allied; warlord/junta = hostile.
-- **Modular mines + missiles** — battery + fuel + auto-guidance + crew + marooned-crew mechanic. `tickMineState` / `tickModularMissile` apply death tracking via `DeathLedger`.
-- **`TECH_WARNING_SYSTEM`** — early-game tech (tier 0, prereq Mass Communication) — adds 30 ticks of early-warning + boosted detection range. Researchable before/with Aerospace.
-- **LAST HOPE evac** — `LastHopeEvacState` + `tickLastHopeEvac` 4-phase machine (PACKING / BUILDING / LAUNCHING / IN_FLIGHT). `shouldAutoTriggerLastHope` heuristic for civ-near-collapse.
-- **Per-theme polish (20 themes × 5 fields)** — `theme-polish.ts`: starvation resist multiplier / faction labels / 5-tier citizen emoji pack / indigenous hostility / role label / synth music preset / boot reveal line.
-- **Quality-of-life-driven tier promotion** — `qualityOfLifeIndex` aggregates food variety + food quality + excess housing + water access + happiness floor. `tickTierPromotion` uses QoL × tech × propaganda multiplier.
-- **Death cause enum** — explicit cause tracking (starvation / no_air / no_water / explosion / combat / colony_ship_volunteered / crash_landing / plague). `DeathLedger` per-civ ring buffer.
-- **Citizens immortal from old age** — death ONLY from explicit causes. No senescence.
-- **Manual citizen-pinning override** — `WorkforceState.manualPins` Set + `pinManually` / `clearManualPin` helpers.
-- **Render quality preset** — `RenderQuality` enum (low/medium/high) with per-tier LOD overrides + animation density + targetFps. Auto-detect at first launch via `detectRecommendedQuality`.
-- **Adaptive HUD per zoom level** — `panelsForZoom` binds galaxy/system/planet/region/base/building zoom levels to panel-visibility. Galaxy = minimal, base = full.
-- **Settings model split** — `SETTING_REGISTRY` classifies every setting as `host_shared` (host pushes to match) or `personal` (per-user). 22 settings audited.
-- **WCAG AA palette audit** — `auditAllThemes` scans all 20 theme palettes for 4.5:1 contrast. Per-theme retune overrides slot at `RETUNE_OVERRIDES` (currently empty — populate as audits surface violations).
-- **Per-theme synth music presets** — every theme has distinct tone array + LFO rate + LFO depth + waveform + intensity scale (calm/tense/victory/defeat). `synthParamsFromThemePolish` consumes them in `AudioSystem`.
-- **First-launch role labels** — `buildFirstLaunchCopy` returns "You are the High Priest / CEO / Generalissimo / etc." per theme.
-- **Theme reveal in 26 boot checks** — `theme-reveal` boot check uses `Theme.bootRevealLine` for the dramatic reveal moment.
-- **Mission objective resolver** — server-side `resolveMatchEnd` evaluates highscore / resource / apex / last-civ-standing every tick; ends match on first-met.
-- **Cloud feature gating** — `CLOUD_FEATURE_REQUIREMENTS` lists which features need account login. Local play prompts opt-in for global Hall of Champions / leaderboard.
-- **Telemetry pipeline** — `HttpTelemetryPipeline` with crash + anonymous match-end POST + opt-in state machine.
-- **Discord button** — `client/src/services/community.ts` exports `DISCORD_INVITE_URL` + `openDiscord()`.
-- **3 new client→server messages** — `CLAIM_LOOT_DROP` / `TRIGGER_LAST_HOPE_EVAC` / `MANUAL_SHIP_FIRE` (manual ship control + barrage / auto-salvo).
-- **4 new server→client messages** — `LOOT_DROP_AVAILABLE` / `LOOT_DROP_CLAIMED` / `INCOMING_FLIGHT_WARNING` / `LAST_HOPE_EVAC_TRIGGERED`.
-
-## Repo layout
+## 📐 Repo Layout
 
 ```
-Starship Made of Lies/
-├── .github/workflows/      # CI + build pipelines
-├── .claude/                # Workflow proprietary docs (gitignored)
-├── _ums-reference/         # UMS quarantine (preserved until PHASE 15)
-├── client/                 # Vite + React + Three.js frontend
-│   ├── public/             # static assets (manifest.webmanifest, sw.js, icons)
-│   └── src/                # app code (audio, settings, ui, 2d, 3d, theme)
-├── server/                 # Colyseus + AI controllers + match state
-├── shared/                 # cross-cutting types + game rules
-├── src-tauri/              # Tauri desktop shell (Rust)
-├── tools/                  # build scripts (asset-manifest + others)
-├── assets/                 # theme audio + emoji manifests (most placeholders today)
-├── capacitor.config.ts     # iOS/Android shell config
-├── package.json            # workspace root
-├── pnpm-workspace.yaml
-└── BUILD.md                # this file
+   Starship Made of Lies/
+   ├── .github/workflows/    ─ CI + build pipelines
+   ├── .claude/              ─ Workflow proprietary docs (gitignored)
+   ├── _ums-reference/       ─ Preserved UMS source (deleted in PHASE 15)
+   ├── client/               ─ Vite + React + Three.js frontend
+   │   ├── public/           ─ Static assets (manifest, sw.js, icons)
+   │   └── src/
+   │       ├── audio/        ─ Per-government music + universal SFX
+   │       ├── match/        ─ MatchSim + useMatchSim sim hook
+   │       ├── render/       ─ Three.js scene + camera + layers
+   │       ├── services/     ─ Community, telemetry, persistence client
+   │       ├── ui/           ─ React components (panels, pages, play widgets)
+   │       └── 3d/           ─ Three.js helpers (post-LOD, shaders)
+   ├── server/               ─ WebSocket multiplayer + persistence + AI procs
+   │   ├── src/rooms/        ─ Match rooms + lobby
+   │   ├── src/match/        ─ Snapshot + tick orchestration
+   │   ├── src/persistence/  ─ Account / Leaderboard / Snapshot stores
+   │   └── src/ai/           ─ Background AI civ processes
+   ├── shared/               ─ Types + protocol + sim rules (used by both)
+   │   └── src/
+   │       ├── gen/          ─ Galaxy + planet generation
+   │       ├── sim/          ─ Simulation rules (ships, tech, faction, ...)
+   │       ├── protocol/     ─ WebSocket message types
+   │       └── types/        ─ Vec3, branded IDs, value types
+   ├── src-tauri/            ─ Tauri desktop shell (Rust + .conf.json + icons)
+   ├── tools/                ─ build-asset-manifest.cjs + other build helpers
+   ├── assets/               ─ Per-government audio + emoji manifests + sprites
+   ├── capacitor.config.ts   ─ iOS/Android shell config
+   ├── pnpm-workspace.yaml   ─ Workspace definition
+   └── BUILD.md              ─ This file
 ```
+
+---
+
+## 🧪 Validation Discipline
+
+```
+   ╔══════════════════════════════════════════════════════════════╗
+   ║   NO unit tests in this project — by design.                ║
+   ║                                                              ║
+   ║   Validation is:                                             ║
+   ║     ✓ TypeScript strict-mode + exactOptionalPropertyTypes   ║
+   ║     ✓ `tsc --noEmit` on every commit (husky pre-commit)     ║
+   ║     ✓ `eslint --max-warnings 0` on every commit             ║
+   ║     ✓ `prettier --write` on every commit                    ║
+   ║     ✓ Manual play-verification before each phase ships       ║
+   ║                                                              ║
+   ║   The bar: code correctly the first time, validate through  ║
+   ║   types + lint + actually playing the game.                  ║
+   ╚══════════════════════════════════════════════════════════════╝
+```
+
+Husky pre-commit hooks (configured in `.husky/`) run lint-staged → ESLint + Prettier on staged files → workspace-wide `tsc --noEmit`. Commit blocks on any failure.
+
+---
+
+## 🐛 Troubleshooting
+
+### `pnpm install` fails on Node 18
+
+Upgrade to Node 20+. The Vite + Three.js toolchain requires Node 20 features.
+
+### Tauri build fails on Linux with `webkit2gtk` missing
+
+Install platform deps (see Desktop Build section). Different distros split webkit2gtk into different packages — Ubuntu uses `libwebkit2gtk-4.1-dev`, Fedora uses `webkit2gtk4.1-devel`, Arch uses `webkit2gtk-4.1`.
+
+### iOS build fails with "No code signing identity"
+
+Set `APPLE_TEAM_ID` env var + ensure provisioning profile is downloaded into Xcode. If running locally without signing cert, build for simulator only: `xcodebuild -workspace App.xcworkspace -scheme App -sdk iphonesimulator`.
+
+### Service worker not registering in dev
+
+Service worker registration is **skipped in dev** by design — to avoid stale-cache surprises during iteration. Test SW behavior with `pnpm build:web && pnpm preview`.
+
+### Match desync between server + clients
+
+Server is authoritative — clients render the server's broadcast. If they diverge, the client is dropping snapshot deltas. Check WebSocket connection state in browser devtools network tab; look for closed connections.
+
+---
+
+<div align="center">
+
+_🪐 Build it. Ship it. Lie about it convincingly._
+
+**Built with care by Unity AI Lab.**
+
+</div>
