@@ -1,6 +1,6 @@
 # STARSHIP MADE OF LIES — Skill Tree
 
-*Last Updated: 2026-05-11 (post super-review × 2 + PHASE 17.J added)*
+*Last Updated: 2026-05-11 (PHASE 17.J 10/11 sub-tasks shipped)*
 *Project: SMoL (Starship Made of Lies) — formerly Unity Missile System*
 *Unity AI Lab*
 
@@ -8,7 +8,7 @@
 >
 > **The per-row `⬜ planned` markers in the SMoL Capability Map (sections 1–15 below) capture DESIGN INTENT — what each skill SHOULD do when fully implemented.** Many are SHIPPED today; some are partially wired; some remain pure design.
 >
-> **For the honest shipped-state snapshot of SMoL**, see the new **🎯 SMoL Implementation Snapshot (2026-05-11)** section immediately below. It reflects post-PHASE 17.A/B/I + super-review × 2 (30+ code-review fixes) + outstanding PHASE 17.J feature richness.
+> **For the honest shipped-state snapshot of SMoL**, see the new **🎯 SMoL Implementation Snapshot (2026-05-11)** section immediately below. It reflects post-PHASE 17.A/B/I + super-review × 2 (30+ code-review fixes) + 10/11 PHASE 17.J sub-tasks shipped (panel framework + TopToolbar + Reset Layout + Planet Energy panel + Battery Bank + 3-tier reactor buildings + reactor fuel loading + Citizens panel with ship-duty sliders + modular 8-slot ship builder + saved blueprints library). Only 17.J.10 (per-launch crew/cargo UI + blueprint→launch wiring) remains open.
 >
 > **For the UMS LEGACY summary at the bottom of this doc** (`Feature Status Summary` showing 101/101 complete + `Future Possibilities`) — that table describes the Unity Missile System Space Engineers project's complete shipped state. It's preserved as canonical math reference until PHASE 15 nuke. SMoL is the active project on top.
 
@@ -53,18 +53,23 @@
    │   Logarithmic depth buffer + shader chunks    ✅ Shipped    │
    │   Galaxy gen determinism                      ✅ Shipped    │
    ├─────────────────────────────────────────────────────────────┤
-   │   ACTIVE — PHASE 17.J UMS-faithful immersion                │
+   │   SHIPPED — PHASE 17.J UMS-faithful immersion (10/11)        │
    ├─────────────────────────────────────────────────────────────┤
-   │   Draggable / floating panels                 🚧 17.J.1     │
-   │   Unified top toolbar (resources + tiers)     🚧 17.J.2     │
-   │   Quick-toggle bar per panel                  🚧 17.J.3     │
-   │   Modular 8-slot ship builder                 🚧 17.J.4     │
-   │   Reactor fuel loading (radioactives)         🚧 17.J.5     │
-   │   Planet energy panel (capacity/draw/surplus) 🚧 17.J.6     │
-   │   Battery + reactor buildings                 🚧 17.J.7/8   │
-   │   Citizen panel w/ ship-duty sliders          🚧 17.J.9     │
+   │   Draggable / floating panels                 ✅ 17.J.1     │
+   │   Unified top toolbar (resources + tiers)     ✅ 17.J.2     │
+   │   Quick-toggle bar + Reset Layout             ✅ 17.J.3     │
+   │   Modular 8-slot ship builder                 ✅ 17.J.4     │
+   │   Reactor fuel loading (radioactives)         ✅ 17.J.5     │
+   │   Planet energy panel (capacity/draw/surplus) ✅ 17.J.6     │
+   │   Battery Bank building                       ✅ 17.J.7     │
+   │   Fission/Fusion/Antimatter reactor buildings ✅ 17.J.8     │
+   │   Citizen panel w/ ship-duty sliders          ✅ 17.J.9     │
+   │   Saved ship blueprints library               ✅ 17.J.11    │
+   ├─────────────────────────────────────────────────────────────┤
+   │   ACTIVE — PHASE 17.J tail (1/11)                            │
+   ├─────────────────────────────────────────────────────────────┤
    │   Per-launch crew + cargo UI                  🚧 17.J.10    │
-   │   Saved ship blueprints                       🚧 17.J.11    │
+   │   Quick-launch from saved blueprint           🚧 17.J.10    │
    │   Production-chain Sankey                     🚧 17.J.12    │
    ├─────────────────────────────────────────────────────────────┤
    │   AWAITING BUSINESS DECISIONS — PHASE 17.D/E + EXTERNAL    │
