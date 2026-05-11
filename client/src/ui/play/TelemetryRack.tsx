@@ -4,6 +4,7 @@ import {
   type LaunchPad,
   type PlanetInventory,
   type ShipBeaconBroadcast,
+  flightTelemetrySnapshot,
   getColonyShipDef,
 } from '@smol/shared'
 import './telemetry-rack.css'
@@ -69,26 +70,34 @@ export function TelemetryRack({
     return sorted.slice(0, 4).map(([id, amount]) => [String(id), amount] as const)
   }, [activePlanetInventory])
 
-  // PHASE 16.20: LCD slot 8 MISSILE STATUS live data — top 3 in-flight colony ships sorted
-  // by progress (most-traveled first), surfacing variant emoji + citizens aboard + flight
-  // progress %. Resolved flights (DETONATE/INTERCEPTED/ABORTED/CRASH_LANDED) are filtered
-  // out so the slot tracks active payloads only. UMS-faithful per-flight payload load-out
-  // (fuel/ammo/citizens columns) is roadmapped — v1 gives the panel real data.
+  // PHASE 16.20 → 16.21: LCD slot 8 MISSILE STATUS UMS-faithful telemetry per
+  // .claude/SMOL_REFERENCE_MISSILE.md UNITY_MSL channel spec. Per active flight (resolved
+  // flights filtered out): variant + distToTarget (km) + closingSpeed (m/s) + altitude (km)
+  // + citizens aboard + phase + signalLost badge. Sorted by progress desc so most-traveled
+  // missiles surface first (matches UMS pad LCD7 ordering).
   const topFlightStatus = useMemo<
     ReadonlyArray<{
       id: string
       label: string
       progressPct: number
+      altitudeKm: number
+      distToTargetKm: number
+      closingSpeed: number
       citizens: number
       phase: string
+      signalLost: boolean
     }>
   >(() => {
     const out: Array<{
       id: string
       label: string
       progressPct: number
+      altitudeKm: number
+      distToTargetKm: number
+      closingSpeed: number
       citizens: number
       phase: string
+      signalLost: boolean
     }> = []
     for (const f of activeFlights) {
       if (
@@ -100,14 +109,17 @@ export function TelemetryRack({
         continue
       }
       const def = getColonyShipDef(f.variantId)
-      const progressPct =
-        f.totalTicks > 0 ? Math.min(100, Math.round((f.ticksFlown / f.totalTicks) * 100)) : 0
+      const tel = flightTelemetrySnapshot(f)
       out.push({
         id: String(f.id),
         label: `${def.emoji} ${def.name}`,
-        progressPct,
+        progressPct: Math.round(tel.progress * 100),
+        altitudeKm: tel.altitude / 1000,
+        distToTargetKm: tel.distToTarget / 1000,
+        closingSpeed: Math.round(tel.closingSpeed),
         citizens: f.citizensAboard,
         phase: f.phase,
+        signalLost: tel.signalLost,
       })
     }
     out.sort((a, b) => b.progressPct - a.progressPct)
@@ -335,8 +347,9 @@ export function TelemetryRack({
               <>
                 {topFlightStatus.map((f) => (
                   <div key={f.id} className="telemetry-rack__line">
-                    {f.label} · <strong>{f.progressPct}%</strong> · 👥 {f.citizens.toLocaleString()}{' '}
-                    · {f.phase}
+                    {f.label} · <strong>{f.distToTargetKm.toFixed(1)}km</strong> ↓{f.closingSpeed}
+                    m/s · {f.phase}
+                    {f.signalLost ? ' 📡✕' : ''} · 👥 {f.citizens.toLocaleString()}
                   </div>
                 ))}
               </>
