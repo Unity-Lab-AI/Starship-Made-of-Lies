@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { type Theme } from '@smol/shared'
+import { usePanelLayout } from './PanelLayoutContext'
 import { type PanelId, TOOLBAR_BUTTONS } from './types'
 import './play-shell.css'
 
@@ -14,6 +15,7 @@ interface HUDOverlayProps {
   readonly togglePanel: (id: PanelId) => void
   readonly buildModeBuildingDefId: string | null
   readonly onCancelBuildMode: () => void
+  readonly onResetLayout: () => void
 }
 
 // PHASE 16.13.9: the 🌌 galaxy toolbar button is suppressed because GalaxyView is now the always-on
@@ -30,7 +32,13 @@ export function HUDOverlay({
   togglePanel,
   buildModeBuildingDefId,
   onCancelBuildMode,
+  onResetLayout,
 }: HUDOverlayProps) {
+  const layout = usePanelLayout()
+  const handleResetClick = () => {
+    layout.resetAll()
+    onResetLayout()
+  }
   return (
     <>
       <header className="hud-header" role="banner">
@@ -108,6 +116,17 @@ export function HUDOverlay({
             </button>
           )
         })}
+        <button
+          type="button"
+          className="hud-toolbar__btn hud-toolbar__btn--reset"
+          onClick={handleResetClick}
+          title="Reset Panel Layout — restore every panel to its default position and close all open panels"
+        >
+          <span aria-hidden className="hud-toolbar__btn-emoji">
+            ↺
+          </span>
+          <span className="hud-toolbar__btn-label">Reset Layout</span>
+        </button>
       </footer>
     </>
   )

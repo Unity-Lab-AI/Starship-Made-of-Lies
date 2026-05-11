@@ -61,6 +61,7 @@ export function BuildPicker({
 
   return (
     <PanelFrame
+      panelId="build-picker"
       title="Build"
       emoji="🏗"
       onClose={onClose}

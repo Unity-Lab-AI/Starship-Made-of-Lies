@@ -226,6 +226,18 @@
   color: #000;
 }
 
+.hud-toolbar__btn--reset {
+  margin-left: 0.6rem;
+  border-color: rgba(255, 255, 255, 0.12);
+  opacity: 0.8;
+}
+
+.hud-toolbar__btn--reset:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  opacity: 1;
+}
+
 .hud-toolbar__btn-emoji {
   font-size: 1.3rem;
   line-height: 1;
@@ -294,6 +306,20 @@
   max-height: 78vh;
 }
 
+.panel-frame--floating {
+  top: auto;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  transform: none;
+}
+
+.panel-frame--dragging {
+  user-select: none;
+  cursor: grabbing;
+  transition: none;
+}
+
 .panel-frame__header {
   display: flex;
   align-items: center;
@@ -301,8 +327,13 @@
   padding: 0.55rem 0.9rem;
   background: rgba(212, 161, 58, 0.12);
   border-bottom: 1px solid rgba(212, 161, 58, 0.3);
-  cursor: default;
+  cursor: grab;
   user-select: none;
+  touch-action: none;
+}
+
+.panel-frame--dragging .panel-frame__header {
+  cursor: grabbing;
 }
 
 .panel-frame__title {

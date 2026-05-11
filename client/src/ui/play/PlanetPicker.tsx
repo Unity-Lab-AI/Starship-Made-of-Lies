@@ -20,6 +20,7 @@ interface PlanetPickerProps {
 export function PlanetPicker({ planets, onSelect, onClose }: PlanetPickerProps) {
   return (
     <PanelFrame
+      panelId="planet-picker"
       title={`Your Planets (${planets.length})`}
       emoji="📍"
       onClose={onClose}
