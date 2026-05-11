@@ -23,11 +23,13 @@ import {
   buildBeaconPulseLayer,
   buildFlightArcLayer,
   buildGalaxyLayer,
+  buildLastHopeAlarmLayer,
   buildMiningShipLayer,
   buildOwnerFlagLayer,
   buildRangeOverlayLayer,
   syncBeaconPulses,
   syncFlightArcs,
+  syncLastHopeAlarms,
   syncMiningShips,
   syncOwnerFlags,
 } from './galaxyLayer'
@@ -67,6 +69,9 @@ interface GalaxyViewProps {
   readonly civsByPlanet?: ReadonlyMap<PlanetId, ReadonlyArray<PlanetCivPresence>>
   // PHASE 16.16: explicit indigenous-civ marker per planet hosting an active indig presence.
   readonly indigenousByPlanet?: ReadonlyArray<IndigenousMarkerInput>
+  // PHASE 16.17: planet IDs where the owning civ has triggered LAST_HOPE_EVAC. Each gets
+  // a pulsing orange alarm halo at galactic scale so the player sees civ-near-collapse.
+  readonly lastHopeTriggeredPlanetIds?: ReadonlySet<PlanetId>
 }
 
 export function GalaxyView({
@@ -83,6 +88,7 @@ export function GalaxyView({
   miningBeacons,
   civsByPlanet,
   indigenousByPlanet,
+  lastHopeTriggeredPlanetIds,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -100,6 +106,9 @@ export function GalaxyView({
   const indigenousByPlanetRef = useRef<ReadonlyArray<IndigenousMarkerInput>>(
     indigenousByPlanet ?? [],
   )
+  const lastHopeTriggeredRef = useRef<ReadonlySet<PlanetId>>(
+    lastHopeTriggeredPlanetIds ?? new Set(),
+  )
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
@@ -109,6 +118,7 @@ export function GalaxyView({
   miningBeaconsRef.current = miningBeacons ?? []
   civsByPlanetRef.current = civsByPlanet
   indigenousByPlanetRef.current = indigenousByPlanet ?? []
+  lastHopeTriggeredRef.current = lastHopeTriggeredPlanetIds ?? new Set()
   void humanCivId
 
   useEffect(() => {
@@ -166,6 +176,8 @@ export function GalaxyView({
     scene.add(ownerFlagHandle.group)
     const miningShipHandle = buildMiningShipLayer()
     scene.add(miningShipHandle.group)
+    const lastHopeAlarmHandle = buildLastHopeAlarmLayer()
+    scene.add(lastHopeAlarmHandle.group)
     const homePlanetMesh = galaxyHandle.planetMeshes.get(homePlanetId)
     const rangeOverlayHandle = buildRangeOverlayLayer(
       homePlanetMesh ? homePlanetMesh.position.clone() : new THREE.Vector3(),
@@ -403,6 +415,14 @@ export function GalaxyView({
       // Sync mining ship meshes (PHASE 16.x complete-3D-world-space)
       syncMiningShips(miningShipHandle, miningBeaconsRef.current)
 
+      // Sync LAST HOPE alarm halos (PHASE 16.17)
+      syncLastHopeAlarms(
+        lastHopeAlarmHandle,
+        lastHopeTriggeredRef.current,
+        galaxyHandle.planetMeshes,
+        cameraState.camera,
+      )
+
       // Range overlay visibility
       rangeOverlayHandle.setVisible(rangeVisibleRef.current)
 
@@ -441,6 +461,7 @@ export function GalaxyView({
       beaconPulseHandle.destroy()
       ownerFlagHandle.destroy()
       miningShipHandle.destroy()
+      lastHopeAlarmHandle.destroy()
       rangeOverlayHandle.destroy()
       galaxyHandle.destroy()
       for (const surface of surfaceLayers.values()) {

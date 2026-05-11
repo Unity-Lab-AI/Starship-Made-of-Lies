@@ -68,6 +68,53 @@ export function buildGalaxyLayer(galaxy: Galaxy): GalaxyLayerHandle {
   directional.position.set(1, 1, 0.5)
   group.add(ambient, directional)
 
+  // PHASE 16.17 complete-3D-world-space: galactic-center anchor sun. The galaxy is centered
+  // on its mean planet position so origin (0,0,0) IS the galactic center after offsetting.
+  // A glowing yellow sphere at origin gives the player a visual anchor — and emissive
+  // adds a free directional accent to nearby planets at galactic zoom.
+  const sunGeom = new THREE.SphereGeometry(380, 32, 24)
+  const sunMat = new THREE.MeshBasicMaterial({
+    color: 0xffe28a,
+    transparent: true,
+    opacity: 0.95,
+  })
+  const sun = new THREE.Mesh(sunGeom, sunMat)
+  sun.userData = { kind: 'galactic-sun' }
+  group.add(sun)
+  const sunHaloGeom = new THREE.SphereGeometry(580, 24, 16)
+  const sunHaloMat = new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(0xffd560) } },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vView;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+        vView = normalize(-mvPos.xyz);
+        gl_Position = projectionMatrix * mvPos;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      varying vec3 vNormal;
+      varying vec3 vView;
+      void main() {
+        float fres = pow(1.0 - dot(normalize(vNormal), normalize(vView)), 2.5);
+        gl_FragColor = vec4(uColor, fres * 0.65);
+      }
+    `,
+    transparent: true,
+    side: THREE.BackSide,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  })
+  const sunHalo = new THREE.Mesh(sunHaloGeom, sunHaloMat)
+  sunHalo.userData = { kind: 'galactic-sun-halo' }
+  group.add(sunHalo)
+  const sunLight = new THREE.PointLight(0xffe28a, 0.55, 0, 0.7)
+  sunLight.position.set(0, 0, 0)
+  group.add(sunLight)
+
   return {
     group,
     planetMeshes,
@@ -612,6 +659,73 @@ export function syncBeaconPulses(
   // Remove rings for planets no longer alerted
   for (const [id, ring] of handle.entries) {
     if (alertedPlanetIds.has(id)) continue
+    handle.group.remove(ring)
+    ring.geometry.dispose()
+    ;(ring.material as THREE.Material).dispose()
+    handle.entries.delete(id)
+  }
+}
+
+// === LAST HOPE ALARM HALO LAYER (PHASE 16.17) ===
+// When a civ triggers their LAST_HOPE_EVAC, the home planet gains a pulsing orange-red halo
+// at galactic scale so the player sees the civ-near-collapse state at a glance — different
+// hue + faster pulse rate than the beacon-alert ring so they don't get confused.
+
+export interface LastHopeAlarmLayerHandle {
+  readonly group: THREE.Group
+  readonly entries: Map<PlanetId, THREE.Mesh>
+  readonly destroy: () => void
+}
+
+export function buildLastHopeAlarmLayer(): LastHopeAlarmLayerHandle {
+  const group = new THREE.Group()
+  const entries = new Map<PlanetId, THREE.Mesh>()
+  return {
+    group,
+    entries,
+    destroy: () => {
+      for (const m of entries.values()) {
+        m.geometry.dispose()
+        ;(m.material as THREE.Material).dispose()
+      }
+      entries.clear()
+    },
+  }
+}
+
+export function syncLastHopeAlarms(
+  handle: LastHopeAlarmLayerHandle,
+  triggeredPlanetIds: ReadonlySet<PlanetId>,
+  planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>,
+  camera: THREE.Camera,
+): void {
+  for (const id of triggeredPlanetIds) {
+    const mesh = planetMeshes.get(id)
+    if (!mesh) continue
+    let ring = handle.entries.get(id)
+    if (!ring) {
+      const r = mesh.geometry.boundingSphere?.radius ?? 80
+      // Thicker, larger-radius ring than beacon-pulse so the two are visually distinct
+      const geom = new THREE.RingGeometry(r + 60, r + 100, 48)
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0xff7733,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.75,
+      })
+      ring = new THREE.Mesh(geom, mat)
+      ring.userData = { kind: 'last-hope-alarm', planetId: id }
+      handle.group.add(ring)
+      handle.entries.set(id, ring)
+    }
+    ring.position.copy(mesh.position)
+    ring.lookAt(camera.position)
+    const mat = ring.material as THREE.MeshBasicMaterial
+    // Fast urgent pulse (110ms) vs beacon-pulse 220ms — reads as more critical
+    mat.opacity = 0.55 + Math.sin(performance.now() / 110) * 0.35
+  }
+  for (const [id, ring] of handle.entries) {
+    if (triggeredPlanetIds.has(id)) continue
     handle.group.remove(ring)
     ring.geometry.dispose()
     ;(ring.material as THREE.Material).dispose()

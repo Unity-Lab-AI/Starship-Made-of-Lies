@@ -204,6 +204,22 @@ export function PlayPage() {
     [sim.state, sim.state.currentTick],
   )
 
+  // PHASE 16.17: LAST_HOPE_EVAC triggered → pulsing orange alarm halo around the civ's home
+  // planet so the player sees civ-near-collapse at galactic scale.
+  const lastHopeTriggeredPlanetIds = useMemo(
+    () => {
+      const out = new Set<PlanetId>()
+      for (const civState of sim.state.civs.values()) {
+        if (!civState.alive) continue
+        if (!civState.lastHopeTriggered) continue
+        out.add(civState.homePlanetId)
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
   // PHASE 16.14: aggregate ship beacons from all player planets for MiningFleetPanel +
   // TelemetryRack. Per-planet map for MiningFleetPanel's per-planet dropdown grouping.
   // Recompute on every tick (sim.state is a stable ref via useRef; currentTick mutates).
@@ -506,6 +522,7 @@ export function PlayPage() {
             miningBeacons={allHumanBeacons}
             civsByPlanet={civsByPlanet}
             indigenousByPlanet={indigenousByPlanet}
+            lastHopeTriggeredPlanetIds={lastHopeTriggeredPlanetIds}
           />
         )}
       </div>
