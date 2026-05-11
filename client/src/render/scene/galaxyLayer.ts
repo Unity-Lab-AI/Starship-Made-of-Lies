@@ -1051,6 +1051,190 @@ export function syncPadStateGlows(
   }
 }
 
+// === PAD SURFACE MESH LAYER (PHASE 16.30) ===
+// Per-pad industrial-visual layer alongside the existing PadStateGlow ring. Where the glow
+// ring is the at-a-glance state affordance (colored band, animated pulse), the pad mesh
+// gives the surface the actual look of a launch pad — a slab + a ship cone that scales with
+// pad-state progress. PRINT/BUILD/DOCK/FUEL/AMMO show progressive cone heights; READY/ARM
+// show full cone in their state color; LAUNCH shows full cone slightly elevated; GONE shows
+// the slab alone (cone gone). Reuses the PadStateGlowInput type (planetId + padId + state +
+// tileCentroid + tileNormal) so the parent only computes the data once.
+
+// Cone scale per state — fraction of full height. 0 = no cone visible.
+const PAD_STATE_CONE_SCALE: Readonly<Record<PadState, number>> = {
+  INIT: 0,
+  IDLE: 0,
+  PRINT: 0.3,
+  BUILD: 0.6,
+  DOCK: 0.85,
+  FUEL: 1.0,
+  AMMO: 1.0,
+  READY: 1.0,
+  ARM: 1.0,
+  LAUNCH: 1.0,
+  GONE: 0,
+}
+
+// Pad slab visibility per state — 1 = fully visible, 0 = hidden. INIT hides entirely; GONE
+// shows the slab with a debris-cooldown vibe.
+const PAD_STATE_SLAB_OPACITY: Readonly<Record<PadState, number>> = {
+  INIT: 0,
+  IDLE: 0.85,
+  PRINT: 0.9,
+  BUILD: 0.9,
+  DOCK: 0.95,
+  FUEL: 0.95,
+  AMMO: 0.95,
+  READY: 1.0,
+  ARM: 1.0,
+  LAUNCH: 0.6,
+  GONE: 0.55,
+}
+
+const PAD_SLAB_RADIUS = 7
+const PAD_SLAB_HEIGHT = 1.5
+const PAD_CONE_RADIUS = 4.5
+const PAD_CONE_HEIGHT = 14
+
+export interface PadMeshEntry {
+  readonly key: string
+  readonly slab: THREE.Mesh
+  readonly cone: THREE.Mesh
+}
+
+export interface PadMeshLayerHandle {
+  readonly group: THREE.Group
+  readonly entries: Map<string, PadMeshEntry>
+  readonly destroy: () => void
+}
+
+export function buildPadMeshLayer(): PadMeshLayerHandle {
+  const group = new THREE.Group()
+  const entries = new Map<string, PadMeshEntry>()
+  return {
+    group,
+    entries,
+    destroy: () => {
+      for (const e of entries.values()) {
+        e.slab.geometry.dispose()
+        ;(e.slab.material as THREE.Material).dispose()
+        e.cone.geometry.dispose()
+        ;(e.cone.material as THREE.Material).dispose()
+      }
+      entries.clear()
+    },
+  }
+}
+
+export function syncPadMeshes(
+  handle: PadMeshLayerHandle,
+  pads: ReadonlyArray<PadStateGlowInput>,
+  planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>,
+): void {
+  const alive = new Set<string>()
+  for (const pad of pads) {
+    const planetMesh = planetMeshes.get(pad.planetId)
+    if (!planetMesh) continue
+    const key = `${String(pad.planetId)}:${String(pad.padId)}`
+    alive.add(key)
+    const color = PAD_STATE_COLOR[pad.state]
+    const coneScale = PAD_STATE_CONE_SCALE[pad.state]
+    const slabOpacity = PAD_STATE_SLAB_OPACITY[pad.state]
+
+    let entry = handle.entries.get(key)
+    if (!entry) {
+      // Slab — flat cylinder disc. Dark gray industrial material, transparency driven by state.
+      const slabGeom = new THREE.CylinderGeometry(
+        PAD_SLAB_RADIUS,
+        PAD_SLAB_RADIUS,
+        PAD_SLAB_HEIGHT,
+        18,
+      )
+      const slabMat = new THREE.MeshStandardMaterial({
+        color: 0x44444a,
+        roughness: 0.8,
+        metalness: 0.45,
+        transparent: true,
+        opacity: slabOpacity,
+      })
+      const slab = new THREE.Mesh(slabGeom, slabMat)
+      slab.userData = { kind: 'pad-mesh-slab', planetId: pad.planetId, padId: pad.padId }
+      handle.group.add(slab)
+
+      // Cone — ship being assembled. State color drives both base + emissive so it reads from
+      // the side at any camera angle. ConeGeometry defaults to +Y up; orientation handled below.
+      const coneGeom = new THREE.ConeGeometry(PAD_CONE_RADIUS, PAD_CONE_HEIGHT, 8)
+      const coneMat = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.45,
+        roughness: 0.35,
+        metalness: 0.6,
+        transparent: true,
+        opacity: 0.95,
+      })
+      const cone = new THREE.Mesh(coneGeom, coneMat)
+      cone.userData = { kind: 'pad-mesh-cone', planetId: pad.planetId, padId: pad.padId }
+      handle.group.add(cone)
+
+      entry = { key, slab, cone }
+      handle.entries.set(key, entry)
+    } else {
+      const slabMat = entry.slab.material as THREE.MeshStandardMaterial
+      slabMat.opacity = slabOpacity
+      const coneMat = entry.cone.material as THREE.MeshStandardMaterial
+      if (coneMat.color.getHex() !== color) {
+        coneMat.color.setHex(color)
+        coneMat.emissive.setHex(color)
+      }
+    }
+
+    // World position: planet center + tile centroid (planet-local) + a small lift along normal
+    // so the slab sits flush on the surface, then cone stacks on top of the slab.
+    const base = {
+      x: planetMesh.position.x + pad.tileCentroid.x + pad.tileNormal.x * (PAD_SLAB_HEIGHT * 0.5),
+      y: planetMesh.position.y + pad.tileCentroid.y + pad.tileNormal.y * (PAD_SLAB_HEIGHT * 0.5),
+      z: planetMesh.position.z + pad.tileCentroid.z + pad.tileNormal.z * (PAD_SLAB_HEIGHT * 0.5),
+    }
+    entry.slab.position.set(base.x, base.y, base.z)
+
+    // Cone sits centered above the slab. Cone scaled by state — height scales the +Y axis only.
+    const coneHeightActual = PAD_CONE_HEIGHT * coneScale
+    const coneCenterOffset = PAD_SLAB_HEIGHT + coneHeightActual * 0.5
+    // LAUNCH adds a small extra lift so the ship visibly clears the slab.
+    const launchLift = pad.state === 'LAUNCH' ? PAD_CONE_HEIGHT * 0.3 : 0
+    entry.cone.position.set(
+      base.x + pad.tileNormal.x * (coneCenterOffset + launchLift),
+      base.y + pad.tileNormal.y * (coneCenterOffset + launchLift),
+      base.z + pad.tileNormal.z * (coneCenterOffset + launchLift),
+    )
+    entry.cone.visible = coneScale > 0
+    if (coneScale > 0) {
+      entry.cone.scale.set(1, coneScale, 1)
+    }
+
+    // Orient both meshes so their local +Y aligns with the tile normal (cylinder + cone both
+    // default to +Y up; matching them to the normal keeps the slab flat on the planet surface
+    // and the cone pointing up from the slab — exactly UMS UnityPad geometry).
+    const localUp = new THREE.Vector3(0, 1, 0)
+    const target = new THREE.Vector3(pad.tileNormal.x, pad.tileNormal.y, pad.tileNormal.z)
+    const quat = new THREE.Quaternion().setFromUnitVectors(localUp, target)
+    entry.slab.quaternion.copy(quat)
+    entry.cone.quaternion.copy(quat)
+  }
+  // Remove entries whose pads disappeared (pad demolished, planet lost, etc).
+  for (const [key, entry] of handle.entries) {
+    if (alive.has(key)) continue
+    handle.group.remove(entry.slab)
+    handle.group.remove(entry.cone)
+    entry.slab.geometry.dispose()
+    ;(entry.slab.material as THREE.Material).dispose()
+    entry.cone.geometry.dispose()
+    ;(entry.cone.material as THREE.Material).dispose()
+    handle.entries.delete(key)
+  }
+}
+
 // === LAST HOPE ALARM HALO LAYER (PHASE 16.17) ===
 // When a civ triggers their LAST_HOPE_EVAC, the home planet gains a pulsing orange-red halo
 // at galactic scale so the player sees the civ-near-collapse state at a glance — different

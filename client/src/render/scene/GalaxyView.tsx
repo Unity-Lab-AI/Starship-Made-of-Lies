@@ -30,6 +30,7 @@ import {
   buildMineFieldLayer,
   buildMiningShipLayer,
   buildOwnerFlagLayer,
+  buildPadMeshLayer,
   buildPadStateGlowLayer,
   buildRangeOverlayLayer,
   syncBeaconPulses,
@@ -39,6 +40,7 @@ import {
   syncMineFields,
   syncMiningShips,
   syncOwnerFlags,
+  syncPadMeshes,
   syncPadStateGlows,
   type MineFieldInput,
 } from './galaxyLayer'
@@ -217,6 +219,8 @@ export function GalaxyView({
     scene.add(lastHopeAlarmHandle.group)
     const padStateGlowHandle = buildPadStateGlowLayer()
     scene.add(padStateGlowHandle.group)
+    const padMeshHandle = buildPadMeshLayer()
+    scene.add(padMeshHandle.group)
     const mineFieldHandle = buildMineFieldLayer()
     scene.add(mineFieldHandle.group)
     const detonationFlashHandle = buildDetonationFlashLayer()
@@ -489,6 +493,11 @@ export function GalaxyView({
       // Sync per-pad state glow rings (PHASE 16.19)
       syncPadStateGlows(padStateGlowHandle, padStateGlowsRef.current, galaxyHandle.planetMeshes)
 
+      // Sync per-pad industrial-visual surface meshes (PHASE 16.30). Same input array as the
+      // glow ring; the mesh layer is the actual UnityPad geometry — slab + ship cone scaled
+      // by pad state. Glow ring stays as the at-a-glance affordance.
+      syncPadMeshes(padMeshHandle, padStateGlowsRef.current, galaxyHandle.planetMeshes)
+
       // Sync server-authoritative mine-field 💣 billboards (PHASE 16.22)
       syncMineFields(mineFieldHandle, mineFieldsRef.current)
 
@@ -537,6 +546,7 @@ export function GalaxyView({
       miningShipHandle.destroy()
       lastHopeAlarmHandle.destroy()
       padStateGlowHandle.destroy()
+      padMeshHandle.destroy()
       mineFieldHandle.destroy()
       detonationFlashHandle.destroy()
       rangeOverlayHandle.destroy()
