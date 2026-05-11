@@ -129,3 +129,82 @@
   font-size: 0.7rem;
   line-height: 1.3;
 }
+
+/* PHASE 16.35 — LCD slot 6 GRAPHS sparkline cycle controls + Sparkline component styles. */
+
+.sparkline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  width: 100%;
+}
+
+.sparkline__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+}
+
+.sparkline__label {
+  color: var(--fg-secondary, #a8a8b8);
+  letter-spacing: 0.02em;
+}
+
+.sparkline__value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sparkline__chart {
+  display: block;
+  width: 100%;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+}
+
+.sparkline__footer {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.62rem;
+  color: var(--fg-secondary, #a8a8b8);
+  font-variant-numeric: tabular-nums;
+}
+
+.sparkline__minmax {
+  letter-spacing: 0.02em;
+}
+
+.telemetry-rack__sparkline-cycle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.18rem;
+  font-size: 0.7rem;
+}
+
+.telemetry-rack__sparkline-cycle-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  color: var(--fg-primary, #e6e6f0);
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0.05rem 0.4rem;
+  transition: all 120ms ease;
+}
+
+.telemetry-rack__sparkline-cycle-btn:hover {
+  background: rgba(212, 161, 58, 0.18);
+  border-color: var(--accent, #d4a13a);
+}
+
+.telemetry-rack__sparkline-cycle-pos {
+  color: var(--fg-secondary, #a8a8b8);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}

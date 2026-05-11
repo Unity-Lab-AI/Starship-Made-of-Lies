@@ -4,10 +4,15 @@ import {
   type LaunchPad,
   type PlanetInventory,
   type ShipBeaconBroadcast,
+  type SparklineBuffer,
+  type SparklineMetricId,
+  SPARKLINE_CYCLE_ORDER,
+  SPARKLINE_DISPLAY,
   TARGETING_MODE_EMOJI,
   flightTelemetrySnapshot,
   getColonyShipDef,
 } from '@smol/shared'
+import { Sparkline } from './Sparkline'
 import './telemetry-rack.css'
 
 // PHASE 16.14 — UMS 11-LCD telemetry rack v1. UMS UnityPad/UnityInventory own 11 numbered LCDs
@@ -27,6 +32,9 @@ export interface TelemetryRackProps {
   readonly currentTick: number
   // PHASE 16.19: active-planet inventory for LCD slot 4 INV CYCLE concrete data
   readonly activePlanetInventory?: PlanetInventory
+  // PHASE 16.35: canonical 12-metric sparkline buffers from MatchState. LCD slot 6 cycles
+  // through SPARKLINE_CYCLE_ORDER and renders the active metric's mini-chart live.
+  readonly sparklines?: ReadonlyMap<SparklineMetricId, SparklineBuffer>
 }
 
 type LCDStatus = 'live' | 'stub'
@@ -59,8 +67,19 @@ export function TelemetryRack({
   empireTechs,
   currentTick,
   activePlanetInventory,
+  sparklines,
 }: TelemetryRackProps) {
   const [expanded, setExpanded] = useState(false)
+  // PHASE 16.35 — LCD slot 6 GRAPHS cycle index. Auto-advances every SPARKLINE_AUTO_ADVANCE_TICKS
+  // ticks of currentTick to mimic the UMS 12-graph rotation. Player can also click to advance
+  // manually (next-button on the slot).
+  const sparklineCycleIdx = Math.floor(currentTick / 100) % SPARKLINE_CYCLE_ORDER.length
+  const [sparklineManualIdx, setSparklineManualIdx] = useState<number | null>(null)
+  const activeSparklineIdx = sparklineManualIdx ?? sparklineCycleIdx
+  const activeSparklineMetricId =
+    SPARKLINE_CYCLE_ORDER[activeSparklineIdx] ?? SPARKLINE_CYCLE_ORDER[0]!
+  const activeSparkline = sparklines?.get(activeSparklineMetricId)
+  const activeSparklineMeta = SPARKLINE_DISPLAY.get(activeSparklineMetricId)
 
   // PHASE 16.19: LCD slot 4 INV CYCLE — top 4 resources on the active planet by stock count.
   // Cycles in the UMS-faithful 7-tab pattern (BUILD/MISSILE/FUEL/POWER/CARGO/PROD/FACILITIES)
@@ -431,11 +450,60 @@ export function TelemetryRack({
             <div className="telemetry-rack__line">Techs: {empireTechs}</div>
           </LCDSlot>
 
-          <LCDSlot slot={6} title="GRAPHS" status="stub">
-            <div className="telemetry-rack__stub">
-              12-graph sparkline cycle (Bat/H2/O2/Cargo/Refinery/Asm/Prod/Power/Solar/Wind/ Reactor)
-              — pending.
-            </div>
+          <LCDSlot slot={6} title="GRAPHS" status="live">
+            {activeSparkline && activeSparklineMeta ? (
+              <>
+                <Sparkline
+                  buffer={activeSparkline}
+                  label={activeSparklineMeta.label}
+                  emoji={activeSparklineMeta.emoji}
+                  color={activeSparklineMeta.color}
+                  {...(activeSparklineMeta.suffix ? { suffix: activeSparklineMeta.suffix } : {})}
+                />
+                <div className="telemetry-rack__sparkline-cycle">
+                  <button
+                    type="button"
+                    className="telemetry-rack__sparkline-cycle-btn"
+                    title="Previous graph"
+                    onClick={() =>
+                      setSparklineManualIdx(
+                        (activeSparklineIdx + SPARKLINE_CYCLE_ORDER.length - 1) %
+                          SPARKLINE_CYCLE_ORDER.length,
+                      )
+                    }
+                  >
+                    ◀
+                  </button>
+                  <span className="telemetry-rack__sparkline-cycle-pos">
+                    {activeSparklineIdx + 1}/{SPARKLINE_CYCLE_ORDER.length}
+                  </span>
+                  <button
+                    type="button"
+                    className="telemetry-rack__sparkline-cycle-btn"
+                    title="Next graph"
+                    onClick={() =>
+                      setSparklineManualIdx((activeSparklineIdx + 1) % SPARKLINE_CYCLE_ORDER.length)
+                    }
+                  >
+                    ▶
+                  </button>
+                  {sparklineManualIdx !== null ? (
+                    <button
+                      type="button"
+                      className="telemetry-rack__sparkline-cycle-btn"
+                      title="Resume auto-cycle"
+                      onClick={() => setSparklineManualIdx(null)}
+                    >
+                      ⟳
+                    </button>
+                  ) : null}
+                </div>
+              </>
+            ) : (
+              <div className="telemetry-rack__stub">
+                Sparkline buffers not wired — pass sparklines prop from PlayPage.
+              </div>
+            )}
           </LCDSlot>
 
           <LCDSlot slot={7} title="FLIGHT COMMS" status="live">
