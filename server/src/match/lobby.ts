@@ -138,6 +138,59 @@ export function addHumanToLobby(lobby: Lobby, inputs: AddHumanInputs): MatchSlot
   return slot
 }
 
+export function nextPlayerNumberForLobby(lobby: Lobby): number {
+  const used = new Set<number>()
+  for (const slot of lobby.slots) {
+    if (slot.kind === 'empty') continue
+    const match = /^Player (\d+)$/.exec(slot.displayName)
+    if (match && match[1]) used.add(Number(match[1]))
+  }
+  let n = 1
+  while (used.has(n)) n++
+  return n
+}
+
+export interface AddAnonymousHumanInputs {
+  readonly civId: CivId
+  readonly preferredThemeId?: ThemeId
+}
+
+export function addAnonymousHumanToLobby(
+  lobby: Lobby,
+  inputs: AddAnonymousHumanInputs,
+): MatchSlot | null {
+  const playerNumber = nextPlayerNumberForLobby(lobby)
+  return addHumanToLobby(lobby, {
+    civId: inputs.civId,
+    displayName: `Player ${playerNumber}`,
+    ...(inputs.preferredThemeId !== undefined && { preferredThemeId: inputs.preferredThemeId }),
+  })
+}
+
+export interface OrphanCleanupInput {
+  readonly lobby: Lobby
+  readonly nowMs: number
+  readonly lastHeartbeatByCivId: ReadonlyMap<CivId, number>
+  readonly heartbeatTimeoutMs: number
+}
+
+export function cleanupOrphanedSlots(input: OrphanCleanupInput): ReadonlyArray<CivId> {
+  const removed: CivId[] = []
+  const cutoff = input.nowMs - input.heartbeatTimeoutMs
+  for (const slot of input.lobby.slots) {
+    if (slot.kind !== 'human') continue
+    if (!slot.civId) continue
+    const lastBeat = input.lastHeartbeatByCivId.get(slot.civId)
+    if (lastBeat === undefined || lastBeat < cutoff) {
+      removed.push(slot.civId)
+    }
+  }
+  for (const civId of removed) {
+    removeFromLobby(input.lobby, civId)
+  }
+  return removed
+}
+
 export interface AddAIInputs {
   readonly civId: CivId
   readonly playstyle: PlaystyleArchetype

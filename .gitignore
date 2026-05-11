@@ -36,3 +36,7 @@ src-tauri/Cargo.lock
 
 # Proprietary Unity AI Lab .claude/ workflow system — public repo, NEVER commit
 .claude/
+
+# Local dev infrastructure scratch (cloudflared tunnel config — never commit, may contain tokens)
+config.yml
+local-server/config.yml

@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   const config: UserConfig = {
     plugins: [react()],
     base: process.env['SMOL_BASE_PATH'] ?? '/',
+    envDir: resolve(__dirname, '..'),
     resolve: {
       alias: {
         '@smol/shared': resolve(__dirname, '../shared/src/index.ts'),
@@ -19,6 +20,12 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       strictPort: true,
       allowedHosts: ['localhost', '127.0.0.1', 'smol.unityailab.com', '.unityailab.com'],
+      proxy: {
+        '/api': {
+          target: process.env['VITE_AUTH_SERVER_PROXY_TARGET'] ?? 'http://localhost:2568',
+          changeOrigin: true,
+        },
+      },
     },
     build: {
       outDir: 'dist',

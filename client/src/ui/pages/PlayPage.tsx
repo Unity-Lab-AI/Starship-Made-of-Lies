@@ -21,6 +21,7 @@ import { type MatchAISlotConfig, type MatchConfig } from '../../match/MatchSim'
 import { useMatchSim } from '../../match/useMatchSim'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
+import { MiningFleetPanel } from '../panels/MiningFleetPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
 import { IndigenousPanel } from '../panels/IndigenousPanel'
@@ -69,7 +70,12 @@ export function PlayPage() {
     const humanThemeId = hint?.humanThemeId ?? THEMES[Math.floor(Math.random() * THEMES.length)]!.id
     const objectives = hint?.objectives ?? DEFAULT_OBJECTIVES
     const aiSlots = hint?.aiSlots
-    const account: Account = newAnonymousAccount(accountIdValue('local-player'), 'You', 'gee', 0)
+    const account: Account = newAnonymousAccount(
+      accountIdValue('local-player'),
+      'Player 1',
+      'player-1',
+      0,
+    )
     const base: MatchConfig = {
       seed,
       planetCount,
@@ -354,6 +360,25 @@ export function PlayPage() {
           humanCivId={String(sim.state.humanCivId)}
           ownedPlanetIds={new Set(ownedPlanets.map((p) => p.planet.id))}
           homePlanetId={humanCivState.homePlanetId}
+          activeFlights={[...sim.state.flights.values()]}
+          alertedPlanetIds={
+            new Set(
+              [...sim.state.planets.values()]
+                .filter(
+                  (p) =>
+                    p.civId === sim.state.humanCivId &&
+                    p.beacon.alerts.some(
+                      (a) =>
+                        a.kind === 'INCOMING_HOSTILE' && sim.state.currentTick - a.atTick < 200,
+                    ),
+                )
+                .map((p) => p.planet.id),
+            )
+          }
+          ownerByPlanet={
+            new Map([...sim.state.planets.values()].map((p) => [p.planet.id, p.civId] as const))
+          }
+          themeByCiv={new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))}
           onSelectPlanet={(id) => {
             setSelectedPlanetId(id)
             setGalaxyOpen(false)
@@ -521,6 +546,24 @@ export function PlayPage() {
           variant="docked-bottom-right"
         >
           <BeaconPanel beacon={activePlanet.beacon} currentTick={sim.state.currentTick} />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('mining') && (
+        <PanelFrame
+          title="Mining Fleet"
+          emoji="⛏️"
+          onClose={() => closePanel('mining')}
+          variant="docked-right"
+        >
+          <MiningFleetPanel
+            planets={[...sim.state.planets.values()].map((mp) => mp.planet)}
+            themeByCiv={
+              new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))
+            }
+            beaconsByPlanet={new Map()}
+            humanCivId={sim.state.humanCivId}
+          />
         </PanelFrame>
       )}
 

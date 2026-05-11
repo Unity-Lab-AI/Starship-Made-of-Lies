@@ -52,7 +52,6 @@ import {
   type Account,
   type ProductionHistory,
   type ProductionTickSample,
-  type ScoreEntry,
   RESOURCE_FOOD as PRODUCTION_RES_FOOD,
   RESOURCE_INGOTS as PRODUCTION_RES_INGOTS,
   RESOURCE_PLANKS as PRODUCTION_RES_PLANKS,
@@ -205,17 +204,8 @@ export function PreviewPage() {
   const keybindMapInitial = useMemo(() => loadKeybindMap(), [])
 
   const mockAccount = useMemo<Account>(() => {
-    const account = newAnonymousAccount(accountIdValue('mock-account-gee'), 'Gee', 'Gee', 0)
-    account.stats.matchesPlayed = 47
-    account.stats.matchesWon = 22
-    account.stats.totalPlanetsControlledPeak = 38
-    account.stats.totalEnemyCivsEliminated = 19
-    account.stats.totalColonyShipsLaunched = 412
-    account.stats.totalCitizensConscripted = 18430
-    account.stats.fastestApexTicks = 1640
-    account.stats.themesPlayed.add(theme.id)
-    return account
-  }, [theme.id])
+    return newAnonymousAccount(accountIdValue('preview-anon'), 'Player 1', 'player-1', 0)
+  }, [])
 
   const lobbySummary = useMemo<LobbyPreviewSummary>(
     () => ({
@@ -230,8 +220,8 @@ export function PreviewPage() {
         {
           slotIndex: 0,
           kind: 'human',
-          civId: civId('civ-gee'),
-          displayName: 'Gee',
+          civId: civId('civ-preview-1'),
+          displayName: 'Player 1',
           themeId: theme.id,
           themeLocked: true,
           ready: true,
@@ -242,8 +232,8 @@ export function PreviewPage() {
         {
           slotIndex: 1,
           kind: 'human',
-          civId: civId('civ-sponge'),
-          displayName: 'Sponge',
+          civId: civId('civ-preview-2'),
+          displayName: 'Player 2',
           themeId: theme.id,
           themeLocked: false,
           ready: true,
@@ -378,117 +368,16 @@ export function PreviewPage() {
   )
 
   const leaderboardBoards = useMemo<ReadonlyArray<CategoryBoardSnapshot>>(() => {
-    const mockEntry = (
-      name: string,
-      handle: string,
-      civSuffix: string,
-      score: number,
-      tick: number,
-    ): ScoreEntry => ({
-      accountId: accountIdValue(`mock-${handle}`),
-      displayName: name,
-      handle,
-      civId: civId(`civ-${civSuffix}`),
-      themeId: theme.id,
-      score,
-      recordedAtTick: tick,
-      matchId: 'mock-match',
-    })
     return [
-      {
-        categoryId: 'mostPlanetsControlled',
-        themeLabel: null,
-        topEntries: [
-          mockEntry('Gee', 'Gee', 'gee', 38, 5400),
-          mockEntry('Sponge', 'Sponge', 'sponge', 27, 4900),
-          mockEntry('Alfreddo', 'Alfreddo', 'alfreddo', 22, 4200),
-          mockEntry('Red', 'Red', 'red', 18, 3800),
-        ],
-      },
-      {
-        categoryId: 'fastestTechApex',
-        themeLabel: null,
-        topEntries: [
-          mockEntry('Sponge', 'Sponge', 'sponge', 1640, 1640),
-          mockEntry('Gee', 'Gee', 'gee', 1820, 1820),
-          mockEntry('Alfreddo', 'Alfreddo', 'alfreddo', 2100, 2100),
-        ],
-      },
-      {
-        categoryId: 'mostDeceptive',
-        themeLabel: null,
-        topEntries: [
-          mockEntry('Alfreddo', 'Alfreddo', 'alfreddo', 78.5, 5500),
-          mockEntry('Gee', 'Gee', 'gee', 72.1, 5100),
-        ],
-      },
-      {
-        categoryId: 'mostRuthless',
-        themeLabel: null,
-        topEntries: [
-          mockEntry('Red', 'Red', 'red', 7, 5200),
-          mockEntry('Gee', 'Gee', 'gee', 5, 4900),
-          mockEntry('Sponge', 'Sponge', 'sponge', 3, 4400),
-        ],
-      },
-      {
-        categoryId: 'themeSpecialist',
-        themeLabel: theme.name,
-        topEntries: [
-          mockEntry('Gee', 'Gee', 'gee', 9420, 5800),
-          mockEntry('Alfreddo', 'Alfreddo', 'alfreddo', 7180, 5300),
-        ],
-      },
+      { categoryId: 'mostPlanetsControlled', themeLabel: null, topEntries: [] },
+      { categoryId: 'fastestTechApex', themeLabel: null, topEntries: [] },
+      { categoryId: 'mostDeceptive', themeLabel: null, topEntries: [] },
+      { categoryId: 'mostRuthless', themeLabel: null, topEntries: [] },
+      { categoryId: 'themeSpecialist', themeLabel: theme.name, topEntries: [] },
     ]
-  }, [theme.id, theme.name])
+  }, [theme.name])
 
-  const achievementProgress = useMemo<ReadonlyArray<AchievementProgress>>(
-    () => [
-      {
-        achievementId: 'first-colony',
-        unlockedAtTick: 80,
-        unlockedInMatchId: 'mock-match',
-        progress: 1,
-        progressTarget: 1,
-      },
-      {
-        achievementId: 'first-ship-launched',
-        unlockedAtTick: 60,
-        unlockedInMatchId: 'mock-match',
-        progress: 1,
-        progressTarget: 1,
-      },
-      {
-        achievementId: 'first-victory',
-        unlockedAtTick: 110,
-        unlockedInMatchId: 'mock-match',
-        progress: 1,
-        progressTarget: 1,
-      },
-      {
-        achievementId: 'ten-planet-empire',
-        unlockedAtTick: null,
-        unlockedInMatchId: null,
-        progress: 6,
-        progressTarget: 10,
-      },
-      {
-        achievementId: 'first-civ-eliminated',
-        unlockedAtTick: 95,
-        unlockedInMatchId: 'mock-match',
-        progress: 1,
-        progressTarget: 1,
-      },
-      {
-        achievementId: 'mass-deception',
-        unlockedAtTick: null,
-        unlockedInMatchId: null,
-        progress: 0,
-        progressTarget: 1,
-      },
-    ],
-    [],
-  )
+  const achievementProgress = useMemo<ReadonlyArray<AchievementProgress>>(() => [], [])
 
   const aiSnapshots = useMemo<ReadonlyArray<AIPlayerSnapshot>>(
     () => [

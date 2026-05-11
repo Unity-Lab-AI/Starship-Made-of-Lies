@@ -177,24 +177,34 @@ No magic shields, no superweapons — just the same colony-ship system used defe
 
 ## Status
 
-🚧 **Pre-development.** Currently in **PHASE 0** — preserving and extracting reference material from the previous project (Unity Missile System) into structured spec docs that will guide the SMoL replication during PHASES 6-7. PHASE 0 is COMPLETE as of 2026-05-09. PHASE 1 (project skeleton) is queued.
+🚧 **Active alpha — mid-PHASE 16 / 17.** Updated 2026-05-10 per super-review gap analysis (TODO PHASE 16.14).
+
+Project pivoted from Unity Missile System to SMoL on 2026-05-09. The TypeScript stack (client + server + shared) is scaffolded and running locally. A playable match loop exists on `/play`. The 3D Three.js scene + camera controller + galaxy/surface layers are wired. Significant gaps remain between the UMS canonical spec and what's reachable from the player UI — those gaps are tracked in `.claude/TODO.md` PHASE 16.13 + 16.14.
 
 | Phase | Description | State |
 |-------|-------------|-------|
-| 0 | UMS reference inventory + extraction (12 spec docs) | ✓ DONE |
-| 1 | SMoL project skeleton (Vite + React + Three.js) | ⏳ NEXT |
-| 2 | Core game systems (galaxy, planet, tile, building, resource, population) | ⏳ |
-| 3 | Tech tree (industrial → far-future, Mainstream / Suppressed / Forbidden tiers) | ⏳ |
-| 4 | Government theme system (15+ themes, per-civ random) | ⏳ |
-| 5 | Deception / subterfuge mechanics + Citizen Tier System | ⏳ |
-| 6 | Colony ship system (4-tier × 17+ variants — UMS missile mechanics carryover) | ⏳ |
-| 7 | LCD-style telemetry panels + planet beacon + signal hub (UMS visual carryover) | ⏳ |
-| 8 | 3D multi-level zoom (galaxy → planet → region → base → building continuous LOD) | ⏳ |
-| 9-13 | AI players, multiplayer server, persistence, audio, packaging | ⏳ |
-| 14 | Polish + launch readiness ("no help, learn or die" onboarding) | ⏳ |
-| 15 | Final UMS reference deletion (project-completion-gated) | 🔒 locked |
+| 0 | UMS reference inventory + extraction (12 spec docs) | ✓ DONE 2026-05-09 |
+| 1 | SMoL project skeleton (Vite + React + Three.js + Tauri + Capacitor) | ✓ DONE |
+| 2 | Core game systems (galaxy, planet, tile, building, resource, population) | ✓ partial — data model + tile generation shipped; UI surfaces only partially wired |
+| 3 | Tech tree (Mainstream / Suppressed / Forbidden tiers) | ✓ partial — tree + research action shipped; conquest-gate tuning ongoing |
+| 4 | Government theme system (20 themes, per-civ random) | ✓ partial — theme catalog + per-civ random roll + CSS skin live; assets stubbed |
+| 5 | Deception / subterfuge + Citizen Tier System | ✓ partial — faction model + propaganda + 5-tier citizens shipped; tier-up-to-Pinnacle pipeline not fully reachable from UI |
+| 6 | Colony ship system (18 variants — UMS mechanics carryover) | ⚠ partial — taxonomy + state machine + trajectory math shipped; multi-pad controller mode, 6 targeting modes, build phase machine, mining auto-shuttle MISSING |
+| 7 | LCD-style telemetry panels + planet beacon + signal hub | ⚠ partial — beacon + signal-capability shipped; UMS 11-LCD rack (production graphs, personal-equipment 4-column, camera array, signal status, fleet readiness, miner detail) MISSING |
+| 8 / 16 | 3D x,y,z universe (galaxy → planet → region → base → building) | ⚠ in progress — Three.js scene + cameraController + galaxy/surface layers shipped. PHASE 16.13: `/play` 3D-canvas-as-default + small pan/tilt on zoom + surface raycast all PENDING |
+| 9 | AI players (archetype × difficulty) | ✓ partial — archetype/difficulty data shipped; simplified random AI in MatchSim today, full AIController.tick wire-up pending |
+| 10 | Multiplayer server (Colyseus / WebSocket) | ✓ partial — server scaffold + anon Player N + lobby + match room shipped; full fog-of-war + cross-civ message scaling pending |
+| 11 | Persistence + meta-progression | ✓ partial — FileSnapshotStore + AccountStore interfaces shipped; production Postgres backend pending |
+| 12 | Audio system | ✓ partial — per-theme synth fallback live; real `.ogg` per-theme recordings pending |
+| 13 | Cross-platform packaging | ✓ partial — Tauri + Capacitor configs + GitHub Actions matrix shipped; real Win/Mac/Linux/iOS/Android signed binaries pending toolchain installs |
+| 14 | Polish + launch readiness | ✓ partial — many surfaces shipped 2026-05-10 (5Hz tick, modular ship pieces, crash landings, indigenous AI data, LAST HOPE state machine, render quality presets, WCAG AA palette audit, telemetry pipeline); full tick wire-up of LAST HOPE + indigenous + modular ship combat pending |
+| 16.13 | True 3D x,y,z universe rebuild (LAW #0 2026-05-10) | ⏳ ACTIVE — TODO sub-tasks 16.13.1–16.13.16 |
+| 16.14 | Doc reality sync (this work) | ⏳ ACTIVE — TODO sub-tasks 16.14.1–16.14.8 |
+| 17.0 | Auth overhaul (Google OAuth + Player N anon + ghost-player fix) | ✓ DONE 2026-05-10 |
+| 17.x – 18.x | Mobile + replay + diplomacy + events + cinematics + localization | ⏳ planned |
+| 15 | Final UMS reference deletion (project-completion-gated) | 🔒 locked until playtested |
 
-See `ROADMAP.md` for full phase milestones.
+See `ROADMAP.md` for full milestones, `.claude/TODO.md` for granular sub-tasks (PHASE 16.13 / 16.14 are the active blocks).
 
 ---
 
@@ -204,8 +214,7 @@ See `ROADMAP.md` for full phase milestones.
 |-------|------|
 | Language | TypeScript (strict) — single language, client + server + shared |
 | UI | React (per-government-theme UI skin via CSS variables) |
-| 3D | Three.js (continuous LOD: galaxy → planet → region → base → building) |
-| 2D top-down | React + CSS hex-grid (TilePlacementGrid) for alpha; Three.js orthographic deferred to v1.5+ |
+| 3D | Three.js — TRUE 3D x,y,z universe (top-down framing, WASD=move, QE=rotate, mouse-wheel=zoom, small pan/tilt on zoom for depth, continuous LOD: galaxy → planet → region → base → building). NO 2D / hex-game / card-game fallback per LAW #0 2026-05-10 (TODO PHASE 16.13). Surface tile interaction = Three.js raycast on `InstancedMesh` inside the 3D camera, not a separate 2D canvas. |
 | Build | Vite |
 | Type-check + lint | `tsc --noEmit` + ESLint + Prettier (no unit tests; manual verification > automated testing) |
 | Multiplayer | WebSocket — Colyseus or custom |

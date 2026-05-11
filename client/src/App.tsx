@@ -11,6 +11,8 @@ import { PrivacyPage } from './ui/pages/PrivacyPage'
 import { TermsPage } from './ui/pages/TermsPage'
 import { PreviewPage } from './ui/pages/PreviewPage'
 import { PlayPage } from './ui/pages/PlayPage'
+import { SignInPage } from './ui/pages/SignInPage'
+import { GoogleOAuthCallbackPage } from './ui/pages/GoogleOAuthCallbackPage'
 import './styles/globals.css'
 
 export function App() {
@@ -29,6 +31,8 @@ export function App() {
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/preview" element={<PreviewPage />} />
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/auth/google/callback" element={<GoogleOAuthCallbackPage />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

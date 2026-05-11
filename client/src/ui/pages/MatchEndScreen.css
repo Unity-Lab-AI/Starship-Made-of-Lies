@@ -107,13 +107,32 @@
   font-size: 0.9rem;
 }
 
-.match-end-screen__replay select {
-  padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+.match-end-screen__replay select,
+.match-end-screen__government-select {
+  /* Force solid dark bg + bright text overriding theme-tinted CSS vars. Fixes 'shite on shite'
+     contrast bug on theme-colored backgrounds where var(--fg-primary) matched the theme bg
+     too closely to read. Per user verbatim (LAW #0) 2026-05-10: 'the droop dowen for it is
+     illegiable its shite on shite'. */
+  padding: 0.55rem 0.85rem;
+  background-color: #1a1a24 !important;
+  border: 1px solid rgba(212, 161, 58, 0.5);
   border-radius: 4px;
-  color: var(--fg-primary, #e6e6f0);
+  color: #f0f0f0 !important;
   font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.match-end-screen__replay select option,
+.match-end-screen__government-select option {
+  background-color: #1a1a24;
+  color: #f0f0f0;
+}
+
+.match-end-screen__government-label {
+  color: #e6e6f0 !important;
+  font-weight: 600;
 }
 
 .match-end-screen__actions {

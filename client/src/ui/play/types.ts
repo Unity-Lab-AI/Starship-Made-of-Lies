@@ -11,6 +11,7 @@ export type PanelId =
   | 'loot'
   | 'lastHope'
   | 'beacon'
+  | 'mining'
   | 'ai'
   | 'events'
 
@@ -36,6 +37,7 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'loot', emoji: '🎁', label: 'Salvage' },
   { id: 'lastHope', emoji: '🚨', label: 'Last Hope' },
   { id: 'beacon', emoji: '🛰', label: 'Beacon' },
+  { id: 'mining', emoji: '⛏️', label: 'Mining Fleet' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },
