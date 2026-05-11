@@ -60,6 +60,22 @@ export function applyProductionTick(
   }
 }
 
+// PHASE 17.L.A.2 — clamp a resource stockpile at a storage cap. Surplus is lost (the "extra
+// power went somewhere — vented, dumped, or never produced because the tanks are full"
+// fiction). Used by the per-planet fuel cap which scales with battery-bank count. Returns the
+// amount that was clipped so callers can surface it (e.g. "wasted N fuel per tick — build more
+// Battery Banks").
+export function clampResourceToCap(
+  inv: PlanetInventory,
+  resource: ResourceId,
+  cap: number,
+): number {
+  const current = inv.stocks.get(resource) ?? 0
+  if (current <= cap) return 0
+  inv.stocks.set(resource, cap)
+  return current - cap
+}
+
 export function listStocks(
   inv: PlanetInventory,
 ): ReadonlyArray<{ def: ResourceDef; amount: number }> {

@@ -71,6 +71,9 @@
    │   All ships abortable at any time             ✅ 17.L.A.16  │
    │   Self-Destruct Systems tech + flight gate    ✅ 17.L.A.17  │
    │   Workforce reserved-pool enforcement         ✅ 17.L.A.4   │
+   │   Reactor mid-flight fuel drain → STRANDED    ✅ 17.L.A.1   │
+   │   Battery-bank fuel-stockpile cap             ✅ 17.L.A.2   │
+   │   Brownout building auto-disable              ✅ 17.L.A.3   │
    ├─────────────────────────────────────────────────────────────┤
    │   ACTIVE — PHASE 17.L tail (super-review additions)         │
    ├─────────────────────────────────────────────────────────────┤

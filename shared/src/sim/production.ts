@@ -298,6 +298,11 @@ export const UTILITY_BUILDINGS_NO_PRODUCTION: ReadonlySet<BuildingDefId> = new S
 // total storage = batteryCount × BATTERY_BANK_CAPACITY.
 export const BATTERY_BANK_CAPACITY = 500
 
+// PHASE 17.L.A.2 — baseline fuel stockpile for planets with zero battery banks. Prevents the
+// "zero-storage cripple" failure mode where a brand-new planet can't accumulate any fuel.
+// Per TODO 17.L.A.2 "a small 'raw stockpile' baseline".
+export const FUEL_RAW_STOCKPILE_BASELINE = 100
+
 // PHASE 17.B.1 + super-review fix: drift gate is now an exported function instead of a
 // module-load throw. Reason: throwing at import time means any tooling that imports this
 // module (tests, type-check, SSR, storybook) explodes on misconfiguration with no chance to
@@ -338,6 +343,12 @@ export interface ProductionTickInputs {
   readonly techProductionMultiplier: number
   readonly themeProductionMultiplier: number
   readonly deceptionProductionMultiplier: number
+  // PHASE 17.L.A.3 — when true (planet is in brownout = surplus < 0 AND fuel stockpile ≤ 0),
+  // every fuel-consuming building's production tick is skipped this iteration. The brownout
+  // "rationing pause" lets the planet's fuel-producing buildings (which don't consume fuel as
+  // input) build up enough reserves for the next tick. Surfaces via idledBuildingCount in
+  // the result + the "⚠ disabled — no fuel" indicator in PlanetEnergyPanel breakdown rows.
+  readonly brownoutActive?: boolean
 }
 
 export interface ProductionTickResult {
@@ -362,6 +373,15 @@ export function tickPlanetProduction(inputs: ProductionTickInputs): ProductionTi
   for (const { defId, def } of inputs.buildings) {
     const production = BUILDING_PRODUCTION.get(defId)
     if (!production) continue
+
+    // PHASE 17.L.A.3 — brownout gate. Buildings that consume fuel as input idle for this
+    // tick when the planet is in brownout (insufficient capacity + empty reserves). Lets the
+    // fuel producers (which don't consume fuel) catch up.
+    const consumesFuel = production.inputs.some((i) => i.resource === RESOURCE_FUEL && i.amount > 0)
+    if (inputs.brownoutActive && consumesFuel) {
+      idledBuildingCount += 1
+      continue
+    }
 
     const biomeMultiplier = production.biomeHintKey
       ? (inputs.biome.resourceHints[production.biomeHintKey] ?? 1)
