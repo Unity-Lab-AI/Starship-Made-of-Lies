@@ -149,6 +149,21 @@ export function totalPopulation(pop: PlanetPopulation): number {
   )
 }
 
+// PHASE 17.L.A.4 — citizens available for worker assignment, after subtracting the ship-duty
+// reserved pool. Per the 17.J.9 implementation note: the ship-duty slider per tier was reserving
+// citizens for the colony-ship volunteer pool BUT they were STILL being counted in the worker
+// pool — double-counting. This helper is the canonical "how many citizens can actually be
+// assigned to worker categories on this planet" — workforce-assignment call sites (research,
+// future production-by-count, etc.) should use this instead of totalPopulation.
+//
+// The volunteer pool draws from the same tier counts; reserved citizens stay in tierCounts so
+// `loadCitizensFromVolunteerPool` (17.L.A.6) can draw them. The accounting is enforced by
+// having WORKFORCE-side callers use availableWorkers and SHIP-LOADING-side callers use the
+// volunteer pool — both routes draw from the same per-tier counts but never overlap.
+export function availableWorkers(pop: PlanetPopulation): number {
+  return Math.max(0, totalPopulation(pop) - shipDutyReservedPool(pop).totalReserved)
+}
+
 export function volunteerPool(pop: PlanetPopulation, includeWithPropaganda: boolean): number {
   // Tier 4-5 always volunteer per CITIZEN_TIERS.willVolunteerForOneWayTrip flag.
   const base = pop.tierCounts[4] + pop.tierCounts[5]
