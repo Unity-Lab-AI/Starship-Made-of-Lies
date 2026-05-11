@@ -34,6 +34,11 @@ export interface CommandPadPanelProps {
   readonly onFireSalvoRound?: () => void
   readonly salvoRoundActive?: boolean | undefined
   readonly salvoRoundPhaseLabel?: string | undefined
+  // PHASE 16.37 — auto-fire indefinite-loop toggle. When ON, the salvo cycle auto-restarts
+  // after each round so the player can "fire and forget" a sustained barrage. Parent owns the
+  // state; panel just exposes the toggle button.
+  readonly autoFireLoopActive?: boolean
+  readonly onToggleAutoFireLoop?: () => void
 }
 
 interface PadCounters {
@@ -96,6 +101,8 @@ export function CommandPadPanel({
   onFireSalvoRound,
   salvoRoundActive,
   salvoRoundPhaseLabel,
+  autoFireLoopActive,
+  onToggleAutoFireLoop,
 }: CommandPadPanelProps) {
   const counters = useMemo(() => tallyPads(pads), [pads])
   const controllerPad = pads[0] ?? null
@@ -245,10 +252,31 @@ export function CommandPadPanel({
           >
             ▶ Fire Salvo Round
           </button>
+          {onToggleAutoFireLoop && (
+            <button
+              type="button"
+              className={
+                autoFireLoopActive
+                  ? 'command-pad__btn command-pad__btn--loop-on'
+                  : 'command-pad__btn command-pad__btn--loop-off'
+              }
+              onClick={onToggleAutoFireLoop}
+              title={
+                autoFireLoopActive
+                  ? 'Auto-fire loop is ON — rounds will auto-restart. Click to stop after this round.'
+                  : 'Toggle indefinite auto-fire loop — salvo rounds will re-trigger continuously.'
+              }
+            >
+              {autoFireLoopActive ? '🔁 Loop ON' : '⏹ Loop OFF'}
+            </button>
+          )}
           {salvoRoundActive && (
             <span className="command-pad__salvo-status">
               {salvoRoundPhaseLabel ?? 'running...'}
             </span>
+          )}
+          {autoFireLoopActive && !salvoRoundActive && (
+            <span className="command-pad__salvo-status">⌛ next round in 1.5s…</span>
           )}
         </section>
       )}
