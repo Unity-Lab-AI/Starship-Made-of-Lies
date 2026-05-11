@@ -100,6 +100,12 @@ export function tickPad(
   pad: LaunchPad,
   inventory: PlanetInventory,
   buildTimeMultiplier = 1,
+  // PHASE 17.L.C.2 — hard energy gating on blueprint print. When the planet is in brownout
+  // (capacity < draw AND fuel stockpile ≤ 0 per A.3), pads in PRINT/BUILD phases pause their
+  // progression. The build resumes when the brownout clears. FUEL/AMMO phases self-pause
+  // already (autopull is bounded by available inventory). Default false preserves legacy
+  // callers that don't thread the planet's brownout state.
+  brownoutActive = false,
 ): PadTickResult {
   const prevState = pad.state
   pad.ticksSinceLastLaunch += 1
@@ -111,9 +117,14 @@ export function tickPad(
     case 'IDLE':
       break
     case 'PRINT':
-      pad.state = 'BUILD'
+      // PHASE 17.L.C.2 — brownout stalls the PRINT → BUILD transition. Player who started a
+      // print during brownout sees the pad stay in PRINT until fuel returns.
+      if (!brownoutActive) pad.state = 'BUILD'
       break
     case 'BUILD': {
+      // PHASE 17.L.C.2 — brownout pauses build progression. buildTicksRemaining doesn't
+      // decrement this tick. Pad stays in BUILD until brownout clears.
+      if (brownoutActive) break
       if (pad.buildTicksRemaining > 0) {
         pad.buildTicksRemaining -= 1
       }

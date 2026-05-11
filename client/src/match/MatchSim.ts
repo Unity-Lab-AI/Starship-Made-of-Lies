@@ -1041,7 +1041,9 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
   }
 
   for (const pad of planetState.launchPads.values()) {
-    tickPad(pad, planetState.inventory)
+    // PHASE 17.L.C.2 — pass the same brownoutActive flag we computed for production gating
+    // (A.3). Pads in PRINT/BUILD stall during brownout until fuel returns.
+    tickPad(pad, planetState.inventory, 1, brownoutActive)
   }
 
   // PHASE 17.B.2 — outposts drive miner production. Each tick, every mining outpost on this

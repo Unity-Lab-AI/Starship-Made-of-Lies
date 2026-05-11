@@ -78,6 +78,7 @@
    │   Profanity scrub in game code                ✅ 17.L.B.8   │
    │   TelemetryRack POWER-slot mirror             ✅ 17.L.B.6   │
    │   padId perf index (O(1) launch lookup)       ✅ 17.L.C.9   │
+   │   Hard energy gating on blueprint print       ✅ 17.L.C.2   │
    ├─────────────────────────────────────────────────────────────┤
    │   ACTIVE — PHASE 17.L tail (super-review additions)         │
    ├─────────────────────────────────────────────────────────────┤
