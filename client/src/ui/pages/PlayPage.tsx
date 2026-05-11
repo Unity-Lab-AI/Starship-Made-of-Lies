@@ -42,6 +42,7 @@ import { ShipBuildPanel } from '../panels/ShipBuildPanel'
 import { TargetingModePanel } from '../panels/TargetingModePanel'
 import { TechTreePanel } from '../panels/TechTreePanel'
 import { TilePlacementGrid } from '../panels/TilePlacementGrid'
+import { BootSequencePanel } from '../panels/BootSequencePanel'
 import { GalaxyView } from '../../render/scene/GalaxyView'
 import { BuildPicker } from '../play/BuildPicker'
 import { CampaignPicker } from '../play/CampaignPicker'
@@ -126,6 +127,11 @@ export function PlayPage() {
   // === Panel + mode state ===
   // PHASE 17.J.3 — persist which panels are open across page reloads.
   const [openPanels, setOpenPanels] = useState<Set<PanelId>>(() => loadOpenPanelsFromStorage())
+  // PHASE 17.L.A.14 — boot-ceremony /play first-mount gate per Q9 PHASE 17 LOCKED:
+  // "Full UMS-flavored 28-check boot — runs before /play unlocks, ticks through each check,
+  // final line = theme reveal. Skippable with Space." Fullscreen BootSequencePanel overlay
+  // until the player either waits it out or hits Space. World view + sim renders only after.
+  const [bootReady, setBootReady] = useState(false)
   const [buildMode, setBuildMode] = useState<BuildingDefId | null>(null)
   const [selectedPlanetId, setSelectedPlanetId] = useState<PlanetId | null>(null)
   const [toasts, setToasts] = useState<ToastNotification[]>([])
@@ -793,6 +799,49 @@ export function PlayPage() {
         onPlayAgain={(themeId) => handleResetTo(themeId)}
         onGoHome={() => navigate('/')}
       />
+    )
+  }
+
+  // PHASE 17.L.A.14 — fullscreen boot ceremony gates the /play canvas. Skippable with Space.
+  // Theme passed in so the boot reveal line is government-flavored. The world view renders
+  // only after onFinished fires.
+  if (!bootReady) {
+    return (
+      <div
+        className="play-boot-gate"
+        style={
+          {
+            ...styleVars,
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--bg-deep, #050912)',
+            zIndex: 9999,
+            padding: '2rem',
+          } as React.CSSProperties
+        }
+      >
+        <div style={{ maxWidth: '720px', width: '100%' }}>
+          <BootSequencePanel
+            theme={humanCivState.theme}
+            onFinished={() => setBootReady(true)}
+            skippable
+          />
+          <p
+            style={{
+              marginTop: '1rem',
+              textAlign: 'center',
+              opacity: 0.6,
+              fontSize: '0.85rem',
+              fontStyle: 'italic',
+            }}
+          >
+            Press Space to skip the boot ceremony.
+          </p>
+        </div>
+      </div>
     )
   }
 

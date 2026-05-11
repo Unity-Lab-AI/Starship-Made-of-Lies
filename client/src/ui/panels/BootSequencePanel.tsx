@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   type BootSequence,
   bootProgress,
@@ -14,12 +14,23 @@ interface BootSequencePanelProps {
   readonly theme: Theme
   readonly tickIntervalMs?: number
   readonly autoStart?: boolean
+  // PHASE 17.L.A.14 — onFinished callback fires once when the sequence finishes (whether by
+  // ticking through all checks or by Space-skip). PlayPage uses this to unlock the world view
+  // — the panel is rendered as a fullscreen overlay until the player either waits it out or
+  // hits Space to skip.
+  readonly onFinished?: () => void
+  // PHASE 17.L.A.14 — when true, Space key fast-forwards through every remaining check + fires
+  // onFinished. Listens at the document level. Default false to preserve the panel's prior
+  // standalone behavior in PreviewPage.
+  readonly skippable?: boolean
 }
 
 export function BootSequencePanel({
   theme,
   tickIntervalMs = 120,
   autoStart = true,
+  onFinished,
+  skippable,
 }: BootSequencePanelProps) {
   const [sequence, setSequence] = useState<BootSequence>(() => newBootSequence())
   const [running, setRunning] = useState(autoStart)
@@ -39,6 +50,40 @@ export function BootSequencePanel({
     }, tickIntervalMs)
     return () => window.clearInterval(handle)
   }, [running, sequence.finished, tickIntervalMs])
+
+  // PHASE 17.L.A.14 — fire onFinished once when the sequence transitions to finished. Tracked
+  // via ref to avoid re-firing across re-renders when the prop function identity is stable.
+  const firedFinishedRef = useRef(false)
+  useEffect(() => {
+    if (sequence.finished && !firedFinishedRef.current) {
+      firedFinishedRef.current = true
+      onFinished?.()
+    }
+  }, [sequence.finished, onFinished])
+
+  // PHASE 17.L.A.14 — Space-key skip. Advance the sequence to finished instantly + caller's
+  // onFinished fires on the next render via the effect above.
+  useEffect(() => {
+    if (!skippable) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' && e.key !== ' ') return
+      e.preventDefault()
+      setSequence((prev) => {
+        if (prev.finished) return prev
+        const states = prev.states.map((s) => ({
+          ...s,
+          status: 'completed' as const,
+        }))
+        return {
+          states,
+          currentIdx: states.length - 1,
+          finished: true,
+        }
+      })
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [skippable])
 
   const progress = bootProgress(sequence)
 
