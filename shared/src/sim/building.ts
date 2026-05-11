@@ -10,6 +10,7 @@ import {
   RESOURCE_METALS,
   RESOURCE_PLANKS,
   RESOURCE_PROPAGANDA_MATERIALS,
+  RESOURCE_RARE_METALS,
   RESOURCE_STONE,
 } from './resources'
 
@@ -59,6 +60,16 @@ export const BLDG_HOME = buildingDefId('home')
 export const BLDG_APARTMENT = buildingDefId('apartmentComplex')
 export const BLDG_POWER_PLANT = buildingDefId('powerPlant')
 export const BLDG_SOLAR_ARRAY = buildingDefId('solarArray')
+// PHASE 17.J.7 — utility battery storage. Pure stockpile capacity for the planet energy
+// panel; does not produce or consume per tick. capacityStat surfaces in the energy panel
+// as "battery storage cap = N".
+export const BLDG_BATTERY_BANK = buildingDefId('batteryBank')
+// PHASE 17.J.8 — three planet-level reactor tiers. Each consumes its tier-specific
+// radioactive resource per tick and produces high RESOURCE_FUEL output. Tech-gated on
+// TECH_NUCLEAR_FISSION / TECH_FUSION_POWER / TECH_ANTIMATTER respectively.
+export const BLDG_REACTOR_FISSION = buildingDefId('reactorFission')
+export const BLDG_REACTOR_FUSION = buildingDefId('reactorFusion')
+export const BLDG_REACTOR_ANTIMATTER = buildingDefId('reactorAntimatter')
 export const BLDG_LAUNCH_PAD = buildingDefId('launchPad')
 export const BLDG_MINE_FIELD = buildingDefId('mineField')
 export const BLDG_COUNTER_MISSILE = buildingDefId('counterMissilePad')
@@ -316,6 +327,68 @@ export const BUILDINGS: ReadonlyArray<BuildingDef> = [
     buildTimeTicks: 60,
     citizenSlots: 1,
     description: 'Free energy. Biome multiplier: desert / ringworld bonus.',
+  },
+  {
+    id: BLDG_BATTERY_BANK,
+    name: 'Battery Bank',
+    emoji: '🔋',
+    category: 'utility',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 50 },
+      { resource: RESOURCE_ELECTRONICS, amount: 30 },
+      { resource: RESOURCE_COMPONENTS, amount: 20 },
+    ],
+    buildTimeTicks: 70,
+    citizenSlots: 2,
+    description:
+      'Stores surplus fuel for use when production dips below draw. Surfaces in the planet energy panel as battery capacity.',
+  },
+  {
+    id: BLDG_REACTOR_FISSION,
+    name: 'Fission Reactor',
+    emoji: '☢️',
+    category: 'utility',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 120 },
+      { resource: RESOURCE_COMPONENTS, amount: 60 },
+      { resource: RESOURCE_ELECTRONICS, amount: 40 },
+    ],
+    buildTimeTicks: 180,
+    citizenSlots: 8,
+    description:
+      'Burns rare-metal fuel rods for sustained energy output. 4× the fuel throughput of a Power Plant. Requires TECH_NUCLEAR_FISSION.',
+  },
+  {
+    id: BLDG_REACTOR_FUSION,
+    name: 'Fusion Reactor',
+    emoji: '🌟',
+    category: 'utility',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 200 },
+      { resource: RESOURCE_ELECTRONICS, amount: 120 },
+      { resource: RESOURCE_COMPONENTS, amount: 80 },
+      { resource: RESOURCE_RARE_METALS, amount: 40 },
+    ],
+    buildTimeTicks: 260,
+    citizenSlots: 10,
+    description:
+      'Sustained fusion. Consumes fusion fuel, outputs 8× a Power Plant. Requires TECH_FUSION_POWER.',
+  },
+  {
+    id: BLDG_REACTOR_ANTIMATTER,
+    name: 'Antimatter Reactor',
+    emoji: '💠',
+    category: 'utility',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 280 },
+      { resource: RESOURCE_ELECTRONICS, amount: 200 },
+      { resource: RESOURCE_COMPONENTS, amount: 140 },
+      { resource: RESOURCE_ANTIMATTER, amount: 20 },
+    ],
+    buildTimeTicks: 340,
+    citizenSlots: 14,
+    description:
+      'Annihilation reactor. Consumes antimatter, outputs 16× a Power Plant. Requires TECH_ANTIMATTER.',
   },
   {
     id: BLDG_LAUNCH_PAD,

@@ -3,6 +3,7 @@ import { type BiomeDef } from '../gen/biome'
 import {
   BLDG_APARTMENT,
   BLDG_AQUEDUCT,
+  BLDG_BATTERY_BANK,
   BLDG_CATHEDRAL,
   BLDG_CORP_PROMOTIONS,
   BLDG_COUNTER_MISSILE,
@@ -19,6 +20,9 @@ import {
   BLDG_MINING_OUTPOST,
   BLDG_POWER_PLANT,
   BLDG_QUARRY,
+  BLDG_REACTOR_ANTIMATTER,
+  BLDG_REACTOR_FISSION,
+  BLDG_REACTOR_FUSION,
   BLDG_REEDUCATION,
   BLDG_REFINERY,
   BLDG_SCHOOL,
@@ -32,11 +36,13 @@ import { type FactionSplit, performanceMultiplier } from './faction'
 import { type PlanetInventory, addResource, consumeResource, stockOf } from './inventory'
 import {
   RESOURCE_AMMUNITION,
+  RESOURCE_ANTIMATTER,
   RESOURCE_BRICKS,
   RESOURCE_COMPONENTS,
   RESOURCE_ELECTRONICS,
   RESOURCE_FOOD,
   RESOURCE_FUEL,
+  RESOURCE_FUSION_FUEL,
   RESOURCE_INGOTS,
   RESOURCE_METALS,
   RESOURCE_OIL,
@@ -245,6 +251,30 @@ const BUILDING_PRODUCTION: ReadonlyMap<BuildingDefId, BuildingProduction> = new 
       ],
     },
   ],
+  [
+    BLDG_REACTOR_FISSION,
+    {
+      // PHASE 17.J.8 — fission reactor: rare metals stand in for uranium ore. 4× a power plant.
+      inputs: [{ resource: RESOURCE_RARE_METALS, amount: 1 }],
+      outputs: [{ resource: RESOURCE_FUEL, amount: 8 }],
+    },
+  ],
+  [
+    BLDG_REACTOR_FUSION,
+    {
+      // PHASE 17.J.8 — fusion reactor: consumes fusion fuel. 8× a power plant.
+      inputs: [{ resource: RESOURCE_FUSION_FUEL, amount: 1 }],
+      outputs: [{ resource: RESOURCE_FUEL, amount: 16 }],
+    },
+  ],
+  [
+    BLDG_REACTOR_ANTIMATTER,
+    {
+      // PHASE 17.J.8 — antimatter reactor: consumes antimatter. 16× a power plant.
+      inputs: [{ resource: RESOURCE_ANTIMATTER, amount: 1 }],
+      outputs: [{ resource: RESOURCE_FUEL, amount: 32 }],
+    },
+  ],
 ])
 
 // PHASE 17.B.1 — utility buildings explicitly have no production-system entry by design.
@@ -257,7 +287,16 @@ export const UTILITY_BUILDINGS_NO_PRODUCTION: ReadonlySet<BuildingDefId> = new S
   BLDG_MINE_FIELD,
   BLDG_COUNTER_MISSILE,
   BLDG_GOD_CONTROL,
+  // PHASE 17.J.7 — battery is pure stockpile capacity, no per-tick production. The energy
+  // panel reads battery count × per-bank capacity stat to compute total storage cap; the
+  // sim doesn't apply a hard storage cap yet (FUEL accumulates uncapped). v1 surfaces the
+  // metric visually, hard cap lands in a later sub-phase if/when energy gating ships.
+  BLDG_BATTERY_BANK,
 ])
+
+// PHASE 17.J.7 — per-battery storage capacity. Read by the planet energy panel to compute
+// total storage = batteryCount × BATTERY_BANK_CAPACITY.
+export const BATTERY_BANK_CAPACITY = 500
 
 // PHASE 17.B.1 + super-review fix: drift gate is now an exported function instead of a
 // module-load throw. Reason: throwing at import time means any tooling that imports this

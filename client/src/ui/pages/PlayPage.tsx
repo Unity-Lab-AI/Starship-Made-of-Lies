@@ -14,6 +14,7 @@ import {
   type ThemeId,
   type Tile,
   COLONY_SHIPS,
+  RESOURCE_FUEL,
   THEMES,
   accountId as accountIdValue,
   aggregateEffects,
@@ -28,6 +29,7 @@ import { BeaconPanel } from '../panels/BeaconPanel'
 import { CommandPadPanel } from '../panels/CommandPadPanel'
 import { FlightDetailPanel } from '../panels/FlightDetailPanel'
 import { MiningFleetPanel } from '../panels/MiningFleetPanel'
+import { PlanetEnergyPanel } from '../panels/PlanetEnergyPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
 import { IndigenousPanel } from '../panels/IndigenousPanel'
@@ -719,6 +721,7 @@ export function PlayPage() {
       else if (k === 'i') togglePanel('indigenous')
       else if (k === 'x') togglePanel('events')
       else if (k === 'g') togglePanel('planets')
+      else if (k === 'y') togglePanel('energy')
       // PHASE 16.33: 'm' toggles the UMS 6-mode targeting picker. Chosen 'm' (mode) since
       // 't' is tech, 'p' is propaganda/campaigns, 'b' is build — all the obvious candidates
       // are taken. Per-keyboard-shortcut hotkey map in `feedback_mode_switching.md` is for
@@ -751,6 +754,17 @@ export function PlayPage() {
         planetLabel: `${p.planet.biome.emoji} ${String(p.planet.id)}`,
         inventory: p.inventory,
         population: p.population,
+      })),
+    [ownedPlanets],
+  )
+
+  const energyPanelPlanets = useMemo(
+    () =>
+      ownedPlanets.map((p) => ({
+        planetId: p.planet.id,
+        planetLabel: `${p.planet.biome.emoji} ${String(p.planet.id)}`,
+        buildingsByDef: p.buildingsByDef as ReadonlyMap<BuildingDefId, number>,
+        fuelStock: p.inventory.stocks.get(RESOURCE_FUEL) ?? 0,
       })),
     [ownedPlanets],
   )
@@ -1106,6 +1120,21 @@ export function PlayPage() {
             variant="docked-right"
           >
             <AIPlayerPanel snapshots={aiSnapshots} />
+          </PanelFrame>
+        )}
+
+        {openPanels.has('energy') && (
+          <PanelFrame
+            panelId="energy"
+            title="Planet Energy"
+            emoji="⚡"
+            onClose={() => closePanel('energy')}
+            variant="docked-left"
+          >
+            <PlanetEnergyPanel
+              planets={energyPanelPlanets}
+              techProductionMultiplier={techEffects.buildingProductionMultiplier}
+            />
           </PanelFrame>
         )}
 

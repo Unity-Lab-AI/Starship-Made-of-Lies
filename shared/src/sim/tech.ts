@@ -1,5 +1,6 @@
 import { type BuildingDefId } from '../types/index'
 import {
+  BLDG_BATTERY_BANK,
   BLDG_FACTORY,
   BLDG_LAB,
   BLDG_LAUNCH_PAD,
@@ -7,6 +8,9 @@ import {
   BLDG_MINE,
   BLDG_POWER_PLANT,
   BLDG_QUARRY,
+  BLDG_REACTOR_ANTIMATTER,
+  BLDG_REACTOR_FISSION,
+  BLDG_REACTOR_FUSION,
   BLDG_REFINERY,
   BLDG_TV_STATION,
   BLDG_REEDUCATION,
@@ -192,11 +196,14 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     tier: 0,
     visibility: 'mainstream',
     category: 'industrial',
-    description: 'Grid-scale electrification. Boosts industrial throughput.',
+    description: 'Grid-scale electrification. Boosts industrial throughput. Unlocks Battery Bank.',
     prerequisites: [],
     costPoints: 30,
     effects: {
       buildingProductionMultiplier: 1.15,
+      // PHASE 17.J.7 — Battery Bank gated on Electric Power. Pure stockpile capacity for the
+      // planet energy panel; per-bank capacity = BATTERY_BANK_CAPACITY.
+      unlockBuildings: [BLDG_BATTERY_BANK],
     },
   },
   {
@@ -267,11 +274,15 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     tier: 1,
     visibility: 'mainstream',
     category: 'information',
-    description: 'Controlled fission reactors. Survival-grade power for hostile biomes.',
+    description:
+      'Controlled fission reactors. Survival-grade power for hostile biomes. Unlocks the planet-level Fission Reactor.',
     prerequisites: [TECH_MASS_PRODUCTION, TECH_ELECTRIC_POWER],
     costPoints: 60,
     effects: {
       unlockBiomes: ['arctic', 'desert'],
+      // PHASE 17.J.8 — Fission Reactor as planet building. Consumes RESOURCE_RARE_METALS,
+      // produces 8× a Power Plant's fuel throughput.
+      unlockBuildings: [BLDG_REACTOR_FISSION],
     },
   },
   {
@@ -329,12 +340,16 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     tier: 2,
     visibility: 'mainstream',
     category: 'spacefaring',
-    description: 'Sustained controlled fusion. Opens hot-biome + gas-giant colonization.',
+    description:
+      'Sustained controlled fusion. Opens hot-biome + gas-giant colonization. Unlocks the Fusion Reactor.',
     prerequisites: [TECH_NUCLEAR_FISSION, TECH_COMPUTING],
     costPoints: 100,
     effects: {
       unlockBiomes: ['volcanic', 'gasGiantMoon'],
       buildingProductionMultiplier: 1.25,
+      // PHASE 17.J.8 — Fusion Reactor as planet building. Consumes RESOURCE_FUSION_FUEL,
+      // produces 16× a Power Plant's fuel throughput.
+      unlockBuildings: [BLDG_REACTOR_FUSION],
     },
   },
   {
@@ -471,7 +486,7 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     visibility: 'mainstream',
     category: 'advanced',
     description:
-      'Antimatter containment + weaponization. Unlocks Tier 3 colony ships + lava biome.',
+      'Antimatter containment + weaponization. Unlocks Tier 3 colony ships + lava biome + the Antimatter Reactor.',
     prerequisites: [TECH_FUSION_POWER, TECH_ORBITAL_MECHANICS],
     costPoints: 200,
     effects: {
@@ -480,6 +495,9 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
       // since Saboteur needs colonyShipPayloadTier=3 which this tech provides.
       unlockColonyShipVariants: ['explosive', 'heavy', 'counterColony', 'saboteur'],
       colonyShipPayloadTier: 3,
+      // PHASE 17.J.8 — Antimatter Reactor as planet building. Consumes RESOURCE_ANTIMATTER,
+      // produces 32× a Power Plant's fuel throughput. End-game energy infrastructure.
+      unlockBuildings: [BLDG_REACTOR_ANTIMATTER],
     },
   },
   {
