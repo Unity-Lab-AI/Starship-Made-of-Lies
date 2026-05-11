@@ -10,19 +10,27 @@ import {
 } from '@smol/shared'
 
 const BIOME_COLORS: Readonly<Record<string, number>> = {
-  jungle: 0x3aa860,
-  desert: 0xd9a86c,
-  arctic: 0xbfdaf2,
-  ocean: 0x2a5d8f,
-  swamp: 0x5a7048,
-  mountain: 0x8a8784,
+  // Tier 0 (default home biomes) — GREEN Earth-like + tropical cyan
+  terran: 0x4ea869, // Earth-like green — the most common default home biome
+  archipelago: 0x4fb8b0, // tropical cyan
+  // Tier 1 (mild hostility)
+  jungle: 0x2f8c4c, // dark green
+  desert: 0xd9a86c, // sandy
+  arctic: 0xbfdaf2, // pale blue
+  ocean: 0x2a5d8f, // deep blue
+  junkyard: 0xa07050, // orange-brown
+  // Tier 2 (heavy hostility)
+  swamp: 0x5e6e3a,
   volcanic: 0xc44a2a,
   gasGiantMoon: 0xa970d4,
-  ringworld: 0xd4c060,
-  crystalline: 0x9adfd4,
-  lava: 0xff5a2a,
   asteroid: 0x6c6c70,
-  default: 0x8a8a92,
+  crystalline: 0x9adfd4,
+  // Tier 3 (end-game)
+  lava: 0xff5a2a,
+  ringworld: 0xd4c060,
+  // Generic mountain fallback (not a real biome ID — kept for back-compat)
+  mountain: 0x8a8784,
+  default: 0x4ea869, // terran-green is the safer fallback than concrete gray
 }
 
 export interface GalaxyLayerHandle {
