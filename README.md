@@ -511,16 +511,17 @@ Active development. The full game vision above is the **intended design**. Hones
 
 ```
    ┌─────────────────────────────────────────────────────────────┐
-   │   Code-review fixes (super-review × 2):       100% ✓        │
+   │   Code-review fixes (super-review × 3):       100% ✓        │
    │   Core game loop (build→economy→launch→win):  ~85%          │
-   │   UMS-faithful immersion (panels/UI):         ~91% (17.J)   │
+   │   UMS-faithful immersion (panels/UI):         ~93% (17.J)   │
+   │   PHASE 0 design contract enforcement:        ~10% (17.L)   │
    │   Ready-to-sell business surface:             ~20%          │
    └─────────────────────────────────────────────────────────────┘
 ```
 
 **Working today:** everything described in the **🌍 The 3D Universe**, **🛸 Colony Ship System**, **🎭 Citizen Tier System**, **🏛️ Governments**, **🌱 Empire Mechanics**, **🛡️ Defense**, **📡 UMS Telemetry Heritage** sections above — PLUS the entire **PHASE 17.J UMS-faithful immersion layer** (see below).
 
-**SHIPPED in PHASE 17.J (10 of 11 sub-tasks live on `main`):**
+**SHIPPED in PHASE 17.J (all 11 sub-tasks live on `main`):**
 - ✅ Draggable / floating panel framework (every popup panel — drag by header, position persisted, click-to-raise z-index, "Reset Layout" button)
 - ✅ Unified top toolbar with every empire-aggregate resource + per-tick delta + 5-tier citizen breakdown + per-resource per-planet tooltip
 - ✅ Quick-toggle bar per panel + persistent open-panels set across reloads
@@ -531,9 +532,13 @@ Active development. The full game vision above is the **intended design**. Hones
 - ✅ Battery Bank building (storage capacity per bank; gated on Electric Power)
 - ✅ Three planet-level reactor buildings — Fission (8× a power plant) / Fusion (16×) / Antimatter (32×) — tech-gated on Nuclear Fission / Fusion Power / Antimatter
 - ✅ Citizens panel with per-tier breakdown + ship-duty sliders (per-tier %0–100 reserved for the colony-ship volunteer pool — feeds `volunteerPool()` in the sim)
+- ✅ Per-launch crew + cargo loading UI + quick-launch-from-blueprint integration — blueprint→print→launch wiring complete, `ColonyShipFlight.customBuild` synthesizes a flight def from blueprint stats overlaid on the base variant
 
-**Open in PHASE 17.J (1 of 11 sub-tasks remaining):**
-- 🚧 Per-launch crew + cargo loading UI + quick-launch-from-blueprint integration. Blueprint LIBRARY is functional standalone; the LAUNCH flow still uses the COLONY_SHIPS catalog via ShipBuildPanel. Wiring blueprints into the launch path needs a structural addition to `ColonyShipFlight` (custom-build stats) or a blueprint-id route through `launchShipFromPad`.
+**SHIPPED in PHASE 17.L (PHASE 0 design contract honoring — super-review 2026-05-11):**
+- ✅ Citizen tier-gate enforcement at launch — suicide colony ships REFUSE to launch unless every citizen aboard is tier 4 (Elite) or tier 5 (The Chosen). The propaganda elevated them too well — only the propaganda-saturated highest tiers accept one-way trips. Insufficient volunteers → launch refused + "invest in propaganda buildings (Cathedral / University / Re-education / Corporate Promotions) to elevate more citizens" event surfaced. Human-launched pads now also auto-load citizens via the same tier-aware volunteer pool the AI civs use. The Citizen Tier System becomes real gameplay constraint, not decorative population data.
+
+**Open in PHASE 17.L (super-review-identified PHASE 0 contract gaps — see `.claude/TODO.md`):**
+- 🚧 P1 close-the-loop items: reactor mid-flight fuel drain · battery-bank stockpile cap · brownout building auto-disable · workforce reserved-pool enforcement · player-pickable base variant in builder · drag-allocate crew + cargo UI · crew + cargo preset persistence · tracking-camera panel · Sankey production chains · 3-mode mining (oneway / shuttle-single / shuttle-multi) · UMS quotas + auto-recycle · save/load host-config · boot-ceremony /play fullscreen gate · multi-settlement-per-planet (PHASE 17.13 revival)
 
 **Aspirational (PHASE 17.D/E — business-decision gated):** OAuth tail (Discord/Apple/email) · Tauri desktop + Capacitor mobile packaging · replay archive · diplomacy + treaties · cinematics · localization · GDPR + payment integration.
 

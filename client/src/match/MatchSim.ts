@@ -118,8 +118,10 @@ import {
   initiateLastHopeEvac,
   isCampaignActive,
   isLootDropExpired,
-  loadCitizens,
+  loadCitizensFromVolunteerPool,
   loadFuel,
+  padCitizenMixSatisfiesShip,
+  resetPadCitizenLoad,
   lootDropId,
   newActiveCampaign,
   newColonyShipFlight,
@@ -687,8 +689,11 @@ export function tickMatch(state: MatchState): void {
 
   for (const civState of state.civs.values()) {
     if (!civState.alive) continue
-    if (civState.isHuman) continue
-    tickAIPadAutomation(state, civState)
+    // PHASE 17.L.A.6 — pad autoload runs for HUMAN civ too now. Previously the human civ was
+    // excluded, meaning human-launched pads never auto-pulled citizens and shipped with 0
+    // aboard. The autoload step is tier-aware (suicide ships only pull tier 4-5), so the
+    // citizen-tier gate is enforced at LOAD time, not just at LAUNCH time.
+    tickPadAutomation(state, civState)
   }
 
   for (const civState of state.civs.values()) {
@@ -1353,7 +1358,10 @@ function findPlanetForPad(state: MatchState, pad: LaunchPad): MatchPlanetState |
   return null
 }
 
-function tickAIPadAutomation(state: MatchState, civState: MatchCivState): void {
+// PHASE 17.L.A.6 — renamed from tickAIPadAutomation: now runs for ALL civs including the human
+// player. Citizen autoload is tier-aware so suicide ships only pull from tier 4-5 regardless of
+// which civ owns the pad.
+function tickPadAutomation(state: MatchState, civState: MatchCivState): void {
   for (const planet of state.planets.values()) {
     if (planet.civId !== civState.civId) continue
     for (const pad of planet.launchPads.values()) {
@@ -1374,19 +1382,12 @@ function tickAIPadAutomation(state: MatchState, civState: MatchCivState): void {
       } else if (pad.state === 'READY' && pad.loadedShipVariantId) {
         const def = getColonyShipDef(pad.loadedShipVariantId)
         if (def.payload.citizenCapacity > 0 && pad.citizensLoaded < def.payload.citizenCapacity) {
-          const eliteAvail =
-            (planet.population.tierCounts[4] ?? 0) + (planet.population.tierCounts[5] ?? 0)
-          const want = Math.min(def.payload.citizenCapacity - pad.citizensLoaded, eliteAvail)
-          if (want > 0) {
-            const drawn = loadCitizens(pad, want)
-            const fromTier5 = Math.min(planet.population.tierCounts[5] ?? 0, drawn)
-            planet.population.tierCounts[5] = (planet.population.tierCounts[5] ?? 0) - fromTier5
-            const remaining = drawn - fromTier5
-            planet.population.tierCounts[4] = Math.max(
-              0,
-              (planet.population.tierCounts[4] ?? 0) - remaining,
-            )
-          }
+          // PHASE 17.L.A.6 — tier-aware autoload via the shared helper. Suicide ships pull from
+          // tier 5 then tier 4 ONLY (refuse to dip lower per SMOL_DESIGN_COLONY_SHIPS §9-NEW).
+          // Non-suicide ships fill from tier 1 upward. The helper drains tierCounts and updates
+          // pad.citizensLoadedByTier in a single pass — no manual tier subtraction here.
+          const want = def.payload.citizenCapacity - pad.citizensLoaded
+          loadCitizensFromVolunteerPool(pad, planet.population, want, def.suicideShip)
         }
       }
     }
@@ -2266,6 +2267,25 @@ export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
     const targetPlanet = inputs.state.planets.get(inputs.targetPlanetId)
     if (!targetPlanet) return false
     const def = getColonyShipDef(pad.loadedShipVariantId)
+    // PHASE 17.L.A.6 — citizen tier-gate per SMOL_DESIGN_COLONY_SHIPS §9-NEW + user verbatim
+    // "remember above all citizens dont want to kill them selves but for the most high
+    // tiered/happy/statas we have". Suicide ships REFUSE to launch unless all citizens aboard
+    // are tier 4-5. If lower-tier citizens are aboard (which can happen if the player manually
+    // loaded them before the autoload caught up, or if a future conscription override mode
+    // adds them), the launch is refused with an "Insufficient Volunteers" event so the player
+    // knows to invest in propaganda buildings (Cathedral / University / Re-education /
+    // Corporate Promotions) to elevate more tier 4-5 citizens before retrying.
+    if (def.suicideShip && !padCitizenMixSatisfiesShip(pad)) {
+      const lowerAboard =
+        pad.citizensLoadedByTier[1] + pad.citizensLoadedByTier[2] + pad.citizensLoadedByTier[3]
+      pushEvent(inputs.state, {
+        atTick: inputs.state.currentTick,
+        civId: planet.civId,
+        kind: 'launch',
+        message: `Insufficient Volunteers — ${def.name} demands tier 4-5 citizens only (${lowerAboard} lower-tier aboard). Invest in propaganda buildings to elevate more citizens.`,
+      })
+      return false
+    }
     // PHASE 17.J.5 — reactor fuel loading. Reactor variants require their tier-specific
     // radioactive resource consumed from the launching planet's inventory at liftoff. Solar /
     // battery variants have reactorFuelType === null and skip this gate. Launch aborts if the
@@ -2454,7 +2474,7 @@ void buildHumanCoopAlliance
 void recordPlanetGain
 void aggregateActiveCampaignBonus
 void loadFuel
-void loadCitizens
+void resetPadCitizenLoad
 void BLDG_FACTORY
 void BLDG_LAB
 void BLDG_LUMBER_CAMP

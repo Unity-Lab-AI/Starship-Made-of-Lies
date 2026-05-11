@@ -152,7 +152,11 @@ export function PreviewPage() {
     pad.loadedShipVariantId = SHIP_STANDARD
     pad.fuelLoaded = 60
     pad.ammoLoaded = 10
+    // PHASE 17.L.A.6 — preview demo pad is loaded with a non-suicide STANDARD colony ship, so
+    // tier-1 worker volunteers are acceptable. Set both the scalar AND the per-tier breakdown
+    // so launch-pad invariants hold (scalar always == sum of tiers).
     pad.citizensLoaded = 200
+    pad.citizensLoadedByTier = { 1: 200, 2: 0, 3: 0, 4: 0, 5: 0 }
     setTargetQueue(pad, [
       {
         targetPlanetId: galaxy.planets[1]?.id ?? planetIdValue('preview-target'),

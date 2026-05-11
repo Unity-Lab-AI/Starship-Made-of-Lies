@@ -33,14 +33,19 @@ A real-time, multi-hour, planet-scale strategy game where every "starship" your 
    ╔═════════════════════════════════════════════════════════════╗
    ║   Code-review fixes:                          100% ✓        ║
    ║   Core game loop (build→economy→launch→win):  ~85%          ║
-   ║   UMS-faithful immersion (panels, UI):        ~91% (17.J)   ║
+   ║   UMS-faithful immersion (panels, UI):        ~93% (17.J)   ║
+   ║   PHASE 0 design contract enforcement:        ~10% (17.L)   ║
    ║   Ready-to-sell business surface:             ~20%          ║
    ╚═════════════════════════════════════════════════════════════╝
 ```
 
 **Working today:** build emoji buildings on planet hex tiles · planet-level economy (30+ resources, 28+ buildings, audited production catalog) · workforce sliders (food/industry/research/propaganda/military) · launch colony ships at enemies · 6 targeting modes · counter-colony-ship interception · mine fields · 18 colony ship variants · 38+ tech-tree nodes · 15+ government themes · indigenous civilizations · 4-tier AI difficulty × 4 personality archetypes · solar-system clustered galaxy with 4× star scale + collision-free wrap-aware placement · spectral-class stars (O/B/A/F/G/K/M) · outpost-driven mining-ship economy · fog of war (hidden planets) · 11-LCD telemetry rack · Auto-Fire salvo orchestrator · god-control mid-flight redirect · **draggable / position-persisted panels** · **unified top toolbar (every resource + citizen tier breakdown)** · **Reset Layout** · **Planet Energy panel** · **Battery Bank + Fission/Fusion/Antimatter reactor buildings** · **reactor-class colony ships consume tier-specific radioactives at launch** · **Citizens panel with ship-duty sliders driving the volunteer pool** · **modular 8-slot ship builder + saved-blueprints library**.
 
-**Open in PHASE 17.J (1 of 11 sub-tasks remaining):** per-launch crew + cargo loading UI + quick-launch-from-blueprint integration. Blueprint LIBRARY is functional standalone; LAUNCH flow still uses the COLONY_SHIPS catalog via ShipBuildPanel. Wiring blueprints into the launch path needs a structural addition to `ColonyShipFlight` (custom-build stats) or a blueprint-id route through `launchShipFromPad`.
+**PHASE 17.J complete (11 of 11 sub-tasks shipped on `main`).** Blueprint→print→launch wiring closed in commit `91efe1c8` — `ColonyShipFlight.customBuild` synthesizes a flight def from blueprint stats overlaid on the base variant.
+
+**SHIPPED in PHASE 17.L (PHASE 0 design contract honoring — super-review 2026-05-11):** citizen tier-gate enforcement at launch — suicide colony ships REFUSE to launch unless every citizen aboard is tier 4-5. Per SMOL_DESIGN_COLONY_SHIPS §9-NEW + user verbatim *"remember above all citizens dont want to kill them selves but for the most high tiered/happy/statas we have"*. The Citizen Tier System became real gameplay constraint, not decorative population data.
+
+**Open in PHASE 17.L (super-review-identified PHASE 0 contract gaps — full list in `.claude/TODO.md`):** reactor mid-flight fuel drain · battery-bank stockpile cap · brownout building auto-disable · workforce reserved-pool enforcement · player-pickable base variant in builder · drag-allocate crew + cargo UI at launch · tracking-camera panel · Sankey production chains · 3-mode mining (oneway / shuttle-single / shuttle-multi) · UMS quotas + auto-recycle · save/load host-config · boot-ceremony /play fullscreen gate · multi-settlement-per-planet (PHASE 17.13 revival).
 
 **Aspirational (PHASE 17.D / 17.E):** real OAuth tail (Discord/Apple/email-passwordless) · Postgres-backed multiplayer at scale · cross-device sync · mobile (Capacitor) + desktop (Tauri) packaging · replay archive · diplomacy + treaty system · cinematics · localization. Gated on business decisions.
 
@@ -634,18 +639,45 @@ PHASE 17 subdivided into focused sub-phases during the post-16 super-review cycl
    ║           radioactives consumed from planet stockpile          ║
    ║  17.J.9-4-11  Citizens panel + ship-duty sliders + modular    ║
    ║           8-slot ship builder + saved blueprints library       ║
+   ║  17.J.10  Per-launch blueprint→print→launch wiring             ║
+   ║           (ColonyShipFlight.customBuild synthesizes a flight   ║
+   ║           def from blueprint stats overlaid on base variant)   ║
+   ║  17.K     Fog-of-war host toggle in New Game setup             ║
+   ║  17.L.A.6 Citizen tier-gate enforcement at launch — suicide   ║
+   ║           colony ships REFUSE non-tier-4-5 citizens aboard.    ║
+   ║           Per SMOL_DESIGN_COLONY_SHIPS §9-NEW + user verbatim  ║
+   ║           "citizens dont want to kill them selves but for the  ║
+   ║           most high tiered/happy/statas we have".              ║
    ╚════════════════════════════════════════════════════════════════╝
 
    ╔═══════════ ACTIVE ═════════════════════════════════════════════╗
-   ║  17.J.10 Per-launch crew + cargo loading UI                    ║
-   ║          + quick-launch-from-blueprint integration             ║
-   ║          (only 17.J sub-task still open — 10/11 shipped)       ║
+   ║  17.L     PHASE 0 / PHASE 17 design contract honoring          ║
+   ║           (super-review 2026-05-11 found 13 LOCKED answers     ║
+   ║           half-shipped or silently dropped — see TODO 17.L)    ║
    ║                                                                ║
-   ║          Needs structural addition to ColonyShipFlight         ║
-   ║          (custom-build stats) or blueprint-id route through    ║
-   ║          launchShipFromPad — blueprint LIBRARY functional      ║
-   ║          standalone, LAUNCH flow still uses COLONY_SHIPS       ║
-   ║          catalog via ShipBuildPanel.                           ║
+   ║  17.L.A   P1 close-the-loop items:                             ║
+   ║           · reactor mid-flight fuel drain → STRANDED           ║
+   ║           · battery-bank fuel stockpile cap                    ║
+   ║           · brownout building auto-disable                     ║
+   ║           · workforce reserved-pool enforcement                ║
+   ║           · player-pickable base variant in builder            ║
+   ║           · drag-allocate crew + cargo UI at launch            ║
+   ║           · crew + cargo preset persistence                    ║
+   ║           · tracking-camera panel (Q13 LOCKED, never started)  ║
+   ║           · Sankey production chains (Q14 LOCKED)              ║
+   ║           · 3-mode mining (Q5 LOCKED, never started)           ║
+   ║           · UMS quotas + auto-recycle (Q11 LOCKED)             ║
+   ║           · save/load host-config (Q12 LOCKED)                 ║
+   ║           · boot-ceremony /play fullscreen gate (Q9 LOCKED)    ║
+   ║           · PHASE 17.13 multi-settlement-per-planet revival    ║
+   ║                                                                ║
+   ║  17.L.B   P2 polish: crew/cargo preview, multi-pad blueprint   ║
+   ║           print, resize handles, NO TRUNCATION audit,          ║
+   ║           profanity scrub, waypoint queue editor               ║
+   ║                                                                ║
+   ║  17.L.C   P3 design: mid-flight refuel, energy gating, planet  ║
+   ║           summary popup, snap-to-grid, drag-bounds viz, perf   ║
+   ║           index for empire-peak scale                          ║
    ╚════════════════════════════════════════════════════════════════╝
 
    ╔═══════════ DESIGNED, NOT YET IMPLEMENTED ══════════════════════╗

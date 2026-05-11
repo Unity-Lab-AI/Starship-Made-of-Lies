@@ -65,12 +65,26 @@
    │   Fission/Fusion/Antimatter reactor buildings ✅ 17.J.8     │
    │   Citizen panel w/ ship-duty sliders          ✅ 17.J.9     │
    │   Saved ship blueprints library               ✅ 17.J.11    │
+   │   Blueprint→print→launch wiring               ✅ 17.J.10    │
+   │   Fog-of-war host toggle in New Game          ✅ 17.K       │
+   │   Citizen tier-gate enforcement at launch     ✅ 17.L.A.6   │
    ├─────────────────────────────────────────────────────────────┤
-   │   ACTIVE — PHASE 17.J tail (1/11)                            │
+   │   ACTIVE — PHASE 17.L tail (super-review additions)         │
    ├─────────────────────────────────────────────────────────────┤
-   │   Per-launch crew + cargo UI                  🚧 17.J.10    │
-   │   Quick-launch from saved blueprint           🚧 17.J.10    │
-   │   Production-chain Sankey                     🚧 17.J.12    │
+   │   Reactor mid-flight fuel drain → STRANDED    🚧 17.L.A.1   │
+   │   Battery-bank fuel stockpile cap             🚧 17.L.A.2   │
+   │   Brownout building auto-disable              🚧 17.L.A.3   │
+   │   Workforce reserved-pool enforcement         🚧 17.L.A.4   │
+   │   Player-pickable base variant in builder     🚧 17.L.A.5   │
+   │   Drag-allocate crew + cargo manifest UI      🚧 17.L.A.7   │
+   │   Crew + cargo preset persistence             🚧 17.L.A.8   │
+   │   Tracking camera panel (single-flight RTT)   🚧 17.L.A.9   │
+   │   Production-chain Sankey panel               🚧 17.L.A.10  │
+   │   Three-mode mining (oneway/single/multi)     🚧 17.L.A.11  │
+   │   UMS quotas + auto-recycle                   🚧 17.L.A.12  │
+   │   Save/Load host-configurable                 🚧 17.L.A.13  │
+   │   Boot-ceremony /play fullscreen gate         🚧 17.L.A.14  │
+   │   Multi-settlement-per-planet revival         🚧 17.L.A.15  │
    ├─────────────────────────────────────────────────────────────┤
    │   AWAITING BUSINESS DECISIONS — PHASE 17.D/E + EXTERNAL    │
    ├─────────────────────────────────────────────────────────────┤
@@ -220,7 +234,7 @@
 | Saved-target locations (galaxy waypoint list) | 6 | ⬜ planned | Intermediate | P0 | UnityPad button-panel GPS |
 | Pad inventory + telemetry panels (per-pad LCD-style, theme-skinned) | 6, 7 | ⬜ planned | Intermediate | P0 | UnityPad LCDs |
 | Colony ship body construction (resource cost, build time, queued in pad) | 6 | ⬜ planned | Intermediate | P0 | UnityPad.cs BUILD state |
-| Citizen loading (configurable count, theme-flavored coax — gated by Citizen Tier System) | 6 | ⬜ planned | Intermediate | P0 | (SMoL-new — coax-based) |
+| Citizen loading (configurable count, theme-flavored coax — gated by Citizen Tier System) | 6 | ✅ 17.L.A.6 partial — tier-gate at launch live; manual coax UI deferred to 17.L.A.7 | Intermediate | P0 | SMOL_DESIGN_COLONY_SHIPS §9-NEW + user verbatim *"citizens dont want to kill them selves but for the most high tiered/happy/statas we have"* |
 | Payload configurator (citizens vs equipment vs weapons trade-off) | 6 | ⬜ planned | Advanced | P0 | (SMoL-new) |
 | Tech-tier-scaled payload size | 6 | ⬜ planned | Intermediate | P1 | (SMoL-new) |
 | Arm/Disarm controls | 6 | ⬜ planned | Basic | P0 | UnityPad.cs ARM/DISARM |
