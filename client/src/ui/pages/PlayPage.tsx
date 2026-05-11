@@ -151,6 +151,22 @@ export function PlayPage() {
   )
   void sim.tickCount
 
+  // PHASE 17.PRE.1 — reference-stable owned-planet ID set. Before this fix, `ownedPlanetIds`
+  // was rebuilt as a new Set on every PlayPage render (which fires every game tick). That new
+  // Set instance was in GalaxyView's main useEffect dep array, causing the entire Three.js
+  // scene to tear down + rebuild 5×/sec at default tick speed — camera position / zoom /
+  // input state all reset. We memoize on the actual id-string (sorted + joined) so the Set
+  // identity stays stable unless the owned-planet membership actually changes.
+  const ownedPlanetIdsKey = ownedPlanets
+    .map((p) => String(p.planet.id))
+    .sort()
+    .join(',')
+  const ownedPlanetIds = useMemo(
+    () => new Set(ownedPlanets.map((p) => p.planet.id)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ownedPlanetIdsKey],
+  )
+
   const activePlanetId = selectedPlanetId ?? humanCivState.homePlanetId
   const activePlanet =
     sim.state.planets.get(activePlanetId) ?? sim.state.planets.get(humanCivState.homePlanetId)!
@@ -730,7 +746,7 @@ export function PlayPage() {
           <GalaxyView
             galaxy={sim.state.galaxy}
             humanCivId={String(sim.state.humanCivId)}
-            ownedPlanetIds={new Set(ownedPlanets.map((p) => p.planet.id))}
+            ownedPlanetIds={ownedPlanetIds}
             homePlanetId={humanCivState.homePlanetId}
             mineFields={allMineFields}
             activeFlights={[...sim.state.flights.values()]}
