@@ -94,9 +94,16 @@ export function ColonyShipFlightPanel({ flights, onAfterAction }: ColonyShipFlig
                   <button
                     type="button"
                     className="flight-panel__abort"
+                    disabled={!flight.selfDestructInstalled}
+                    title={
+                      flight.selfDestructInstalled
+                        ? 'Self-destruct this ship in-flight (UMS-faithful abort). AoE damage scales with fuel + payload at detonation.'
+                        : '🚫 No self-destruct system armed on this ship. Either research "Self-Destruct Systems" (tier 1 industrial) OR use a variant with detonation hardware (suicide / counter-interceptor / explosive payload). Per user verbatim 2026-05-11 "research and installed on the ship before u can self destruct ships".'
+                    }
                     onClick={() => {
-                      abortFlight(flight)
-                      onAfterAction?.()
+                      if (!flight.selfDestructInstalled) return
+                      const ok = abortFlight(flight)
+                      if (ok) onAfterAction?.()
                     }}
                   >
                     Abort

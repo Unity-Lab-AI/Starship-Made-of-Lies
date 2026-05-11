@@ -84,6 +84,7 @@ import {
   SHIP_SCOUT,
   SHIP_STANDARD,
   TECH_GOD_CONTROL,
+  TECH_SELF_DESTRUCT_SYSTEMS,
   THEMES,
   aggregateActiveCampaignBonus,
   aggregateEffects,
@@ -1403,6 +1404,11 @@ function launchAIShipFromPad(
 ): void {
   if (!pad.loadedShipVariantId) return
   const def = getColonyShipDef(pad.loadedShipVariantId)
+  // PHASE 17.L.A.17 — AI launch path also computes selfDestructInstalled so AI flights are
+  // abortable per-civ when the AI has researched TECH_SELF_DESTRUCT_SYSTEMS. Keeps human + AI
+  // sides symmetric (no surprise where AI flights can self-destruct but human civ's can't).
+  const civHasSelfDestructTech = civState.empire.researchedTechs.has(TECH_SELF_DESTRUCT_SYSTEMS)
+  const selfDestructInstalled = civHasSelfDestructTech && def.selfDestructCapable
   const flightIdStr = `flight-${state.currentTick}-${civState.civId}-${pad.id}`
   const flight = newColonyShipFlight({
     id: colonyShipFlightId(flightIdStr),
@@ -1415,6 +1421,7 @@ function launchAIShipFromPad(
     travelRadius: 1000,
     citizensAboard: pad.citizensLoaded,
     signalLossSeed: Math.floor(state.rng() * 0xffffff),
+    selfDestructInstalled,
   })
   state.flights.set(flightIdStr, flight)
   pad.state = 'GONE'
@@ -1543,6 +1550,9 @@ function attemptDefenderCounterLaunch(
     travelRadius: COUNTER_TRAVEL_RADIUS,
     counterShipVariantId: SHIP_COUNTER_COLONY,
     nextFlightId: () => colonyShipFlightId(counterFlightIdStr),
+    // PHASE 17.L.A.17 — pass through defender's tech state so the counter flight arms with
+    // self-destruct when researched.
+    defenderHasSelfDestructTech: defenderCiv.empire.researchedTechs.has(TECH_SELF_DESTRUCT_SYSTEMS),
   })
   if (!result.canIntercept || !result.counterFlight) return
 
@@ -2304,6 +2314,13 @@ export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
       consumeResource(planet.inventory, def.reactorFuelType, def.reactorFuelAmount)
     }
     const flightIdStr = `flight-${inputs.state.currentTick}-${planet.civId}-${pad.id}`
+    // PHASE 17.L.A.17 — self-destruct arms only when the launching civ has researched
+    // TECH_SELF_DESTRUCT_SYSTEMS AND the variant has detonation intent baked in (suicide /
+    // counter / explosive payload). Without it the ship can only end via natural causes.
+    const launchingCivState = inputs.state.civs.get(planet.civId)
+    const civHasSelfDestructTech =
+      launchingCivState?.empire.researchedTechs.has(TECH_SELF_DESTRUCT_SYSTEMS) ?? false
+    const selfDestructInstalled = civHasSelfDestructTech && def.selfDestructCapable
     // PHASE 17.J.10 — thread loadedCustomBuild into the flight so flightDef() resolves to the
     // blueprint-derived stats instead of the base variant. baseVariantId is set so downstream
     // code paths (suicide-ship flag, can-intercept flag, render-layer color) still resolve.
@@ -2318,6 +2335,7 @@ export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
       travelRadius: 1000,
       citizensAboard: pad.citizensLoaded,
       signalLossSeed: Math.floor(inputs.state.rng() * 0xffffff),
+      selfDestructInstalled,
       ...(inputs.targetingMode ? { targetingMode: inputs.targetingMode } : {}),
       ...(pad.loadedCustomBuild
         ? {

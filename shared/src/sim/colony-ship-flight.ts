@@ -226,6 +226,12 @@ export interface ColonyShipFlight {
   // a mode). Mode is preserved across redirect (god-control) so the same guidance package
   // applies post-redirect. Mode biases dispersion radius via TARGETING_MODE_DISPERSION_MULTIPLIER.
   readonly targetingMode: TargetingMode
+  // PHASE 17.L.A.17 — self-destruct armed at launch. Set true ONLY when the launching civ has
+  // researched TECH_SELF_DESTRUCT_SYSTEMS AND the variant has def.selfDestructCapable. Per user
+  // verbatim "researched and installed on the ship". abortFlight refuses when this is false —
+  // the ship must end via natural causes (impact / crash / starvation / power-out / fuel-out /
+  // reactor explosion at end-of-life).
+  readonly selfDestructInstalled: boolean
 }
 
 export interface FlightCreateOptions {
@@ -248,6 +254,10 @@ export interface FlightCreateOptions {
   // that needs a stable id; customBuild.stats override the per-tick numbers (fuel/power/etc.)
   // via flightDef().
   readonly customBuild?: CustomShipBuild
+  // PHASE 17.L.A.17 — caller passes true when launching civ has researched
+  // TECH_SELF_DESTRUCT_SYSTEMS AND the variant has def.selfDestructCapable. Defaults false for
+  // legacy code paths (AI quickfire, test setup) so the gate stays restrictive by default.
+  readonly selfDestructInstalled?: boolean
 }
 
 export const BASE_TRAVEL_SPEED_PER_TICK = 5
@@ -348,6 +358,7 @@ export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight
     ticksFlown: 0,
     phase: 'CLIMB',
     outcome: null,
+    selfDestructInstalled: opts.selfDestructInstalled ?? false,
     signalLossSeed: seed,
     citizensAboard: opts.citizensAboard,
     targetingMode,
@@ -633,10 +644,18 @@ export function intercept(
   void reason
 }
 
-export function abortFlight(flight: ColonyShipFlight): void {
-  if (TERMINAL_PHASES.has(flight.phase)) return
+// PHASE 17.L.A.17 — mid-flight abort (self-destruct) gated on the flight's selfDestructInstalled
+// flag per user verbatim 2026-05-11 (LAW #0): "i meant its a tach that needs to be researched
+// andd installed on the ship before u can self destruct ships". The flag is set true at launch
+// only when launching civ has researched TECH_SELF_DESTRUCT_SYSTEMS AND def.selfDestructCapable.
+// Returns true when the abort succeeded, false when it was refused (terminal phase OR no
+// self-destruct system). Caller (useMatchSim abortFlightById) surfaces the refusal upstream.
+export function abortFlight(flight: ColonyShipFlight): boolean {
+  if (TERMINAL_PHASES.has(flight.phase)) return false
+  if (!flight.selfDestructInstalled) return false
   flight.phase = 'ABORTED'
   flight.outcome = 'ABORTED'
+  return true
 }
 
 export function markCrashLanded(flight: ColonyShipFlight): void {

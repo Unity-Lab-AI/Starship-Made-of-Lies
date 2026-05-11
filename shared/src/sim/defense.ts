@@ -61,6 +61,11 @@ export interface CounterMissilePadInputs {
   readonly travelRadius: number
   readonly counterShipVariantId?: ColonyShipVariantId
   readonly nextFlightId: () => ColonyShipFlightId
+  // PHASE 17.L.A.17 — defender's TECH_SELF_DESTRUCT_SYSTEMS research state. When true AND the
+  // counter variant has def.selfDestructCapable (true by definition for canIntercept ships),
+  // the counter flight ships with selfDestructInstalled = true so the defender can manually
+  // self-destruct it mid-pursuit. Default false keeps legacy callers strict.
+  readonly defenderHasSelfDestructTech?: boolean
 }
 
 export interface AttemptInterceptResult {
@@ -107,6 +112,10 @@ export function attemptCounterMissileLaunch(
     travelRadius: defender.travelRadius,
     citizensAboard: 0,
     signalLossSeed: attacker.signalLossSeed ^ 0xdefdef,
+    // PHASE 17.L.A.17 — counter is always selfDestructCapable (canIntercept variants have
+    // detonation hardware by definition), so the gate is purely on defender's tech research.
+    selfDestructInstalled:
+      (defender.defenderHasSelfDestructTech ?? false) && counterDef.selfDestructCapable,
   })
   return {
     counterFlight,

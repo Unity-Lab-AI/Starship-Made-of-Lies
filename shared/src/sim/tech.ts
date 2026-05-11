@@ -130,6 +130,20 @@ export const TECH_BLACK_OPS_RESEARCH = techId('blackOpsResearch')
 // to send your rocket places too as an option if 'god control' is researched and installed"*.
 export const TECH_GOD_CONTROL = techId('godControl')
 
+// PHASE 17.L.A.17 — Self-Destruct Systems. Tier 1 mainstream industrial tech that gates the
+// mid-flight ABORT (self-destruct) action. Per user verbatim 2026-05-11 (LAW #0): "i meant
+// its a tach that needs to be researched andd installed on the ship before u can self destruct
+// ships other wise impascting and crashing is only end to them ie plant hit, fall into star
+// ect ect continues until crew dies then power runs out fuel is jsut a waiting time bomb and
+// or anything else installed explosives ammunitions ectect reactor even is explosive".
+//
+// Without this tech researched, the player's flights can ONLY end via natural causes (planet
+// impact / crash / crew starvation / power-out / fuel-out / reactor explosion at end-of-life).
+// With this tech + a self-destruct-capable ship variant (suicide ships / counter-interceptors /
+// explosive payloads — anything with detonation intent baked in), the player can manually
+// trigger end-of-flight at any time.
+export const TECH_SELF_DESTRUCT_SYSTEMS = techId('selfDestructSystems')
+
 export const TECH_NODES: ReadonlyArray<TechNode> = [
   {
     id: TECH_INDUSTRIAL_LOGISTICS,
@@ -714,6 +728,19 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     effects: {
       propagandaPowerMultiplier: 1.3,
     },
+  },
+  {
+    id: TECH_SELF_DESTRUCT_SYSTEMS,
+    name: 'Self-Destruct Systems',
+    emoji: '💣',
+    tier: 1,
+    visibility: 'mainstream',
+    category: 'industrial',
+    description:
+      'Onboard termination charges + civ-side trigger network. Lets the player manually self-destruct their own colony ships mid-flight (only ships with detonation intent baked in — suicide-class, counter-interceptors, explosive payloads). Without this, ships can only end via planet impact, crash, crew starvation, power-out, fuel-out, or reactor end-of-life.',
+    prerequisites: [TECH_INDUSTRIAL_LOGISTICS],
+    costPoints: 50,
+    effects: {},
   },
   {
     id: TECH_VOLUNTEER_INDOCTRINATION,
