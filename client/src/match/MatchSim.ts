@@ -36,6 +36,7 @@ import {
   type PlanetWorkforce,
   type PlaystyleArchetype,
   type ShipLoadoutContext,
+  type TargetingMode,
   type Theme,
   type ThemeId,
   type Tile,
@@ -1907,6 +1908,10 @@ export interface LaunchShipInputs {
   readonly state: MatchState
   readonly padId: TileId
   readonly targetPlanetId: PlanetId
+  // PHASE 16.33 — UMS 6-mode targeting selection from TargetingModePanel state. Defaults to
+  // GPS when omitted (legacy callers / auto-fire mass-action paths). Mode biases the per-
+  // flight dispersion radius via TARGETING_MODE_DISPERSION_MULTIPLIER.
+  readonly targetingMode?: TargetingMode
 }
 
 export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
@@ -1931,6 +1936,7 @@ export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
       travelRadius: 1000,
       citizensAboard: pad.citizensLoaded,
       signalLossSeed: Math.floor(inputs.state.rng() * 0xffffff),
+      ...(inputs.targetingMode ? { targetingMode: inputs.targetingMode } : {}),
     })
     inputs.state.flights.set(flightIdStr, flight)
     pad.state = 'GONE'
@@ -2003,6 +2009,8 @@ export function redirectFlightAction(inputs: RedirectFlightInputs): boolean {
   // Build a fresh flight from currentPos → newTarget. newColonyShipFlight handles arc +
   // dispersion + initial state computation. Then we override the mutable carryover state to
   // preserve power/crew/fuel/life-support — god control doesn't refuel the ship, just redirects.
+  // PHASE 16.33 — targetingMode preserved across redirect so the same guidance package applies
+  // to the new arc (god control doesn't re-pick the mode, it just retargets).
   const redirected = newColonyShipFlight({
     id: flight.id,
     variantId: flight.variantId,
@@ -2014,6 +2022,7 @@ export function redirectFlightAction(inputs: RedirectFlightInputs): boolean {
     travelRadius: 1000,
     citizensAboard: flight.citizensAboard,
     signalLossSeed: flight.signalLossSeed,
+    targetingMode: flight.targetingMode,
   })
   redirected.powerRemaining = flight.powerRemaining
   redirected.lifeSupportRemaining = flight.lifeSupportRemaining
