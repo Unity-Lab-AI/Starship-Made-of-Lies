@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { type ColonyShipFlight, type Galaxy, type Planet, type PlanetId } from '@smol/shared'
+import {
+  type CivId,
+  type ColonyShipFlight,
+  type Galaxy,
+  type Planet,
+  type PlanetId,
+  type Theme,
+} from '@smol/shared'
 import {
   applyCameraTransform,
   attachCameraController,
@@ -12,9 +19,11 @@ import {
   buildBeaconPulseLayer,
   buildFlightArcLayer,
   buildGalaxyLayer,
+  buildOwnerFlagLayer,
   buildRangeOverlayLayer,
   syncBeaconPulses,
   syncFlightArcs,
+  syncOwnerFlags,
 } from './galaxyLayer'
 import './scene.css'
 
@@ -34,6 +43,8 @@ interface GalaxyViewProps {
   readonly homePlanetId: PlanetId
   readonly activeFlights: ReadonlyArray<ColonyShipFlight>
   readonly alertedPlanetIds: ReadonlySet<PlanetId>
+  readonly ownerByPlanet: ReadonlyMap<PlanetId, CivId>
+  readonly themeByCiv: ReadonlyMap<CivId, Theme>
   readonly onSelectPlanet: (id: PlanetId) => void
   readonly onClose: () => void
 }
@@ -45,6 +56,8 @@ export function GalaxyView({
   homePlanetId,
   activeFlights,
   alertedPlanetIds,
+  ownerByPlanet,
+  themeByCiv,
   onSelectPlanet,
   onClose,
 }: GalaxyViewProps) {
@@ -53,9 +66,13 @@ export function GalaxyView({
   const [rangeOverlayVisible, setRangeOverlayVisible] = useState(false)
   const activeFlightsRef = useRef(activeFlights)
   const alertedPlanetIdsRef = useRef(alertedPlanetIds)
+  const ownerByPlanetRef = useRef(ownerByPlanet)
+  const themeByCivRef = useRef(themeByCiv)
   const rangeVisibleRef = useRef(rangeOverlayVisible)
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
+  ownerByPlanetRef.current = ownerByPlanet
+  themeByCivRef.current = themeByCiv
   rangeVisibleRef.current = rangeOverlayVisible
   void humanCivId
 
@@ -110,6 +127,8 @@ export function GalaxyView({
     scene.add(flightArcHandle.group)
     const beaconPulseHandle = buildBeaconPulseLayer()
     scene.add(beaconPulseHandle.group)
+    const ownerFlagHandle = buildOwnerFlagLayer()
+    scene.add(ownerFlagHandle.group)
     const homePlanetMesh = galaxyHandle.planetMeshes.get(homePlanetId)
     const rangeOverlayHandle = buildRangeOverlayLayer(
       homePlanetMesh ? homePlanetMesh.position.clone() : new THREE.Vector3(),
@@ -253,6 +272,15 @@ export function GalaxyView({
         cameraState.camera,
       )
 
+      // Sync owner-civ flag billboards
+      syncOwnerFlags(
+        ownerFlagHandle,
+        galaxy,
+        galaxyHandle.planetMeshes,
+        ownerByPlanetRef.current,
+        themeByCivRef.current,
+      )
+
       // Range overlay visibility
       rangeOverlayHandle.setVisible(rangeVisibleRef.current)
 
@@ -270,6 +298,7 @@ export function GalaxyView({
       controller.destroy()
       flightArcHandle.destroy()
       beaconPulseHandle.destroy()
+      ownerFlagHandle.destroy()
       rangeOverlayHandle.destroy()
       galaxyHandle.destroy()
       for (const ring of ringMaterials.values()) {

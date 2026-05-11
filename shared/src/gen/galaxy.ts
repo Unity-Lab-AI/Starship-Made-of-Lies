@@ -1,6 +1,6 @@
 import { mulberry32, planetId, type Vec3 } from '../types/index'
 import { BIOMES, biomesByTier } from './biome'
-import { generatePlanet, type Planet } from './planet'
+import { generatePlanet, rollPlanetSizeTier, type Planet } from './planet'
 
 export interface GalaxyConfig {
   readonly seed: number
@@ -37,9 +37,17 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
     const biomeIndex = Math.floor(rng() * BIOMES.length)
     const biome = BIOMES[biomeIndex]
     if (!biome) throw new Error('Biome catalog empty')
-    const planetRadius = 3000 + rng() * 5000
+    const sizeRoll = rollPlanetSizeTier(rng)
     const id = planetId(`planet-${i}`)
-    planets.push(generatePlanet({ id, position, biome, radius: planetRadius }))
+    planets.push(
+      generatePlanet({
+        id,
+        position,
+        biome,
+        radius: sizeRoll.worldRadius,
+        sizeTier: sizeRoll.tier,
+      }),
+    )
   }
 
   return { seed: config.seed, planets }
