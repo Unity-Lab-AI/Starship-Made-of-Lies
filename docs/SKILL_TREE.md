@@ -91,7 +91,7 @@
    │   Three-mode mining (oneway/single/multi)     🚧 17.L.A.11  │
    │   UMS quotas + auto-recycle                   🚧 17.L.A.12  │
    │   Save/Load host-configurable                 🚧 17.L.A.13  │
-   │   Boot-ceremony /play fullscreen gate         🚧 17.L.A.14  │
+   │   Boot-ceremony /play fullscreen gate         ✅ 17.L.A.14  │
    │   Multi-settlement-per-planet revival         🚧 17.L.A.15  │
    ├─────────────────────────────────────────────────────────────┤
    │   AWAITING BUSINESS DECISIONS — PHASE 17.D/E + EXTERNAL    │
