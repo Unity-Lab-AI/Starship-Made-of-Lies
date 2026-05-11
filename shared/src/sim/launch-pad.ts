@@ -1,6 +1,7 @@
 import { type CivId, type PlanetId, type TileId } from '../types/index'
 import { type ColonyShipVariantId, getColonyShipDef } from './colony-ship'
-import { type PlanetInventory, tryConsumeAll } from './inventory'
+import { type PlanetInventory, stockOf, tryConsumeAll } from './inventory'
+import { RESOURCE_AMMUNITION, RESOURCE_FUEL } from './resources'
 
 export type PadState =
   | 'INIT'
@@ -16,6 +17,10 @@ export type PadState =
   | 'GONE'
 
 export type PadOutcome = 'TARGET_HIT' | 'PROBABLE_HIT' | 'SIGNAL_LOST' | 'INTERCEPTED' | 'ABORTED'
+
+// PHASE 16.18 auto-load rates (units per sim tick). Tunable as economy balance shifts.
+const PAD_AUTO_FUEL_PER_TICK = 5
+const PAD_AUTO_AMMO_PER_TICK = 10
 
 export interface PadTargetWaypoint {
   readonly targetPlanetId: PlanetId
@@ -106,6 +111,20 @@ export function tickPad(
         break
       }
       const def = getColonyShipDef(pad.loadedShipVariantId)
+      // PHASE 16.18 game-vision-completion: auto-pull fuel from planet inventory each tick
+      // so pads progress FUEL → AMMO without manual intervention. Without this the pad
+      // sits in FUEL forever — directly violated the UMS-faithful "build cycles autonomously"
+      // expectation. PER_TICK pull is conservative (5 units / tick) so a tank doesn't drain
+      // in one frame; tunable later.
+      if (pad.fuelLoaded < def.fuelRequirement) {
+        const available = stockOf(inventory, RESOURCE_FUEL)
+        const need = def.fuelRequirement - pad.fuelLoaded
+        const pull = Math.min(PAD_AUTO_FUEL_PER_TICK, need, available)
+        if (pull > 0) {
+          inventory.stocks.set(RESOURCE_FUEL, available - pull)
+          pad.fuelLoaded += pull
+        }
+      }
       if (pad.fuelLoaded >= def.fuelRequirement) {
         pad.state = 'AMMO'
       }
@@ -117,6 +136,16 @@ export function tickPad(
         break
       }
       const def = getColonyShipDef(pad.loadedShipVariantId)
+      // Auto-pull ammo from inventory (matches FUEL pattern).
+      if (pad.ammoLoaded < def.ammoRequirement) {
+        const available = stockOf(inventory, RESOURCE_AMMUNITION)
+        const need = def.ammoRequirement - pad.ammoLoaded
+        const pull = Math.min(PAD_AUTO_AMMO_PER_TICK, need, available)
+        if (pull > 0) {
+          inventory.stocks.set(RESOURCE_AMMUNITION, available - pull)
+          pad.ammoLoaded += pull
+        }
+      }
       if (pad.ammoLoaded >= def.ammoRequirement) {
         pad.state = 'READY'
       }

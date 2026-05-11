@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { type CivId, type LootDropId } from '@smol/shared'
+import {
+  type CivId,
+  type ColonyShipVariantId,
+  type LootDropId,
+  type PlanetId,
+  abortFlight,
+} from '@smol/shared'
 import {
   type BuildShipInputs,
   type LaunchCampaignInputs,
@@ -36,6 +42,18 @@ export interface UseMatchSimResult {
   readonly claimLoot: (dropId: LootDropId) => boolean
   readonly triggerLastHope: (civId: CivId) => boolean
   readonly resetMatch: (newConfig?: MatchConfig) => void
+  // PHASE 16.14 — multi-pad controller mode mass actions. Iterate every launch pad on the
+  // target planet owned by the human civ and apply the command. Returns count of pads touched.
+  readonly controllerBuildAll: (planetId: PlanetId, variantId: ColonyShipVariantId) => number
+  readonly controllerArmAll: (planetId: PlanetId) => number
+  readonly controllerLaunchAll: (planetId: PlanetId) => number
+  readonly controllerAbortAll: (planetId: PlanetId) => number
+  readonly controllerCopyTarget: (planetId: PlanetId) => number
+  // PHASE 16.23: user-driven per-flight abort. Player clicks an in-flight cone in 3D, the
+  // FlightDetailPanel opens, the ABORT button fires this with the flight id. Per UMS
+  // UnityPad.cs DETONATE:{padID} IGC message — manual self-destruct. PHASE 16.24 will
+  // add AoE damage scaling from fuel + payload at detonation point.
+  readonly abortFlightById: (flightId: string) => boolean
 }
 
 export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
@@ -102,6 +120,140 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     [initialConfig],
   )
 
+  // === Controller-mode mass actions (PHASE 16.14) ===
+  // Each iterates every pad on the target planet owned by the human civ. The "controller"
+  // pad in v1 is informational — actions apply uniformly to every pad. UMS-faithful salvo
+  // stagger + per-pad targeted-pad payload is roadmapped per SMOL_REFERENCE_PAD.md §Salvo.
+
+  const padsOnPlanet = (state: MatchState, planetId: PlanetId) => {
+    const planet = state.planets.get(planetId)
+    if (!planet) return null
+    if (planet.civId !== state.humanCivId) return null
+    return planet
+  }
+
+  const controllerBuildAll = useCallback(
+    (planetId: PlanetId, variantId: ColonyShipVariantId): number => {
+      const state = stateRef.current
+      const planet = padsOnPlanet(state, planetId)
+      if (!planet) return 0
+      let touched = 0
+      for (const pad of planet.launchPads.values()) {
+        if (buildShipAction({ state, padId: pad.id, variantId })) touched += 1
+      }
+      if (touched > 0) setTickCount((n) => n + 1)
+      return touched
+    },
+    [],
+  )
+
+  const controllerArmAll = useCallback((planetId: PlanetId): number => {
+    const state = stateRef.current
+    const planet = padsOnPlanet(state, planetId)
+    if (!planet) return 0
+    let touched = 0
+    for (const pad of planet.launchPads.values()) {
+      if (pad.state === 'READY') {
+        pad.state = 'ARM'
+        touched += 1
+      }
+    }
+    if (touched > 0) setTickCount((n) => n + 1)
+    return touched
+  }, [])
+
+  const controllerLaunchAll = useCallback((planetId: PlanetId): number => {
+    const state = stateRef.current
+    const planet = padsOnPlanet(state, planetId)
+    if (!planet) return 0
+    let touched = 0
+    for (const pad of planet.launchPads.values()) {
+      if (pad.state !== 'ARM') continue
+      if (pad.targetQueue.length === 0) continue
+      const idx = pad.activeTargetIdx >= pad.targetQueue.length ? 0 : pad.activeTargetIdx
+      const target = pad.targetQueue[idx]
+      if (!target) continue
+      if (
+        launchShipFromPadAction({
+          state,
+          padId: pad.id,
+          targetPlanetId: target.targetPlanetId,
+        })
+      ) {
+        touched += 1
+      }
+    }
+    if (touched > 0) setTickCount((n) => n + 1)
+    return touched
+  }, [])
+
+  const controllerAbortAll = useCallback((planetId: PlanetId): number => {
+    const state = stateRef.current
+    const planet = padsOnPlanet(state, planetId)
+    if (!planet) return 0
+    let touched = 0
+    for (const pad of planet.launchPads.values()) {
+      if (
+        pad.state === 'LAUNCH' ||
+        pad.state === 'ARM' ||
+        pad.state === 'READY' ||
+        pad.state === 'AMMO' ||
+        pad.state === 'FUEL' ||
+        pad.state === 'PRINT' ||
+        pad.state === 'BUILD'
+      ) {
+        pad.state = 'IDLE'
+        pad.loadedShipVariantId = null
+        pad.buildTicksRemaining = 0
+        pad.fuelLoaded = 0
+        pad.ammoLoaded = 0
+        pad.citizensLoaded = 0
+        pad.lastOutcome = 'ABORTED'
+        touched += 1
+      }
+    }
+    if (touched > 0) setTickCount((n) => n + 1)
+    return touched
+  }, [])
+
+  const controllerCopyTarget = useCallback((planetId: PlanetId): number => {
+    const state = stateRef.current
+    const planet = padsOnPlanet(state, planetId)
+    if (!planet) return 0
+    const pads = [...planet.launchPads.values()]
+    const controller = pads[0]
+    if (!controller || controller.targetQueue.length === 0) return 0
+    let touched = 0
+    for (const pad of pads) {
+      if (pad === controller) continue
+      pad.targetQueue = [...controller.targetQueue]
+      pad.activeTargetIdx = 0
+      touched += 1
+    }
+    if (touched > 0) setTickCount((n) => n + 1)
+    return touched
+  }, [])
+
+  // PHASE 16.23: per-flight abort fired from FlightDetailPanel's "💀 ABORT (self-destruct)"
+  // button. Look up flight by id, call shared abortFlight() — flips phase to ABORTED +
+  // outcome to ABORTED. Per UMS UnityPad.cs DETONATE:{padID} IGC manual self-destruct.
+  const abortFlightById = useCallback((flightId: string): boolean => {
+    const state = stateRef.current
+    const flight = state.flights.get(flightId)
+    if (!flight) return false
+    if (
+      flight.phase === 'DETONATE' ||
+      flight.phase === 'INTERCEPTED' ||
+      flight.phase === 'ABORTED' ||
+      flight.phase === 'CRASH_LANDED'
+    ) {
+      return false
+    }
+    abortFlight(flight)
+    setTickCount((n) => n + 1)
+    return true
+  }, [])
+
   return {
     state: stateRef.current,
     tickCount,
@@ -117,5 +269,11 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     claimLoot,
     triggerLastHope,
     resetMatch,
+    controllerBuildAll,
+    controllerArmAll,
+    controllerLaunchAll,
+    controllerAbortAll,
+    controllerCopyTarget,
+    abortFlightById,
   }
 }

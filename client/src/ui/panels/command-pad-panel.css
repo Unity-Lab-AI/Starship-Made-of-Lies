@@ -1,0 +1,236 @@
+.command-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--fg-primary, #e6e6f0);
+}
+
+.command-pad__hint {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  background: rgba(212, 161, 58, 0.08);
+  border-left: 3px solid var(--accent, #d4a13a);
+  border-radius: 0 4px 4px 0;
+  font-style: italic;
+  color: var(--fg-secondary, #c0c0d0);
+}
+
+.command-pad__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.command-pad__title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.command-pad__count {
+  font-family: var(--font-mono, monospace);
+  color: var(--accent, #d4a13a);
+  font-weight: 700;
+}
+
+.command-pad__counters {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.45rem;
+}
+
+.command-pad__counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.4rem 0.3rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+.command-pad__counter-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-secondary, #a8a8b8);
+}
+
+.command-pad__counter-value {
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--accent, #d4a13a);
+  font-variant-numeric: tabular-nums;
+}
+
+.command-pad__controller {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  border-radius: 4px;
+}
+
+.command-pad__controller-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--success, #4ade80);
+  font-weight: 700;
+}
+
+.command-pad__controller-value {
+  font-family: var(--font-mono, monospace);
+  flex: 1;
+}
+
+.command-pad__controller-target {
+  font-size: 0.78rem;
+  color: var(--fg-secondary, #a8a8b8);
+}
+
+.command-pad__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+.command-pad__actions-title {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-secondary, #a8a8b8);
+}
+
+.command-pad__action-row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.command-pad__action-row--buttons {
+  flex-wrap: wrap;
+}
+
+.command-pad__build-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+}
+
+.command-pad__build-select {
+  flex: 1;
+  padding: 0.35rem 0.6rem;
+  background-color: #1a1a24 !important;
+  color: #f0f0f0 !important;
+  border: 1px solid rgba(212, 161, 58, 0.5);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.command-pad__build-select option {
+  background-color: #1a1a24;
+  color: #f0f0f0;
+}
+
+.command-pad__btn {
+  flex: 1;
+  min-width: 110px;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  color: var(--fg-primary, #e6e6f0);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: all 120ms ease;
+}
+
+.command-pad__btn:hover:not(:disabled) {
+  background: rgba(212, 161, 58, 0.15);
+  border-color: var(--accent, #d4a13a);
+}
+
+.command-pad__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.command-pad__btn--launch {
+  background: rgba(74, 222, 128, 0.12);
+  border-color: rgba(74, 222, 128, 0.4);
+  color: #c4f0d5;
+}
+
+.command-pad__btn--launch:hover:not(:disabled) {
+  background: rgba(74, 222, 128, 0.25);
+  border-color: var(--success, #4ade80);
+}
+
+.command-pad__btn--abort {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f0c4c4;
+}
+
+.command-pad__btn--abort:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: var(--danger, #ef4444);
+}
+
+.command-pad__salvo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  background: rgba(74, 222, 128, 0.06);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  border-radius: 6px;
+}
+
+.command-pad__salvo .command-pad__actions-title {
+  flex: 0 0 auto;
+}
+
+.command-pad__salvo .command-pad__btn {
+  flex: 0 0 auto;
+}
+
+.command-pad__salvo-status {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  color: var(--success, #4ade80);
+}
+
+.command-pad__note {
+  margin: 0;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--fg-secondary, #a8a8b8);
+}
+
+.command-pad__note code {
+  font-family: var(--font-mono, monospace);
+  padding: 0.1rem 0.3rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+}

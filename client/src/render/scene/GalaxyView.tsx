@@ -6,7 +6,9 @@ import {
   type Galaxy,
   type Planet,
   type PlanetId,
+  type ShipBeaconBroadcast,
   type Theme,
+  type Tile,
 } from '@smol/shared'
 import {
   applyCameraTransform,
@@ -16,14 +18,26 @@ import {
   tickCameraFromInput,
 } from './cameraController'
 import {
+  type IndigenousMarkerInput,
+  type PadStateGlowInput,
+  type PlanetCivPresence,
   buildBeaconPulseLayer,
   buildFlightArcLayer,
   buildGalaxyLayer,
+  buildLastHopeAlarmLayer,
+  buildMineFieldLayer,
+  buildMiningShipLayer,
   buildOwnerFlagLayer,
+  buildPadStateGlowLayer,
   buildRangeOverlayLayer,
   syncBeaconPulses,
   syncFlightArcs,
+  syncLastHopeAlarms,
+  syncMineFields,
+  syncMiningShips,
   syncOwnerFlags,
+  syncPadStateGlows,
+  type MineFieldInput,
 } from './galaxyLayer'
 import { buildSurfaceLayer, type SurfaceLayerHandle } from './surfaceLayer'
 import './scene.css'
@@ -47,7 +61,35 @@ interface GalaxyViewProps {
   readonly ownerByPlanet: ReadonlyMap<PlanetId, CivId>
   readonly themeByCiv: ReadonlyMap<CivId, Theme>
   readonly onSelectPlanet: (id: PlanetId) => void
-  readonly onClose: () => void
+  // PHASE 16.5.6 + 16.13.10: when zoomed close enough that a planet's surface InstancedMesh is
+  // visible, clicking a tile fires this with the tile's parent planet + the picked Tile object.
+  // The parent decides what to do (place a building when buildMode active, inspect otherwise).
+  readonly onSurfaceTileClick?: (planetId: PlanetId, tile: Tile) => void
+  // PHASE 16.x complete-3D-world-space: ship-beacon broadcasts (mining + future ship types)
+  // for live in-scene rendering. Each beacon spawns / updates a 3D ship mesh at its
+  // worldPosition. Pass empty array to disable.
+  readonly miningBeacons?: ReadonlyArray<ShipBeaconBroadcast>
+  // PHASE 16.16 LAW #0 feedback_planets_green_big_multi_civ.md: per-planet civ presence
+  // (multiple civs holding tiles → stacked flag billboards). When omitted/empty, falls
+  // back to the ownerByPlanet single-flag behavior.
+  readonly civsByPlanet?: ReadonlyMap<PlanetId, ReadonlyArray<PlanetCivPresence>>
+  // PHASE 16.16: explicit indigenous-civ marker per planet hosting an active indig presence.
+  readonly indigenousByPlanet?: ReadonlyArray<IndigenousMarkerInput>
+  // PHASE 16.17: planet IDs where the owning civ has triggered LAST_HOPE_EVAC. Each gets
+  // a pulsing orange alarm halo at galactic scale so the player sees civ-near-collapse.
+  readonly lastHopeTriggeredPlanetIds?: ReadonlySet<PlanetId>
+  // PHASE 16.19: per-launch-pad state glow inputs. Each entry produces a colored ring
+  // around that pad's surface tile colored by pad.state (READY=green, ARM=red, LAUNCH=
+  // white flash, etc.). Visible when zoomed close enough to see the surface.
+  readonly padStateGlows?: ReadonlyArray<PadStateGlowInput>
+  // PHASE 16.22: server-authoritative mine fields per UMS spec. Each entry renders a 💣
+  // billboard at the mine's world position with size keyed to detonationRadius. Visible
+  // any zoom; fades as remainingDetonations depletes.
+  readonly mineFields?: ReadonlyArray<MineFieldInput>
+  // PHASE 16.23: clicked in-flight cone fires this with the flight's id. Parent shows
+  // FlightDetailPanel with per-ship make-up (crew / supplies / fuel / water / speed /
+  // task / phase / ETA / signal-lost) per UMS UnityMissile.cs UNITY_MSL broadcast spec.
+  readonly onSelectFlight?: (flightId: string) => void
 }
 
 export function GalaxyView({
@@ -60,7 +102,14 @@ export function GalaxyView({
   ownerByPlanet,
   themeByCiv,
   onSelectPlanet,
-  onClose,
+  onSurfaceTileClick,
+  miningBeacons,
+  civsByPlanet,
+  indigenousByPlanet,
+  lastHopeTriggeredPlanetIds,
+  padStateGlows,
+  mineFields,
+  onSelectFlight,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -70,11 +119,33 @@ export function GalaxyView({
   const ownerByPlanetRef = useRef(ownerByPlanet)
   const themeByCivRef = useRef(themeByCiv)
   const rangeVisibleRef = useRef(rangeOverlayVisible)
+  const onSurfaceTileClickRef = useRef(onSurfaceTileClick)
+  const miningBeaconsRef = useRef<ReadonlyArray<ShipBeaconBroadcast>>(miningBeacons ?? [])
+  const civsByPlanetRef = useRef<
+    ReadonlyMap<PlanetId, ReadonlyArray<PlanetCivPresence>> | undefined
+  >(civsByPlanet)
+  const indigenousByPlanetRef = useRef<ReadonlyArray<IndigenousMarkerInput>>(
+    indigenousByPlanet ?? [],
+  )
+  const lastHopeTriggeredRef = useRef<ReadonlySet<PlanetId>>(
+    lastHopeTriggeredPlanetIds ?? new Set(),
+  )
+  const padStateGlowsRef = useRef<ReadonlyArray<PadStateGlowInput>>(padStateGlows ?? [])
+  const mineFieldsRef = useRef<ReadonlyArray<MineFieldInput>>(mineFields ?? [])
+  const onSelectFlightRef = useRef(onSelectFlight)
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
   themeByCivRef.current = themeByCiv
   rangeVisibleRef.current = rangeOverlayVisible
+  onSurfaceTileClickRef.current = onSurfaceTileClick
+  miningBeaconsRef.current = miningBeacons ?? []
+  civsByPlanetRef.current = civsByPlanet
+  indigenousByPlanetRef.current = indigenousByPlanet ?? []
+  lastHopeTriggeredRef.current = lastHopeTriggeredPlanetIds ?? new Set()
+  padStateGlowsRef.current = padStateGlows ?? []
+  mineFieldsRef.current = mineFields ?? []
+  onSelectFlightRef.current = onSelectFlight
   void humanCivId
 
   useEffect(() => {
@@ -130,6 +201,14 @@ export function GalaxyView({
     scene.add(beaconPulseHandle.group)
     const ownerFlagHandle = buildOwnerFlagLayer()
     scene.add(ownerFlagHandle.group)
+    const miningShipHandle = buildMiningShipLayer()
+    scene.add(miningShipHandle.group)
+    const lastHopeAlarmHandle = buildLastHopeAlarmLayer()
+    scene.add(lastHopeAlarmHandle.group)
+    const padStateGlowHandle = buildPadStateGlowLayer()
+    scene.add(padStateGlowHandle.group)
+    const mineFieldHandle = buildMineFieldLayer()
+    scene.add(mineFieldHandle.group)
     const homePlanetMesh = galaxyHandle.planetMeshes.get(homePlanetId)
     const rangeOverlayHandle = buildRangeOverlayLayer(
       homePlanetMesh ? homePlanetMesh.position.clone() : new THREE.Vector3(),
@@ -169,12 +248,68 @@ export function GalaxyView({
       onComplete: () => void
     } | null = null
 
+    // Surface raycast takes priority when any planet's surface layer is visible (camera close to
+    // planet). PHASE 16.5.6 + 16.13.10: click a surface tile → onSurfaceTileClick(planetId, tile).
+    const collectVisibleSurfaceMeshes = (): Array<{
+      mesh: THREE.InstancedMesh
+      planet: Planet
+    }> => {
+      const out: Array<{ mesh: THREE.InstancedMesh; planet: Planet }> = []
+      for (const planet of galaxy.planets) {
+        const handle = surfaceLayers.get(planet.id)
+        if (handle && handle.group.visible) out.push({ mesh: handle.tilesMesh, planet })
+      }
+      return out
+    }
+
     const onClick = (e: MouseEvent): void => {
       if (tween) return
       const rect = renderer.domElement.getBoundingClientRect()
       ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
       raycaster.setFromCamera(ndc, cameraState.camera)
+
+      // PHASE 16.23: in-flight ship cone selection. Try flight pick FIRST so a click on a
+      // visible flight cone opens the FlightDetailPanel before falling through to surface /
+      // planet picks. Per user verbatim "ships should be selectable" + UMS UnityMissile.cs
+      // UNITY_MSL broadcast spec.
+      const flightCones: THREE.Object3D[] = []
+      for (const entry of flightArcHandle.entries.values()) flightCones.push(entry.progressDot)
+      if (flightCones.length > 0) {
+        const flightHits = raycaster.intersectObjects(flightCones, false)
+        const fHit = flightHits[0]
+        if (
+          fHit?.object instanceof THREE.Mesh &&
+          fHit.object.userData.kind === 'flight' &&
+          onSelectFlightRef.current
+        ) {
+          const fid = fHit.object.userData.flightId as string
+          onSelectFlightRef.current(fid)
+          return
+        }
+      }
+
+      // Try surface tile pick next
+      const surfaceMeshes = collectVisibleSurfaceMeshes()
+      if (surfaceMeshes.length > 0) {
+        const surfaceHits = raycaster.intersectObjects(
+          surfaceMeshes.map((s) => s.mesh),
+          false,
+        )
+        const sHit = surfaceHits[0]
+        if (sHit && typeof sHit.instanceId === 'number') {
+          const match = surfaceMeshes.find((s) => s.mesh === sHit.object)
+          if (match) {
+            const tile = match.planet.tiles[sHit.instanceId]
+            if (tile && onSurfaceTileClickRef.current) {
+              onSurfaceTileClickRef.current(match.planet.id, tile)
+              return
+            }
+          }
+        }
+      }
+
+      // Fall through to planet-mesh pick (galactic-scale planet click → tween-to-planet)
       const planetObjs = Array.from(galaxyHandle.planetMeshes.values())
       const hits = raycaster.intersectObjects(planetObjs, false)
       const hit = hits[0]
@@ -197,6 +332,36 @@ export function GalaxyView({
       ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
       raycaster.setFromCamera(ndc, cameraState.camera)
+
+      // Surface hover takes priority — sets the highlight ring on the hovered tile
+      const surfaceMeshes = collectVisibleSurfaceMeshes()
+      if (surfaceMeshes.length > 0) {
+        const surfaceHits = raycaster.intersectObjects(
+          surfaceMeshes.map((s) => s.mesh),
+          false,
+        )
+        const sHit = surfaceHits[0]
+        for (const sm of surfaceMeshes) {
+          const handle = surfaceLayers.get(sm.planet.id)
+          if (!handle) continue
+          if (sHit && typeof sHit.instanceId === 'number' && sHit.object === sm.mesh) {
+            const tile = sm.planet.tiles[sHit.instanceId]
+            handle.setHoveredFace(tile ? tile.faceIndex : null)
+          } else {
+            handle.setHoveredFace(null)
+          }
+        }
+        if (sHit) {
+          // Suppress planet-tooltip when hovering surface
+          if (pickedPlanetId !== null) {
+            pickedPlanetId = null
+            setHoveredPlanetId(null)
+          }
+          return
+        }
+      }
+
+      // Fall through to planet-mesh hover (galactic-scale planet tooltip)
       const planetObjs = Array.from(galaxyHandle.planetMeshes.values())
       const hits = raycaster.intersectObjects(planetObjs, false)
       const hit = hits[0]
@@ -287,14 +452,33 @@ export function GalaxyView({
         cameraState.camera,
       )
 
-      // Sync owner-civ flag billboards
+      // Sync owner-civ flag billboards (multi-civ-per-planet stacking + indigenous markers)
       syncOwnerFlags(
         ownerFlagHandle,
         galaxy,
         galaxyHandle.planetMeshes,
         ownerByPlanetRef.current,
         themeByCivRef.current,
+        civsByPlanetRef.current,
+        indigenousByPlanetRef.current,
       )
+
+      // Sync mining ship meshes (PHASE 16.x complete-3D-world-space)
+      syncMiningShips(miningShipHandle, miningBeaconsRef.current)
+
+      // Sync LAST HOPE alarm halos (PHASE 16.17)
+      syncLastHopeAlarms(
+        lastHopeAlarmHandle,
+        lastHopeTriggeredRef.current,
+        galaxyHandle.planetMeshes,
+        cameraState.camera,
+      )
+
+      // Sync per-pad state glow rings (PHASE 16.19)
+      syncPadStateGlows(padStateGlowHandle, padStateGlowsRef.current, galaxyHandle.planetMeshes)
+
+      // Sync server-authoritative mine-field 💣 billboards (PHASE 16.22)
+      syncMineFields(mineFieldHandle, mineFieldsRef.current)
 
       // Range overlay visibility
       rangeOverlayHandle.setVisible(rangeVisibleRef.current)
@@ -333,6 +517,10 @@ export function GalaxyView({
       flightArcHandle.destroy()
       beaconPulseHandle.destroy()
       ownerFlagHandle.destroy()
+      miningShipHandle.destroy()
+      lastHopeAlarmHandle.destroy()
+      padStateGlowHandle.destroy()
+      mineFieldHandle.destroy()
       rangeOverlayHandle.destroy()
       galaxyHandle.destroy()
       for (const surface of surfaceLayers.values()) {
@@ -354,24 +542,15 @@ export function GalaxyView({
     ? (galaxy.planets.find((p) => p.id === hoveredPlanetId) ?? null)
     : null
 
+  // PHASE 16.13.9: GalaxyView is the always-on /play canvas (not a modal dialog). Modal chrome
+  // (header / close button / role="dialog") removed — HUDOverlay sits on top as the chrome layer.
   return (
-    <div className="galaxy-view" role="dialog" aria-label="Galaxy view">
+    <div className="galaxy-view galaxy-view--canvas" aria-label="3D galaxy canvas">
       <div ref={mountRef} className="galaxy-view__canvas" />
-      <header className="galaxy-view__header">
-        <h2>🌌 Galaxy — {galaxy.planets.length} planets</h2>
-        <button
-          type="button"
-          className="galaxy-view__close"
-          onClick={onClose}
-          title="Close galaxy view (ESC)"
-        >
-          ✕ Close
-        </button>
-      </header>
       <aside className="galaxy-view__hint">
-        <strong>WASD</strong> pan · <strong>QE</strong> rotate · <strong>wheel</strong> zoom ·
+        <strong>WASD</strong> move · <strong>QE</strong> rotate · <strong>wheel</strong> zoom ·
         <strong>R</strong> {rangeOverlayVisible ? 'hide' : 'show'} range rings ·
-        <strong> click</strong> a planet to view
+        <strong> click</strong> a planet to fly there
       </aside>
       {hoveredPlanet && (
         <div className="galaxy-view__tooltip">

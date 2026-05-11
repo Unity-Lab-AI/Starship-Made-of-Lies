@@ -21,6 +21,8 @@ import {
   type LaunchPad,
   type LootDrop,
   type LootDropId,
+  type MineField,
+  type MiningShip,
   type MissionObjectiveConfig,
   type MissionObjectiveId,
   type ObservedEnemyPlanet,
@@ -30,6 +32,7 @@ import {
   type PlanetId,
   type PlanetInventory,
   type PlanetPopulation,
+  type PlanetShipBeaconBuffer,
   type PlanetWorkforce,
   type PlaystyleArchetype,
   type ShipLoadoutContext,
@@ -45,6 +48,7 @@ import {
   BLDG_LAUNCH_PAD,
   BLDG_LUMBER_CAMP,
   BLDG_MINE,
+  BLDG_MINE_FIELD,
   BLDG_TV_STATION,
   CAMPAIGNS,
   COLONY_SHIPS,
@@ -81,6 +85,7 @@ import {
   controlledPlanetCount,
   createLootDrop,
   deathsInWindow,
+  defaultHomeDockPosition,
   deceptionPenalties,
   defaultBuildFromShipDef,
   deriveCrashLootFromShipPayload,
@@ -106,15 +111,21 @@ import {
   newEmpire,
   newFactionSplit,
   newLaunchPad,
+  newMiningShip,
   newPlanetBeacon,
   newPlanetInventory,
+  computeDetonationAoE,
+  mineFieldCheckIntercept,
+  newMineField,
   newPlanetPopulation,
+  newPlanetShipBeaconBuffer,
   newPlanetWorkforce,
   performanceMultiplier,
   pushBeaconAlert,
   qualityOfLifeIndex,
   recordColonyShipLaunch,
   recordDeath,
+  recordShipBeacon,
   recordPlanetGain,
   recordPlanetLoss,
   resolveMatchEnd,
@@ -127,6 +138,7 @@ import {
   tickFlight,
   tickIndigenousAttacks,
   tickLastHopeEvac,
+  tickMiningShip,
   tickPad,
   tickPlanetProduction,
   tickResearch,
@@ -147,8 +159,14 @@ export interface MatchPlanetState {
   buildingsByDef: Map<BuildingDefId, number>
   buildingsByTile: Map<TileId, BuildingDefId>
   launchPads: Map<TileId, LaunchPad>
+  miningShips: Map<string, MiningShip>
+  shipBeacons: PlanetShipBeaconBuffer
   activeCampaigns: ActiveCampaign[]
   indigenousCivId: CivId | null
+  // PHASE 16.22: server-authoritative mine fields per UMS spec. Player places BLDG_MINE_FIELD
+  // tile → a MineField is created at the tile's world position. Per-tick intercept check
+  // compares each in-flight ship arc position vs every mine field on the target planet.
+  mineFields: MineField[]
 }
 
 export interface MatchCivState {
@@ -346,7 +364,7 @@ export function createMatch(config: MatchConfig): MatchState {
     }
   }
 
-  return {
+  const state: MatchState = {
     matchId: `match-${config.seed}-${Date.now()}`,
     seed: config.seed,
     galaxy,
@@ -375,6 +393,8 @@ export function createMatch(config: MatchConfig): MatchState {
     resolvedObjectiveId: null,
     rng,
   }
+  spawnInitialMiningShips(state)
+  return state
 }
 
 function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
@@ -405,8 +425,30 @@ function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
     buildingsByDef: new Map(),
     buildingsByTile: new Map(),
     launchPads: new Map(),
+    miningShips: new Map(),
+    shipBeacons: newPlanetShipBeaconBuffer(planet.id),
     activeCampaigns: [],
+    mineFields: [],
     indigenousCivId: null,
+  }
+}
+
+// Spawn 2 mining ships per civ at match start on their home planet (UMS-style auto-shuttle
+// fleet). Each ship cycles DOCKED → OUTBOUND → DRILLING → INBOUND → OFFLOADING against the
+// planet's ResourceNode deposits. Per `feedback_resource_miners_need_deposits.md`.
+const STARTING_MINING_SHIPS_PER_CIV = 2
+
+function spawnInitialMiningShips(state: MatchState): void {
+  for (const civState of state.civs.values()) {
+    const home = state.planets.get(civState.homePlanetId)
+    if (!home) continue
+    const dockPos = defaultHomeDockPosition(home.planet.position, home.planet.surfaceRadius)
+    for (let i = 0; i < STARTING_MINING_SHIPS_PER_CIV; i++) {
+      const shipId = `${civState.civId}-miner-${i + 1}`
+      const shipName = `${civState.theme.emoji} Drone ${String.fromCharCode(65 + i)}`
+      const ship = newMiningShip(shipId, shipName, civState.civId, home.planet.id, dockPos)
+      home.miningShips.set(shipId, ship)
+    }
   }
 }
 
@@ -441,6 +483,28 @@ export function tickMatch(state: MatchState): void {
 
   for (const flight of [...state.flights.values()]) {
     tickFlight(flight)
+    // PHASE 16.22: per-tick mine-field intercept check per UMS UnityPad.cs mine logic +
+    // SMOL_REFERENCE_TRAJECTORY §17. For each in-flight ship, walk the target planet's
+    // mineFields[] and call mineFieldCheckIntercept — flips flight.phase to INTERCEPTED
+    // when current arc position falls within field.detonationRadius. The check itself
+    // gates on phase=REENTRY|TARGET so cruise-phase ships pass safely overhead.
+    if (flight.phase === 'REENTRY' || flight.phase === 'TARGET') {
+      const targetPlanet = state.planets.get(flight.targetPlanetId)
+      if (targetPlanet) {
+        for (const field of targetPlanet.mineFields) {
+          const hit = mineFieldCheckIntercept(field, flight)
+          if (hit) {
+            pushEvent(state, {
+              atTick: state.currentTick,
+              civId: field.civId,
+              kind: 'intercept',
+              message: `💥 Mine intercept — ${String(flight.id)} downed over ${String(targetPlanet.planet.id)}`,
+            })
+            break
+          }
+        }
+      }
+    }
     if (
       flight.phase === 'DETONATE' ||
       flight.phase === 'INTERCEPTED' ||
@@ -533,6 +597,21 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
 
   for (const pad of planetState.launchPads.values()) {
     tickPad(pad, planetState.inventory)
+  }
+
+  // Mining ship auto-shuttle tick — each ship picks the closest non-depleted ResourceNode,
+  // travels to it, drills, returns, offloads into PlanetInventory.stocks. Beacons broadcast
+  // every 2 ticks (UMS MINER_BEACON cadence) so MiningFleetPanel + telemetry rack stay live.
+  for (const ship of planetState.miningShips.values()) {
+    const result = tickMiningShip({
+      ship,
+      planet: planetState.planet,
+      inventory: planetState.inventory,
+      currentTick: state.currentTick,
+    })
+    if (result.beacon) {
+      recordShipBeacon(planetState.shipBeacons, result.beacon)
+    }
   }
 }
 
@@ -1076,22 +1155,53 @@ function handleFlightOutcome(state: MatchState, flight: ColonyShipFlight): void 
 
   if (flight.phase === 'DETONATE' && launchingCiv && targetPlanet) {
     const def = getColonyShipDef(flight.variantId)
-    const build = defaultBuildFromShipDef(def)
-    const lastPiece = build.pieces.find((p) => p.startsWith('gear-')) ?? 'gear-none'
-    const gearTier =
-      lastPiece === 'gear-none'
-        ? 0
-        : lastPiece === 'gear-basic'
-          ? 1
-          : lastPiece === 'gear-advanced'
-            ? 2
-            : 3
-    const crash = computeCrashOutcome(gearTier as 0 | 1 | 2 | 3)
-
-    if (crash.crashed) {
-      handleCrashLanding(state, flight, def, launchingCiv, targetPlanet, crash.cargoLootRate)
+    // PHASE 16.24: self-destruct AoE per the SMoL premise — every colony ship is also a
+    // self-destruct weapon. AoE damage at detonation scales with fuelRemaining + payload
+    // load-out + (suicide ship × citizens) per computeDetonationAoE. Balance target: 30-50
+    // missiles to wipe a multi-planet civilization. When the ship is a suicide ship OR
+    // carries explosive / weapon payload, the detonation is an offensive strike — apply AoE
+    // damage to target population + infrastructure. Peaceful variants (Scout / Standard
+    // colony / Pilgrim when not suicide) continue the colonization-or-crash path so
+    // colonization still works. Full verbatim user directive lives in `.claude/TODO.md`
+    // PHASE 16.24 entry per LAW #0.
+    if (def.suicideShip || def.payload.explosiveYield > 0 || def.payload.weaponPayload > 0) {
+      applyDetonationAoE(state, flight, launchingCiv, targetPlanet)
     } else {
-      handleSafeLanding(state, flight, def, launchingCiv, targetPlanet, crash.survivalRate)
+      const build = defaultBuildFromShipDef(def)
+      const lastPiece = build.pieces.find((p) => p.startsWith('gear-')) ?? 'gear-none'
+      const gearTier =
+        lastPiece === 'gear-none'
+          ? 0
+          : lastPiece === 'gear-basic'
+            ? 1
+            : lastPiece === 'gear-advanced'
+              ? 2
+              : 3
+      const crash = computeCrashOutcome(gearTier as 0 | 1 | 2 | 3)
+      if (crash.crashed) {
+        handleCrashLanding(state, flight, def, launchingCiv, targetPlanet, crash.cargoLootRate)
+      } else {
+        handleSafeLanding(state, flight, def, launchingCiv, targetPlanet, crash.survivalRate)
+      }
+    }
+  }
+  if (flight.phase === 'ABORTED' && launchingCiv) {
+    // PHASE 16.24: ABORTED = player hit the 💀 ABORT (self-destruct) button. UMS-faithful
+    // self-destruct = warhead detonates where the ship currently is. If arc has progressed
+    // far enough (≥ 0.3) AND target planet exists, apply AoE damage at the target (the
+    // explosion was close enough to the target to matter). Otherwise the boom happens in
+    // empty space — log event but no damage.
+    const aborted = state.flights.get(String(flight.id))
+    const progress = aborted ? aborted.ticksFlown / Math.max(1, aborted.totalTicks) : 0
+    if (targetPlanet && progress >= 0.3) {
+      applyDetonationAoE(state, flight, launchingCiv, targetPlanet)
+    } else {
+      pushEvent(state, {
+        atTick: state.currentTick,
+        civId: flight.launchingCivId,
+        kind: 'intercept',
+        message: `💀 Self-destruct in deep space — ${String(flight.id)} (no AoE)`,
+      })
     }
   }
   if (flight.phase === 'INTERCEPTED') {
@@ -1103,6 +1213,66 @@ function handleFlightOutcome(state: MatchState, flight: ColonyShipFlight): void 
     })
   }
   state.flights.delete(String(flight.id))
+}
+
+// PHASE 16.24 — apply AoE damage to target planet population per computeDetonationAoE
+// magnitude. Damage prefers lower tiers first (workers die before pinnacle elites). Caps
+// out at total planet population. Pushes an event log with the boom magnitude + kill count
+// so the player sees the strike outcome. Per user balance target: 30-50 missiles to wipe a
+// multi-planet civ.
+function applyDetonationAoE(
+  state: MatchState,
+  flight: ColonyShipFlight,
+  launchingCiv: MatchCivState,
+  targetPlanet: MatchPlanetState,
+): void {
+  const def = getColonyShipDef(flight.variantId)
+  const aoe = computeDetonationAoE(flight)
+  // Magnitude → kill count: damage scalar 0.5 lands the Heavy variant (magnitude ~800) at
+  // ~400 kills, and a Pilgrim Volunteer (magnitude ~1400 with suicide multiplier) at ~700.
+  // Matches user's "30-50 missiles to wipe a multi-planet civ" balance target when planets
+  // host ~8000 citizens each and a civ holds 4-6 planets.
+  const rawKills = Math.floor(aoe.magnitude * 0.5)
+  const totalPop = totalPopulation(targetPlanet.population)
+  const kills = Math.min(rawKills, totalPop)
+  if (kills > 0) {
+    let remaining = kills
+    // Damage from tier 1 (workers) upward — pinnacle elites are last to die.
+    for (const tier of [1, 2, 3, 4, 5] as const) {
+      if (remaining <= 0) break
+      const have = targetPlanet.population.tierCounts[tier] ?? 0
+      const take = Math.min(have, remaining)
+      targetPlanet.population.tierCounts[tier] = have - take
+      remaining -= take
+    }
+    recordDeath(state.civs.get(targetPlanet.civId)?.deathLedger ?? launchingCiv.deathLedger, {
+      tick: state.currentTick,
+      planetId: targetPlanet.planet.id,
+      cause: 'explosion',
+      count: kills,
+      tier: null,
+      note: `${def.name} AoE strike (r=${aoe.radius.toFixed(0)}u, mag=${aoe.magnitude.toFixed(0)})`,
+    })
+  }
+  // Infrastructure damage: per magnitude/1500 buildings destroyed (high-magnitude strikes
+  // chip away at the target's industrial base).
+  const buildingsHit = Math.floor(aoe.magnitude / 1500)
+  if (buildingsHit > 0 && targetPlanet.buildingsByDef.size > 0) {
+    let toDamage = buildingsHit
+    for (const [defId, count] of [...targetPlanet.buildingsByDef]) {
+      if (toDamage <= 0) break
+      const take = Math.min(count, toDamage)
+      targetPlanet.buildingsByDef.set(defId, count - take)
+      if (count - take === 0) targetPlanet.buildingsByDef.delete(defId)
+      toDamage -= take
+    }
+  }
+  pushEvent(state, {
+    atTick: state.currentTick,
+    civId: launchingCiv.civId,
+    kind: 'intercept',
+    message: `💥 ${def.emoji} ${def.name} detonated on ${String(targetPlanet.planet.id)} — ${kills.toLocaleString()} dead, ${buildingsHit} buildings lost (r=${aoe.radius.toFixed(0)}u, mag=${aoe.magnitude.toFixed(0)})`,
+  })
 }
 
 function handleCrashLanding(
@@ -1364,6 +1534,21 @@ function placeBuildingInternal(
     const pad = newLaunchPad(empty.id, planet.civId, planet.planet.id, false)
     planet.launchPads.set(empty.id, pad)
   }
+  if (defId === BLDG_MINE_FIELD) {
+    // PHASE 16.22: per UMS spec + SMOL_REFERENCE_TRAJECTORY §17 — placing a mine-field
+    // tile creates a server-authoritative MineField at the tile's world position. The
+    // detonation radius scales with planet radius (UMS detDist=50m on flat-Earth → SMoL
+    // great-circle arc scale uses planet.radius * 0.12 ≈ 50-200 units depending on
+    // planet size — catches arc-passes within roughly one tile's width).
+    empty.occupancy = 'mineField'
+    const worldPos = {
+      x: planet.planet.position.x + empty.centroid.x,
+      y: planet.planet.position.y + empty.centroid.y,
+      z: planet.planet.position.z + empty.centroid.z,
+    }
+    const detRadius = Math.max(50, planet.planet.radius * 0.12)
+    planet.mineFields.push(newMineField(planet.planet.id, planet.civId, worldPos, 3, detRadius))
+  }
   void state
   return true
 }
@@ -1416,6 +1601,18 @@ export function placeBuildingAction(inputs: PlaceBuildingInputs): boolean {
   if (inputs.defId === BLDG_LAUNCH_PAD) {
     const pad = newLaunchPad(tile.id, planet.civId, planet.planet.id, false)
     planet.launchPads.set(tile.id, pad)
+  }
+  if (inputs.defId === BLDG_MINE_FIELD) {
+    // PHASE 16.22: see placeBuildingInternal for full UMS-spec rationale. Player-placement
+    // path mirrors AI placement path so mines work identically regardless of who places them.
+    tile.occupancy = 'mineField'
+    const worldPos = {
+      x: planet.planet.position.x + tile.centroid.x,
+      y: planet.planet.position.y + tile.centroid.y,
+      z: planet.planet.position.z + tile.centroid.z,
+    }
+    const detRadius = Math.max(50, planet.planet.radius * 0.12)
+    planet.mineFields.push(newMineField(planet.planet.id, planet.civId, worldPos, 3, detRadius))
   }
   pushEvent(inputs.state, {
     atTick: inputs.state.currentTick,

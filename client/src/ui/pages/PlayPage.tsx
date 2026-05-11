@@ -9,11 +9,14 @@ import {
   type LootDropId,
   type MissionObjectiveConfig,
   type PlanetId,
+  type ShipBeaconBroadcast,
   type ThemeId,
   type Tile,
+  COLONY_SHIPS,
   THEMES,
   accountId as accountIdValue,
   aggregateEffects,
+  getActiveShipBeacons,
   newAnonymousAccount,
   themeAsCSSVars,
 } from '@smol/shared'
@@ -21,6 +24,8 @@ import { type MatchAISlotConfig, type MatchConfig } from '../../match/MatchSim'
 import { useMatchSim } from '../../match/useMatchSim'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
+import { CommandPadPanel } from '../panels/CommandPadPanel'
+import { FlightDetailPanel } from '../panels/FlightDetailPanel'
 import { MiningFleetPanel } from '../panels/MiningFleetPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
@@ -37,6 +42,7 @@ import { CampaignPicker } from '../play/CampaignPicker'
 import { HUDOverlay } from '../play/HUDOverlay'
 import { PanelFrame } from '../play/PanelFrame'
 import { PlanetPicker } from '../play/PlanetPicker'
+import { TelemetryRack } from '../play/TelemetryRack'
 import { Toasts } from '../play/Toasts'
 import { type PanelId, type ToastNotification } from '../play/types'
 import { MatchEndScreen } from './MatchEndScreen'
@@ -95,9 +101,29 @@ export function PlayPage() {
   const [openPanels, setOpenPanels] = useState<Set<PanelId>>(() => new Set())
   const [buildMode, setBuildMode] = useState<BuildingDefId | null>(null)
   const [selectedPlanetId, setSelectedPlanetId] = useState<PlanetId | null>(null)
-  const [galaxyOpen, setGalaxyOpen] = useState(false)
   const [toasts, setToasts] = useState<ToastNotification[]>([])
   const lastSeenEventIdxRef = useRef(0)
+
+  // PHASE 16.19: salvo-round orchestrator state. One-click "Fire Salvo Round" cycles
+  // BUILDALL → wait → ARMALL → wait → LAUNCHALL. salvoRoundPhase tracks progress so the
+  // panel shows "BUILDING..." / "ARMING..." / "LAUNCHING..." live.
+  const [salvoRoundPhase, setSalvoRoundPhase] = useState<
+    null | 'BUILDING' | 'ARMING' | 'LAUNCHING'
+  >(null)
+
+  // PHASE 16.23: clicked-flight selection state. Set when player clicks a flight cone in
+  // GalaxyView; cleared when FlightDetailPanel close button is pressed or overlay click.
+  const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
+
+  // PHASE 16.13.9: /play canvas defaults to the 3D GalaxyView. The legacy 2D TilePlacementGrid
+  // is kept ONLY as a dev-debug overlay reachable via `?dev=hexgrid` URL flag. Per LAW #0
+  // 2026-05-10 the 3D x,y,z universe is the canonical canvas — NO 2D / hex-game / card-game
+  // fallback as the default. NEVER swap this default without verifying tile-click → placeBuilding
+  // is wired through GalaxyView (feedback_never_ship_canvas_pivot_without_wiring_all_interactions.md).
+  const isDevHexGridFallback = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    return new URLSearchParams(window.location.search).get('dev') === 'hexgrid'
+  }, [])
 
   // === Computed state ===
   const humanCivState = sim.state.civs.get(sim.state.humanCivId)!
@@ -143,6 +169,252 @@ export function PlayPage() {
 
   const techEffects = aggregateEffects(humanCivState.empire.researchedTechs)
   const firstPad = [...activePlanet.launchPads.values()][0] ?? null
+
+  // PHASE 16.16 (LAW #0 feedback_planets_green_big_multi_civ.md): per-planet multi-civ
+  // presence — for each planet, list every civ holding at least 1 tile, sorted by tile count
+  // desc. Feeds GalaxyView's flag-stack rendering so a contested planet shows multiple flags
+  // above it instead of a single owner-only flag.
+  //
+  // PHASE 16.20: for each civ on a planet we also compute the cluster centroid of that civ's
+  // owned tiles in WORLD space (mean of tile centroids → normalize → lift to radius*1.18 →
+  // add planet world position). The 3D layer plants each civ's flag over its actual territory
+  // instead of stacking flags vertically above the planet's pole. Antipodal-cluster fallback:
+  // if the mean vector length is too small, anchor on the first owned tile.
+  const civsByPlanet = useMemo(
+    () => {
+      const out = new Map<
+        PlanetId,
+        ReadonlyArray<{
+          civId: import('@smol/shared').CivId
+          tileCount: number
+          centroidWorld?: import('@smol/shared').Vec3
+        }>
+      >()
+      for (const planetState of sim.state.planets.values()) {
+        const planet = planetState.planet
+        const counts = new Map<import('@smol/shared').CivId, number>()
+        const sums = new Map<
+          import('@smol/shared').CivId,
+          { x: number; y: number; z: number; firstCentroid: import('@smol/shared').Vec3 }
+        >()
+        for (const tile of planet.tiles) {
+          if (!tile.ownerCivId) continue
+          counts.set(tile.ownerCivId, (counts.get(tile.ownerCivId) ?? 0) + 1)
+          const sum = sums.get(tile.ownerCivId)
+          if (sum) {
+            sum.x += tile.centroid.x
+            sum.y += tile.centroid.y
+            sum.z += tile.centroid.z
+          } else {
+            sums.set(tile.ownerCivId, {
+              x: tile.centroid.x,
+              y: tile.centroid.y,
+              z: tile.centroid.z,
+              firstCentroid: tile.centroid,
+            })
+          }
+        }
+        if (counts.size === 0) continue
+        const liftRadius = planet.radius * 1.18
+        const sorted = [...counts.entries()]
+          .map(([civId, tileCount]) => {
+            const sum = sums.get(civId)!
+            const meanX = sum.x / tileCount
+            const meanY = sum.y / tileCount
+            const meanZ = sum.z / tileCount
+            const meanLen = Math.sqrt(meanX * meanX + meanY * meanY + meanZ * meanZ)
+            let dirX: number, dirY: number, dirZ: number
+            if (meanLen < planet.radius * 0.1) {
+              const fcLen = Math.sqrt(
+                sum.firstCentroid.x * sum.firstCentroid.x +
+                  sum.firstCentroid.y * sum.firstCentroid.y +
+                  sum.firstCentroid.z * sum.firstCentroid.z,
+              )
+              if (fcLen < 0.0001) {
+                dirX = 0
+                dirY = 1
+                dirZ = 0
+              } else {
+                dirX = sum.firstCentroid.x / fcLen
+                dirY = sum.firstCentroid.y / fcLen
+                dirZ = sum.firstCentroid.z / fcLen
+              }
+            } else {
+              dirX = meanX / meanLen
+              dirY = meanY / meanLen
+              dirZ = meanZ / meanLen
+            }
+            const centroidWorld: import('@smol/shared').Vec3 = {
+              x: planet.position.x + dirX * liftRadius,
+              y: planet.position.y + dirY * liftRadius,
+              z: planet.position.z + dirZ * liftRadius,
+            }
+            return { civId, tileCount, centroidWorld }
+          })
+          .sort((a, b) => b.tileCount - a.tileCount)
+        out.set(planet.id, sorted)
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  // PHASE 16.16: explicit indigenous-civ marker per planet hosting an active indig presence.
+  const indigenousByPlanet = useMemo(
+    () => {
+      const out: Array<{ planetId: PlanetId; emoji: string; label: string }> = []
+      for (const indig of sim.state.indigenousCivs.values()) {
+        if (!indig.alive) continue
+        out.push({
+          planetId: indig.homePlanetId,
+          emoji: indig.emoji,
+          label: indig.displayName,
+        })
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  // PHASE 16.17: LAST_HOPE_EVAC triggered → pulsing orange alarm halo around the civ's home
+  // planet so the player sees civ-near-collapse at galactic scale.
+  const lastHopeTriggeredPlanetIds = useMemo(
+    () => {
+      const out = new Set<PlanetId>()
+      for (const civState of sim.state.civs.values()) {
+        if (!civState.alive) continue
+        if (!civState.lastHopeTriggered) continue
+        out.add(civState.homePlanetId)
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  // PHASE 16.19: per-launch-pad state glow inputs. For each pad on each planet we own,
+  // resolve the surface-tile centroid + normal so the 3D layer can position + orient a
+  // state-colored ring on that tile.
+  const padStateGlows = useMemo(
+    () => {
+      const out: Array<{
+        planetId: PlanetId
+        padId: import('@smol/shared').TileId
+        state: import('@smol/shared').PadState
+        tileCentroid: import('@smol/shared').Vec3
+        tileNormal: import('@smol/shared').Vec3
+      }> = []
+      for (const planetState of sim.state.planets.values()) {
+        if (planetState.launchPads.size === 0) continue
+        for (const pad of planetState.launchPads.values()) {
+          const tile = planetState.planet.tiles.find((t) => t.id === pad.id)
+          if (!tile) continue
+          out.push({
+            planetId: planetState.planet.id,
+            padId: pad.id,
+            state: pad.state,
+            tileCentroid: tile.centroid,
+            tileNormal: tile.normal,
+          })
+        }
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  // PHASE 16.22: aggregate all server-authoritative mine-fields across every planet into the
+  // 3D-layer input shape. Per UMS spec + SMOL_REFERENCE_TRAJECTORY §17 — mines render as 💣
+  // billboards on the planet surface; size keys off detonationRadius so the player sees the
+  // trigger envelope. Id is `${planetId}:${index}` for stable per-frame entry reuse.
+  const allMineFields = useMemo(
+    () => {
+      const out: Array<{
+        id: string
+        worldPosition: import('@smol/shared').Vec3
+        remainingDetonations: number
+        detonationRadius: number
+      }> = []
+      for (const planetState of sim.state.planets.values()) {
+        for (let i = 0; i < planetState.mineFields.length; i++) {
+          const m = planetState.mineFields[i]!
+          if (m.remainingDetonations <= 0) continue
+          out.push({
+            id: `${String(planetState.planet.id)}:${i}`,
+            worldPosition: m.position,
+            remainingDetonations: m.remainingDetonations,
+            detonationRadius: m.detonationRadius,
+          })
+        }
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  // PHASE 16.14: aggregate ship beacons from all player planets for MiningFleetPanel +
+  // TelemetryRack. Per-planet map for MiningFleetPanel's per-planet dropdown grouping.
+  // Recompute on every tick (sim.state is a stable ref via useRef; currentTick mutates).
+  const beaconsByPlanet = useMemo(
+    () => {
+      const tick = sim.state.currentTick
+      const out = new Map<PlanetId, ReadonlyArray<ShipBeaconBroadcast>>()
+      for (const planetState of sim.state.planets.values()) {
+        if (planetState.civId !== sim.state.humanCivId) continue
+        const active = getActiveShipBeacons(planetState.shipBeacons, tick, 30)
+        if (active.length > 0) out.set(planetState.planet.id, active)
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  const allHumanBeacons = useMemo<ReadonlyArray<ShipBeaconBroadcast>>(() => {
+    const out: ShipBeaconBroadcast[] = []
+    for (const arr of beaconsByPlanet.values()) out.push(...arr)
+    return out
+  }, [beaconsByPlanet])
+
+  // Empire-wide totals for the telemetry rack POWER slot. sim.state is a stable ref via
+  // useRef; currentTick is the primitive that increments each tick, so it's the re-memo
+  // trigger. eslint-disable below since the dep IS intentional re-memo signal.
+  const empireTotals = useMemo(
+    () => {
+      let resources = 0
+      let pop = 0
+      for (const planetState of sim.state.planets.values()) {
+        if (planetState.civId !== sim.state.humanCivId) continue
+        for (const amount of planetState.inventory.stocks.values()) resources += amount
+        for (const count of Object.values(planetState.population.tierCounts)) {
+          pop += count as number
+        }
+      }
+      return { resources, pop }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  const activePads = useMemo(
+    () => [...activePlanet.launchPads.values()],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activePlanet, sim.state.currentTick],
+  )
+
+  // Unlocked colony-ship variants — for the Command Pad BUILDALL dropdown. Filtered by
+  // the tech-effects-driven maxPayloadTier (same gate ShipBuildPanel uses).
+  const availableShipVariants = useMemo<ReadonlyArray<ColonyShipVariantId>>(() => {
+    const out: ColonyShipVariantId[] = []
+    for (const def of COLONY_SHIPS) {
+      if (def.payloadTierRequired <= techEffects.maxPayloadTier) out.push(def.id)
+    }
+    return out
+  }, [techEffects.maxPayloadTier])
 
   // === Toast lifecycle: auto-purge expired ===
   useEffect(() => {
@@ -227,6 +499,23 @@ export function PlayPage() {
     })
   }
 
+  // PHASE 16.13.10: surface tile click in 3D GalaxyView. The clicked planet drives the target;
+  // we DO NOT force activePlanetId switch here — user is looking at planetId, place on planetId.
+  // If they wanted a different planet, they'd zoom there. Build-mode + empty-tile gate identical
+  // to the 2D path so behavior is unified.
+  const handleSurfaceTileClick = useCallback(
+    (planetId: PlanetId, tile: Tile): void => {
+      if (!buildMode) return
+      if (tile.occupancy !== 'empty') return
+      sim.placeBuilding({
+        planetId,
+        tileId: tile.id,
+        defId: buildMode,
+      })
+    },
+    [buildMode, sim],
+  )
+
   const handleSelectCampaign = (archetype: CampaignArchetype): void => {
     sim.launchCampaign({
       planetId: activePlanet.planet.id,
@@ -235,10 +524,9 @@ export function PlayPage() {
     closePanel('campaigns')
   }
 
-  const handleSelectPlanet = (id: PlanetId): void => {
+  const handleSelectPlanet = useCallback((id: PlanetId): void => {
     setSelectedPlanetId(id)
-    closePanel('planets')
-  }
+  }, [])
 
   const handleResetTo = (themeId: ThemeId): void => {
     sim.resetMatch({
@@ -300,9 +588,7 @@ export function PlayPage() {
       else if (k === 'i') togglePanel('indigenous')
       else if (k === 'x') togglePanel('events')
       else if (k === 'g') togglePanel('planets')
-      else if (k === 'm') {
-        setGalaxyOpen((v) => !v)
-      } else if (k === ' ') {
+      else if (k === ' ') {
         e.preventDefault()
         sim.togglePause()
       } else if (k === '1') sim.setSpeed(1)
@@ -329,15 +615,55 @@ export function PlayPage() {
       className={`play-shell ${buildMode ? 'play-shell--build-mode' : ''}`}
       style={styleVars as React.CSSProperties}
     >
-      {/* World view — currently the SVG hex grid; replaced by Three.js scene in 16.2 */}
+      {/* PHASE 16.13.9: 3D GalaxyView is the always-on /play canvas. Legacy 2D TilePlacementGrid
+          remains only as a `?dev=hexgrid` URL-flag fallback for dev debugging. */}
       <div className="play-shell__world">
-        <TilePlacementGrid
-          tiles={activePlanet.planet.tiles.slice(0, 37)}
-          biome={activePlanet.planet.biome}
-          civResearchedTechs={humanCivState.empire.researchedTechs}
-          selectedBuildingDefId={buildMode}
-          onTileClick={handleTileClick}
-        />
+        {isDevHexGridFallback ? (
+          <TilePlacementGrid
+            tiles={activePlanet.planet.tiles.slice(0, 37)}
+            biome={activePlanet.planet.biome}
+            civResearchedTechs={humanCivState.empire.researchedTechs}
+            selectedBuildingDefId={buildMode}
+            onTileClick={handleTileClick}
+          />
+        ) : (
+          <GalaxyView
+            galaxy={sim.state.galaxy}
+            humanCivId={String(sim.state.humanCivId)}
+            ownedPlanetIds={new Set(ownedPlanets.map((p) => p.planet.id))}
+            homePlanetId={humanCivState.homePlanetId}
+            mineFields={allMineFields}
+            activeFlights={[...sim.state.flights.values()]}
+            alertedPlanetIds={
+              new Set(
+                [...sim.state.planets.values()]
+                  .filter(
+                    (p) =>
+                      p.civId === sim.state.humanCivId &&
+                      p.beacon.alerts.some(
+                        (a) =>
+                          a.kind === 'INCOMING_HOSTILE' && sim.state.currentTick - a.atTick < 200,
+                      ),
+                  )
+                  .map((p) => p.planet.id),
+              )
+            }
+            ownerByPlanet={
+              new Map([...sim.state.planets.values()].map((p) => [p.planet.id, p.civId] as const))
+            }
+            themeByCiv={
+              new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))
+            }
+            onSelectPlanet={handleSelectPlanet}
+            onSurfaceTileClick={handleSurfaceTileClick}
+            onSelectFlight={setSelectedFlightId}
+            miningBeacons={allHumanBeacons}
+            civsByPlanet={civsByPlanet}
+            indigenousByPlanet={indigenousByPlanet}
+            lastHopeTriggeredPlanetIds={lastHopeTriggeredPlanetIds}
+            padStateGlows={padStateGlows}
+          />
+        )}
       </div>
 
       <HUDOverlay
@@ -349,45 +675,22 @@ export function PlayPage() {
         setSpeed={sim.setSpeed}
         openPanels={openPanels}
         togglePanel={togglePanel}
-        onGalaxyClick={() => setGalaxyOpen((v) => !v)}
         buildModeBuildingDefId={buildMode}
         onCancelBuildMode={handleCancelBuildMode}
       />
 
-      {galaxyOpen && (
-        <GalaxyView
-          galaxy={sim.state.galaxy}
-          humanCivId={String(sim.state.humanCivId)}
-          ownedPlanetIds={new Set(ownedPlanets.map((p) => p.planet.id))}
-          homePlanetId={humanCivState.homePlanetId}
-          activeFlights={[...sim.state.flights.values()]}
-          alertedPlanetIds={
-            new Set(
-              [...sim.state.planets.values()]
-                .filter(
-                  (p) =>
-                    p.civId === sim.state.humanCivId &&
-                    p.beacon.alerts.some(
-                      (a) =>
-                        a.kind === 'INCOMING_HOSTILE' && sim.state.currentTick - a.atTick < 200,
-                    ),
-                )
-                .map((p) => p.planet.id),
-            )
-          }
-          ownerByPlanet={
-            new Map([...sim.state.planets.values()].map((p) => [p.planet.id, p.civId] as const))
-          }
-          themeByCiv={new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))}
-          onSelectPlanet={(id) => {
-            setSelectedPlanetId(id)
-            setGalaxyOpen(false)
-          }}
-          onClose={() => setGalaxyOpen(false)}
-        />
-      )}
-
       <Toasts toasts={toasts} onDismiss={dismissToast} />
+
+      <TelemetryRack
+        activePads={activePads}
+        miningBeacons={allHumanBeacons}
+        activeFlights={[...sim.state.flights.values()]}
+        resourceTotals={empireTotals.resources}
+        populationTotal={empireTotals.pop}
+        empireTechs={humanCivState.empire.researchedTechs.size}
+        currentTick={sim.state.currentTick}
+        activePlanetInventory={activePlanet.inventory}
+      />
 
       {/* === Picker popups (centered) === */}
       {openPanels.has('build') && (
@@ -561,8 +864,56 @@ export function PlayPage() {
             themeByCiv={
               new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))
             }
-            beaconsByPlanet={new Map()}
+            beaconsByPlanet={beaconsByPlanet}
             humanCivId={sim.state.humanCivId}
+          />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('command') && (
+        <PanelFrame
+          title="Command Pad"
+          emoji="🎛"
+          onClose={() => closePanel('command')}
+          variant="docked-right"
+        >
+          <CommandPadPanel
+            planetId={activePlanet.planet.id}
+            theme={humanTheme}
+            pads={activePads}
+            availableVariants={availableShipVariants}
+            onBuildAll={(variantId) => sim.controllerBuildAll(activePlanet.planet.id, variantId)}
+            onArmAll={() => sim.controllerArmAll(activePlanet.planet.id)}
+            onLaunchAll={() => sim.controllerLaunchAll(activePlanet.planet.id)}
+            onAbortAll={() => sim.controllerAbortAll(activePlanet.planet.id)}
+            onCopyTargetFromController={() => sim.controllerCopyTarget(activePlanet.planet.id)}
+            onFireSalvoRound={() => {
+              if (salvoRoundPhase !== null) return
+              const planetId = activePlanet.planet.id
+              const variant = availableShipVariants[0]
+              if (!variant) return
+              setSalvoRoundPhase('BUILDING')
+              sim.controllerBuildAll(planetId, variant)
+              window.setTimeout(() => {
+                setSalvoRoundPhase('ARMING')
+                sim.controllerArmAll(planetId)
+              }, 8000)
+              window.setTimeout(() => {
+                setSalvoRoundPhase('LAUNCHING')
+                sim.controllerLaunchAll(planetId)
+              }, 11000)
+              window.setTimeout(() => setSalvoRoundPhase(null), 13000)
+            }}
+            salvoRoundActive={salvoRoundPhase !== null}
+            salvoRoundPhaseLabel={
+              salvoRoundPhase === 'BUILDING'
+                ? '⚙ BUILDING — pads loading...'
+                : salvoRoundPhase === 'ARMING'
+                  ? '⚡ ARMING ready pads...'
+                  : salvoRoundPhase === 'LAUNCHING'
+                    ? '🚀 LAUNCHING armed pads...'
+                    : undefined
+            }
           />
         </PanelFrame>
       )}
@@ -597,6 +948,29 @@ export function PlayPage() {
           </ul>
         </PanelFrame>
       )}
+      {/* PHASE 16.23: clicked-flight detail popup. Renders when a flight cone in 3D is clicked
+          via GalaxyView's raycaster. Shows full make-up (crew/citizens/cargo/fuel/payload) +
+          UMS UNITY_MSL live telemetry (alt/dist/closingSpeed/phase/ETA) + 💀 ABORT button
+          that calls sim.abortFlightById for self-destruct. */}
+      {selectedFlightId
+        ? (() => {
+            const flight = sim.state.flights.get(selectedFlightId)
+            if (!flight) {
+              setSelectedFlightId(null)
+              return null
+            }
+            return (
+              <FlightDetailPanel
+                flight={flight}
+                currentTick={sim.state.currentTick}
+                fromPlanetLabel={String(flight.fromPlanetId)}
+                toPlanetLabel={String(flight.targetPlanetId)}
+                onAbort={(fid) => sim.abortFlightById(fid)}
+                onClose={() => setSelectedFlightId(null)}
+              />
+            )
+          })()
+        : null}
     </div>
   )
 }

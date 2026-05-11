@@ -1,0 +1,219 @@
+import {
+  type ColonyShipFlight,
+  type PlanetId,
+  flightTelemetrySnapshot,
+  getColonyShipDef,
+} from '@smol/shared'
+import './FlightDetailPanel.css'
+
+// PHASE 16.23 — selectable in-flight ship make-up popup per user verbatim LAW #0 2026-05-10:
+// "when tracking and following a ship fly through space they should be selectable oand show
+// their make up creww supply fule water all of that spped current task ect ect".
+//
+// Matches UMS UnityMissile.cs UNITY_MSL broadcast spec — every field the missile reports on
+// its telemetry channel is surfaced here. Per-flight live telemetry (altitude / distance /
+// closing speed / signal-lost) comes from flightTelemetrySnapshot helper (PHASE 16.21).
+// Static per-variant load-out (fuel / ammo / cargo / citizens / payload type) comes from
+// getColonyShipDef. Per-flight dynamic load-out (fuelRemaining, cargoBurned) is roadmapped
+// to PHASE 16.24 (self-destruct + AoE damage scaling per the SMoL premise — "dark theme"
+// in user shorthand was the dystopian fiction framing, NOT a code feature).
+
+export interface FlightDetailPanelProps {
+  readonly flight: ColonyShipFlight
+  readonly currentTick: number
+  readonly fromPlanetLabel?: string
+  readonly toPlanetLabel?: string
+  // PHASE 16.24-ready: when supplied, ABORT button calls this with the flight id. Wires
+  // through to MatchSim abortFlight(flight) which sets phase=ABORTED + outcome=ABORTED.
+  readonly onAbort?: (flightId: string) => void
+  readonly onClose: () => void
+}
+
+function ticksToEtaLabel(ticks: number): string {
+  if (ticks <= 0) return 'terminal'
+  if (ticks < 60) return `${ticks}t`
+  const min = Math.floor(ticks / 60)
+  const rem = ticks % 60
+  return `${min}m ${rem}t`
+}
+
+function phaseDescription(phase: ColonyShipFlight['phase']): string {
+  switch (phase) {
+    case 'CLIMB':
+      return 'climbing out of source gravity well'
+    case 'COAST':
+      return 'coasting at cruise altitude'
+    case 'REENTRY':
+      return 'reentry burn — descending to target'
+    case 'TARGET':
+      return 'terminal approach — final guidance'
+    case 'DETONATE':
+      return 'detonated at target'
+    case 'INTERCEPTED':
+      return 'intercepted in flight'
+    case 'ABORTED':
+      return 'aborted by operator'
+    case 'CRASH_LANDED':
+      return 'crash-landed'
+  }
+}
+
+export function FlightDetailPanel({
+  flight,
+  currentTick,
+  fromPlanetLabel,
+  toPlanetLabel,
+  onAbort,
+  onClose,
+}: FlightDetailPanelProps) {
+  const def = getColonyShipDef(flight.variantId)
+  const tel = flightTelemetrySnapshot(flight)
+  const ticksRemaining = Math.max(0, flight.totalTicks - flight.ticksFlown)
+  const inFlight =
+    flight.phase !== 'DETONATE' &&
+    flight.phase !== 'INTERCEPTED' &&
+    flight.phase !== 'ABORTED' &&
+    flight.phase !== 'CRASH_LANDED'
+
+  const fromLabel = fromPlanetLabel ?? String(flight.fromPlanetId)
+  const toLabel = toPlanetLabel ?? String(flight.targetPlanetId)
+  void currentTick
+
+  return (
+    <div className="flight-detail-overlay" onClick={onClose}>
+      <div
+        className={`flight-detail-panel flight-detail-panel--tier${def.darknessTier}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="flight-detail-panel__header">
+          <span className="flight-detail-panel__variant">
+            {def.emoji} {def.name}
+          </span>
+          <span className="flight-detail-panel__tier">Darkness Tier {def.darknessTier}</span>
+          <button
+            type="button"
+            className="flight-detail-panel__close"
+            onClick={onClose}
+            title="Close"
+          >
+            ✕
+          </button>
+        </header>
+
+        <section className="flight-detail-panel__route">
+          <span className="flight-detail-panel__route-from">{fromLabel}</span>
+          <span className="flight-detail-panel__route-arrow">→</span>
+          <span className="flight-detail-panel__route-to">{toLabel}</span>
+        </section>
+
+        <section className="flight-detail-panel__status">
+          <div className="flight-detail-panel__status-line">
+            <span className="flight-detail-panel__status-label">Current task:</span>
+            <strong>{flight.phase}</strong>
+            {tel.signalLost ? <span className="flight-detail-panel__signal-lost">📡✕</span> : null}
+          </div>
+          <div className="flight-detail-panel__status-desc">{phaseDescription(flight.phase)}</div>
+        </section>
+
+        <section className="flight-detail-panel__telemetry">
+          <h4 className="flight-detail-panel__section-title">Live telemetry (UNITY_MSL)</h4>
+          <div className="flight-detail-panel__grid">
+            <FlightCell label="Distance to target" value={`${tel.distToTarget.toFixed(0)} units`} />
+            <FlightCell label="Closing speed" value={`${tel.closingSpeed.toFixed(1)} u/t`} />
+            <FlightCell label="Altitude (radial)" value={`${tel.altitude.toFixed(0)} units`} />
+            <FlightCell label="Progress" value={`${Math.round(tel.progress * 100)}%`} />
+            <FlightCell label="ETA" value={inFlight ? ticksToEtaLabel(ticksRemaining) : '—'} />
+            <FlightCell label="Total flight" value={`${flight.totalTicks}t`} />
+            <FlightCell
+              label="Fuel remaining"
+              value={`${tel.fuelRemaining.toFixed(0)}/${tel.fuelAtLaunch} u (${Math.round(tel.fuelPct * 100)}%)`}
+            />
+            <FlightCell
+              label="Self-destruct AoE"
+              value={
+                def.suicideShip || def.payload.explosiveYield > 0 || def.payload.weaponPayload > 0
+                  ? 'armed — explosive payload'
+                  : 'no payload — small boom'
+              }
+            />
+          </div>
+        </section>
+
+        <section className="flight-detail-panel__makeup">
+          <h4 className="flight-detail-panel__section-title">Make-up + load-out</h4>
+          <div className="flight-detail-panel__grid">
+            <FlightCell label="Crew / citizens" value={flight.citizensAboard.toLocaleString()} />
+            <FlightCell
+              label="Citizen capacity"
+              value={def.payload.citizenCapacity.toLocaleString()}
+            />
+            <FlightCell label="Cargo capacity" value={def.payload.cargoCapacity.toLocaleString()} />
+            <FlightCell label="Weapon payload" value={def.payload.weaponPayload.toLocaleString()} />
+            <FlightCell
+              label="Explosive yield"
+              value={def.payload.explosiveYield.toLocaleString()}
+            />
+            <FlightCell
+              label="Suicide ship"
+              value={def.suicideShip ? 'yes — self-destructs on arrival' : 'no'}
+            />
+            <FlightCell label="Fuel at launch" value={`${def.fuelRequirement} u`} />
+            <FlightCell label="Ammo at launch" value={`${def.ammoRequirement} u`} />
+            <FlightCell label="Speed multiplier" value={def.speedMultiplier.toFixed(2) + '×'} />
+            <FlightCell label="Evasion multiplier" value={def.evasionMultiplier.toFixed(2) + '×'} />
+            <FlightCell label="Can intercept" value={def.canIntercept ? 'yes' : 'no'} />
+            <FlightCell label="Category" value={def.category} />
+          </div>
+        </section>
+
+        <section className="flight-detail-panel__description">
+          <p>{def.description}</p>
+        </section>
+
+        {inFlight && onAbort ? (
+          <section className="flight-detail-panel__actions">
+            <button
+              type="button"
+              className="flight-detail-panel__btn flight-detail-panel__btn--abort"
+              onClick={() => {
+                onAbort(String(flight.id))
+                onClose()
+              }}
+              title="Self-destruct the ship in-flight (UMS-faithful abort). PHASE 16.24 will add AoE damage based on fuel + payload at detonation."
+            >
+              💀 ABORT (self-destruct)
+            </button>
+          </section>
+        ) : null}
+
+        {flight.outcome ? (
+          <section className="flight-detail-panel__outcome">
+            <span className="flight-detail-panel__outcome-label">Outcome:</span>
+            <strong>{flight.outcome}</strong>
+          </section>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+interface FlightCellProps {
+  readonly label: string
+  readonly value: string
+}
+
+function FlightCell({ label, value }: FlightCellProps) {
+  return (
+    <div className="flight-detail-panel__cell">
+      <span className="flight-detail-panel__cell-label">{label}</span>
+      <span className="flight-detail-panel__cell-value">{value}</span>
+    </div>
+  )
+}
+
+// PHASE 16.23: minimal helper for parents wanting to translate a PlanetId into a display
+// label (theme emoji + name) without re-importing theme system. Kept here so the panel
+// stays self-contained.
+export function planetIdLabel(id: PlanetId): string {
+  return String(id)
+}
