@@ -163,7 +163,7 @@
   font-style: italic;
   text-align: right;
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* PHASE 17.L.B.7 — full words, no truncation. AI decision text wraps to multi-line. */
+  overflow-wrap: break-word;
+  word-break: break-word;
 }

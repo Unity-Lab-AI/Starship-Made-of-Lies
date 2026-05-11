@@ -27,9 +27,9 @@
   letter-spacing: 0.04em;
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* PHASE 17.L.B.7 — full words, no truncation. PlayPage title wraps to multi-line if needed. */
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .play-page__emoji {

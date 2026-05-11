@@ -56,9 +56,9 @@
 }
 
 .beacon-panel__summary {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* PHASE 17.L.B.7 — full words, no truncation. Beacon summary wraps. */
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .beacon-panel__ago {

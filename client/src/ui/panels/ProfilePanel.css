@@ -112,7 +112,7 @@
   font-style: italic;
   border-top: 1px dashed rgba(255, 255, 255, 0.12);
   padding-top: 0.3rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* PHASE 17.L.B.7 — full words, no truncation. Profile sub-text wraps. */
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
