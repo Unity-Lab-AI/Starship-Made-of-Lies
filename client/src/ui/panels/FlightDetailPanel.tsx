@@ -89,9 +89,11 @@ export function FlightDetailPanel({
     flight.phase !== 'ABORTED' &&
     flight.phase !== 'CRASH_LANDED'
   // PHASE 16.29: counter-colony-ships are defensive interceptors launched by the planet
-  // owner to intercept incoming attackers. Show an INTERCEPTOR badge in the header and hide
-  // the ABORT button (the defender doesn't manually abort their own counter — it self-
-  // destructs automatically when its target is intercepted, gone, or out of fuel).
+  // owner to intercept incoming attackers. Show an INTERCEPTOR badge in the header — but the
+  // abort button is NO LONGER hidden for counters per user verbatim 2026-05-11 (LAW #0):
+  // "hold up now all ships have abort that can be triggered by the player at any time".
+  // Defenders may want to manually abort their own counter (e.g. wrong target chosen,
+  // counter no longer needed, want to recover the AoE damage close to home, etc.).
   const isCounter = def.canIntercept
   // PHASE 16.32: ship-systems state. STRANDED → 🛰️ HELP ME beacon banner (help never comes
   // per user verbatim). EMPTY_HULK → 🪦 drifting-bomb banner. Starving crew → ⚠️ warning.
@@ -258,9 +260,9 @@ export function FlightDetailPanel({
           <p>{def.description}</p>
         </section>
 
-        {inFlight && (onAbort || (godControlReady && onSelectForRedirect)) && !isCounter ? (
+        {inFlight && (onAbort || (godControlReady && onSelectForRedirect)) ? (
           <section className="flight-detail-panel__actions">
-            {godControlReady && onSelectForRedirect ? (
+            {godControlReady && onSelectForRedirect && !isCounter ? (
               <button
                 type="button"
                 className="flight-detail-panel__btn flight-detail-panel__btn--redirect"
@@ -281,7 +283,11 @@ export function FlightDetailPanel({
                   onAbort(String(flight.id))
                   onClose()
                 }}
-                title="Self-destruct the ship in-flight (UMS-faithful abort). AoE damage scales with fuel + payload at detonation."
+                title={
+                  isCounter
+                    ? 'Self-destruct this counter-interceptor (player override — per user verbatim 2026-05-11 "all ships have abort that can be triggered by the player at any time"). AoE damage scales with fuel + payload at detonation.'
+                    : 'Self-destruct the ship in-flight (UMS-faithful abort). AoE damage scales with fuel + payload at detonation.'
+                }
               >
                 💀 ABORT (self-destruct)
               </button>
