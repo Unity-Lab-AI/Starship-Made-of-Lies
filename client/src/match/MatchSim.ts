@@ -152,6 +152,7 @@ import {
   spawnIndigenousCiv,
   startPrint,
   startResearch,
+  consumeResource,
   stockOf,
   tickActiveCampaign,
   tickFlight,
@@ -2208,6 +2209,23 @@ export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
     const targetPlanet = inputs.state.planets.get(inputs.targetPlanetId)
     if (!targetPlanet) return false
     const def = getColonyShipDef(pad.loadedShipVariantId)
+    // PHASE 17.J.5 — reactor fuel loading. Reactor variants require their tier-specific
+    // radioactive resource consumed from the launching planet's inventory at liftoff. Solar /
+    // battery variants have reactorFuelType === null and skip this gate. Launch aborts if the
+    // planet doesn't have enough — pad stays in READY so the player can refuel and retry.
+    if (def.reactorFuelType && def.reactorFuelAmount > 0) {
+      const available = stockOf(planet.inventory, def.reactorFuelType)
+      if (available < def.reactorFuelAmount) {
+        pushEvent(inputs.state, {
+          atTick: inputs.state.currentTick,
+          civId: planet.civId,
+          kind: 'launch',
+          message: `Launch aborted: ${def.name} needs ${def.reactorFuelAmount} ${String(def.reactorFuelType)} for reactor (have ${available})`,
+        })
+        return false
+      }
+      consumeResource(planet.inventory, def.reactorFuelType, def.reactorFuelAmount)
+    }
     const flightIdStr = `flight-${inputs.state.currentTick}-${planet.civId}-${pad.id}`
     const flight = newColonyShipFlight({
       id: colonyShipFlightId(flightIdStr),

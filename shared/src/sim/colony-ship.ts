@@ -10,6 +10,7 @@ import {
   RESOURCE_INGOTS,
   RESOURCE_MACHINERY,
   RESOURCE_PROPAGANDA_MATERIALS,
+  RESOURCE_RARE_METALS,
 } from './resources'
 
 declare const __colonyShipBrand: unique symbol
@@ -73,6 +74,14 @@ export interface ColonyShipDef {
   readonly crewSupportTicks: number
   readonly autoGuidanceInstalled: boolean
   readonly signalRange: number
+  // PHASE 17.J.5 — reactor fuel loading. Per user verbatim "and radioatives for rectors".
+  // Reactor variants consume their tier-specific radioactive resource as a one-time launch
+  // cost (loaded into the reactor before liftoff). Solar / battery variants have null. Tier 1
+  // reactor ships use RESOURCE_RARE_METALS (uranium proxy); tier 2 use FUSION_FUEL; tier 3+
+  // use ANTIMATTER. Validated at launch time and consumed from the launching planet's
+  // inventory in parallel with the standard fuel / ammo / crew load.
+  readonly reactorFuelType: ResourceId | null
+  readonly reactorFuelAmount: number
 }
 
 export const SHIP_SCOUT = colonyShipVariantId('scout')
@@ -113,6 +122,8 @@ type ColonyShipDefRaw = Omit<
   | 'crewSupportTicks'
   | 'autoGuidanceInstalled'
   | 'signalRange'
+  | 'reactorFuelType'
+  | 'reactorFuelAmount'
 >
 
 const COLONY_SHIPS_RAW: ReadonlyArray<ColonyShipDefRaw> = [
@@ -600,6 +611,23 @@ function deriveShipSystems(raw: ColonyShipDefRaw): ColonyShipDef {
   else if (raw.canIntercept) signalRange = 4500
   else if (raw.payload.citizenCapacity > 0) signalRange = 6500
 
+  // PHASE 17.J.5 — reactor fuel loading. Only reactor variants need it (solar / battery don't).
+  // Tier mapping: payloadTierRequired 1-2 → fission (RARE_METALS), 3 → fusion (FUSION_FUEL),
+  // 4 → antimatter (ANTIMATTER). Amount scales with powerCapacity × 0.05 (rounded up). Solar /
+  // battery ships set both fields to null/0 so the launch validator skips them.
+  let reactorFuelType: ResourceId | null = null
+  let reactorFuelAmount = 0
+  if (powerSource === 'reactor') {
+    if (raw.payloadTierRequired >= 4) {
+      reactorFuelType = RESOURCE_ANTIMATTER
+    } else if (raw.payloadTierRequired === 3) {
+      reactorFuelType = RESOURCE_FUSION_FUEL
+    } else {
+      reactorFuelType = RESOURCE_RARE_METALS
+    }
+    reactorFuelAmount = Math.max(1, Math.ceil(powerCapacity * 0.05))
+  }
+
   return {
     ...raw,
     powerSource,
@@ -609,6 +637,8 @@ function deriveShipSystems(raw: ColonyShipDefRaw): ColonyShipDef {
     crewSupportTicks,
     autoGuidanceInstalled,
     signalRange,
+    reactorFuelType,
+    reactorFuelAmount,
   }
 }
 
