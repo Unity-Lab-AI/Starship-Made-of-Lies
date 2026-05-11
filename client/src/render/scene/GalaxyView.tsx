@@ -99,6 +99,11 @@ interface GalaxyViewProps {
   // applyDetonationAoE. Each entry spawns an expanding flash sphere at worldPosition that
   // animates over ~1.5s wall-clock and fades. Pass empty array (or omit) to disable.
   readonly detonations?: ReadonlyArray<DetonationFlashInput>
+  // PHASE 16.31: god-control redirect. When non-null, the next right-click on a planet
+  // (in the 3D canvas) fires this with the planet id. PlayPage wires it through to
+  // sim.redirectFlight(redirectModeFlightId, planetId). Default browser context menu is
+  // suppressed on canvas while in redirect mode.
+  readonly onContextMenuPlanet?: (planetId: PlanetId) => void
 }
 
 export function GalaxyView({
@@ -120,6 +125,7 @@ export function GalaxyView({
   mineFields,
   onSelectFlight,
   detonations,
+  onContextMenuPlanet,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -144,6 +150,7 @@ export function GalaxyView({
   const mineFieldsRef = useRef<ReadonlyArray<MineFieldInput>>(mineFields ?? [])
   const onSelectFlightRef = useRef(onSelectFlight)
   const detonationsRef = useRef<ReadonlyArray<DetonationFlashInput>>(detonations ?? [])
+  const onContextMenuPlanetRef = useRef(onContextMenuPlanet)
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
@@ -158,6 +165,7 @@ export function GalaxyView({
   mineFieldsRef.current = mineFields ?? []
   onSelectFlightRef.current = onSelectFlight
   detonationsRef.current = detonations ?? []
+  onContextMenuPlanetRef.current = onContextMenuPlanet
   void humanCivId
 
   useEffect(() => {
@@ -393,6 +401,26 @@ export function GalaxyView({
     renderer.domElement.addEventListener('click', onClick)
     renderer.domElement.addEventListener('mousemove', onMouseMoveForHover)
 
+    // PHASE 16.31 — god-control right-click redirect. Suppress default browser context menu
+    // and raycast for a planet pick. When onContextMenuPlanet is set + a planet is hit,
+    // fire the callback with the planet id. PlayPage handles the rest.
+    const onContextMenu = (e: MouseEvent): void => {
+      if (!onContextMenuPlanetRef.current) return
+      e.preventDefault()
+      const rect = renderer.domElement.getBoundingClientRect()
+      ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+      ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+      raycaster.setFromCamera(ndc, cameraState.camera)
+      const planetObjs = Array.from(galaxyHandle.planetMeshes.values())
+      const hits = raycaster.intersectObjects(planetObjs, false)
+      const hit = hits[0]
+      if (hit?.object instanceof THREE.Mesh && hit.object.userData.kind === 'planet') {
+        const id = hit.object.userData.planetId as PlanetId
+        onContextMenuPlanetRef.current(id)
+      }
+    }
+    renderer.domElement.addEventListener('contextmenu', onContextMenu)
+
     // R key toggles range overlay
     const onKeyDown = (ev: KeyboardEvent): void => {
       if (ev.key.toLowerCase() === 'r') {
@@ -539,6 +567,7 @@ export function GalaxyView({
       window.removeEventListener('keydown', onKeyDown)
       renderer.domElement.removeEventListener('click', onClick)
       renderer.domElement.removeEventListener('mousemove', onMouseMoveForHover)
+      renderer.domElement.removeEventListener('contextmenu', onContextMenu)
       controller.destroy()
       flightArcHandle.destroy()
       beaconPulseHandle.destroy()

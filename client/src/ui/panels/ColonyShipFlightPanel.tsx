@@ -15,6 +15,10 @@ const PHASE_LABEL: Readonly<Record<FlightPhase, string>> = {
   INTERCEPTED: 'Intercepted',
   ABORTED: 'Aborted',
   CRASH_LANDED: 'Crash-Landed',
+  // PHASE 16.32 — new phases. STRANDED = halted out of signal range, calling LASER_HOME.
+  // EMPTY_HULK = crew dead, drifting on last velocity through wrapped space.
+  STRANDED: 'Stranded — LASER_HOME',
+  EMPTY_HULK: 'Empty Hulk — Drifting',
 }
 
 const PHASE_GLYPH: Readonly<Record<FlightPhase, string>> = {
@@ -26,6 +30,8 @@ const PHASE_GLYPH: Readonly<Record<FlightPhase, string>> = {
   INTERCEPTED: '✕',
   ABORTED: '⊘',
   CRASH_LANDED: '💥',
+  STRANDED: '🛰️',
+  EMPTY_HULK: '🪦',
 }
 
 export function ColonyShipFlightPanel({ flights, onAfterAction }: ColonyShipFlightPanelProps) {

@@ -15,6 +15,7 @@ import {
   BLDG_UNIVERSITY,
   BLDG_FOUNDRY,
   BLDG_MINING_OUTPOST,
+  BLDG_GOD_CONTROL,
 } from './building'
 
 declare const __techBrand: unique symbol
@@ -120,6 +121,11 @@ export const TECH_ROBOTICS = techId('robotics')
 export const TECH_CIVIL_DEFENSE = techId('civilDefense')
 export const TECH_VOLUNTEER_INDOCTRINATION = techId('volunteerIndoctrination')
 export const TECH_BLACK_OPS_RESEARCH = techId('blackOpsResearch')
+
+// PHASE 16.31 — God Control. Forbidden tier-4 tech that gates BLDG_GOD_CONTROL building +
+// the right-click flight-redirect UX. Per user verbatim *"shouldf be se;lect and right click
+// to send your rocket places too as an option if 'god control' is researched and installed"*.
+export const TECH_GOD_CONTROL = techId('godControl')
 
 export const TECH_NODES: ReadonlyArray<TechNode> = [
   {
@@ -721,6 +727,26 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     effects: {
       researchSpeedMultiplier: 1.6,
       citizenPromotionRateMultiplier: 1.5,
+    },
+  },
+  // PHASE 16.31 — God Control. End-game forbidden override capability. Player can select an
+  // in-flight colony ship + right-click any planet to redirect it (PHASE 16.31 UX). Requires
+  // both this tech researched AND a BLDG_GOD_CONTROL building installed on any owned planet.
+  // Effective vs even EMPTY_HULK ships (the god intervenes from above per project framing).
+  {
+    id: TECH_GOD_CONTROL,
+    name: 'God Control',
+    emoji: '🕹️',
+    tier: 4,
+    visibility: 'forbidden',
+    category: 'forbidden',
+    description:
+      'End-game override infrastructure. Researched + installed → player can select any in-flight colony ship and right-click any planet to redirect it mid-arc. The god intervenes from above.',
+    prerequisites: [TECH_MIND_CONTROL_BROADCAST, TECH_ANCIENT_TECH_REVERSE],
+    costPoints: 400,
+    conquestGate: { minDefeatedCivs: 3 },
+    effects: {
+      unlockBuildings: [BLDG_GOD_CONTROL],
     },
   },
 ]

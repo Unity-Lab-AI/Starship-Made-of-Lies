@@ -17,9 +17,11 @@ import {
   buildShipAction,
   claimLootDropAction,
   createMatch,
+  isHumanGodControlReady,
   launchCampaignAction,
   launchShipFromPadAction,
   placeBuildingAction,
+  redirectFlightAction,
   startResearchAction,
   tickMatch,
   triggerLastHopeManually,
@@ -54,6 +56,13 @@ export interface UseMatchSimResult {
   // UnityPad.cs DETONATE:{padID} IGC message — manual self-destruct. PHASE 16.24 will
   // add AoE damage scaling from fuel + payload at detonation point.
   readonly abortFlightById: (flightId: string) => boolean
+  // PHASE 16.31: god-control redirect. Player selects a flight + right-clicks destination
+  // planet → calls this. Validates tech + building gate inside MatchSim. Returns true on
+  // successful redirect.
+  readonly redirectFlight: (flightId: string, newTargetPlanetId: PlanetId) => boolean
+  // PHASE 16.31: gate check exposed to UI so the FlightDetailPanel can show / hide the
+  // "Select for Redirect" button + the PlayPage hint banner.
+  readonly godControlReady: boolean
 }
 
 export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
@@ -254,6 +263,21 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     return true
   }, [])
 
+  // PHASE 16.31 — god-control redirect action. Validates tech + building gate inside
+  // MatchSim's redirectFlightAction. Triggered from PlayPage when player has selected a
+  // flight for redirect AND right-clicks a destination planet.
+  const redirectFlight = useCallback((flightId: string, newTargetPlanetId: PlanetId): boolean => {
+    const ok = redirectFlightAction({
+      state: stateRef.current,
+      flightId,
+      newTargetPlanetId,
+    })
+    if (ok) setTickCount((n) => n + 1)
+    return ok
+  }, [])
+
+  const godControlReady = isHumanGodControlReady(stateRef.current)
+
   return {
     state: stateRef.current,
     tickCount,
@@ -275,5 +299,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     controllerAbortAll,
     controllerCopyTarget,
     abortFlightById,
+    redirectFlight,
+    godControlReady,
   }
 }

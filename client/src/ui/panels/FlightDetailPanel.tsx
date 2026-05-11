@@ -27,6 +27,12 @@ export interface FlightDetailPanelProps {
   // through to MatchSim abortFlight(flight) which sets phase=ABORTED + outcome=ABORTED.
   readonly onAbort?: (flightId: string) => void
   readonly onClose: () => void
+  // PHASE 16.31 — god control. When godControlReady is true AND the flight is non-terminal,
+  // the "Select for Redirect" button is shown. Clicking it fires onSelectForRedirect + closes
+  // the panel; PlayPage enters redirect mode where the next right-click on a planet redirects
+  // this flight via sim.redirectFlight.
+  readonly godControlReady?: boolean
+  readonly onSelectForRedirect?: (flightId: string) => void
 }
 
 function ticksToEtaLabel(ticks: number): string {
@@ -55,6 +61,10 @@ function phaseDescription(phase: ColonyShipFlight['phase']): string {
       return 'aborted by operator'
     case 'CRASH_LANDED':
       return 'crash-landed'
+    case 'STRANDED':
+      return 'out of signal range — LASER_HOME beacon active, help never coming'
+    case 'EMPTY_HULK':
+      return 'crew dead, no auto-guidance — drifting on last velocity through wrapped space'
   }
 }
 
@@ -65,6 +75,8 @@ export function FlightDetailPanel({
   toPlanetLabel,
   onAbort,
   onClose,
+  godControlReady,
+  onSelectForRedirect,
 }: FlightDetailPanelProps) {
   const def = getColonyShipDef(flight.variantId)
   const tel = flightTelemetrySnapshot(flight)
@@ -79,6 +91,11 @@ export function FlightDetailPanel({
   // the ABORT button (the defender doesn't manually abort their own counter — it self-
   // destructs automatically when its target is intercepted, gone, or out of fuel).
   const isCounter = def.canIntercept
+  // PHASE 16.32: ship-systems state. STRANDED → 🛰️ HELP ME beacon banner (help never comes
+  // per user verbatim). EMPTY_HULK → 🪦 drifting-bomb banner. Starving crew → ⚠️ warning.
+  const isStranded = flight.phase === 'STRANDED'
+  const isEmptyHulk = flight.phase === 'EMPTY_HULK'
+  const isStarving = tel.crewStarvationTimer > 0 && flight.crewAlive > 0
 
   const fromLabel = fromPlanetLabel ?? String(flight.fromPlanetId)
   const toLabel = toPlanetLabel ?? String(flight.targetPlanetId)
@@ -96,6 +113,12 @@ export function FlightDetailPanel({
           </span>
           {isCounter ? (
             <span className="flight-detail-panel__interceptor-badge">🛡️ INTERCEPTOR</span>
+          ) : null}
+          {isStranded ? (
+            <span className="flight-detail-panel__stranded-badge">🛰️ STRANDED — HELP ME</span>
+          ) : null}
+          {isEmptyHulk ? (
+            <span className="flight-detail-panel__hulk-badge">🪦 EMPTY HULK — DRIFTING</span>
           ) : null}
           <span className="flight-detail-panel__tier">Darkness Tier {def.darknessTier}</span>
           <button
@@ -147,6 +170,54 @@ export function FlightDetailPanel({
           </div>
         </section>
 
+        <section className="flight-detail-panel__systems">
+          <h4 className="flight-detail-panel__section-title">Ship systems (PHASE 16.32)</h4>
+          <div className="flight-detail-panel__grid">
+            <FlightCell
+              label="Power source"
+              value={`${tel.powerSource.toUpperCase()}${tel.powerSource === 'solar' ? ' (regen)' : ''}`}
+            />
+            <FlightCell
+              label="Power remaining"
+              value={`${tel.powerRemaining.toFixed(0)}/${tel.powerAtLaunch} (${Math.round(tel.powerPct * 100)}%)`}
+            />
+            <FlightCell
+              label="Life support"
+              value={
+                tel.lifeSupportAtLaunch === 0
+                  ? 'unmanned — N/A'
+                  : `${tel.lifeSupportRemaining.toFixed(0)}/${tel.lifeSupportAtLaunch}t (${Math.round(tel.lifeSupportPct * 100)}%)`
+              }
+            />
+            <FlightCell
+              label="Crew alive"
+              value={
+                flight.citizensAboard === 0
+                  ? 'unmanned'
+                  : `${tel.crewAlive.toLocaleString()}/${flight.citizensAboard.toLocaleString()}${
+                      isStarving ? ` ⚠️ STARVING (${tel.crewStarvationTimer}t left)` : ''
+                    }`
+              }
+            />
+            <FlightCell
+              label="Auto-guidance"
+              value={tel.autoGuidanceInstalled ? '✓ installed' : '✕ not installed (crew flies)'}
+            />
+            <FlightCell
+              label="Signal range"
+              value={`${tel.distFromLaunch.toFixed(0)}/${tel.signalRangeUnits}u${
+                tel.signalLostTicks > 0 ? ` ⚠️ LOST ${tel.signalLostTicks}t` : ''
+              }`}
+            />
+            {isEmptyHulk ? (
+              <FlightCell
+                label="Hulk drifted"
+                value={`${tel.hulkTicksDrifted}t through wrapped space`}
+              />
+            ) : null}
+          </div>
+        </section>
+
         <section className="flight-detail-panel__makeup">
           <h4 className="flight-detail-panel__section-title">Make-up + load-out</h4>
           <div className="flight-detail-panel__grid">
@@ -178,19 +249,34 @@ export function FlightDetailPanel({
           <p>{def.description}</p>
         </section>
 
-        {inFlight && onAbort && !isCounter ? (
+        {inFlight && (onAbort || (godControlReady && onSelectForRedirect)) && !isCounter ? (
           <section className="flight-detail-panel__actions">
-            <button
-              type="button"
-              className="flight-detail-panel__btn flight-detail-panel__btn--abort"
-              onClick={() => {
-                onAbort(String(flight.id))
-                onClose()
-              }}
-              title="Self-destruct the ship in-flight (UMS-faithful abort). AoE damage scales with fuel + payload at detonation."
-            >
-              💀 ABORT (self-destruct)
-            </button>
+            {godControlReady && onSelectForRedirect ? (
+              <button
+                type="button"
+                className="flight-detail-panel__btn flight-detail-panel__btn--redirect"
+                onClick={() => {
+                  onSelectForRedirect(String(flight.id))
+                  onClose()
+                }}
+                title="God Control redirect: right-click any planet after selecting to redirect this ship mid-arc. Works on STRANDED + EMPTY_HULK ships too — the god intervenes from above."
+              >
+                🕹️ Select for Redirect
+              </button>
+            ) : null}
+            {onAbort ? (
+              <button
+                type="button"
+                className="flight-detail-panel__btn flight-detail-panel__btn--abort"
+                onClick={() => {
+                  onAbort(String(flight.id))
+                  onClose()
+                }}
+                title="Self-destruct the ship in-flight (UMS-faithful abort). AoE damage scales with fuel + payload at detonation."
+              >
+                💀 ABORT (self-destruct)
+              </button>
+            ) : null}
           </section>
         ) : null}
 
