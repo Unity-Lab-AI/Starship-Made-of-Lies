@@ -24,9 +24,9 @@
 		reverse_proxy localhost:2567
 	}
 
-	# Local API (telemetry / auth / etc.) — Node.js on 3001 (PHASE 11+14 #3 wire-up)
+	# Local API (auth, telemetry, etc.) — Node.js on 2568 (PHASE 17.0 wire-up: Google OAuth callback)
 	handle /api/* {
-		reverse_proxy localhost:3001
+		reverse_proxy localhost:2568
 	}
 
 	# === DEV MODE (default) — proxy / to Vite dev server ===
