@@ -17,6 +17,7 @@ export function MainMenu() {
 
   const items: MenuItem[] = [
     { icon: '▶', label: 'Start', to: '/new-game' },
+    { icon: '🔐', label: 'Sign In', to: '/signin' },
     { icon: '◯', label: 'Multiplayer', to: '/multiplayer' },
     { icon: '⚙', label: 'Settings', to: '/settings' },
     { icon: '🏆', label: 'Achievements', to: '/achievements' },
