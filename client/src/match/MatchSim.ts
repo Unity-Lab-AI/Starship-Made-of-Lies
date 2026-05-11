@@ -536,10 +536,19 @@ const MINING_OUTPOST_DOCK_OFFSET = 30
 // homeTileId + homePosition track the outpost tile so 17.B.3's "ship returns to its outpost,
 // not to the planet's north pole" contract holds. Owner check is implicit — buildingsByTile is
 // keyed on owned tiles only because placeBuildingCanonical refuses non-owned tiles.
+//
+// Super-review fix: tile lookup is now O(1) via a single per-tick Map<TileId, Tile> build
+// instead of O(n) Array.find per outpost. At late-game saturation (~30 outposts × 200 tiles
+// × 100 planets) this drops a 600k-op tick spike to ~3k ops + 1 Map alloc.
 function tickMiningOutpost(state: MatchState, planetState: MatchPlanetState): void {
+  let tilesById: Map<TileId, Tile> | null = null
   for (const [tileId, defId] of planetState.buildingsByTile) {
     if (defId !== BLDG_MINING_OUTPOST) continue
-    const tile = planetState.planet.tiles.find((t) => t.id === tileId)
+    if (tilesById === null) {
+      tilesById = new Map<TileId, Tile>()
+      for (const t of planetState.planet.tiles) tilesById.set(t.id, t)
+    }
+    const tile = tilesById.get(tileId)
     if (!tile) continue
     const progress = (planetState.outpostBuildTicks.get(tileId) ?? 0) + 1
     if (progress < MINING_OUTPOST_SHIP_INTERVAL_TICKS) {
@@ -1071,11 +1080,20 @@ function buildAIObservables(state: MatchState, controller: AIController): AITick
   const populationPressure =
     homePlanet.population.housingCap === 0 ? 1 : totalPop / homePlanet.population.housingCap
 
+  // Super-review fix: feed mining-economy context so AI can rush outposts when needed.
+  const minerCount = homePlanet.miningShips.size
+  let resourceNodesAvailable = 0
+  for (const node of homePlanet.planet.resourceNodes) {
+    if (node.amountRemaining > 0) resourceNodesAvailable += 1
+  }
+
   const buildingCtx: PlanetBuildingContext = {
     planetId: homePlanet.planet.id,
     currentBuildingCounts: homePlanet.buildingsByDef as ReadonlyMap<string, number>,
     availableTiles,
     populationPressure,
+    minerCount,
+    resourceNodesAvailable,
   }
 
   const unlockedBuildings = new Set<string>()
@@ -1093,6 +1111,12 @@ function buildAIObservables(state: MatchState, controller: AIController): AITick
   unlockedBuildings.add('mineField')
   unlockedBuildings.add('Quarry')
   unlockedBuildings.add('quarry')
+  // Super-review fix: Mining Outpost now foundational (placement.ts TECH_GATED_BUILDINGS no
+  // longer gates it). AI can build outposts from match start so the outpost-driven miner
+  // economy (17.B.2) actually works without tech rush.
+  unlockedBuildings.add('Mining Outpost')
+  unlockedBuildings.add('miningOutpost')
+  unlockedBuildings.add(BLDG_MINING_OUTPOST as unknown as string)
   for (const id of techEffects.unlockedBuildings) {
     unlockedBuildings.add(id as unknown as string)
     const def = getBuildingDef(id)

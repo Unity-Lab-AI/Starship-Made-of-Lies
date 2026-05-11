@@ -146,7 +146,11 @@ const SIGNAL_RANGE_PROGRESS_THRESHOLD = 0.6
 //   balance-constants; this module re-binds the const so existing call sites stay readable.
 const SIGNAL_LOST_TRIGGER_TICKS = 30
 const STARVATION_TIMER_TICKS = 30
-const MAX_HULK_DRIFT_TICKS = 200
+// Super-review fix: hulk drift cap rescaled for the 7.5× larger universe. Old 200 ticks
+// (~40 sec at 5 ticks/sec) was tuned for the 8000 wrap, hulks evaporated too fast for the
+// player to see them at galactic zoom. 1500 ticks ≈ 5 min — hulk has time to traverse new
+// 60000-bound space + give the player time to either ignore it or counter-launch.
+const MAX_HULK_DRIFT_TICKS = 1500
 const GALACTIC_WRAP_BOUND = UNIVERSE_HALF_EXTENT
 
 // Variant guidance baseline. A nominal ship (speedMultiplier=1, evasionMultiplier=1) gets

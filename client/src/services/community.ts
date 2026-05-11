@@ -1,4 +1,4 @@
-export const DISCORD_INVITE_URL = 'https://discord.gg/YWYk4CBr'
+export const DISCORD_INVITE_URL = 'https://discord.gg/JyF2bY4BC6'
 export const GITHUB_REPO_URL = 'https://github.com/Unity-Lab-AI/Starship-Made-of-Lies'
 
 export type FeedbackChannel = 'discord' | 'github_issues' | 'in_app'

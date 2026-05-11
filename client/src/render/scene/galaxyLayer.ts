@@ -7,6 +7,7 @@ import {
   type Planet,
   type PlanetId,
   type ShipBeaconBroadcast,
+  type Star,
   type Theme,
   type TileId,
   type Vec3,
@@ -157,7 +158,7 @@ interface StarMeshGroup {
   readonly halo: THREE.Mesh
 }
 
-function makeStarMesh(star: import('@smol/shared').Star, center: THREE.Vector3): StarMeshGroup {
+function makeStarMesh(star: Star, center: THREE.Vector3): StarMeshGroup {
   const coreGeom = new THREE.SphereGeometry(star.radius, 32, 24)
   const coreMat = new THREE.MeshBasicMaterial({
     color: star.color,
@@ -446,6 +447,50 @@ export function syncOwnerFlags(
     entry.texture.dispose()
     ;(entry.sprite.material as THREE.SpriteMaterial).dispose()
     handle.indigenousEntries.delete(id)
+  }
+}
+
+// Super-review fix: distance-based opacity + scale ramp for owner flags. Called per render
+// frame from GalaxyView's RAF loop. Three zoom bands:
+//   - Too close (camera < 2× planet radius): flags fade out, they'd block the surface view.
+//   - Useful range (2× to 30× planet radius): full opacity.
+//   - Too far (> 80× planet radius): flags fade out — unreadable specks at galactic zoom.
+// Also scales sprite world-size by camera distance so the flag's on-screen size stays
+// roughly constant across zooms (no more "very very small text" complaints).
+export function updateOwnerFlagDistanceFade(
+  handle: OwnerFlagLayerHandle,
+  cameraPos: THREE.Vector3,
+  planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>,
+): void {
+  for (const entry of handle.entries.values()) {
+    const mesh = planetMeshes.get(entry.planetId)
+    if (!mesh) continue
+    const radius = mesh.geometry.boundingSphere?.radius ?? 100
+    const d = entry.sprite.position.distanceTo(cameraPos)
+    const nearFade = radius * 2
+    const midStart = radius * 4
+    const midEnd = radius * 30
+    const farFade = radius * 80
+
+    let opacity = 0
+    if (d < nearFade) opacity = 0
+    else if (d < midStart) opacity = (d - nearFade) / (midStart - nearFade)
+    else if (d < midEnd) opacity = 1
+    else if (d < farFade) opacity = 1 - (d - midEnd) / (farFade - midEnd)
+    else opacity = 0
+
+    opacity = Math.max(0, Math.min(1, opacity))
+    const mat = entry.sprite.material as THREE.SpriteMaterial
+    mat.opacity = opacity
+    entry.sprite.visible = opacity > 0.01
+
+    if (opacity > 0) {
+      const baseWidth = radius * 1.4
+      const referenceDist = radius * 8
+      const scaleFactor = Math.max(0.5, Math.min(3, d / referenceDist))
+      const w = baseWidth * scaleFactor
+      entry.sprite.scale.set(w, w * 0.25, 1)
+    }
   }
 }
 

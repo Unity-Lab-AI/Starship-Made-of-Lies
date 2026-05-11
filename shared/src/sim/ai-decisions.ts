@@ -69,6 +69,11 @@ export interface PlanetBuildingContext {
   readonly currentBuildingCounts: ReadonlyMap<string, number>
   readonly availableTiles: number
   readonly populationPressure: number
+  // Super-review fix: AI needs to know its mining situation so it can prioritize building
+  // outposts when miners are missing. minerCount = ships currently on this planet; resource
+  // NodesAvailable = drillable deposits remaining.
+  readonly minerCount: number
+  readonly resourceNodesAvailable: number
 }
 
 export function pickConstructionTarget(
@@ -88,7 +93,16 @@ export function pickConstructionTarget(
       building.category === 'industry' || building.category === 'extraction'
         ? inputs.playstyle.economyFocus * 0.2
         : 0
-    const score = categoryWeight * 0.7 + populationBonus + slotBonus + economyBoost
+    // Super-review fix: rush an outpost when mining is needed AND not running. Boost is
+    // critical (1.5) when there are drillable nodes but fewer than 2 miners on the planet.
+    // Tapers as outposts accumulate so AI doesn't spam them all over.
+    const isOutpost = (building.id as unknown as string) === 'miningOutpost'
+    const existingOutposts = ctx.currentBuildingCounts.get('miningOutpost') ?? 0
+    const outpostBoost =
+      isOutpost && ctx.resourceNodesAvailable > 0 && ctx.minerCount < 2 && existingOutposts < 3
+        ? 1.5
+        : 0
+    const score = categoryWeight * 0.7 + populationBonus + slotBonus + economyBoost + outpostBoost
     return { value: building, score }
   })
   return pickHighestOrSuboptimal(candidates, inputs.difficulty, inputs.rng)

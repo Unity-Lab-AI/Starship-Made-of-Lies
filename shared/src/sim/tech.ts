@@ -14,7 +14,6 @@ import {
   BLDG_COUNTER_MISSILE,
   BLDG_UNIVERSITY,
   BLDG_FOUNDRY,
-  BLDG_MINING_OUTPOST,
   BLDG_GOD_CONTROL,
 } from './building'
 
@@ -317,7 +316,10 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
         'resupply',
       ],
       colonyShipPayloadTier: 2,
-      unlockBuildings: [BLDG_MINING_OUTPOST],
+      // PHASE 17.B + super-review fix: BLDG_MINING_OUTPOST removed from this tech's unlocks.
+      // Outpost is foundational + available from match start per placement.ts TECH_GATED_BUILDINGS.
+      // Orbital Mechanics still unlocks the spacefaring colony ship variants above.
+      unlockBuildings: [],
     },
   },
   {

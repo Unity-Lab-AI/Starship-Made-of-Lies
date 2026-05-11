@@ -478,7 +478,7 @@ This repository was originally **Unity Missile System (UMS)** — a Space Engine
 | Founder | Gee |
 | Server / DevOps | Red |
 | Stack + Backend | Sponge |
-| Social / Implementation | Mills |
+| Social / Implementation | Alfreddo |
 
 🌐 **[unityailab.com](https://www.unityailab.com)**
 

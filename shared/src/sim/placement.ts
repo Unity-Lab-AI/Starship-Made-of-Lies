@@ -109,7 +109,10 @@ const TECH_GATED_BUILDINGS: ReadonlySet<string> = new Set([
   'powerPlant',
   'launchPad',
   'counterMissilePad',
-  'miningOutpost',
+  // PHASE 17.B + super-review fix: miningOutpost INTENTIONALLY ungated. Per the new economy
+  // (17.B.2) miners are produced by outposts, not given for free at match start. Gating the
+  // outpost behind tech meant no civ could mine until they researched tier-2 — economy
+  // starved before launch. Outpost is now foundational, available from match start.
 ])
 
 function isBuildingTechGated(buildingDefId: BuildingDefId): boolean {
