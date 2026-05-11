@@ -304,6 +304,13 @@ export interface MatchState {
   // PHASE 16.35 — UMS-faithful 12-graph sparkline cycle data. Per-metric circular buffer
   // sampled every SPARKLINE_CAPTURE_INTERVAL ticks. Drives LCD slot 6 GRAPHS rendering.
   readonly sparklines: Map<SparklineMetricId, SparklineBuffer>
+  // PHASE 17.L.C.9 — O(1) padId → planetId lookup index. Maintained on every launch-pad add
+  // (placeBuildingCanonical) so launchShipFromPadAction + buildShipAction +
+  // buildShipFromBlueprintAction don't have to linear-scan state.planets to find the planet
+  // hosting a given pad. Late-game empire scale (100+ planets × 200+ pads per
+  // feedback_no_caps_on_empire.md) requires this to keep auto-fire salvo + player launches
+  // off the O(planets) hot path.
+  readonly padIdToPlanetIdIndex: Map<TileId, PlanetId>
   events: MatchEventLog[]
   currentTick: number
   startedAtTick: number
@@ -511,6 +518,9 @@ export function createMatch(config: MatchConfig): MatchState {
     detonations: [],
     // PHASE 16.35 — canonical 12-metric sparkline cycle (UMS GRAPHS slot adaptation).
     sparklines: newCanonicalSparklineMap(),
+    // PHASE 17.L.C.9 — O(1) padId → planetId index. Populated from existing planet pads
+    // after the state object is constructed below (see post-construct backfill).
+    padIdToPlanetIdIndex: new Map(),
     humanCivId,
     objectives: config.objectives,
     tickCap: config.tickCapOverride,
@@ -532,6 +542,14 @@ export function createMatch(config: MatchConfig): MatchState {
     endReason: null,
     resolvedObjectiveId: null,
     rng,
+  }
+  // PHASE 17.L.C.9 — backfill the padId → planetId index from initial pads (createMatch sets
+  // up the human's home pad + AI pads inline). Subsequent placeBuildingCanonical calls add
+  // entries via the maintenance hook below.
+  for (const [planetId, planet] of state.planets) {
+    for (const padId of planet.launchPads.keys()) {
+      state.padIdToPlanetIdIndex.set(padId, planetId)
+    }
   }
   return state
 }
@@ -2155,6 +2173,8 @@ function placeBuildingCanonical(
   if (defId === BLDG_LAUNCH_PAD) {
     const pad = newLaunchPad(tile.id, planet.civId, planet.planet.id, false)
     planet.launchPads.set(tile.id, pad)
+    // PHASE 17.L.C.9 — maintain the O(1) padId → planetId index on every pad add.
+    state.padIdToPlanetIdIndex.set(tile.id, planet.planet.id)
   }
   if (defId === BLDG_MINE_FIELD) {
     tile.occupancy = 'mineField'
@@ -2260,6 +2280,16 @@ export interface BuildShipInputs {
 }
 
 export function buildShipAction(inputs: BuildShipInputs): boolean {
+  // PHASE 17.L.C.9 — O(1) lookup via padId → planetId index. Fallback to linear scan kept for
+  // defense in case the index misses (legacy saves or in-flight migration).
+  const indexedPlanetId = inputs.state.padIdToPlanetIdIndex.get(inputs.padId)
+  if (indexedPlanetId) {
+    const planet = inputs.state.planets.get(indexedPlanetId)
+    if (!planet || planet.civId !== inputs.state.humanCivId) return false
+    const pad = planet.launchPads.get(inputs.padId)
+    if (!pad) return false
+    return startPrint(pad, inputs.variantId, planet.inventory)
+  }
   for (const planet of inputs.state.planets.values()) {
     if (planet.civId !== inputs.state.humanCivId) continue
     const pad = planet.launchPads.get(inputs.padId)
@@ -2286,6 +2316,23 @@ export interface BuildShipFromBlueprintInputs {
 }
 
 export function buildShipFromBlueprintAction(inputs: BuildShipFromBlueprintInputs): boolean {
+  // PHASE 17.L.C.9 — O(1) padId → planetId lookup. Linear-scan fallback retained.
+  const indexedPlanetId = inputs.state.padIdToPlanetIdIndex.get(inputs.padId)
+  if (indexedPlanetId) {
+    const planet = inputs.state.planets.get(indexedPlanetId)
+    if (!planet || planet.civId !== inputs.state.humanCivId) return false
+    const pad = planet.launchPads.get(inputs.padId)
+    if (!pad) return false
+    return startPrintFromBlueprint(
+      pad,
+      inputs.baseVariantId,
+      inputs.displayName,
+      inputs.pieces,
+      inputs.stats,
+      inputs.totalCost,
+      planet.inventory,
+    )
+  }
   for (const planet of inputs.state.planets.values()) {
     if (planet.civId !== inputs.state.humanCivId) continue
     const pad = planet.launchPads.get(inputs.padId)
@@ -2314,111 +2361,136 @@ export interface LaunchShipInputs {
 }
 
 export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
+  // PHASE 17.L.C.9 — O(1) lookup via padId → planetId index. Falls back to linear scan if the
+  // index doesn't have the entry (legacy saves before the index, or pad belonging to a
+  // non-human civ — index is empire-wide so this scan only hits the non-human path).
+  const indexedPlanetId = inputs.state.padIdToPlanetIdIndex.get(inputs.padId)
+  if (indexedPlanetId) {
+    const planet = inputs.state.planets.get(indexedPlanetId)
+    if (!planet || planet.civId !== inputs.state.humanCivId) return false
+    return launchShipFromPadInPlanet(inputs, planet)
+  }
+  // Defensive fallback (index miss — should not happen in normal flow).
   for (const planet of inputs.state.planets.values()) {
     if (planet.civId !== inputs.state.humanCivId) continue
-    const pad = planet.launchPads.get(inputs.padId)
-    if (!pad) continue
-    if (pad.state !== 'READY' && pad.state !== 'ARM') return false
-    if (!pad.loadedShipVariantId) return false
-    const targetPlanet = inputs.state.planets.get(inputs.targetPlanetId)
-    if (!targetPlanet) return false
-    const def = getColonyShipDef(pad.loadedShipVariantId)
-    // PHASE 17.L.A.6 — citizen tier-gate per SMOL_DESIGN_COLONY_SHIPS §9-NEW + user verbatim
-    // "remember above all citizens dont want to kill them selves but for the most high
-    // tiered/happy/statas we have". Suicide ships REFUSE to launch unless all citizens aboard
-    // are tier 4-5. If lower-tier citizens are aboard (which can happen if the player manually
-    // loaded them before the autoload caught up, or if a future conscription override mode
-    // adds them), the launch is refused with an "Insufficient Volunteers" event so the player
-    // knows to invest in propaganda buildings (Cathedral / University / Re-education /
-    // Corporate Promotions) to elevate more tier 4-5 citizens before retrying.
-    if (def.suicideShip && !padCitizenMixSatisfiesShip(pad)) {
-      const lowerAboard =
-        pad.citizensLoadedByTier[1] + pad.citizensLoadedByTier[2] + pad.citizensLoadedByTier[3]
-      pushEvent(inputs.state, {
-        atTick: inputs.state.currentTick,
-        civId: planet.civId,
-        kind: 'launch',
-        message: `Insufficient Volunteers — ${def.name} demands tier 4-5 citizens only (${lowerAboard} lower-tier aboard). Invest in propaganda buildings to elevate more citizens.`,
-      })
-      return false
-    }
-    // PHASE 17.J.5 — reactor fuel loading. Reactor variants require their tier-specific
-    // radioactive resource consumed from the launching planet's inventory at liftoff. Solar /
-    // battery variants have reactorFuelType === null and skip this gate. Launch aborts if the
-    // planet doesn't have enough — pad stays in READY so the player can refuel and retry.
-    if (def.reactorFuelType && def.reactorFuelAmount > 0) {
-      const available = stockOf(planet.inventory, def.reactorFuelType)
-      if (available < def.reactorFuelAmount) {
-        pushEvent(inputs.state, {
-          atTick: inputs.state.currentTick,
-          civId: planet.civId,
-          kind: 'launch',
-          message: `Launch aborted: ${def.name} needs ${def.reactorFuelAmount} ${String(def.reactorFuelType)} for reactor (have ${available})`,
-        })
-        return false
-      }
-      consumeResource(planet.inventory, def.reactorFuelType, def.reactorFuelAmount)
-    }
-    const flightIdStr = `flight-${inputs.state.currentTick}-${planet.civId}-${pad.id}`
-    // PHASE 17.L.A.17 — self-destruct arms only when the launching civ has researched
-    // TECH_SELF_DESTRUCT_SYSTEMS AND the variant has detonation intent baked in (suicide /
-    // counter / explosive payload). Without it the ship can only end via natural causes.
-    const launchingCivState = inputs.state.civs.get(planet.civId)
-    const civHasSelfDestructTech =
-      launchingCivState?.empire.researchedTechs.has(TECH_SELF_DESTRUCT_SYSTEMS) ?? false
-    const selfDestructInstalled = civHasSelfDestructTech && def.selfDestructCapable
-    // PHASE 17.J.10 — thread loadedCustomBuild into the flight so flightDef() resolves to the
-    // blueprint-derived stats instead of the base variant. baseVariantId is set so downstream
-    // code paths (suicide-ship flag, can-intercept flag, render-layer color) still resolve.
-    const flight = newColonyShipFlight({
-      id: colonyShipFlightId(flightIdStr),
-      variantId: pad.loadedShipVariantId,
-      launchingCivId: planet.civId,
-      fromPlanetId: planet.planet.id,
-      targetPlanetId: targetPlanet.planet.id,
-      fromPosition: planet.planet.position,
-      targetPosition: targetPlanet.planet.position,
-      travelRadius: 1000,
-      citizensAboard: pad.citizensLoaded,
-      signalLossSeed: Math.floor(inputs.state.rng() * 0xffffff),
-      selfDestructInstalled,
-      ...(inputs.targetingMode ? { targetingMode: inputs.targetingMode } : {}),
-      ...(pad.loadedCustomBuild
-        ? {
-            customBuild: {
-              displayName: pad.loadedCustomBuild.displayName,
-              pieces: pad.loadedCustomBuild.pieces,
-              stats: pad.loadedCustomBuild.stats,
-              baseVariantId: pad.loadedShipVariantId,
-            },
-          }
-        : {}),
-    })
-    inputs.state.flights.set(flightIdStr, flight)
-    pad.state = 'GONE'
-    const civState = inputs.state.civs.get(planet.civId)
-    if (civState) {
-      recordColonyShipLaunch(civState.deceptionLedger, pad.citizensLoaded)
-      // PHASE 16.38 — launching civ discovers the target planet on launch (they're aiming at
-      // it, so the destination is no longer fogged for them). Defender discovers attacker's
-      // source on incoming-flight detection — handled in tickIncomingFlight (below).
-      discoverPlanet(civState.empire, targetPlanet.planet.id)
-    }
-    // PHASE 16.38 — defender discovers attacker's source planet the moment an incoming flight
-    // is registered (UMS-faithful — UnitySignal antenna acquisition fires at launch).
-    const defenderCivState = inputs.state.civs.get(targetPlanet.civId)
-    if (defenderCivState && targetPlanet.civId !== planet.civId) {
-      discoverPlanet(defenderCivState.empire, planet.planet.id)
-    }
+    if (!planet.launchPads.has(inputs.padId)) continue
+    return launchShipFromPadInPlanet(inputs, planet)
+  }
+  return false
+}
+
+function launchShipFromPadInPlanet(inputs: LaunchShipInputs, planet: MatchPlanetState): boolean {
+  const pad = planet.launchPads.get(inputs.padId)
+  if (!pad) return false
+  return launchShipFromPadBody(inputs, planet, pad)
+}
+
+function launchShipFromPadBody(
+  inputs: LaunchShipInputs,
+  planet: MatchPlanetState,
+  pad: LaunchPad,
+): boolean {
+  // PHASE 17.L.C.9 — body extracted from the original for-loop so both index-hit + fallback
+  // can share it. Logic preserved verbatim from the pre-17.L.C.9 launchShipFromPadAction body.
+  if (pad.state !== 'READY' && pad.state !== 'ARM') return false
+  if (!pad.loadedShipVariantId) return false
+  const targetPlanet = inputs.state.planets.get(inputs.targetPlanetId)
+  if (!targetPlanet) return false
+  const def = getColonyShipDef(pad.loadedShipVariantId)
+  // PHASE 17.L.A.6 — citizen tier-gate per SMOL_DESIGN_COLONY_SHIPS §9-NEW + user verbatim
+  // "remember above all citizens dont want to kill them selves but for the most high
+  // tiered/happy/statas we have". Suicide ships REFUSE to launch unless all citizens aboard
+  // are tier 4-5. If lower-tier citizens are aboard (which can happen if the player manually
+  // loaded them before the autoload caught up, or if a future conscription override mode
+  // adds them), the launch is refused with an "Insufficient Volunteers" event so the player
+  // knows to invest in propaganda buildings (Cathedral / University / Re-education /
+  // Corporate Promotions) to elevate more tier 4-5 citizens before retrying.
+  if (def.suicideShip && !padCitizenMixSatisfiesShip(pad)) {
+    const lowerAboard =
+      pad.citizensLoadedByTier[1] + pad.citizensLoadedByTier[2] + pad.citizensLoadedByTier[3]
     pushEvent(inputs.state, {
       atTick: inputs.state.currentTick,
       civId: planet.civId,
       kind: 'launch',
-      message: `Launched ${def.name} → ${String(targetPlanet.planet.id)}`,
+      message: `Insufficient Volunteers — ${def.name} demands tier 4-5 citizens only (${lowerAboard} lower-tier aboard). Invest in propaganda buildings to elevate more citizens.`,
     })
-    return true
+    return false
   }
-  return false
+  // PHASE 17.J.5 — reactor fuel loading. Reactor variants require their tier-specific
+  // radioactive resource consumed from the launching planet's inventory at liftoff. Solar /
+  // battery variants have reactorFuelType === null and skip this gate. Launch aborts if the
+  // planet doesn't have enough — pad stays in READY so the player can refuel and retry.
+  if (def.reactorFuelType && def.reactorFuelAmount > 0) {
+    const available = stockOf(planet.inventory, def.reactorFuelType)
+    if (available < def.reactorFuelAmount) {
+      pushEvent(inputs.state, {
+        atTick: inputs.state.currentTick,
+        civId: planet.civId,
+        kind: 'launch',
+        message: `Launch aborted: ${def.name} needs ${def.reactorFuelAmount} ${String(def.reactorFuelType)} for reactor (have ${available})`,
+      })
+      return false
+    }
+    consumeResource(planet.inventory, def.reactorFuelType, def.reactorFuelAmount)
+  }
+  const flightIdStr = `flight-${inputs.state.currentTick}-${planet.civId}-${pad.id}`
+  // PHASE 17.L.A.17 — self-destruct arms only when the launching civ has researched
+  // TECH_SELF_DESTRUCT_SYSTEMS AND the variant has detonation intent baked in (suicide /
+  // counter / explosive payload). Without it the ship can only end via natural causes.
+  const launchingCivState = inputs.state.civs.get(planet.civId)
+  const civHasSelfDestructTech =
+    launchingCivState?.empire.researchedTechs.has(TECH_SELF_DESTRUCT_SYSTEMS) ?? false
+  const selfDestructInstalled = civHasSelfDestructTech && def.selfDestructCapable
+  // PHASE 17.J.10 — thread loadedCustomBuild into the flight so flightDef() resolves to the
+  // blueprint-derived stats instead of the base variant. baseVariantId is set so downstream
+  // code paths (suicide-ship flag, can-intercept flag, render-layer color) still resolve.
+  const flight = newColonyShipFlight({
+    id: colonyShipFlightId(flightIdStr),
+    variantId: pad.loadedShipVariantId,
+    launchingCivId: planet.civId,
+    fromPlanetId: planet.planet.id,
+    targetPlanetId: targetPlanet.planet.id,
+    fromPosition: planet.planet.position,
+    targetPosition: targetPlanet.planet.position,
+    travelRadius: 1000,
+    citizensAboard: pad.citizensLoaded,
+    signalLossSeed: Math.floor(inputs.state.rng() * 0xffffff),
+    selfDestructInstalled,
+    ...(inputs.targetingMode ? { targetingMode: inputs.targetingMode } : {}),
+    ...(pad.loadedCustomBuild
+      ? {
+          customBuild: {
+            displayName: pad.loadedCustomBuild.displayName,
+            pieces: pad.loadedCustomBuild.pieces,
+            stats: pad.loadedCustomBuild.stats,
+            baseVariantId: pad.loadedShipVariantId,
+          },
+        }
+      : {}),
+  })
+  inputs.state.flights.set(flightIdStr, flight)
+  pad.state = 'GONE'
+  const civState = inputs.state.civs.get(planet.civId)
+  if (civState) {
+    recordColonyShipLaunch(civState.deceptionLedger, pad.citizensLoaded)
+    // PHASE 16.38 — launching civ discovers the target planet on launch (they're aiming at
+    // it, so the destination is no longer fogged for them). Defender discovers attacker's
+    // source on incoming-flight detection — handled in tickIncomingFlight (below).
+    discoverPlanet(civState.empire, targetPlanet.planet.id)
+  }
+  // PHASE 16.38 — defender discovers attacker's source planet the moment an incoming flight
+  // is registered (UMS-faithful — UnitySignal antenna acquisition fires at launch).
+  const defenderCivState = inputs.state.civs.get(targetPlanet.civId)
+  if (defenderCivState && targetPlanet.civId !== planet.civId) {
+    discoverPlanet(defenderCivState.empire, planet.planet.id)
+  }
+  pushEvent(inputs.state, {
+    atTick: inputs.state.currentTick,
+    civId: planet.civId,
+    kind: 'launch',
+    message: `Launched ${def.name} → ${String(targetPlanet.planet.id)}`,
+  })
+  return true
 }
 
 // PHASE 16.31 — God Control redirect action. Player selects an in-flight colony ship and
