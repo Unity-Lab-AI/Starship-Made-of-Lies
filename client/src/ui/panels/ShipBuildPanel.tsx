@@ -163,6 +163,21 @@ export function ShipBuildPanel({
                   <li>👤 Citizens: {buildBreakdown.stats.citizenCapacity}</li>
                   <li>📦 Cargo: {buildBreakdown.stats.cargoCapacity}</li>
                   <li>⛽ Fuel req: {buildBreakdown.stats.fuelRequirement}</li>
+                  {selectedShip.reactorFuelType && selectedShip.reactorFuelAmount > 0 && (
+                    <li
+                      className={
+                        stockOf(inventory, selectedShip.reactorFuelType) >=
+                        selectedShip.reactorFuelAmount
+                          ? 'ship-build-panel__cost-ok'
+                          : 'ship-build-panel__cost-short'
+                      }
+                      title="Reactor variants consume their tier-specific radioactive at launch time."
+                    >
+                      ☢️ Reactor fuel: {selectedShip.reactorFuelAmount}{' '}
+                      {String(selectedShip.reactorFuelType)} (have{' '}
+                      {stockOf(inventory, selectedShip.reactorFuelType)})
+                    </li>
+                  )}
                   {buildBreakdown.stats.weaponPayload > 0 && (
                     <li>🔫 Weapons: {buildBreakdown.stats.weaponPayload}</li>
                   )}

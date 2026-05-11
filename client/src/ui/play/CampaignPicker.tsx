@@ -18,6 +18,7 @@ export function CampaignPicker({ inventory, onSelect, onClose }: CampaignPickerP
   const propaganda = stockOf(inventory, RESOURCE_PROPAGANDA_MATERIALS)
   return (
     <PanelFrame
+      panelId="campaign-picker"
       title="Propaganda Campaigns"
       emoji="📣"
       onClose={onClose}
