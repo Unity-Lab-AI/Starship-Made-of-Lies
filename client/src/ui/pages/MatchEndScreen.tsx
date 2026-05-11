@@ -75,9 +75,13 @@ export function MatchEndScreen({ match, onPlayAgain, onGoHome }: MatchEndScreenP
         )}
 
         <div className="match-end-screen__replay">
-          <label>
-            Next theme:
-            <select value={nextThemeId} onChange={(e) => setNextThemeId(e.target.value as ThemeId)}>
+          <label className="match-end-screen__government-label">
+            Next government:
+            <select
+              className="match-end-screen__government-select"
+              value={nextThemeId}
+              onChange={(e) => setNextThemeId(e.target.value as ThemeId)}
+            >
               {THEMES.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.emoji} {t.name}
