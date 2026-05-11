@@ -35,6 +35,15 @@ export interface TelemetryRackProps {
   // PHASE 16.35: canonical 12-metric sparkline buffers from MatchState. LCD slot 6 cycles
   // through SPARKLINE_CYCLE_ORDER and renders the active metric's mini-chart live.
   readonly sparklines?: ReadonlyMap<SparklineMetricId, SparklineBuffer>
+  // PHASE 16.37: empire-wide personal-equipment inventory aggregates for LCD slot 11. Sums
+  // tools / weapons / ammo / gas-bottles across every owned-planet inventory. Maps to UMS
+  // UnityInventory [TOOLS_WEAPONS] + [PERSONAL_AMMO] + [BOTTLES] sections.
+  readonly empirePersonalEquip?: {
+    readonly tools: number
+    readonly weapons: number
+    readonly ammo: number
+    readonly gas: number
+  }
 }
 
 type LCDStatus = 'live' | 'stub'
@@ -68,6 +77,7 @@ export function TelemetryRack({
   currentTick,
   activePlanetInventory,
   sparklines,
+  empirePersonalEquip,
 }: TelemetryRackProps) {
   const [expanded, setExpanded] = useState(false)
   // PHASE 16.35 — LCD slot 6 GRAPHS cycle index. Auto-advances every SPARKLINE_AUTO_ADVANCE_TICKS
@@ -560,10 +570,25 @@ export function TelemetryRack({
             )}
           </LCDSlot>
 
-          <LCDSlot slot={11} title="PERSONAL EQUIP." status="stub">
-            <div className="telemetry-rack__stub">
-              Tools / Weapons / Ammo / Bottles 4-column — pending equipment data model.
-            </div>
+          <LCDSlot slot={11} title="PERSONAL EQUIP." status="live">
+            {empirePersonalEquip ? (
+              <>
+                <div className="telemetry-rack__line">
+                  🛠️ Tools: <strong>{empirePersonalEquip.tools.toLocaleString()}</strong>
+                </div>
+                <div className="telemetry-rack__line">
+                  🔫 Weapons: <strong>{empirePersonalEquip.weapons.toLocaleString()}</strong>
+                </div>
+                <div className="telemetry-rack__line">
+                  🎯 Ammo: <strong>{empirePersonalEquip.ammo.toLocaleString()}</strong>
+                </div>
+                <div className="telemetry-rack__line">
+                  🧪 Gas: <strong>{empirePersonalEquip.gas.toLocaleString()}</strong>
+                </div>
+              </>
+            ) : (
+              <div className="telemetry-rack__stub">No empire data available.</div>
+            )}
           </LCDSlot>
         </div>
       )}

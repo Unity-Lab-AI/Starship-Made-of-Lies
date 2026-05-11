@@ -112,6 +112,10 @@ export function PlayPage() {
   const [salvoRoundPhase, setSalvoRoundPhase] = useState<
     null | 'BUILDING' | 'ARMING' | 'LAUNCHING'
   >(null)
+  // PHASE 16.37 — auto-fire indefinite-loop toggle. When ON, the salvo cycle auto-restarts
+  // on completion so the player can "fire and forget" a sustained barrage. Toggle OFF mid-
+  // cycle and the current round finishes naturally without queuing another.
+  const [autoFireLoopActive, setAutoFireLoopActive] = useState(false)
 
   // PHASE 16.23: clicked-flight selection state. Set when player clicks a flight cone in
   // GalaxyView; cleared when FlightDetailPanel close button is pressed or overlay click.
@@ -412,6 +416,31 @@ export function PlayPage() {
     [sim.state, sim.state.currentTick],
   )
 
+  // PHASE 16.37 — empire-wide personal-equipment aggregate for LCD slot 11. Sums tools /
+  // weapons / ammo / gas-bottles across every owned planet. Maps UMS UnityInventory
+  // [TOOLS_WEAPONS] + [PERSONAL_AMMO] + [BOTTLES] sections onto SMoL resource ids.
+  const empirePersonalEquip = useMemo(
+    () => {
+      let tools = 0
+      let weapons = 0
+      let ammo = 0
+      let gas = 0
+      for (const planetState of sim.state.planets.values()) {
+        if (planetState.civId !== sim.state.humanCivId) continue
+        for (const [resId, amt] of planetState.inventory.stocks) {
+          const id = String(resId)
+          if (id === 'tools') tools += amt
+          else if (id === 'weapons') weapons += amt
+          else if (id === 'ammunition') ammo += amt
+          else if (id === 'gas') gas += amt
+        }
+      }
+      return { tools, weapons, ammo, gas }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
   const activePads = useMemo(
     () => [...activePlanet.launchPads.values()],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -574,6 +603,39 @@ export function PlayPage() {
     setToasts((current) => current.filter((t) => t.id !== id))
   }
 
+  // PHASE 16.37 — salvo round runner extracted from inline onFireSalvoRound. Stable callback
+  // so the auto-fire-loop useEffect can re-trigger it without dependency-array churn.
+  const runSalvoRound = useCallback(() => {
+    if (salvoRoundPhase !== null) return
+    const planetId = activePlanet.planet.id
+    const variant = availableShipVariants[0]
+    if (!variant) return
+    setSalvoRoundPhase('BUILDING')
+    sim.controllerBuildAll(planetId, variant)
+    window.setTimeout(() => {
+      setSalvoRoundPhase('ARMING')
+      sim.controllerArmAll(planetId)
+    }, 8000)
+    window.setTimeout(() => {
+      setSalvoRoundPhase('LAUNCHING')
+      sim.controllerLaunchAll(planetId)
+    }, 11000)
+    window.setTimeout(() => setSalvoRoundPhase(null), 13000)
+  }, [activePlanet.planet.id, availableShipVariants, salvoRoundPhase, sim])
+
+  // PHASE 16.37 — auto-fire indefinite loop. When the toggle is ON and a round just finished
+  // (salvoRoundPhase transitioned to null), kick off the next round after a short cooldown so
+  // the cycle visibly resets between rounds. Toggle OFF mid-cycle and the next round simply
+  // doesn't queue.
+  useEffect(() => {
+    if (!autoFireLoopActive) return
+    if (salvoRoundPhase !== null) return
+    const handle = window.setTimeout(() => {
+      runSalvoRound()
+    }, 1500)
+    return () => window.clearTimeout(handle)
+  }, [autoFireLoopActive, salvoRoundPhase, runSalvoRound])
+
   // === Keyboard shortcuts ===
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
@@ -732,6 +794,7 @@ export function PlayPage() {
         currentTick={sim.state.currentTick}
         activePlanetInventory={activePlanet.inventory}
         sparklines={sim.state.sparklines}
+        empirePersonalEquip={empirePersonalEquip}
       />
 
       {/* === Picker popups (centered) === */}
@@ -929,23 +992,7 @@ export function PlayPage() {
             onLaunchAll={() => sim.controllerLaunchAll(activePlanet.planet.id)}
             onAbortAll={() => sim.controllerAbortAll(activePlanet.planet.id)}
             onCopyTargetFromController={() => sim.controllerCopyTarget(activePlanet.planet.id)}
-            onFireSalvoRound={() => {
-              if (salvoRoundPhase !== null) return
-              const planetId = activePlanet.planet.id
-              const variant = availableShipVariants[0]
-              if (!variant) return
-              setSalvoRoundPhase('BUILDING')
-              sim.controllerBuildAll(planetId, variant)
-              window.setTimeout(() => {
-                setSalvoRoundPhase('ARMING')
-                sim.controllerArmAll(planetId)
-              }, 8000)
-              window.setTimeout(() => {
-                setSalvoRoundPhase('LAUNCHING')
-                sim.controllerLaunchAll(planetId)
-              }, 11000)
-              window.setTimeout(() => setSalvoRoundPhase(null), 13000)
-            }}
+            onFireSalvoRound={runSalvoRound}
             salvoRoundActive={salvoRoundPhase !== null}
             salvoRoundPhaseLabel={
               salvoRoundPhase === 'BUILDING'
@@ -956,6 +1003,8 @@ export function PlayPage() {
                     ? '🚀 LAUNCHING armed pads...'
                     : undefined
             }
+            autoFireLoopActive={autoFireLoopActive}
+            onToggleAutoFireLoop={() => setAutoFireLoopActive((v) => !v)}
           />
         </PanelFrame>
       )}

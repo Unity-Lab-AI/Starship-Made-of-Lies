@@ -30,6 +30,12 @@ export type ClientToServerMessageType =
   | 'CLAIM_LOOT_DROP'
   | 'TRIGGER_LAST_HOPE_EVAC'
   | 'MANUAL_SHIP_FIRE'
+  // PHASE 16.37 — UMS-faithful per-flight command channel. Mirrors UnityMissile.cs
+  // UNITY_MSL_CMD: DETONATE / RESET / MERGE. Server forwards to flight tick logic.
+  | 'MISSILE_COMMAND'
+  // PHASE 16.37 — multi-pad controller mass-action channel. Mirrors UnityPad.cs
+  // UNITY_PAD_CMD: BUILDALL / ARMALL / LAUNCHALL / ABORTALL / COPYTGT.
+  | 'CONTROLLER_CMD'
 
 export type ServerToClientMessageType =
   | 'LOBBY_STATE'
@@ -58,6 +64,18 @@ export type ServerToClientMessageType =
   | 'CHAT'
   | 'PONG'
   | 'ERROR'
+  // PHASE 16.37 — UMS-faithful printer + pad state-machine notification. Mirrors UMS
+  // UNITY_PRINTER_ACK + pad GONE→IDLE transition. Server broadcasts when a pad's print
+  // cycle completes so the controller-mode UI can clear outcome badges + re-queue builds.
+  | 'BUILD_COMPLETE'
+  // PHASE 16.37 — UMS-faithful sensor/lidar detection broadcast. Mirrors UnitySignal.cs
+  // UNITY_SAT_INTERCEPT / SIGNAL_DETECTION. Server emits when a defender's sensor net
+  // acquires an incoming attacker — drives the BeaconPanel + alert pulse on the planet.
+  | 'SIGNAL_DETECTION'
+  // PHASE 16.37 — UMS-faithful miner-fleet status broadcast. Mirrors UnityBeacon.cs
+  // MINER_BEACON broadcast every 3s. Server multicasts mining-ship status to the owning civ
+  // so the MINER DETAIL LCD + Mining Fleet panel can render live.
+  | 'BEACON_BROADCAST'
 
 export interface BaseMessage<T extends string> {
   readonly type: T
@@ -150,6 +168,27 @@ export interface ManualShipFireMessage extends BaseMessage<'MANUAL_SHIP_FIRE'> {
   readonly mode: 'single' | 'barrage' | 'auto-salvo'
 }
 
+// PHASE 16.37 — UMS UnityMissile.cs UNITY_MSL_CMD channel. Per-flight commands targeted at
+// a specific flight by id. UMS uses pad-id-qualified DETONATE:{padID} / RESET:{padID} / MERGE.
+// SMoL flight ids are globally unique so no qualification needed.
+export type MissileCommandKind = 'DETONATE' | 'RESET' | 'MERGE'
+export interface MissileCommandMessage extends BaseMessage<'MISSILE_COMMAND'> {
+  readonly flightId: string
+  readonly command: MissileCommandKind
+}
+
+// PHASE 16.37 — UMS UnityPad.cs UNITY_PAD_CMD channel. Controller-mode mass actions sent
+// from the player's controller pad to every slave pad on that planet.
+export type ControllerCmdKind = 'BUILDALL' | 'ARMALL' | 'LAUNCHALL' | 'ABORTALL' | 'COPYTGT'
+export interface ControllerCmdMessage extends BaseMessage<'CONTROLLER_CMD'> {
+  readonly planetId: PlanetId
+  readonly command: ControllerCmdKind
+  // For BUILDALL: which colony-ship variant to enqueue across all pads. Ignored otherwise.
+  readonly variantHint?: string
+  // For LAUNCHALL salvo-stagger: optional target-pad addressing (per-pad targeted LAUNCH).
+  readonly targetPadHint?: string
+}
+
 export type ClientToServerMessage =
   | JoinLobbyMessage
   | LeaveLobbyMessage
@@ -168,6 +207,8 @@ export type ClientToServerMessage =
   | ClaimLootDropMessage
   | TriggerLastHopeEvacMessage
   | ManualShipFireMessage
+  | MissileCommandMessage
+  | ControllerCmdMessage
 
 export interface LobbyStateMessage extends BaseMessage<'LOBBY_STATE'> {
   readonly players: ReadonlyArray<{
@@ -380,6 +421,36 @@ export interface ErrorMessage extends BaseMessage<'ERROR'> {
   readonly detail: string
 }
 
+// PHASE 16.37 — UMS UnityPad.cs printer-ack equivalent. Server broadcasts when a pad finishes
+// its PRINT/BUILD cycle so the controller-mode UI can clear outcome badges + auto-queue the
+// next build. Mirrors UMS UNITY_PRINTER_ACK fanout.
+export interface BuildCompleteMessage extends BaseMessage<'BUILD_COMPLETE'> {
+  readonly planetId: PlanetId
+  readonly padId: TileId
+  readonly variantHint?: string
+}
+
+// PHASE 16.37 — UMS UnitySignal.cs sensor-acquisition broadcast. Server emits when a defender
+// civ's sensor network acquires an incoming attacker flight. Drives BeaconPanel alert pulses.
+export interface SignalDetectionMessage extends BaseMessage<'SIGNAL_DETECTION'> {
+  readonly defenderCivId: CivId
+  readonly attackerFlightId: string
+  readonly targetPlanetId: PlanetId
+  readonly source: 'antenna' | 'sensor' | 'lidar' | 'satellite'
+}
+
+// PHASE 16.37 — UMS UnityBeacon.cs miner-fleet broadcast. Server multicasts mining-ship
+// status updates to the owning civ at the same cadence UMS broadcasts MINER_BEACON. Drives
+// the MINER DETAIL LCD + Mining Fleet panel + ship-beacon overlay sprites.
+export interface BeaconBroadcastMessage extends BaseMessage<'BEACON_BROADCAST'> {
+  readonly civId: CivId
+  readonly shipId: string
+  readonly shipName: string
+  readonly status: string
+  readonly cargoPct: number
+  readonly position: { readonly x: number; readonly y: number; readonly z: number }
+}
+
 export type ServerToClientMessage =
   | LobbyStateMessage
   | MatchStartedMessage
@@ -407,6 +478,9 @@ export type ServerToClientMessage =
   | ChatServerMessage
   | PongMessage
   | ErrorMessage
+  | BuildCompleteMessage
+  | SignalDetectionMessage
+  | BeaconBroadcastMessage
 
 export type AnyProtocolMessage = ClientToServerMessage | ServerToClientMessage
 
@@ -436,6 +510,8 @@ const CLIENT_TO_SERVER_TYPES: ReadonlySet<string> = new Set<ClientToServerMessag
   'CLAIM_LOOT_DROP',
   'TRIGGER_LAST_HOPE_EVAC',
   'MANUAL_SHIP_FIRE',
+  'MISSILE_COMMAND',
+  'CONTROLLER_CMD',
 ])
 
 const SERVER_TO_CLIENT_TYPES: ReadonlySet<string> = new Set<ServerToClientMessageType>([
@@ -465,4 +541,7 @@ const SERVER_TO_CLIENT_TYPES: ReadonlySet<string> = new Set<ServerToClientMessag
   'CHAT',
   'PONG',
   'ERROR',
+  'BUILD_COMPLETE',
+  'SIGNAL_DETECTION',
+  'BEACON_BROADCAST',
 ])

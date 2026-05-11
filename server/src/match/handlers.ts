@@ -6,11 +6,13 @@ import {
   type ClaimLootDropMessage,
   type ClientToServerMessage,
   type ConscriptCitizensMessage,
+  type ControllerCmdMessage,
   type ErrorMessage,
   type JoinLobbyMessage,
   type LaunchCampaignMessage,
   type LaunchColonyShipMessage,
   type ManualShipFireMessage,
+  type MissileCommandMessage,
   type PingMessage,
   type PlaceBuildingMessage,
   type PongMessage,
@@ -91,7 +93,29 @@ export function dispatchClientMessage(
       return handleTriggerLastHopeEvac(ctx, msg)
     case 'MANUAL_SHIP_FIRE':
       return handleManualShipFire(ctx, msg)
+    case 'MISSILE_COMMAND':
+      return handleMissileCommand(ctx, msg)
+    case 'CONTROLLER_CMD':
+      return handleControllerCmd(ctx, msg)
   }
+}
+
+// PHASE 16.37 — stub for UMS UNITY_MSL_CMD per-flight command channel. Server-authoritative
+// flight commands will wire in PHASE 17.x multiplayer ship-command integration when the
+// per-flight abort/redirect flow is moved from local sim to server-mediated.
+function handleMissileCommand(ctx: HandlerContext, msg: MissileCommandMessage): HandlerOutcome {
+  void ctx
+  void msg
+  return EMPTY_OUTCOME
+}
+
+// PHASE 16.37 — stub for UMS UNITY_PAD_CMD multi-pad mass-action channel. Server-authoritative
+// controller-mode mass actions will wire in PHASE 17.x when the local controllerBuildAll /
+// controllerArmAll / etc. flows move from local sim to server-mediated multiplayer.
+function handleControllerCmd(ctx: HandlerContext, msg: ControllerCmdMessage): HandlerOutcome {
+  void ctx
+  void msg
+  return EMPTY_OUTCOME
 }
 
 function handleJoinLobby(ctx: HandlerContext, _msg: JoinLobbyMessage): HandlerOutcome {
