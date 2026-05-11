@@ -1,0 +1,272 @@
+.ship-build-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+}
+
+.ship-build-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+
+.ship-build-panel__header h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-hero);
+}
+
+.ship-build-panel__pad-state {
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--ui-glow, #d4a13a);
+}
+
+.ship-build-panel__empty {
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--text-mute);
+  font-style: italic;
+}
+
+.ship-build-panel__variant-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.ship-build-panel__variant {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.45rem 0.6rem;
+  cursor: pointer;
+  transition:
+    background 100ms,
+    border-color 100ms;
+}
+
+.ship-build-panel__variant:hover {
+  background: rgba(212, 161, 58, 0.08);
+}
+
+.ship-build-panel__variant--selected {
+  border-color: var(--ui-glow, #d4a13a);
+  background: rgba(212, 161, 58, 0.12);
+}
+
+.ship-build-panel__variant--unaffordable {
+  opacity: 0.55;
+}
+
+.ship-build-panel__variant-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.ship-build-panel__variant-emoji {
+  font-size: 1.1rem;
+}
+
+.ship-build-panel__variant-name {
+  font-weight: 600;
+  flex: 1;
+  color: var(--text-hero);
+}
+
+.ship-build-panel__variant-tier {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tier-1 {
+  color: #93c5fd;
+}
+.tier-2 {
+  color: #fde047;
+}
+.tier-3 {
+  color: #fca5a5;
+}
+.tier-4 {
+  color: #d8b4fe;
+}
+
+.ship-build-panel__variant-category {
+  font-size: 0.7rem;
+  color: var(--text-mute);
+  margin-left: 1.6rem;
+  margin-top: 0.15rem;
+}
+
+.ship-build-panel__breakdown {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+}
+
+.ship-build-panel__breakdown h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  color: var(--ui-glow, #d4a13a);
+}
+
+.ship-build-panel__breakdown-desc {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  font-style: italic;
+  margin: 0 0 0.6rem;
+  line-height: 1.4;
+}
+
+.ship-build-panel__breakdown-section {
+  margin: 0.4rem 0;
+}
+
+.ship-build-panel__breakdown-section strong {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-hero);
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.ship-build-panel__pieces,
+.ship-build-panel__stats,
+.ship-build-panel__costs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.15rem 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+.ship-build-panel__piece {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ship-build-panel__piece-slot {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  letter-spacing: 0.04em;
+}
+
+.ship-build-panel__cost-ok {
+  color: rgb(134, 239, 172);
+  font-variant-numeric: tabular-nums;
+}
+
+.ship-build-panel__cost-short {
+  color: rgb(252, 165, 165);
+  font-variant-numeric: tabular-nums;
+}
+
+.ship-build-panel__build-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: var(--ui-glow, #d4a13a);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.85rem;
+  transition: filter 150ms;
+}
+
+.ship-build-panel__build-btn:not(:disabled):hover {
+  filter: brightness(1.1);
+}
+
+.ship-build-panel__build-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ship-build-panel__suicide-note {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: rgb(252, 165, 165);
+  font-style: italic;
+}
+
+.ship-build-panel__missing-techs {
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: rgb(252, 211, 77);
+  font-style: italic;
+}
+
+.ship-build-panel__launch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ship-build-panel__launch-title {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgb(134, 239, 172);
+  font-weight: 600;
+}
+
+.ship-build-panel__select {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 4px;
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.ship-build-panel__launch-btn {
+  width: 100%;
+  padding: 0.55rem 1rem;
+  background: rgb(34, 197, 94);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.85rem;
+  transition: filter 150ms;
+}
+
+.ship-build-panel__launch-btn:not(:disabled):hover {
+  filter: brightness(1.15);
+}
+
+.ship-build-panel__launch-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

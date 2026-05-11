@@ -148,7 +148,7 @@ PHASE 4     ████  Government Theme System
 PHASE 5     ████  Deception / Subterfuge
 PHASE 6     ████  Missile System (UMS carryover)
 PHASE 7     ████  UMS Visual / Telemetry Carryover
-PHASE 8     ████  3D Multi-Level Zoom + Camera
+PHASE 8     ████  Playable Match Loop (alpha — 2D hex grid; 3D zoom v1.5+)
 PHASE 9     ████  AI Players
 PHASE 10    ████  Multiplayer Server
 PHASE 11    ████  Persistence + Meta-progression

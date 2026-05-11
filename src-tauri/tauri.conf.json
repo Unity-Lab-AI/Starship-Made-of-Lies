@@ -1,0 +1,73 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Starship Made of Lies",
+  "version": "0.01.0",
+  "identifier": "ai.unitylab.smol",
+  "build": {
+    "frontendDist": "../client/dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "pnpm --filter @smol/client dev",
+    "beforeBuildCommand": "pnpm --filter @smol/client build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Starship Made of Lies",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 720,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "transparent": false,
+        "alwaysOnTop": false,
+        "shadow": true,
+        "visible": true,
+        "center": true,
+        "theme": "Dark"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws: wss: http://localhost:* https:; media-src 'self' blob:; worker-src 'self' blob:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Game",
+    "shortDescription": "Top-down emoji civ-builder. Trick your citizens onto colony ships aimed at other civilizations.",
+    "longDescription": "Starship Made of Lies — a top-down emoji civilization-builder with a knife in its smile. Roll one of 20 government themes, raise loyal citizens, and trick them onto colony ships that are actually colonization missiles aimed at someone else's planet. Dark comedy. Multiplayer 1-12 players. Cross-platform.",
+    "publisher": "Unity AI Lab",
+    "homepage": "https://github.com/Unity-Lab-AI/Starship-Made-of-Lies",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "android": {
+      "debugApplicationIdSuffix": ".debug"
+    },
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    },
+    "windows": {
+      "wix": {
+        "language": "en-US"
+      }
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["smol"]
+      }
+    },
+    "updater": {
+      "active": false
+    }
+  }
+}

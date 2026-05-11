@@ -1,0 +1,198 @@
+.galaxy-view {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #05050d;
+  display: grid;
+  place-items: stretch;
+}
+
+.galaxy-view__canvas {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+}
+
+.galaxy-view__canvas:active {
+  cursor: grabbing;
+}
+
+.galaxy-view__header {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--fg-primary, #e6e6f0);
+}
+
+.galaxy-view__header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.galaxy-view__close {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  color: var(--fg-primary, #e6e6f0);
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: all 120ms;
+}
+
+.galaxy-view__close:hover {
+  background: rgba(212, 161, 58, 0.25);
+  border-color: var(--accent, #d4a13a);
+}
+
+.galaxy-view__hint {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  color: var(--fg-primary, #e6e6f0);
+  font-size: 0.78rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.galaxy-view__hint strong {
+  color: var(--accent, #d4a13a);
+  margin: 0 0.15rem;
+}
+
+.galaxy-view__tooltip {
+  position: absolute;
+  top: 5rem;
+  right: 1rem;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--accent, #d4a13a);
+  color: var(--fg-primary, #e6e6f0);
+  min-width: 180px;
+  text-align: center;
+}
+
+.galaxy-view__tooltip-emoji {
+  font-size: 2rem;
+}
+
+.galaxy-view__tooltip-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-top: 0.2rem;
+}
+
+.galaxy-view__tooltip-meta {
+  font-size: 0.78rem;
+  color: var(--fg-secondary, #a8a8b8);
+  margin-top: 0.2rem;
+}
+
+.galaxy-view__tooltip-owned {
+  background: var(--accent, #d4a13a);
+  color: #000;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.7rem;
+  margin-top: 0.4rem;
+  display: inline-block;
+}
+
+/* === Camera Settings panel === */
+
+.camera-settings h2 {
+  margin: 0 0 0.5rem;
+}
+
+.camera-settings__hint {
+  margin: 0 0 1rem;
+  color: var(--text-soft);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.camera-settings__group {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.camera-settings__group legend {
+  padding: 0 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: var(--text-hero);
+  letter-spacing: 0.05em;
+}
+
+.camera-settings__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.camera-settings__slider {
+  display: grid;
+  grid-template-columns: 6rem 1fr 3rem;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.35rem 0;
+  font-size: 0.9rem;
+}
+
+.camera-settings__slider-label {
+  color: var(--text-hero);
+}
+
+.camera-settings__slider-value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--ui-glow, #d4a13a);
+  font-weight: 700;
+}
+
+.camera-settings__reset {
+  margin-top: 1rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.15));
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.camera-settings__reset:hover {
+  background: rgba(212, 161, 58, 0.15);
+  border-color: var(--ui-glow, #d4a13a);
+}

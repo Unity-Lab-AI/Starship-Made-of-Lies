@@ -1,0 +1,61 @@
+.prod-graph {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  color: var(--fg-primary, #e6edf3);
+  padding: 0.4rem 0.5rem;
+}
+
+.prod-graph__empty {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.prod-graph__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.prod-graph__row {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr 3rem;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.prod-graph__label {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+}
+
+.prod-graph__svg {
+  width: 100%;
+  height: 1.5rem;
+  display: block;
+}
+
+.prod-graph__net {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.prod-graph__net--pos {
+  color: #6bd968;
+}
+
+.prod-graph__net--neg {
+  color: #ff5e74;
+}

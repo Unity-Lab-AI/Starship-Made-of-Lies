@@ -1,0 +1,163 @@
+.tech-tree-panel {
+  background: var(--bg-secondary, #14181f);
+  border: 1px solid var(--border, #30363d);
+  border-radius: 8px;
+  padding: 1rem;
+  color: var(--fg-primary, #e6edf3);
+  font-family: var(--font-body, sans-serif);
+  overflow: auto;
+}
+
+.tech-tree-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+
+.tech-tree-panel__header h2 {
+  font-family: var(--font-heading, serif);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.tech-tree-panel__hidden-count {
+  font-size: 0.75rem;
+  color: var(--muted, #484f58);
+  font-style: italic;
+}
+
+.tech-tree-panel__tiers {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(10rem, 1fr));
+  gap: 0.5rem;
+}
+
+.tech-tree-panel__tier-column {
+  background: var(--bg-primary, #0a0e14);
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.tech-tree-panel__tier-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-family: var(--font-mono, monospace);
+  color: var(--fg-secondary, #c8d3e0);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.tech-tree-panel__tier-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.tech-tree-panel__chip {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.25rem 1fr auto;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--bg-secondary, #14181f);
+  border: 1px solid var(--border, #2a2e3a);
+  border-radius: 4px;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: not-allowed;
+  text-align: left;
+  width: 100%;
+}
+
+.tech-tree-panel__chip--researched {
+  background: var(--success, #3fb950);
+  color: var(--bg-primary, #0a0e14);
+  border-color: var(--success, #3fb950);
+}
+
+.tech-tree-panel__chip--researchable {
+  border-color: var(--accent, #1f6feb);
+  cursor: pointer;
+}
+
+.tech-tree-panel__chip--researchable:hover {
+  background: var(--accent, #1f6feb);
+  color: var(--fg-primary, #fff);
+}
+
+.tech-tree-panel__chip--active {
+  outline: 2px solid var(--warning, #d29922);
+  outline-offset: 1px;
+}
+
+.tech-tree-panel__chip--selected {
+  outline: 2px solid var(--ui-glow, #d4a13a);
+  outline-offset: 1px;
+  background: rgba(212, 161, 58, 0.18);
+}
+
+.tech-tree-panel__chip:not(:disabled) {
+  cursor: pointer;
+}
+
+.tech-tree-panel__chip--hinted {
+  border-style: dashed;
+  color: var(--muted, #707f8a);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.tech-tree-panel__chip--hidden {
+  color: var(--muted, #484f58);
+  font-style: italic;
+}
+
+.tech-tree-panel__chip-vis {
+  display: inline-grid;
+  place-items: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+}
+
+.tech-tree-panel__chip-vis--mainstream {
+  border-color: var(--success, #3fb950);
+  color: var(--success, #3fb950);
+}
+
+.tech-tree-panel__chip-vis--suppressed {
+  border-color: var(--warning, #d29922);
+  color: var(--warning, #d29922);
+}
+
+.tech-tree-panel__chip-vis--forbidden {
+  border-color: var(--danger, #e02d4a);
+  color: var(--danger, #e02d4a);
+}
+
+.tech-tree-panel__chip-name {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.tech-tree-panel__chip-status {
+  font-weight: bold;
+}
+
+.tech-tree-panel__chip-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--warning, #d29922);
+  border-radius: 0 0 0 3px;
+}

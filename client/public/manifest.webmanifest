@@ -1,0 +1,50 @@
+{
+  "name": "Starship Made of Lies",
+  "short_name": "SMoL",
+  "description": "Top-down emoji civilization-builder where you trick your own citizens into boarding colony ships aimed at other civilizations.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0c0c14",
+  "theme_color": "#d4a13a",
+  "categories": ["games", "strategy"],
+  "lang": "en",
+  "dir": "ltr",
+  "id": "ai.unitylab.smol",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Quick Match",
+      "short_name": "Match",
+      "description": "Jump into a 4-player AI match",
+      "url": "/quick-match"
+    },
+    {
+      "name": "Hall of Champions",
+      "short_name": "Champions",
+      "description": "Browse leaderboards",
+      "url": "/champions"
+    }
+  ]
+}

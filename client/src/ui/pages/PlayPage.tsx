@@ -1,0 +1,559 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import {
+  type Account,
+  type BuildingDefId,
+  type CampaignArchetype,
+  type ColonyShipVariantId,
+  type LootDrop,
+  type LootDropId,
+  type MissionObjectiveConfig,
+  type PlanetId,
+  type ThemeId,
+  type Tile,
+  THEMES,
+  accountId as accountIdValue,
+  aggregateEffects,
+  newAnonymousAccount,
+  themeAsCSSVars,
+} from '@smol/shared'
+import { type MatchAISlotConfig, type MatchConfig } from '../../match/MatchSim'
+import { useMatchSim } from '../../match/useMatchSim'
+import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
+import { BeaconPanel } from '../panels/BeaconPanel'
+import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
+import { DeceptionPanel } from '../panels/DeceptionPanel'
+import { IndigenousPanel } from '../panels/IndigenousPanel'
+import { LastHopePanel } from '../panels/LastHopePanel'
+import { LootDropPanel } from '../panels/LootDropPanel'
+import { ResourcesPanel } from '../panels/ResourcesPanel'
+import { ShipBuildPanel } from '../panels/ShipBuildPanel'
+import { TechTreePanel } from '../panels/TechTreePanel'
+import { TilePlacementGrid } from '../panels/TilePlacementGrid'
+import { GalaxyView } from '../../render/scene/GalaxyView'
+import { BuildPicker } from '../play/BuildPicker'
+import { CampaignPicker } from '../play/CampaignPicker'
+import { HUDOverlay } from '../play/HUDOverlay'
+import { PanelFrame } from '../play/PanelFrame'
+import { PlanetPicker } from '../play/PlanetPicker'
+import { Toasts } from '../play/Toasts'
+import { type PanelId, type ToastNotification } from '../play/types'
+import { MatchEndScreen } from './MatchEndScreen'
+
+interface MatchSetupHint {
+  readonly seed: number
+  readonly aiCount: number
+  readonly planetCount: number
+  readonly humanThemeId?: ThemeId
+  readonly objectives?: ReadonlyArray<MissionObjectiveConfig>
+  readonly aiSlots?: ReadonlyArray<MatchAISlotConfig>
+}
+
+const DEFAULT_OBJECTIVES: ReadonlyArray<MissionObjectiveConfig> = [
+  { id: 'last_civ_standing', target: 1 },
+  { id: 'apex_tech', target: 1 },
+]
+
+const TOAST_LIFETIME_MS = 3500
+const TOAST_PURGE_INTERVAL_MS = 500
+
+export function PlayPage() {
+  const location = useLocation() as { state?: MatchSetupHint }
+  const navigate = useNavigate()
+
+  const initialConfig = useMemo<MatchConfig>(() => {
+    const hint = location.state ?? null
+    const seed = hint?.seed ?? Math.floor(Math.random() * 0xffffff)
+    const aiCount = hint?.aiCount ?? 3
+    const planetCount = hint?.planetCount ?? 30
+    const humanThemeId = hint?.humanThemeId ?? THEMES[Math.floor(Math.random() * THEMES.length)]!.id
+    const objectives = hint?.objectives ?? DEFAULT_OBJECTIVES
+    const aiSlots = hint?.aiSlots
+    const account: Account = newAnonymousAccount(accountIdValue('local-player'), 'You', 'gee', 0)
+    const base: MatchConfig = {
+      seed,
+      planetCount,
+      aiCount,
+      humanThemeId,
+      humanDisplayName: 'You',
+      humanAccount: account,
+      objectives,
+      tickCapOverride: null,
+    }
+    return aiSlots ? { ...base, aiSlots } : base
+  }, [location.state])
+
+  const sim = useMatchSim(initialConfig)
+
+  // === Panel + mode state ===
+  const [openPanels, setOpenPanels] = useState<Set<PanelId>>(() => new Set())
+  const [buildMode, setBuildMode] = useState<BuildingDefId | null>(null)
+  const [selectedPlanetId, setSelectedPlanetId] = useState<PlanetId | null>(null)
+  const [galaxyOpen, setGalaxyOpen] = useState(false)
+  const [toasts, setToasts] = useState<ToastNotification[]>([])
+  const lastSeenEventIdxRef = useRef(0)
+
+  // === Computed state ===
+  const humanCivState = sim.state.civs.get(sim.state.humanCivId)!
+  const humanTheme = humanCivState.theme
+  const styleVars = useMemo(() => themeAsCSSVars(humanTheme), [humanTheme])
+
+  const ownedPlanets = [...sim.state.planets.values()].filter(
+    (p) => p.civId === sim.state.humanCivId,
+  )
+  void sim.tickCount
+
+  const activePlanetId = selectedPlanetId ?? humanCivState.homePlanetId
+  const activePlanet =
+    sim.state.planets.get(activePlanetId) ?? sim.state.planets.get(humanCivState.homePlanetId)!
+
+  const aiSnapshots: ReadonlyArray<AIPlayerSnapshot> = [...sim.state.civs.values()]
+    .filter((c) => !c.isHuman && c.alive)
+    .map((c) => ({
+      civLabel: c.displayName,
+      theme: c.theme,
+      playstyle: c.playstyle ?? 'builder',
+      difficulty: c.difficulty ?? 'medium',
+      lastDecisionLine: `tick=${sim.state.currentTick} | techs=${c.empire.researchedTechs.size} | ships=${c.deceptionLedger.colonyShipsLaunched} | planets=${c.empire.controlledPlanetIds.size}`,
+      lastTick: sim.state.currentTick,
+    }))
+
+  const otherPlanetsForLaunch = [...sim.state.planets.values()]
+    .filter((p) => p.civId !== sim.state.humanCivId)
+    .map((p) => ({
+      id: String(p.planet.id),
+      label: `${String(p.planet.id)} (${p.civId})`,
+    }))
+
+  const lootDropsOnOurPlanets: LootDrop[] = []
+  for (const drop of sim.state.lootDrops.values()) {
+    const p = sim.state.planets.get(drop.planetId)
+    if (p && p.civId === sim.state.humanCivId) lootDropsOnOurPlanets.push(drop)
+  }
+
+  const indigenousOnActivePlanet = activePlanet.indigenousCivId
+    ? (sim.state.indigenousCivs.get(activePlanet.indigenousCivId) ?? null)
+    : null
+
+  const techEffects = aggregateEffects(humanCivState.empire.researchedTechs)
+  const firstPad = [...activePlanet.launchPads.values()][0] ?? null
+
+  // === Toast lifecycle: auto-purge expired ===
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now()
+      setToasts((current) => current.filter((t) => t.expiresAtMs > now))
+    }, TOAST_PURGE_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [])
+
+  // === Surface ❌ build-fail events as toasts ===
+  useEffect(() => {
+    const events = sim.state.events
+    if (events.length === lastSeenEventIdxRef.current) return
+    const newEvents = events.slice(lastSeenEventIdxRef.current)
+    lastSeenEventIdxRef.current = events.length
+    const newToasts: ToastNotification[] = []
+    for (const ev of newEvents) {
+      if (ev.message.startsWith('❌')) {
+        newToasts.push({
+          id: `toast-${ev.atTick}-${Math.random().toString(36).slice(2, 8)}`,
+          message: ev.message,
+          kind: 'error',
+          expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+        })
+      } else if (ev.kind === 'crash' || ev.kind === 'civ_defeated') {
+        newToasts.push({
+          id: `toast-${ev.atTick}-${Math.random().toString(36).slice(2, 8)}`,
+          message: ev.message,
+          kind: 'warning',
+          expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+        })
+      } else if (ev.kind === 'planet_claimed' || ev.kind === 'loot') {
+        newToasts.push({
+          id: `toast-${ev.atTick}-${Math.random().toString(36).slice(2, 8)}`,
+          message: ev.message,
+          kind: 'success',
+          expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+        })
+      }
+    }
+    if (newToasts.length > 0) {
+      setToasts((current) => [...current, ...newToasts].slice(-5))
+    }
+  }, [sim.state.events, sim.tickCount])
+
+  // === Panel toggle ===
+  const togglePanel = useCallback((id: PanelId) => {
+    setOpenPanels((current) => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const closePanel = useCallback((id: PanelId) => {
+    setOpenPanels((current) => {
+      const next = new Set(current)
+      next.delete(id)
+      return next
+    })
+  }, [])
+
+  // === Action handlers ===
+  const handleSelectBuilding = (defId: BuildingDefId): void => {
+    setBuildMode(defId)
+    closePanel('build')
+  }
+
+  const handleCancelBuildMode = useCallback((): void => {
+    setBuildMode(null)
+  }, [])
+
+  const handleTileClick = (tile: Tile): void => {
+    if (!buildMode) return
+    if (tile.occupancy !== 'empty') return
+    sim.placeBuilding({
+      planetId: activePlanet.planet.id,
+      tileId: tile.id,
+      defId: buildMode,
+    })
+  }
+
+  const handleSelectCampaign = (archetype: CampaignArchetype): void => {
+    sim.launchCampaign({
+      planetId: activePlanet.planet.id,
+      archetype,
+    })
+    closePanel('campaigns')
+  }
+
+  const handleSelectPlanet = (id: PlanetId): void => {
+    setSelectedPlanetId(id)
+    closePanel('planets')
+  }
+
+  const handleResetTo = (themeId: ThemeId): void => {
+    sim.resetMatch({
+      ...initialConfig,
+      seed: Math.floor(Math.random() * 0xffffff),
+      humanThemeId: themeId,
+    })
+  }
+
+  const handleClaimLoot = (id: LootDropId): void => {
+    sim.claimLoot(id)
+  }
+
+  const handleTriggerLastHope = (): void => {
+    sim.triggerLastHope(sim.state.humanCivId)
+  }
+
+  const handleBuildShip = (variantId: ColonyShipVariantId): void => {
+    if (!firstPad) return
+    sim.buildShip({ padId: firstPad.id, variantId })
+  }
+
+  const handleLaunchShip = (targetPlanetIdStr: string): void => {
+    if (!firstPad) return
+    sim.launchShipFromPad({
+      padId: firstPad.id,
+      targetPlanetId: targetPlanetIdStr as unknown as PlanetId,
+    })
+  }
+
+  const dismissToast = (id: string): void => {
+    setToasts((current) => current.filter((t) => t.id !== id))
+  }
+
+  // === Keyboard shortcuts ===
+  useEffect(() => {
+    const handler = (e: KeyboardEvent): void => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (e.target instanceof HTMLSelectElement) return
+      const k = e.key.toLowerCase()
+      if (e.key === 'Escape') {
+        if (openPanels.size > 0) {
+          const last = [...openPanels].at(-1)!
+          closePanel(last)
+        } else if (buildMode) {
+          handleCancelBuildMode()
+        }
+        return
+      }
+      // NOTE: WASD + QE are RESERVED for 3D-universe nav (PHASE 16.2 — pan + rotate).
+      // Panel hotkeys avoid those letters.
+      if (k === 'b') togglePanel('build')
+      else if (k === 'p') togglePanel('campaigns')
+      else if (k === 't') togglePanel('tech')
+      else if (k === 'r') togglePanel('resources')
+      else if (k === 'l') togglePanel('deception')
+      else if (k === 'k') togglePanel('ships')
+      else if (k === 'f') togglePanel('flights')
+      else if (k === 'i') togglePanel('indigenous')
+      else if (k === 'x') togglePanel('events')
+      else if (k === 'g') togglePanel('planets')
+      else if (k === 'm') {
+        setGalaxyOpen((v) => !v)
+      } else if (k === ' ') {
+        e.preventDefault()
+        sim.togglePause()
+      } else if (k === '1') sim.setSpeed(1)
+      else if (k === '2') sim.setSpeed(2)
+      else if (k === '3') sim.setSpeed(4)
+      else if (k === '4') sim.setSpeed(8)
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [openPanels, buildMode, sim, togglePanel, closePanel, handleCancelBuildMode])
+
+  if (sim.state.phase === 'ENDED') {
+    return (
+      <MatchEndScreen
+        match={sim.state}
+        onPlayAgain={(themeId) => handleResetTo(themeId)}
+        onGoHome={() => navigate('/')}
+      />
+    )
+  }
+
+  return (
+    <div
+      className={`play-shell ${buildMode ? 'play-shell--build-mode' : ''}`}
+      style={styleVars as React.CSSProperties}
+    >
+      {/* World view — currently the SVG hex grid; replaced by Three.js scene in 16.2 */}
+      <div className="play-shell__world">
+        <TilePlacementGrid
+          tiles={activePlanet.planet.tiles.slice(0, 37)}
+          biome={activePlanet.planet.biome}
+          civResearchedTechs={humanCivState.empire.researchedTechs}
+          selectedBuildingDefId={buildMode}
+          onTileClick={handleTileClick}
+        />
+      </div>
+
+      <HUDOverlay
+        theme={humanTheme}
+        currentTick={sim.state.currentTick}
+        running={sim.running}
+        speed={sim.speed}
+        togglePause={sim.togglePause}
+        setSpeed={sim.setSpeed}
+        openPanels={openPanels}
+        togglePanel={togglePanel}
+        onGalaxyClick={() => setGalaxyOpen((v) => !v)}
+        buildModeBuildingDefId={buildMode}
+        onCancelBuildMode={handleCancelBuildMode}
+      />
+
+      {galaxyOpen && (
+        <GalaxyView
+          galaxy={sim.state.galaxy}
+          humanCivId={String(sim.state.humanCivId)}
+          ownedPlanetIds={new Set(ownedPlanets.map((p) => p.planet.id))}
+          homePlanetId={humanCivState.homePlanetId}
+          onSelectPlanet={(id) => {
+            setSelectedPlanetId(id)
+            setGalaxyOpen(false)
+          }}
+          onClose={() => setGalaxyOpen(false)}
+        />
+      )}
+
+      <Toasts toasts={toasts} onDismiss={dismissToast} />
+
+      {/* === Picker popups (centered) === */}
+      {openPanels.has('build') && (
+        <BuildPicker
+          empire={humanCivState.empire}
+          inventory={activePlanet.inventory}
+          onSelect={handleSelectBuilding}
+          onClose={() => closePanel('build')}
+          currentBuildMode={buildMode}
+        />
+      )}
+      {openPanels.has('campaigns') && (
+        <CampaignPicker
+          inventory={activePlanet.inventory}
+          onSelect={handleSelectCampaign}
+          onClose={() => closePanel('campaigns')}
+        />
+      )}
+      {openPanels.has('planets') && (
+        <PlanetPicker
+          planets={ownedPlanets.map((p) => ({
+            id: p.planet.id,
+            label: String(p.planet.id),
+            biomeEmoji: p.planet.biome.emoji,
+            tileCount: p.planet.tiles.length,
+            buildingCount: [...p.buildingsByDef.values()].reduce((s, n) => s + n, 0),
+            isActive: p.planet.id === activePlanet.planet.id,
+          }))}
+          onSelect={handleSelectPlanet}
+          onClose={() => closePanel('planets')}
+        />
+      )}
+
+      {/* === Persistent panels (docked) === */}
+      {openPanels.has('resources') && (
+        <PanelFrame
+          title="Stockpile"
+          emoji="📊"
+          onClose={() => closePanel('resources')}
+          variant="docked-top-left"
+        >
+          <ResourcesPanel
+            inventory={activePlanet.inventory}
+            title={`${activePlanet.planet.biome.emoji} ${String(activePlanet.planet.id)}`}
+          />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('tech') && (
+        <PanelFrame
+          title="Tech Tree"
+          emoji="🧬"
+          onClose={() => closePanel('tech')}
+          variant="centered"
+          width={920}
+        >
+          <TechTreePanel empire={humanCivState.empire} />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('deception') && (
+        <PanelFrame
+          title="Loyalty"
+          emoji="🧠"
+          onClose={() => closePanel('deception')}
+          variant="docked-left"
+        >
+          <DeceptionPanel
+            theme={humanTheme}
+            faction={activePlanet.faction}
+            ledger={humanCivState.deceptionLedger}
+          />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('ships') && (
+        <PanelFrame
+          title="Ships"
+          emoji="🚀"
+          onClose={() => closePanel('ships')}
+          variant="docked-right"
+        >
+          <ShipBuildPanel
+            pad={firstPad}
+            inventory={activePlanet.inventory}
+            researchedTechs={humanCivState.empire.researchedTechs}
+            maxPayloadTier={techEffects.maxPayloadTier}
+            onBuild={handleBuildShip}
+            onLaunch={handleLaunchShip}
+            otherPlanets={otherPlanetsForLaunch}
+          />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('flights') && (
+        <PanelFrame
+          title="Flights"
+          emoji="🛰️"
+          onClose={() => closePanel('flights')}
+          variant="docked-right"
+        >
+          <ColonyShipFlightPanel
+            flights={[...sim.state.flights.values()]}
+            onAfterAction={() => undefined}
+          />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('indigenous') && (
+        <PanelFrame
+          title="Indigenous"
+          emoji="🪶"
+          onClose={() => closePanel('indigenous')}
+          variant="docked-left"
+        >
+          <IndigenousPanel indig={indigenousOnActivePlanet} />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('loot') && (
+        <PanelFrame
+          title="Salvage"
+          emoji="🎁"
+          onClose={() => closePanel('loot')}
+          variant="docked-bottom-right"
+        >
+          <LootDropPanel
+            drops={lootDropsOnOurPlanets}
+            currentTick={sim.state.currentTick}
+            onClaim={handleClaimLoot}
+          />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('lastHope') && (
+        <PanelFrame
+          title="Last Hope"
+          emoji="🚨"
+          onClose={() => closePanel('lastHope')}
+          variant="docked-bottom-right"
+        >
+          <LastHopePanel
+            state={humanCivState.lastHopeEvac}
+            triggered={humanCivState.lastHopeTriggered}
+            canTrigger={!humanCivState.lastHopeTriggered}
+            onTrigger={handleTriggerLastHope}
+          />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('beacon') && (
+        <PanelFrame
+          title="Beacon"
+          emoji="🛰"
+          onClose={() => closePanel('beacon')}
+          variant="docked-bottom-right"
+        >
+          <BeaconPanel beacon={activePlanet.beacon} currentTick={sim.state.currentTick} />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('ai') && (
+        <PanelFrame
+          title="AI Players"
+          emoji="🤖"
+          onClose={() => closePanel('ai')}
+          variant="docked-right"
+        >
+          <AIPlayerPanel snapshots={aiSnapshots} />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('events') && (
+        <PanelFrame
+          title={`Events (${sim.state.events.length})`}
+          emoji="📜"
+          onClose={() => closePanel('events')}
+          variant="docked-bottom-right"
+        >
+          <ul className="event-log">
+            {[...sim.state.events]
+              .reverse()
+              .slice(0, 50)
+              .map((ev, i) => (
+                <li key={i} className={`event-log__row event-log__row--${ev.kind}`}>
+                  <span className="event-log__tick">[t{ev.atTick}]</span> <span>{ev.message}</span>
+                </li>
+              ))}
+          </ul>
+        </PanelFrame>
+      )}
+    </div>
+  )
+}

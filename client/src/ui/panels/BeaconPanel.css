@@ -1,0 +1,67 @@
+.beacon-panel {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  color: var(--fg-primary, #e6edf3);
+  padding: 0.4rem 0.5rem;
+}
+
+.beacon-panel__empty {
+  color: var(--muted, #707f8a);
+  font-style: italic;
+  margin: 0;
+}
+
+.beacon-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.beacon-panel__row {
+  display: grid;
+  grid-template-columns: 1.2rem 1fr auto;
+  gap: 0.4rem;
+  align-items: baseline;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.beacon-panel__row--red {
+  border-left: 2px solid #ff5e74;
+  color: #ff5e74;
+}
+
+.beacon-panel__row--amber {
+  border-left: 2px solid #d4a13a;
+  color: #d4a13a;
+}
+
+.beacon-panel__row--green {
+  border-left: 2px solid #6bd968;
+  color: #6bd968;
+}
+
+.beacon-panel__row--blue {
+  border-left: 2px solid #4ad7ff;
+  color: #4ad7ff;
+}
+
+.beacon-panel__glyph {
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.beacon-panel__summary {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.beacon-panel__ago {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}

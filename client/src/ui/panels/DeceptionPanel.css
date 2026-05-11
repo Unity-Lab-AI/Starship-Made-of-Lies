@@ -1,0 +1,108 @@
+.deception-panel {
+  background: var(--bg-secondary, #14181f);
+  border: 1px solid var(--border, #30363d);
+  border-radius: 8px;
+  padding: 1rem;
+  color: var(--fg-primary, #e6edf3);
+  font-family: var(--font-body, sans-serif);
+}
+
+.deception-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.deception-panel__header h2 {
+  font-family: var(--font-heading, serif);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.deception-panel__truth-toggle {
+  background: var(--accent, #cf222e);
+  color: var(--fg-primary, #fff);
+  border: none;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-mono, monospace);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.deception-panel__truth-toggle[aria-pressed='true'] {
+  background: var(--danger, #e02d4a);
+}
+
+.deception-panel__faction-bar {
+  display: flex;
+  height: 1.5rem;
+  width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.deception-panel__faction-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: width 0.4s ease;
+}
+
+.deception-panel__faction-loyal {
+  background: var(--success, #3a8a4a);
+  color: var(--fg-primary, #fff);
+}
+
+.deception-panel__faction-skeptic {
+  background: var(--warning, #c69026);
+  color: var(--bg-primary, #14181f);
+}
+
+.deception-panel__faction-dissident {
+  background: var(--danger, #e02d4a);
+  color: var(--fg-primary, #fff);
+}
+
+.deception-panel__faction-cell-label {
+  padding: 0 0.25rem;
+}
+
+.deception-panel__decay {
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--fg-secondary, #5e6d7a);
+}
+
+.deception-panel__decay-phrase {
+  color: var(--warning, #d29922);
+  font-style: italic;
+}
+
+.deception-panel__perf {
+  color: var(--muted, #484f58);
+  margin-left: 0.5rem;
+}
+
+.deception-panel__ledger {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.deception-panel__ledger-item {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  color: var(--fg-secondary, #c8d3e0);
+  padding: 0.2rem 0.4rem;
+  background: var(--bg-primary, #0a0e14);
+  border-radius: 3px;
+}

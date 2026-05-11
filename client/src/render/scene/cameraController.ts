@@ -1,0 +1,237 @@
+import * as THREE from 'three'
+import { getCameraPrefs } from './cameraPrefs'
+
+export interface CameraState {
+  readonly camera: THREE.PerspectiveCamera
+  target: THREE.Vector3
+  yaw: number
+  pitch: number
+  zoomT: number
+}
+
+export interface CameraInputState {
+  panX: number
+  panY: number
+  rotateX: number
+  rotateY: number
+  zoomDelta: number
+}
+
+const MIN_DISTANCE = 50
+const MAX_DISTANCE = 15000
+const PAN_SPEED = 4
+const ROTATE_SPEED = 0.012
+const ZOOM_TICK = 0.06
+const EDGE_THRESHOLD_PX = 20
+
+export function newCamera(aspect: number): CameraState {
+  const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 50000)
+  return {
+    camera,
+    target: new THREE.Vector3(0, 0, 0),
+    yaw: 0,
+    pitch: -Math.PI / 3,
+    zoomT: 1,
+  }
+}
+
+export function distanceFromZoomT(zoomT: number): number {
+  const t = Math.max(0, Math.min(1, zoomT))
+  return MIN_DISTANCE * Math.pow(MAX_DISTANCE / MIN_DISTANCE, t)
+}
+
+export function applyCameraTransform(state: CameraState): void {
+  const distance = distanceFromZoomT(state.zoomT)
+  const cosP = Math.cos(state.pitch)
+  const offset = new THREE.Vector3(
+    Math.sin(state.yaw) * cosP,
+    Math.sin(state.pitch),
+    Math.cos(state.yaw) * cosP,
+  ).multiplyScalar(distance)
+  state.camera.position.copy(state.target).add(offset)
+  state.camera.lookAt(state.target)
+  state.camera.updateMatrixWorld()
+}
+
+export interface CameraControllerHandle {
+  readonly destroy: () => void
+  readonly getKeyState: () => Record<string, boolean>
+  readonly getMouseEdgeState: () => { up: boolean; down: boolean; left: boolean; right: boolean }
+}
+
+export function attachCameraController(
+  canvasEl: HTMLCanvasElement,
+  state: CameraState,
+): CameraControllerHandle {
+  const keys: Record<string, boolean> = {}
+  const edge = { up: false, down: false, left: false, right: false }
+  let middleDown = false
+  let rightDown = false
+  let lastMouseX = 0
+  let lastMouseY = 0
+
+  const onKeyDown = (e: KeyboardEvent): void => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+    if (e.target instanceof HTMLSelectElement) return
+    keys[e.key.toLowerCase()] = true
+  }
+  const onKeyUp = (e: KeyboardEvent): void => {
+    keys[e.key.toLowerCase()] = false
+  }
+  const onWheel = (e: WheelEvent): void => {
+    const prefs = getCameraPrefs()
+    if (!prefs.wheelZoom) return
+    e.preventDefault()
+    state.zoomT = Math.max(
+      0,
+      Math.min(1, state.zoomT + Math.sign(e.deltaY) * ZOOM_TICK * prefs.zoomSensitivity),
+    )
+  }
+  const onMouseMove = (e: MouseEvent): void => {
+    const prefs = getCameraPrefs()
+    if (prefs.edgeScroll) {
+      const rect = canvasEl.getBoundingClientRect()
+      edge.left = e.clientX - rect.left < EDGE_THRESHOLD_PX
+      edge.right = rect.right - e.clientX < EDGE_THRESHOLD_PX
+      edge.up = e.clientY - rect.top < EDGE_THRESHOLD_PX
+      edge.down = rect.bottom - e.clientY < EDGE_THRESHOLD_PX
+    } else {
+      edge.left = edge.right = edge.up = edge.down = false
+    }
+    if (middleDown && prefs.middleClickPan) {
+      const dx = e.clientX - lastMouseX
+      const dy = e.clientY - lastMouseY
+      panCameraInScreenSpace(state, -dx, -dy, prefs.panSensitivity)
+    }
+    if (rightDown && prefs.rightClickRotate) {
+      const dx = e.clientX - lastMouseX
+      const dy = e.clientY - lastMouseY
+      state.yaw += dx * ROTATE_SPEED * prefs.rotateSensitivity
+      const dyEffective = prefs.invertYRotate ? -dy : dy
+      state.pitch = Math.max(
+        -Math.PI / 2 + 0.05,
+        Math.min(-0.05, state.pitch - dyEffective * ROTATE_SPEED * prefs.rotateSensitivity),
+      )
+    }
+    lastMouseX = e.clientX
+    lastMouseY = e.clientY
+  }
+  const onMouseDown = (e: MouseEvent): void => {
+    if (e.button === 1) {
+      middleDown = true
+      e.preventDefault()
+    }
+    if (e.button === 2) {
+      rightDown = true
+      e.preventDefault()
+    }
+    lastMouseX = e.clientX
+    lastMouseY = e.clientY
+  }
+  const onMouseUp = (e: MouseEvent): void => {
+    if (e.button === 1) middleDown = false
+    if (e.button === 2) rightDown = false
+  }
+  const onContextMenu = (e: MouseEvent): void => {
+    e.preventDefault()
+  }
+  const onMouseLeave = (): void => {
+    edge.left = edge.right = edge.up = edge.down = false
+    middleDown = false
+    rightDown = false
+  }
+
+  canvasEl.addEventListener('wheel', onWheel, { passive: false })
+  canvasEl.addEventListener('mousemove', onMouseMove)
+  canvasEl.addEventListener('mousedown', onMouseDown)
+  canvasEl.addEventListener('mouseup', onMouseUp)
+  canvasEl.addEventListener('mouseleave', onMouseLeave)
+  canvasEl.addEventListener('contextmenu', onContextMenu)
+  window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('keyup', onKeyUp)
+
+  return {
+    destroy: () => {
+      canvasEl.removeEventListener('wheel', onWheel)
+      canvasEl.removeEventListener('mousemove', onMouseMove)
+      canvasEl.removeEventListener('mousedown', onMouseDown)
+      canvasEl.removeEventListener('mouseup', onMouseUp)
+      canvasEl.removeEventListener('mouseleave', onMouseLeave)
+      canvasEl.removeEventListener('contextmenu', onContextMenu)
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+    },
+    getKeyState: () => keys,
+    getMouseEdgeState: () => edge,
+  }
+}
+
+function panCameraInScreenSpace(
+  state: CameraState,
+  screenDX: number,
+  screenDY: number,
+  sensitivity: number,
+): void {
+  const distance = distanceFromZoomT(state.zoomT)
+  const right = new THREE.Vector3()
+  const up = new THREE.Vector3()
+  state.camera.matrixWorld.extractBasis(right, up, new THREE.Vector3())
+  const worldDX = (screenDX / 600) * distance * sensitivity
+  const worldDY = (screenDY / 600) * distance * sensitivity
+  state.target.addScaledVector(right, worldDX)
+  state.target.addScaledVector(up, -worldDY)
+}
+
+export function tickCameraFromInput(state: CameraState, dtSec: number): void {
+  const prefs = getCameraPrefs()
+  const keys = currentKeys
+  const edge = currentEdge
+  // Pan from WASD or arrows
+  let dx = 0
+  let dy = 0
+  if (prefs.wasdPan) {
+    if (keys['w']) dy -= 1
+    if (keys['s']) dy += 1
+    if (keys['a']) dx -= 1
+    if (keys['d']) dx += 1
+  }
+  if (prefs.arrowPan) {
+    if (keys['arrowup']) dy -= 1
+    if (keys['arrowdown']) dy += 1
+    if (keys['arrowleft']) dx -= 1
+    if (keys['arrowright']) dx += 1
+  }
+  if (prefs.edgeScroll) {
+    if (edge.left) dx -= 1
+    if (edge.right) dx += 1
+    if (edge.up) dy -= 1
+    if (edge.down) dy += 1
+  }
+  if (dx !== 0 || dy !== 0) {
+    const distance = distanceFromZoomT(state.zoomT)
+    const speed = PAN_SPEED * prefs.panSensitivity * distance * dtSec
+    const right = new THREE.Vector3()
+    const up = new THREE.Vector3()
+    state.camera.matrixWorld.extractBasis(right, up, new THREE.Vector3())
+    state.target.addScaledVector(right, dx * speed)
+    state.target.addScaledVector(up, -dy * speed)
+  }
+  // Rotate from QE
+  if (prefs.qeRotate) {
+    if (keys['q']) state.yaw -= 2 * dtSec * prefs.rotateSensitivity
+    if (keys['e']) state.yaw += 2 * dtSec * prefs.rotateSensitivity
+  }
+}
+
+let currentKeys: Record<string, boolean> = {}
+let currentEdge: { up: boolean; down: boolean; left: boolean; right: boolean } = {
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+}
+
+export function bindCameraInputs(handle: CameraControllerHandle): void {
+  currentKeys = handle.getKeyState()
+  currentEdge = handle.getMouseEdgeState()
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@smol/client",
+  "version": "0.01.0",
+  "description": "SMoL client — TypeScript + React + Vite frontend bundle. Per-government-theme UI skin via CSS variables. Cross-platform (web + desktop via Tauri + mobile via Capacitor). 2D hex-grid rendering for alpha; 3D zoom deferred to v1.5+.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --check .",
+    "format:write": "prettier --write ."
+  },
+  "dependencies": {
+    "@smol/shared": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.1",
+    "three": "^0.171.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.171.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.5"
+  }
+}
