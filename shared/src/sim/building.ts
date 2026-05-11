@@ -1,6 +1,7 @@
 import { buildingDefId, type BuildingDefId, type ResourceId } from '../types/index'
 import {
   RESOURCE_AMMUNITION,
+  RESOURCE_ANTIMATTER,
   RESOURCE_BRICKS,
   RESOURCE_COMPONENTS,
   RESOURCE_ELECTRONICS,
@@ -62,6 +63,11 @@ export const BLDG_LAUNCH_PAD = buildingDefId('launchPad')
 export const BLDG_MINE_FIELD = buildingDefId('mineField')
 export const BLDG_COUNTER_MISSILE = buildingDefId('counterMissilePad')
 export const BLDG_MINING_OUTPOST = buildingDefId('miningOutpost')
+// PHASE 16.31 — God Control building. Per user verbatim "send your rocket places too as an
+// option if 'god control' is researched and installed". Gates the right-click flight-redirect
+// UX in PlayPage. Requires TECH_GOD_CONTROL researched + at least one BLDG_GOD_CONTROL on any
+// owned planet for the redirect action to validate.
+export const BLDG_GOD_CONTROL = buildingDefId('godControl')
 
 export const BUILDINGS: ReadonlyArray<BuildingDef> = [
   {
@@ -366,6 +372,22 @@ export const BUILDINGS: ReadonlyArray<BuildingDef> = [
     buildTimeTicks: 120,
     citizenSlots: 6,
     description: 'Off-planet mining via auto-shuttle. UMS UnityBeacon shuttle-cycle carryover.',
+  },
+  {
+    id: BLDG_GOD_CONTROL,
+    name: 'God Control',
+    emoji: '🕹️',
+    category: 'utility',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 200 },
+      { resource: RESOURCE_ELECTRONICS, amount: 150 },
+      { resource: RESOURCE_COMPONENTS, amount: 120 },
+      { resource: RESOURCE_ANTIMATTER, amount: 30 },
+    ],
+    buildTimeTicks: 400,
+    citizenSlots: 12,
+    description:
+      'Endgame override infrastructure. Select an in-flight colony ship and right-click any planet to redirect it mid-arc. Requires TECH_GOD_CONTROL researched.',
   },
 ]
 

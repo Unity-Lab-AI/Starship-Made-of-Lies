@@ -27,6 +27,12 @@ export interface FlightDetailPanelProps {
   // through to MatchSim abortFlight(flight) which sets phase=ABORTED + outcome=ABORTED.
   readonly onAbort?: (flightId: string) => void
   readonly onClose: () => void
+  // PHASE 16.31 — god control. When godControlReady is true AND the flight is non-terminal,
+  // the "Select for Redirect" button is shown. Clicking it fires onSelectForRedirect + closes
+  // the panel; PlayPage enters redirect mode where the next right-click on a planet redirects
+  // this flight via sim.redirectFlight.
+  readonly godControlReady?: boolean
+  readonly onSelectForRedirect?: (flightId: string) => void
 }
 
 function ticksToEtaLabel(ticks: number): string {
@@ -69,6 +75,8 @@ export function FlightDetailPanel({
   toPlanetLabel,
   onAbort,
   onClose,
+  godControlReady,
+  onSelectForRedirect,
 }: FlightDetailPanelProps) {
   const def = getColonyShipDef(flight.variantId)
   const tel = flightTelemetrySnapshot(flight)
@@ -241,19 +249,34 @@ export function FlightDetailPanel({
           <p>{def.description}</p>
         </section>
 
-        {inFlight && onAbort && !isCounter ? (
+        {inFlight && (onAbort || (godControlReady && onSelectForRedirect)) && !isCounter ? (
           <section className="flight-detail-panel__actions">
-            <button
-              type="button"
-              className="flight-detail-panel__btn flight-detail-panel__btn--abort"
-              onClick={() => {
-                onAbort(String(flight.id))
-                onClose()
-              }}
-              title="Self-destruct the ship in-flight (UMS-faithful abort). AoE damage scales with fuel + payload at detonation."
-            >
-              💀 ABORT (self-destruct)
-            </button>
+            {godControlReady && onSelectForRedirect ? (
+              <button
+                type="button"
+                className="flight-detail-panel__btn flight-detail-panel__btn--redirect"
+                onClick={() => {
+                  onSelectForRedirect(String(flight.id))
+                  onClose()
+                }}
+                title="God Control redirect: right-click any planet after selecting to redirect this ship mid-arc. Works on STRANDED + EMPTY_HULK ships too — the god intervenes from above."
+              >
+                🕹️ Select for Redirect
+              </button>
+            ) : null}
+            {onAbort ? (
+              <button
+                type="button"
+                className="flight-detail-panel__btn flight-detail-panel__btn--abort"
+                onClick={() => {
+                  onAbort(String(flight.id))
+                  onClose()
+                }}
+                title="Self-destruct the ship in-flight (UMS-faithful abort). AoE damage scales with fuel + payload at detonation."
+              >
+                💀 ABORT (self-destruct)
+              </button>
+            ) : null}
           </section>
         ) : null}
 

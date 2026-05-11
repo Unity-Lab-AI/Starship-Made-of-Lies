@@ -46,6 +46,7 @@ import {
   BLDG_FARM,
   BLDG_LAB,
   BLDG_LAUNCH_PAD,
+  BLDG_GOD_CONTROL,
   BLDG_LUMBER_CAMP,
   BLDG_MINE,
   BLDG_MINE_FIELD,
@@ -70,6 +71,7 @@ import {
   SHIP_COUNTER_COLONY,
   SHIP_SCOUT,
   SHIP_STANDARD,
+  TECH_GOD_CONTROL,
   THEMES,
   aggregateActiveCampaignBonus,
   aggregateEffects,
@@ -91,6 +93,7 @@ import {
   defaultBuildFromShipDef,
   deriveCrashLootFromShipPayload,
   dissidentRatio,
+  flightCurrentPosition,
   generateGalaxy,
   generatePlanetResearchPoints,
   getBuildingDef,
@@ -1942,6 +1945,103 @@ export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
       message: `Launched ${def.name} → ${String(targetPlanet.planet.id)}`,
     })
     return true
+  }
+  return false
+}
+
+// PHASE 16.31 — God Control redirect action. Player selects an in-flight colony ship and
+// right-clicks any planet to redirect it mid-arc. Validates: launching civ has TECH_GOD_CONTROL
+// researched + at least one BLDG_GOD_CONTROL installed on any of their controlled planets.
+// Effective on any non-terminal phase — works on STRANDED ships (un-strands them) AND on
+// EMPTY_HULK ships (the god re-pilots dead-crew ships from above per project framing).
+//
+// Implementation: replaces the flight in state.flights with a fresh ColonyShipFlight built
+// from currentPosition → newTarget. Preserves the flight id + mutable carryover state
+// (powerRemaining / crewAlive / fuelRemaining / lifeSupportRemaining) so the player doesn't
+// get full re-stock on each redirect. Counter-flights tracking the old arc will miss and
+// self-destruct naturally — no special cleanup needed (PHASE 16.29 abortFlight-on-attacker-
+// gone handles them; here the attacker is still in flights, just on a new arc).
+export interface RedirectFlightInputs {
+  readonly state: MatchState
+  readonly flightId: string
+  readonly newTargetPlanetId: PlanetId
+}
+
+export function redirectFlightAction(inputs: RedirectFlightInputs): boolean {
+  const flight = inputs.state.flights.get(inputs.flightId)
+  if (!flight) return false
+  // Only redirect flights launched by the human civ. AI doesn't use god control (yet).
+  if (flight.launchingCivId !== inputs.state.humanCivId) return false
+  // Reject terminal phases — already-detonated/aborted/intercepted/crashed flights can't be
+  // redirected. STRANDED + EMPTY_HULK are NOT terminal so they CAN be redirected.
+  if (
+    flight.phase === 'DETONATE' ||
+    flight.phase === 'INTERCEPTED' ||
+    flight.phase === 'ABORTED' ||
+    flight.phase === 'CRASH_LANDED'
+  ) {
+    return false
+  }
+  const civState = inputs.state.civs.get(flight.launchingCivId)
+  if (!civState) return false
+  if (!civState.empire.researchedTechs.has(TECH_GOD_CONTROL)) return false
+  // Validate at least one BLDG_GOD_CONTROL on any controlled planet.
+  let hasGodControlBuilding = false
+  for (const planetId of civState.empire.controlledPlanetIds) {
+    const planet = inputs.state.planets.get(planetId)
+    if (planet && (planet.buildingsByDef.get(BLDG_GOD_CONTROL) ?? 0) > 0) {
+      hasGodControlBuilding = true
+      break
+    }
+  }
+  if (!hasGodControlBuilding) return false
+  const newTarget = inputs.state.planets.get(inputs.newTargetPlanetId)
+  if (!newTarget) return false
+
+  // Sample current position BEFORE replacing the flight (function uses flight phase + arc).
+  const currentPos = flightCurrentPosition(flight)
+  // Build a fresh flight from currentPos → newTarget. newColonyShipFlight handles arc +
+  // dispersion + initial state computation. Then we override the mutable carryover state to
+  // preserve power/crew/fuel/life-support — god control doesn't refuel the ship, just redirects.
+  const redirected = newColonyShipFlight({
+    id: flight.id,
+    variantId: flight.variantId,
+    launchingCivId: flight.launchingCivId,
+    fromPlanetId: flight.fromPlanetId,
+    targetPlanetId: newTarget.planet.id,
+    fromPosition: currentPos,
+    targetPosition: newTarget.planet.position,
+    travelRadius: 1000,
+    citizensAboard: flight.citizensAboard,
+    signalLossSeed: flight.signalLossSeed,
+  })
+  redirected.powerRemaining = flight.powerRemaining
+  redirected.lifeSupportRemaining = flight.lifeSupportRemaining
+  redirected.crewAlive = flight.crewAlive
+  redirected.fuelRemaining = flight.fuelRemaining
+  // crewStarvationTimer is carried over so starving crew doesn't restart the countdown.
+  redirected.crewStarvationTimer = flight.crewStarvationTimer
+  inputs.state.flights.set(inputs.flightId, redirected)
+
+  pushEvent(inputs.state, {
+    atTick: inputs.state.currentTick,
+    civId: civState.civId,
+    kind: 'launch',
+    message: `🕹️ God-control redirected ${String(flight.id)} → ${String(newTarget.planet.id)}.`,
+  })
+  return true
+}
+
+// PHASE 16.31 — convenience check exposed to UI so the FlightDetailPanel "Select for Redirect"
+// button + GalaxyView right-click handler can gate visibility without re-computing the check
+// each frame. Returns true when the human civ has god control researched AND installed.
+export function isHumanGodControlReady(state: MatchState): boolean {
+  const human = state.civs.get(state.humanCivId)
+  if (!human) return false
+  if (!human.empire.researchedTechs.has(TECH_GOD_CONTROL)) return false
+  for (const planetId of human.empire.controlledPlanetIds) {
+    const planet = state.planets.get(planetId)
+    if (planet && (planet.buildingsByDef.get(BLDG_GOD_CONTROL) ?? 0) > 0) return true
   }
   return false
 }

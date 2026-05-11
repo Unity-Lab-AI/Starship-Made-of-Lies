@@ -114,6 +114,10 @@ export function PlayPage() {
   // PHASE 16.23: clicked-flight selection state. Set when player clicks a flight cone in
   // GalaxyView; cleared when FlightDetailPanel close button is pressed or overlay click.
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
+  // PHASE 16.31: god-control redirect mode. Set when player clicks "Select for Redirect" in
+  // FlightDetailPanel; next right-click on a planet in GalaxyView fires sim.redirectFlight.
+  // Reset after one use (whether successful or not).
+  const [redirectModeFlightId, setRedirectModeFlightId] = useState<string | null>(null)
 
   // PHASE 16.13.9: /play canvas defaults to the 3D GalaxyView. The legacy 2D TilePlacementGrid
   // is kept ONLY as a dev-debug overlay reachable via `?dev=hexgrid` URL flag. Per LAW #0
@@ -663,6 +667,14 @@ export function PlayPage() {
             lastHopeTriggeredPlanetIds={lastHopeTriggeredPlanetIds}
             padStateGlows={padStateGlows}
             detonations={sim.state.detonations}
+            {...(redirectModeFlightId
+              ? {
+                  onContextMenuPlanet: (planetId: PlanetId) => {
+                    sim.redirectFlight(redirectModeFlightId, planetId)
+                    setRedirectModeFlightId(null)
+                  },
+                }
+              : {})}
           />
         )}
       </div>
@@ -968,6 +980,8 @@ export function PlayPage() {
                 toPlanetLabel={String(flight.targetPlanetId)}
                 onAbort={(fid) => sim.abortFlightById(fid)}
                 onClose={() => setSelectedFlightId(null)}
+                godControlReady={sim.godControlReady}
+                onSelectForRedirect={(fid) => setRedirectModeFlightId(fid)}
               />
             )
           })()
