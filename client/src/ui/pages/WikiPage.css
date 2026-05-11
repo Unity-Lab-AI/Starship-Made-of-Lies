@@ -1,0 +1,310 @@
+.wiki-page__content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.wiki-page__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+}
+
+.wiki-page__nav-btn {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 150ms ease;
+}
+
+.wiki-page__nav-btn:hover {
+  border-color: var(--ui-glow, #d4a13a);
+}
+
+.wiki-page__nav-btn--active {
+  background: rgba(212, 161, 58, 0.12);
+  border-color: var(--ui-glow, #d4a13a);
+  color: var(--text-hero);
+}
+
+.wiki-page__panel {
+  min-height: 60vh;
+}
+
+.wiki-page__panel h2 {
+  margin-top: 0;
+}
+
+.wiki-page__intro {
+  color: var(--text-soft);
+  max-width: 75ch;
+  line-height: 1.6;
+}
+
+.wiki-page__theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.wiki-page__theme-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: all 150ms ease;
+}
+
+.wiki-page__theme-card:hover {
+  border-color: var(--ui-glow, #d4a13a);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.wiki-page__theme-card--active {
+  background: rgba(212, 161, 58, 0.1);
+  border-color: var(--ui-glow, #d4a13a);
+  color: var(--text-hero);
+}
+
+.wiki-page__theme-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.wiki-page__theme-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.wiki-page__theme-tagline {
+  font-size: 0.8rem;
+  color: var(--text-mute);
+  font-style: italic;
+}
+
+.wiki-page__theme-detail {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+}
+
+.wiki-page__theme-detail h3 {
+  margin-top: 0;
+  font-size: 1.4rem;
+}
+
+.wiki-page__theme-detail h4 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.wiki-page__propaganda {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.wiki-page__propaganda dt {
+  font-weight: 600;
+  color: var(--text-hero);
+  font-size: 0.85rem;
+}
+
+.wiki-page__propaganda dd {
+  margin: 0;
+  color: var(--text-soft);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.wiki-page__tiers {
+  margin: 0.5rem 0 0 1.25rem;
+  padding: 0;
+  color: var(--text-soft);
+}
+
+.wiki-page__tiers li {
+  margin: 0.25rem 0;
+}
+
+.wiki-page__panel article {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--ui-glow, #d4a13a);
+  border-radius: 0 4px 4px 0;
+}
+
+.wiki-page__panel article h3 {
+  margin-top: 0;
+}
+
+.wiki-page__tech-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.wiki-page__tech-tree-col {
+  min-width: 0;
+}
+
+.wiki-page__tech-detail {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.wiki-page__tech-detail-empty {
+  margin: 0;
+  color: var(--text-mute);
+  font-style: italic;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.wiki-page__tech-detail-card {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+.wiki-page__tech-detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  margin-bottom: 0.75rem;
+}
+
+.wiki-page__tech-detail-emoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.wiki-page__tech-detail-header h3 {
+  margin: 0 0 0.3rem;
+  font-size: 1.1rem;
+  color: var(--text-hero);
+}
+
+.wiki-page__tech-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.wiki-page__tech-detail-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-soft);
+}
+
+.wiki-page__tech-detail-tag.tag-mainstream {
+  background: rgba(59, 130, 246, 0.15);
+  color: rgb(147, 197, 253);
+}
+
+.wiki-page__tech-detail-tag.tag-suppressed {
+  background: rgba(212, 161, 58, 0.15);
+  color: var(--ui-glow, #d4a13a);
+}
+
+.wiki-page__tech-detail-tag.tag-forbidden {
+  background: rgba(220, 38, 38, 0.15);
+  color: rgb(252, 165, 165);
+}
+
+.wiki-page__tech-detail-tag.tag-tier {
+  background: rgba(168, 85, 247, 0.15);
+  color: rgb(216, 180, 254);
+}
+
+.wiki-page__tech-detail-desc {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.wiki-page__tech-detail-section {
+  margin: 0.8rem 0;
+}
+
+.wiki-page__tech-detail-section h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-hero);
+}
+
+.wiki-page__tech-detail-section ul {
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.wiki-page__tech-detail-section li {
+  margin: 0.15rem 0;
+}
+
+.wiki-page__tech-detail-apex {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgb(252, 211, 77);
+  font-weight: 600;
+}
+
+.wiki-page__tech-detail-wins {
+  font-weight: 700;
+  color: rgb(134, 239, 172);
+}
+
+@media (max-width: 768px) {
+  .wiki-page__content {
+    grid-template-columns: 1fr;
+  }
+  .wiki-page__nav {
+    flex-direction: row;
+    overflow-x: auto;
+    position: static;
+  }
+}

@@ -1,0 +1,86 @@
+.last-hope-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+}
+
+.last-hope-panel--active {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.5);
+  animation: lastHopePulse 2s infinite;
+}
+
+@keyframes lastHopePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+}
+
+.last-hope-panel__header h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-hero);
+  letter-spacing: 0.04em;
+}
+
+.last-hope-panel--active .last-hope-panel__header h2 {
+  color: rgb(248, 113, 113);
+}
+
+.last-hope-panel__hint {
+  margin: 0.5rem 0 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.last-hope-panel__trigger {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: rgba(220, 38, 38, 0.6);
+  color: #fff;
+  border: 1px solid rgba(220, 38, 38, 0.8);
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+  transition: filter 150ms;
+}
+
+.last-hope-panel__trigger:not(:disabled):hover {
+  filter: brightness(1.15);
+}
+
+.last-hope-panel__trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.last-hope-panel__phase {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(252, 165, 165);
+}
+
+.last-hope-panel__details {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.last-hope-panel__details li {
+  margin: 0.15rem 0;
+  font-variant-numeric: tabular-nums;
+}

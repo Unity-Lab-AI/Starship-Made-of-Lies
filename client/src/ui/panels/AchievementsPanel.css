@@ -1,0 +1,144 @@
+.achievements-panel {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--fg-primary, #e6edf3);
+  padding: 0.4rem 0.5rem;
+}
+
+.achievements-panel__progress {
+  position: relative;
+  width: 100%;
+  height: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.achievements-panel__progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--lcd-glow, #d4a13a);
+  box-shadow: 0 0 6px var(--lcd-glow, #d4a13a);
+  transition: width 0.3s ease;
+}
+
+.achievements-panel__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.achievements-panel__row {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr auto;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+.achievements-panel__row--unlocked {
+  background: rgba(107, 217, 104, 0.04);
+}
+
+.achievements-panel__row--locked {
+  opacity: 0.55;
+}
+
+.achievements-panel__row--apex.achievements-panel__row--unlocked {
+  border-color: rgba(212, 161, 58, 0.6);
+  box-shadow: 0 0 5px rgba(212, 161, 58, 0.3);
+}
+
+.achievements-panel__row--epic.achievements-panel__row--unlocked {
+  border-color: rgba(170, 100, 255, 0.4);
+}
+
+.achievements-panel__icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7rem;
+  gap: 0.05rem;
+}
+
+.achievements-panel__rarity {
+  font-size: 0.65rem;
+  opacity: 0.65;
+}
+
+.achievements-panel__emoji {
+  font-size: 1.05rem;
+}
+
+.achievements-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.achievements-panel__name {
+  font-weight: 600;
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+.achievements-panel__rarity-tag {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.65;
+  padding: 0.05rem 0.25rem;
+  border-radius: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.achievements-panel__rarity-tag--common {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.achievements-panel__rarity-tag--uncommon {
+  color: #6bd968;
+  border-color: rgba(107, 217, 104, 0.4);
+}
+
+.achievements-panel__rarity-tag--rare {
+  color: #b3d9ff;
+  border-color: rgba(179, 217, 255, 0.4);
+}
+
+.achievements-panel__rarity-tag--epic {
+  color: #c79bff;
+  border-color: rgba(199, 155, 255, 0.4);
+}
+
+.achievements-panel__rarity-tag--apex {
+  color: var(--lcd-glow, #d4a13a);
+  border-color: rgba(212, 161, 58, 0.6);
+  text-shadow: 0 0 4px rgba(212, 161, 58, 0.5);
+}
+
+.achievements-panel__desc {
+  font-size: 0.65rem;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.achievements-panel__status {
+  font-size: 0.65rem;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}

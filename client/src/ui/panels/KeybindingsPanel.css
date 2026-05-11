@@ -1,0 +1,118 @@
+.keybinds-panel {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  color: var(--fg-primary, #e6edf3);
+  padding: 0.4rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.keybinds-panel__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.keybinds-panel__group-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--lcd-glow, #d4a13a);
+  margin: 0 0 0.1rem;
+  font-weight: 600;
+}
+
+.keybinds-panel__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.keybinds-panel__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.15rem 0.3rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.keybinds-panel__action {
+  font-size: 0.7rem;
+  opacity: 0.9;
+}
+
+.keybinds-panel__key {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fg-primary, #e6edf3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  padding: 0.15rem 0.5rem;
+  min-width: 5rem;
+  border-radius: 2px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+
+.keybinds-panel__key:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.keybinds-panel__key--listening {
+  color: var(--lcd-glow, #d4a13a);
+  border-color: var(--lcd-glow, #d4a13a);
+  animation: keybind-pulse 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes keybind-pulse {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .keybinds-panel__key--listening {
+    animation: none;
+  }
+}
+
+.keybinds-panel__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  padding-top: 0.3rem;
+}
+
+.keybinds-panel__displaced {
+  font-size: 0.6rem;
+  opacity: 0.7;
+  font-style: italic;
+  color: #ffae42;
+}
+
+.keybinds-panel__reset {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fg-primary, #e6edf3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.keybinds-panel__reset:hover {
+  background: rgba(255, 255, 255, 0.12);
+}

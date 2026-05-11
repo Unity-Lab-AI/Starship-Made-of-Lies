@@ -1,0 +1,2 @@
+npx -y pnpm@9.15.0 exec lint-staged
+npx -y pnpm@9.15.0 typecheck

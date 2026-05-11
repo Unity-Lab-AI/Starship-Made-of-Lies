@@ -1,0 +1,107 @@
+.audio-panel {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  color: var(--fg-primary, #e6edf3);
+  padding: 0.4rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.audio-panel__buses {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.audio-panel__bus {
+  display: grid;
+  grid-template-columns: 4rem 1fr 3.5rem 2.5rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.audio-panel__bus-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.audio-panel__bus input[type='range'] {
+  width: 100%;
+  accent-color: var(--lcd-glow, #d4a13a);
+}
+
+.audio-panel__bus-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.audio-panel__bus-mute,
+.audio-panel__cue-btn,
+.audio-panel__global-mute {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--fg-primary, #e6edf3);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.audio-panel__bus-mute:hover,
+.audio-panel__cue-btn:hover,
+.audio-panel__global-mute:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.audio-panel__bus-mute--on {
+  color: #ff5e74;
+  border-color: rgba(255, 94, 116, 0.5);
+}
+
+.audio-panel__global {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.audio-panel__global-mute--on {
+  color: #ff5e74;
+  border-color: rgba(255, 94, 116, 0.6);
+}
+
+.audio-panel__cues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.audio-panel__cues-label {
+  font-size: 0.7rem;
+  opacity: 0.75;
+  margin-right: 0.3rem;
+}
+
+.audio-panel__status {
+  font-size: 0.7rem;
+  opacity: 0.85;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  padding-top: 0.4rem;
+}
+
+.audio-panel__status p {
+  margin: 0;
+}
+
+.audio-panel__hint {
+  opacity: 0.6;
+  font-style: italic;
+  font-size: 0.65rem;
+}

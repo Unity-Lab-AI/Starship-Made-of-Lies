@@ -1,0 +1,543 @@
+import { type ResourceId } from '../types/index'
+import {
+  RESOURCE_AMMUNITION,
+  RESOURCE_ANTIMATTER,
+  RESOURCE_COMPONENTS,
+  RESOURCE_ELECTRONICS,
+  RESOURCE_EXPLOSIVES,
+  RESOURCE_FUEL,
+  RESOURCE_FUSION_FUEL,
+  RESOURCE_INGOTS,
+  RESOURCE_MACHINERY,
+  RESOURCE_PROPAGANDA_MATERIALS,
+} from './resources'
+
+declare const __colonyShipBrand: unique symbol
+type Brand<T, B> = T & { readonly [__colonyShipBrand]: B }
+
+export type ColonyShipVariantId = Brand<string, 'ColonyShipVariantId'>
+export const colonyShipVariantId = (s: string): ColonyShipVariantId => s as ColonyShipVariantId
+
+export type DarknessTier = 1 | 2 | 3 | 4
+
+export type ColonyShipCategory =
+  | 'tier1Innocent'
+  | 'tier2Discovery'
+  | 'tier3Aggression'
+  | 'tier4Eradication'
+  | 'crossPeaceful'
+
+export interface ColonyShipPayload {
+  readonly citizenCapacity: number
+  readonly cargoCapacity: number
+  readonly weaponPayload: number
+  readonly explosiveYield: number
+}
+
+export interface ColonyShipBuildCost {
+  readonly resource: ResourceId
+  readonly amount: number
+}
+
+export interface ColonyShipDef {
+  readonly id: ColonyShipVariantId
+  readonly name: string
+  readonly emoji: string
+  readonly category: ColonyShipCategory
+  readonly darknessTier: DarknessTier
+  readonly payloadTierRequired: 1 | 2 | 3 | 4
+  readonly description: string
+  readonly buildCost: ReadonlyArray<ColonyShipBuildCost>
+  readonly buildTimeTicks: number
+  readonly fuelRequirement: number
+  readonly ammoRequirement: number
+  readonly payload: ColonyShipPayload
+  readonly speedMultiplier: number
+  readonly evasionMultiplier: number
+  readonly canIntercept: boolean
+  readonly suicideShip: boolean
+}
+
+export const SHIP_SCOUT = colonyShipVariantId('scout')
+export const SHIP_SURVEYOR = colonyShipVariantId('surveyor')
+export const SHIP_PROBE = colonyShipVariantId('probe')
+
+export const SHIP_STANDARD = colonyShipVariantId('standard')
+export const SHIP_LASER_BEACON = colonyShipVariantId('laserBeacon')
+export const SHIP_DECOY = colonyShipVariantId('decoy')
+export const SHIP_BOARDING = colonyShipVariantId('boarding')
+
+export const SHIP_SABOTEUR = colonyShipVariantId('saboteur')
+export const SHIP_EXPLOSIVE = colonyShipVariantId('explosive')
+export const SHIP_HEAVY = colonyShipVariantId('heavy')
+export const SHIP_COUNTER_COLONY = colonyShipVariantId('counterColony')
+
+export const SHIP_PILGRIM_VOLUNTEER = colonyShipVariantId('pilgrimVolunteer')
+export const SHIP_MASS_EVACUATION = colonyShipVariantId('massEvacuation')
+export const SHIP_ORBITAL_WEAPON_PLATFORM = colonyShipVariantId('orbitalWeaponPlatform')
+export const SHIP_FINAL_COLONY_SHIP = colonyShipVariantId('finalColonyShip')
+
+export const SHIP_MINING = colonyShipVariantId('mining')
+export const SHIP_REFUGEE = colonyShipVariantId('refugee')
+export const SHIP_EMBASSY = colonyShipVariantId('embassy')
+export const SHIP_RESUPPLY = colonyShipVariantId('resupply')
+
+export const COLONY_SHIPS: ReadonlyArray<ColonyShipDef> = [
+  {
+    id: SHIP_SCOUT,
+    name: 'Scout',
+    emoji: '🛰️',
+    category: 'tier1Innocent',
+    darknessTier: 1,
+    payloadTierRequired: 1,
+    description: 'Auto-explore probe. Charts unknown planets. Returns biome + threat data.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 30 },
+      { resource: RESOURCE_COMPONENTS, amount: 15 },
+    ],
+    buildTimeTicks: 60,
+    fuelRequirement: 20,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 0, cargoCapacity: 5, weaponPayload: 0, explosiveYield: 0 },
+    speedMultiplier: 1.6,
+    evasionMultiplier: 1.4,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_SURVEYOR,
+    name: 'Surveyor',
+    emoji: '📡',
+    category: 'tier1Innocent',
+    darknessTier: 1,
+    payloadTierRequired: 1,
+    description: 'Stationary orbital surveyor. Maps planet hex tiles + flags resource hotspots.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 40 },
+      { resource: RESOURCE_ELECTRONICS, amount: 20 },
+    ],
+    buildTimeTicks: 80,
+    fuelRequirement: 25,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 0, cargoCapacity: 8, weaponPayload: 0, explosiveYield: 0 },
+    speedMultiplier: 1.0,
+    evasionMultiplier: 1.0,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_PROBE,
+    name: 'Probe',
+    emoji: '🔬',
+    category: 'tier1Innocent',
+    darknessTier: 1,
+    payloadTierRequired: 1,
+    description: 'Atmospheric probe. Reads enemy civ tech-tier signature.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 25 },
+      { resource: RESOURCE_ELECTRONICS, amount: 25 },
+    ],
+    buildTimeTicks: 70,
+    fuelRequirement: 22,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 0, cargoCapacity: 3, weaponPayload: 0, explosiveYield: 0 },
+    speedMultiplier: 1.3,
+    evasionMultiplier: 1.5,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_STANDARD,
+    name: 'Standard Colony Ship',
+    emoji: '🚀',
+    category: 'tier2Discovery',
+    darknessTier: 2,
+    payloadTierRequired: 2,
+    description:
+      'Mid-size colony ship. Carries citizens + bootstrap resources to target planet. Mostly true.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 80 },
+      { resource: RESOURCE_COMPONENTS, amount: 40 },
+      { resource: RESOURCE_FUEL, amount: 30 },
+    ],
+    buildTimeTicks: 150,
+    fuelRequirement: 60,
+    ammoRequirement: 10,
+    payload: { citizenCapacity: 200, cargoCapacity: 80, weaponPayload: 5, explosiveYield: 0 },
+    speedMultiplier: 1.0,
+    evasionMultiplier: 1.0,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_LASER_BEACON,
+    name: 'Laser-Targeting Beacon',
+    emoji: '🔦',
+    category: 'tier2Discovery',
+    darknessTier: 2,
+    payloadTierRequired: 2,
+    description:
+      'Lands intact + activates ground-based laser. Guides follow-up colony ships with +30% accuracy.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 50 },
+      { resource: RESOURCE_ELECTRONICS, amount: 50 },
+    ],
+    buildTimeTicks: 120,
+    fuelRequirement: 45,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 20, cargoCapacity: 30, weaponPayload: 0, explosiveYield: 0 },
+    speedMultiplier: 1.1,
+    evasionMultiplier: 1.2,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_DECOY,
+    name: 'Decoy',
+    emoji: '🎭',
+    category: 'tier2Discovery',
+    darknessTier: 2,
+    payloadTierRequired: 2,
+    description:
+      'Empty hull with telemetry mimic. Soaks up counter-missiles. Cheap, fast, expendable.',
+    buildCost: [{ resource: RESOURCE_INGOTS, amount: 30 }],
+    buildTimeTicks: 60,
+    fuelRequirement: 20,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 0, cargoCapacity: 0, weaponPayload: 0, explosiveYield: 0 },
+    speedMultiplier: 1.4,
+    evasionMultiplier: 0.8,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_BOARDING,
+    name: 'Boarding Ship',
+    emoji: '🤝',
+    category: 'tier2Discovery',
+    darknessTier: 2,
+    payloadTierRequired: 2,
+    description:
+      'Armed citizens take over enemy installations on landing. Diplomatic-by-day, takeover-by-night.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 60 },
+      { resource: RESOURCE_COMPONENTS, amount: 30 },
+      { resource: RESOURCE_AMMUNITION, amount: 40 },
+    ],
+    buildTimeTicks: 130,
+    fuelRequirement: 50,
+    ammoRequirement: 60,
+    payload: { citizenCapacity: 80, cargoCapacity: 40, weaponPayload: 60, explosiveYield: 0 },
+    speedMultiplier: 1.0,
+    evasionMultiplier: 1.0,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_SABOTEUR,
+    name: 'Saboteur',
+    emoji: '💣',
+    category: 'tier3Aggression',
+    darknessTier: 3,
+    payloadTierRequired: 3,
+    description: 'Lands + plants explosives in target infrastructure. Disables enemy production.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 70 },
+      { resource: RESOURCE_EXPLOSIVES, amount: 50 },
+      { resource: RESOURCE_ELECTRONICS, amount: 30 },
+    ],
+    buildTimeTicks: 160,
+    fuelRequirement: 55,
+    ammoRequirement: 30,
+    payload: { citizenCapacity: 30, cargoCapacity: 20, weaponPayload: 30, explosiveYield: 100 },
+    speedMultiplier: 1.2,
+    evasionMultiplier: 1.3,
+    canIntercept: false,
+    suicideShip: true,
+  },
+  {
+    id: SHIP_EXPLOSIVE,
+    name: 'Explosive',
+    emoji: '💥',
+    category: 'tier3Aggression',
+    darknessTier: 3,
+    payloadTierRequired: 3,
+    description: 'Massive payload. Suicide-strike. Devastates target tile + adjacent ring.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 100 },
+      { resource: RESOURCE_EXPLOSIVES, amount: 200 },
+      { resource: RESOURCE_FUEL, amount: 80 },
+    ],
+    buildTimeTicks: 200,
+    fuelRequirement: 80,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 0, cargoCapacity: 0, weaponPayload: 0, explosiveYield: 500 },
+    speedMultiplier: 0.8,
+    evasionMultiplier: 0.6,
+    canIntercept: false,
+    suicideShip: true,
+  },
+  {
+    id: SHIP_HEAVY,
+    name: 'Heavy Colony Ship',
+    emoji: '🛳️',
+    category: 'tier3Aggression',
+    darknessTier: 3,
+    payloadTierRequired: 3,
+    description:
+      'Larger crew + cargo + fuel for longer durations. The propaganda is starting to fray.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 150 },
+      { resource: RESOURCE_COMPONENTS, amount: 80 },
+      { resource: RESOURCE_MACHINERY, amount: 30 },
+      { resource: RESOURCE_FUEL, amount: 100 },
+    ],
+    buildTimeTicks: 280,
+    fuelRequirement: 120,
+    ammoRequirement: 50,
+    payload: { citizenCapacity: 600, cargoCapacity: 200, weaponPayload: 30, explosiveYield: 0 },
+    speedMultiplier: 0.7,
+    evasionMultiplier: 0.7,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_COUNTER_COLONY,
+    name: 'Counter-Colony',
+    emoji: '🛡️',
+    category: 'tier3Aggression',
+    darknessTier: 3,
+    payloadTierRequired: 3,
+    description: 'Intercepts incoming enemy colony ships mid-flight. Defensive specialist.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 60 },
+      { resource: RESOURCE_FUEL, amount: 40 },
+      { resource: RESOURCE_AMMUNITION, amount: 80 },
+      { resource: RESOURCE_ELECTRONICS, amount: 30 },
+    ],
+    buildTimeTicks: 140,
+    fuelRequirement: 50,
+    ammoRequirement: 100,
+    payload: { citizenCapacity: 0, cargoCapacity: 10, weaponPayload: 100, explosiveYield: 50 },
+    speedMultiplier: 1.5,
+    evasionMultiplier: 1.4,
+    canIntercept: true,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_PILGRIM_VOLUNTEER,
+    name: 'Pilgrim Volunteer',
+    emoji: '🕊️',
+    category: 'tier4Eradication',
+    darknessTier: 4,
+    payloadTierRequired: 4,
+    description:
+      'Tier 4-5 citizens "eagerly volunteer" — propaganda elevated them too well. One-way trip; the propaganda dresses it up.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 200 },
+      { resource: RESOURCE_FUSION_FUEL, amount: 80 },
+      { resource: RESOURCE_PROPAGANDA_MATERIALS, amount: 150 },
+    ],
+    buildTimeTicks: 260,
+    fuelRequirement: 100,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 1500, cargoCapacity: 100, weaponPayload: 0, explosiveYield: 800 },
+    speedMultiplier: 1.0,
+    evasionMultiplier: 0.8,
+    canIntercept: false,
+    suicideShip: true,
+  },
+  {
+    id: SHIP_MASS_EVACUATION,
+    name: 'Mass Evacuation',
+    emoji: '🌆',
+    category: 'tier4Eradication',
+    darknessTier: 4,
+    payloadTierRequired: 4,
+    description:
+      'Industrial-scale relocation framing. Citizens told their world is dying. Massive payload.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 300 },
+      { resource: RESOURCE_FUSION_FUEL, amount: 150 },
+      { resource: RESOURCE_MACHINERY, amount: 100 },
+    ],
+    buildTimeTicks: 350,
+    fuelRequirement: 180,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 5000, cargoCapacity: 500, weaponPayload: 0, explosiveYield: 0 },
+    speedMultiplier: 0.6,
+    evasionMultiplier: 0.5,
+    canIntercept: false,
+    suicideShip: true,
+  },
+  {
+    id: SHIP_ORBITAL_WEAPON_PLATFORM,
+    name: 'Orbital Weapon Platform',
+    emoji: '🛰️',
+    category: 'tier4Eradication',
+    darknessTier: 4,
+    payloadTierRequired: 4,
+    description:
+      'Settles into orbit and rains down kinetic strikes. UMS BLACKOUT_SAT auto-conversion carryover.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 250 },
+      { resource: RESOURCE_FUSION_FUEL, amount: 120 },
+      { resource: RESOURCE_AMMUNITION, amount: 200 },
+      { resource: RESOURCE_EXPLOSIVES, amount: 100 },
+    ],
+    buildTimeTicks: 320,
+    fuelRequirement: 140,
+    ammoRequirement: 250,
+    payload: { citizenCapacity: 50, cargoCapacity: 100, weaponPayload: 300, explosiveYield: 200 },
+    speedMultiplier: 1.0,
+    evasionMultiplier: 1.0,
+    canIntercept: true,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_FINAL_COLONY_SHIP,
+    name: 'The Final Colony Ship',
+    emoji: '🌌',
+    category: 'tier4Eradication',
+    darknessTier: 4,
+    payloadTierRequired: 4,
+    description:
+      'End-game apex. Antimatter-driven. Devastates everything in target hex + 2-ring radius. The propaganda is now baroque.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 400 },
+      { resource: RESOURCE_ANTIMATTER, amount: 50 },
+      { resource: RESOURCE_FUSION_FUEL, amount: 200 },
+      { resource: RESOURCE_PROPAGANDA_MATERIALS, amount: 300 },
+    ],
+    buildTimeTicks: 500,
+    fuelRequirement: 250,
+    ammoRequirement: 100,
+    payload: { citizenCapacity: 800, cargoCapacity: 200, weaponPayload: 500, explosiveYield: 2000 },
+    speedMultiplier: 1.2,
+    evasionMultiplier: 0.9,
+    canIntercept: false,
+    suicideShip: true,
+  },
+  {
+    id: SHIP_MINING,
+    name: 'Mining Colony Ship',
+    emoji: '⛏️',
+    category: 'crossPeaceful',
+    darknessTier: 1,
+    payloadTierRequired: 2,
+    description:
+      'Auto-shuttle mining crew + extractor. UMS UnityBeacon shuttle-cycle carryover with multi-planet rotation, auto-recall, fleet auto-balancing. Returns with cargo.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 100 },
+      { resource: RESOURCE_FUEL, amount: 80 },
+      { resource: RESOURCE_MACHINERY, amount: 50 },
+    ],
+    buildTimeTicks: 200,
+    fuelRequirement: 100,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 30, cargoCapacity: 400, weaponPayload: 0, explosiveYield: 0 },
+    speedMultiplier: 0.9,
+    evasionMultiplier: 0.7,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_REFUGEE,
+    name: 'Refugee',
+    emoji: '🚑',
+    category: 'crossPeaceful',
+    darknessTier: 1,
+    payloadTierRequired: 2,
+    description:
+      'Genuine evacuation when player loses a planet. Citizens flee to nearest friendly + boost loyalty there.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 60 },
+      { resource: RESOURCE_FUEL, amount: 40 },
+    ],
+    buildTimeTicks: 100,
+    fuelRequirement: 40,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 400, cargoCapacity: 50, weaponPayload: 0, explosiveYield: 0 },
+    speedMultiplier: 1.2,
+    evasionMultiplier: 1.0,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_EMBASSY,
+    name: 'Embassy',
+    emoji: '📜',
+    category: 'crossPeaceful',
+    darknessTier: 1,
+    payloadTierRequired: 2,
+    description:
+      'Diplomatic mission. Opens trade channel + reduces hostile diplomacy stance over time.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 50 },
+      { resource: RESOURCE_PROPAGANDA_MATERIALS, amount: 60 },
+      { resource: RESOURCE_ELECTRONICS, amount: 20 },
+    ],
+    buildTimeTicks: 110,
+    fuelRequirement: 35,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 30, cargoCapacity: 40, weaponPayload: 0, explosiveYield: 0 },
+    speedMultiplier: 1.1,
+    evasionMultiplier: 1.0,
+    canIntercept: false,
+    suicideShip: false,
+  },
+  {
+    id: SHIP_RESUPPLY,
+    name: 'Resupply',
+    emoji: '📦',
+    category: 'crossPeaceful',
+    darknessTier: 1,
+    payloadTierRequired: 2,
+    description:
+      'Cargo-only run between owned planets. Bypasses inter-planet inventory limit by special exemption.',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 70 },
+      { resource: RESOURCE_FUEL, amount: 50 },
+    ],
+    buildTimeTicks: 130,
+    fuelRequirement: 60,
+    ammoRequirement: 0,
+    payload: { citizenCapacity: 0, cargoCapacity: 600, weaponPayload: 0, explosiveYield: 0 },
+    speedMultiplier: 0.8,
+    evasionMultiplier: 0.8,
+    canIntercept: false,
+    suicideShip: false,
+  },
+]
+
+const COLONY_SHIP_INDEX: ReadonlyMap<ColonyShipVariantId, ColonyShipDef> = new Map(
+  COLONY_SHIPS.map((s) => [s.id, s]),
+)
+
+export function getColonyShipDef(id: ColonyShipVariantId): ColonyShipDef {
+  const def = COLONY_SHIP_INDEX.get(id)
+  if (!def) throw new Error(`Unknown colony ship variant: ${String(id)}`)
+  return def
+}
+
+export function colonyShipsByTier(tier: DarknessTier): ReadonlyArray<ColonyShipDef> {
+  return COLONY_SHIPS.filter((s) => s.darknessTier === tier)
+}
+
+export function colonyShipsByCategory(category: ColonyShipCategory): ReadonlyArray<ColonyShipDef> {
+  return COLONY_SHIPS.filter((s) => s.category === category)
+}
+
+export function colonyShipsByPayloadTier(payloadTier: 1 | 2 | 3 | 4): ReadonlyArray<ColonyShipDef> {
+  return COLONY_SHIPS.filter((s) => s.payloadTierRequired <= payloadTier)
+}
+
+export function isColonyShipUnlocked(
+  variantId: ColonyShipVariantId,
+  unlockedVariantNames: ReadonlySet<string>,
+  maxPayloadTier: 0 | 1 | 2 | 3 | 4,
+): boolean {
+  const def = getColonyShipDef(variantId)
+  if (def.payloadTierRequired > maxPayloadTier) return false
+  return unlockedVariantNames.has(def.name) || unlockedVariantNames.has(def.id as unknown as string)
+}

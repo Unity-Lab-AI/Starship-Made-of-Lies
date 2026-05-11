@@ -1,0 +1,160 @@
+.title-screen {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hero-background {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/keyart.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 55%,
+    rgba(5, 9, 18, 0.75) 100%
+  );
+  z-index: 1;
+}
+
+.utility-bar {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.utility-bar--top {
+  background: linear-gradient(to bottom, rgba(5, 9, 18, 0.8), transparent);
+}
+
+.utility-bar--bottom {
+  margin-top: auto;
+  background: linear-gradient(to top, rgba(5, 9, 18, 0.85), transparent);
+  font-size: 0.85rem;
+  color: var(--text-mute);
+}
+
+.logo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-hero);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.logo-link:hover {
+  text-decoration: none;
+  color: var(--ui-glow);
+}
+
+.logo-mark {
+  font-size: 1.5rem;
+}
+
+.utility-links {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.utility-links a {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.utility-links a:hover {
+  color: var(--text-hero);
+  text-decoration: none;
+}
+
+.title-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 80px;
+  text-align: center;
+}
+
+.title-hero {
+  font-family: var(--font-title);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.5rem;
+  color: var(--text-hero);
+  text-shadow: 0 0 30px rgba(58, 142, 255, 0.45);
+  text-transform: uppercase;
+}
+
+.title-tagline {
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  color: var(--text-soft);
+  margin: 0 0 3rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.emoji-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  opacity: 0.35;
+  z-index: 1;
+  pointer-events: none;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.4em;
+  word-break: keep-all;
+}
+
+.emoji-rail--left {
+  left: 0;
+  background: linear-gradient(to right, rgba(5, 9, 18, 0.7), transparent);
+}
+
+.emoji-rail--right {
+  right: 0;
+  background: linear-gradient(to left, rgba(5, 9, 18, 0.7), transparent);
+}
+
+.version {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-background {
+    animation: ken-burns 60s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes ken-burns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}

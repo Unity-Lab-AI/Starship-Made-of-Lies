@@ -1,0 +1,50 @@
+export type PanelId =
+  | 'build'
+  | 'campaigns'
+  | 'planets'
+  | 'tech'
+  | 'resources'
+  | 'deception'
+  | 'ships'
+  | 'flights'
+  | 'indigenous'
+  | 'loot'
+  | 'lastHope'
+  | 'beacon'
+  | 'ai'
+  | 'events'
+
+export type ToolbarButtonDef = {
+  readonly id: PanelId | 'galaxy' | 'quit'
+  readonly emoji: string
+  readonly label: string
+  readonly hotkey?: string
+}
+
+// NOTE: WASD + QE + mouse-wheel + mouse-edge-scroll are RESERVED for 3D-universe
+// navigation (PHASE 16.2): W/A/S/D = pan, Q/E = rotate, wheel = zoom, mouse-edge = RTS-style pan.
+// Panel hotkeys MUST avoid these letters.
+export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
+  { id: 'build', emoji: '🏗', label: 'Build', hotkey: 'B' },
+  { id: 'campaigns', emoji: '📣', label: 'Campaigns', hotkey: 'P' },
+  { id: 'tech', emoji: '🧬', label: 'Tech', hotkey: 'T' },
+  { id: 'resources', emoji: '📊', label: 'Stockpile', hotkey: 'R' },
+  { id: 'deception', emoji: '🧠', label: 'Loyalty', hotkey: 'L' },
+  { id: 'ships', emoji: '🚀', label: 'Ships', hotkey: 'K' },
+  { id: 'flights', emoji: '🛰️', label: 'Flights', hotkey: 'F' },
+  { id: 'indigenous', emoji: '🪶', label: 'Indigenous', hotkey: 'I' },
+  { id: 'loot', emoji: '🎁', label: 'Salvage' },
+  { id: 'lastHope', emoji: '🚨', label: 'Last Hope' },
+  { id: 'beacon', emoji: '🛰', label: 'Beacon' },
+  { id: 'ai', emoji: '🤖', label: 'AI Players' },
+  { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
+  { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },
+  { id: 'galaxy', emoji: '🌌', label: 'Galaxy (zoom out)', hotkey: 'M' },
+]
+
+export interface ToastNotification {
+  readonly id: string
+  readonly message: string
+  readonly kind: 'info' | 'warning' | 'error' | 'success'
+  readonly expiresAtMs: number
+}

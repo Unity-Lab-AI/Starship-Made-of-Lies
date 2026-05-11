@@ -1,0 +1,113 @@
+.boot-panel {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  color: var(--fg-primary, #e6edf3);
+  padding: 0.4rem 0.5rem;
+}
+
+.boot-panel__progress {
+  position: relative;
+  width: 100%;
+  height: 0.6rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.boot-panel__progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--lcd-glow, #d4a13a);
+  transition: width 0.2s ease;
+  box-shadow: 0 0 8px var(--lcd-glow, #d4a13a);
+}
+
+.boot-panel__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.boot-panel__row {
+  display: grid;
+  grid-template-columns: 1rem 1fr auto;
+  gap: 0.4rem;
+  align-items: baseline;
+  padding: 0.15rem 0.3rem;
+  border-radius: 2px;
+  font-size: 0.75rem;
+}
+
+.boot-panel__row--pending {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.boot-panel__row--running {
+  color: var(--lcd-glow, #d4a13a);
+  text-shadow: 0 0 4px var(--lcd-glow, #d4a13a);
+  animation: boot-row-pulse 0.7s ease-in-out infinite alternate;
+}
+
+.boot-panel__row--completed {
+  color: #6bd968;
+}
+
+.boot-panel__row--failed {
+  color: #ff5e74;
+}
+
+.boot-panel__row-glyph {
+  text-align: center;
+}
+
+.boot-panel__row-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.boot-panel__row-status {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.boot-panel__controls {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.boot-panel__controls button {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fg-primary, #e6edf3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.boot-panel__controls button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@keyframes boot-row-pulse {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-panel__row--running {
+    animation: none;
+  }
+}
