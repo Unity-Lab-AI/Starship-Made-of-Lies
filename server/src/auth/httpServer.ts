@@ -193,6 +193,16 @@ export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
     console.info(`[smol/auth] HTTP auth server listening on http://localhost:${port}`)
     console.info(`[smol/auth]   POST /api/auth/google/callback   (Google OAuth exchange)`)
     console.info(`[smol/auth]   GET  /api/auth/health             (status check)`)
+    // PHASE 16.34.1 — log the live redirect_uri allowlist on startup so the operator can see
+    // exactly which URIs the server will accept from clients. If you're hitting a 403 mismatch,
+    // this is the source of truth for "what's whitelisted right now".
+    const allowed = getAllowedRedirectUris()
+    if (allowed.size === 0) {
+      console.warn('[smol/auth]   Redirect-URI allowlist: EMPTY (sign-in will fail)')
+    } else {
+      console.info('[smol/auth]   Redirect-URI allowlist:')
+      for (const u of allowed) console.info(`[smol/auth]     - ${u}`)
+    }
   })
 
   return {

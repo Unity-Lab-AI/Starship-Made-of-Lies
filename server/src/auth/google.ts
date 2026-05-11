@@ -159,18 +159,29 @@ export async function completeGoogleSignIn(input: {
   return { account, sessionToken, email: userInfo.email }
 }
 
-// PHASE 16.34 HOTFIX — allowlist for client-supplied redirect_uri. Server-side env var
-// `GOOGLE_OAUTH_ALLOWED_REDIRECT_URIS` (comma-separated) is the primary source. The single
-// `GOOGLE_OAUTH_REDIRECT_URI` env var is automatically added to the allowlist if present so
-// existing deployments don't break. Empty allowlist = block ALL client-supplied URIs (server
-// falls back to its env-var redirect_uri, preserving v1 behavior).
+// PHASE 16.34.1 — built-in allowlist for the canonical SMoL deploys. These ALWAYS pass the
+// allowlist check regardless of env var configuration, so a fresh install / pulled hotfix on
+// either dev (localhost:5173) or prod (smol.unityailab.com) works without operator env edits.
+// Operators with other hosts (Cloudflare tunnels, custom domains, alt ports) layer their
+// additions via GOOGLE_OAUTH_ALLOWED_REDIRECT_URIS CSV.
+const BUILT_IN_REDIRECT_URIS: ReadonlyArray<string> = [
+  'http://localhost:5173/auth/google/callback',
+  'http://localhost:4173/auth/google/callback',
+  'https://smol.unityailab.com/auth/google/callback',
+]
+
+// PHASE 16.34 HOTFIX — allowlist for client-supplied redirect_uri. Three sources, unioned:
+// 1. BUILT_IN_REDIRECT_URIS — hardcoded canonical SMoL dev + prod URLs (always present).
+// 2. `GOOGLE_OAUTH_ALLOWED_REDIRECT_URIS` CSV env var — operator-extensible for custom hosts.
+// 3. Single `GOOGLE_OAUTH_REDIRECT_URI` env var — auto-included for backwards compat.
 export function getAllowedRedirectUris(): ReadonlySet<string> {
   const explicit = (process.env.GOOGLE_OAUTH_ALLOWED_REDIRECT_URIS ?? '')
     .split(',')
     .map((s) => s.trim())
     .filter((s) => s.length > 0)
   const fallback = process.env.GOOGLE_OAUTH_REDIRECT_URI
-  const all = new Set<string>(explicit)
+  const all = new Set<string>(BUILT_IN_REDIRECT_URIS)
+  for (const u of explicit) all.add(u)
   if (fallback && fallback.length > 0) all.add(fallback)
   return all
 }
