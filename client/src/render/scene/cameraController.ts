@@ -33,10 +33,13 @@ const EDGE_THRESHOLD_PX = 20
 // 3d world releativity". As we zoom IN (zoomT → 0), the camera position gets a small lateral pan
 // + small vertical lift offset relative to the look-at axis. The planet visibly parallaxes against
 // the starfield instead of growing along a straight Z line — the player FEELS the 3D depth.
-// Max offset = 8% of camera distance; smoothstep eases the magnitude across the zoom range.
-const ZOOM_DEPTH_CUE_MAX_FRACTION = 0.08
-const ZOOM_DEPTH_CUE_LATERAL_WEIGHT = 0.5
-const ZOOM_DEPTH_CUE_VERTICAL_WEIGHT = 0.3
+// Max offset = 20% of camera distance; smoothstep eases the magnitude across the zoom range.
+// PHASE 17.A.3 — bumped 0.08 → 0.20 because user reported "no way to tell relativity when
+// zooming into the surface of a planet". The previous 8% was below the threshold where the
+// parallax registers visually; 20% is the sweet spot — felt without being disorienting.
+const ZOOM_DEPTH_CUE_MAX_FRACTION = 0.2
+const ZOOM_DEPTH_CUE_LATERAL_WEIGHT = 0.6
+const ZOOM_DEPTH_CUE_VERTICAL_WEIGHT = 0.4
 
 export function newCamera(aspect: number): CameraState {
   const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 50000)

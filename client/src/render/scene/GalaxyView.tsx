@@ -104,6 +104,13 @@ interface GalaxyViewProps {
   // sim.redirectFlight(redirectModeFlightId, planetId). Default browser context menu is
   // suppressed on canvas while in redirect mode.
   readonly onContextMenuPlanet?: (planetId: PlanetId) => void
+  // PHASE 17.A.5 — fog of war HIDE planets entirely. PHASE 16.38 fog only hid civ flags;
+  // undiscovered planet meshes still rendered. User verbatim "i shouldnt be able to see
+  // beyond my own planet when i start until i get starships to explor". When this Set is
+  // supplied, planet meshes + atmosphere halos for ids NOT in the set hide (mesh.visible=false).
+  // Home planet must be in the set at match start. Defender discovery + launch discovery
+  // already wired in PHASE 16.38 / 17.PRE — they add to this set as the player explores.
+  readonly humanDiscoveredPlanetIds?: ReadonlySet<PlanetId>
 }
 
 // PHASE 17.PRE.4 — persistent camera state across GalaxyView re-mounts. Keyed by Galaxy
@@ -135,6 +142,7 @@ export function GalaxyView({
   onSelectFlight,
   detonations,
   onContextMenuPlanet,
+  humanDiscoveredPlanetIds,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -145,6 +153,9 @@ export function GalaxyView({
   const themeByCivRef = useRef(themeByCiv)
   const ownedPlanetIdsRef = useRef(ownedPlanetIds)
   const onSelectPlanetRef = useRef(onSelectPlanet)
+  const humanDiscoveredPlanetIdsRef = useRef<ReadonlySet<PlanetId> | undefined>(
+    humanDiscoveredPlanetIds,
+  )
   const rangeVisibleRef = useRef(rangeOverlayVisible)
   const onSurfaceTileClickRef = useRef(onSurfaceTileClick)
   const miningBeaconsRef = useRef<ReadonlyArray<ShipBeaconBroadcast>>(miningBeacons ?? [])
@@ -170,6 +181,7 @@ export function GalaxyView({
   onSelectPlanetRef.current = onSelectPlanet
   rangeVisibleRef.current = rangeOverlayVisible
   onSurfaceTileClickRef.current = onSurfaceTileClick
+  humanDiscoveredPlanetIdsRef.current = humanDiscoveredPlanetIds
   miningBeaconsRef.current = miningBeacons ?? []
   civsByPlanetRef.current = civsByPlanet
   indigenousByPlanetRef.current = indigenousByPlanet ?? []
@@ -358,8 +370,11 @@ export function GalaxyView({
         }
       }
 
-      // Fall through to planet-mesh pick (galactic-scale planet click → tween-to-planet)
-      const planetObjs = Array.from(galaxyHandle.planetMeshes.values())
+      // Fall through to planet-mesh pick (galactic-scale planet click → tween-to-planet).
+      // PHASE 17.A.5 — fog of war: filter out hidden planet meshes from the raycast set so
+      // clicks on undiscovered planets are ignored (they're invisible — the player can't
+      // know they're there). Three.js raycaster respects .visible by default but be explicit.
+      const planetObjs = Array.from(galaxyHandle.planetMeshes.values()).filter((m) => m.visible)
       const hits = raycaster.intersectObjects(planetObjs, false)
       const hit = hits[0]
       if (hit?.object instanceof THREE.Mesh && hit.object.userData.kind === 'planet') {
@@ -492,6 +507,21 @@ export function GalaxyView({
         tickCameraFromInput(cameraState, dt)
       }
       applyCameraTransform(cameraState)
+
+      // PHASE 17.A.5 — fog of war: hide undiscovered planet meshes + atmosphere halos. When
+      // humanDiscoveredPlanetIdsRef is undefined, render everything (back-compat). When set,
+      // any planet id NOT in the set has its mesh + halo hidden. Home planet is always in the
+      // set per newEmpire init. Ring meshes for hidden planets are also hidden via the
+      // ownership-reconcile below (an undiscovered planet can't be owned by the human civ).
+      const fogSet = humanDiscoveredPlanetIdsRef.current
+      if (fogSet) {
+        for (const [id, mesh] of galaxyHandle.planetMeshes) {
+          const discovered = fogSet.has(id)
+          mesh.visible = discovered
+          const halo = galaxyHandle.atmosphereMeshes.get(id)
+          if (halo) halo.visible = discovered
+        }
+      }
 
       // PHASE 17.PRE.1 — reconcile ownership rings against the live ref. Add rings for newly
       // owned planets (capture), remove rings for planets we lost (defeated / re-captured by
