@@ -210,6 +210,14 @@ export interface ColonyShipFlight {
   readonly powerSource: 'battery' | 'reactor' | 'solar'
   powerRemaining: number
   lifeSupportRemaining: number
+  // PHASE 17.L.A.1 — reactor-fuel-aboard tracking. Reactor variants carry their tier-specific
+  // radioactive load (rare metals / fusion fuel / antimatter) consumed at launch (17.J.5) and
+  // drained per tick in flight. When reactorFuelRemaining hits 0 the reactor scrams and the
+  // flight transitions to STRANDED. Solar / battery variants set reactorFuelAtLaunch = 0 and
+  // skip the drain. Per user verbatim "fuel is just a waiting time bomb" — reactor end-of-life
+  // is one of the natural ending pathways alongside crew starvation + power-out.
+  readonly reactorFuelAtLaunch: number
+  reactorFuelRemaining: number
   crewAlive: number
   crewStarvationTimer: number
   signalLostTicks: number
@@ -349,6 +357,17 @@ export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight
     powerSource: def.powerSource,
     powerRemaining: def.powerCapacity,
     lifeSupportRemaining: def.crewSupportTicks,
+    // PHASE 17.L.A.1 — reactor variants get fuel sized to "trip-length + buffer" so normal
+    // flights complete with fuel to spare but god-control redirects + long detours can strand.
+    // Non-reactor variants set this to 0 — they're solar/battery and don't drain reactor fuel.
+    reactorFuelAtLaunch:
+      def.powerSource === 'reactor'
+        ? Math.max(totalTicks + REACTOR_FUEL_BUFFER_TICKS, def.reactorFuelAmount * 4)
+        : 0,
+    reactorFuelRemaining:
+      def.powerSource === 'reactor'
+        ? Math.max(totalTicks + REACTOR_FUEL_BUFFER_TICKS, def.reactorFuelAmount * 4)
+        : 0,
     crewAlive: opts.citizensAboard,
     crewStarvationTimer: 0,
     signalLostTicks: 0,
@@ -504,6 +523,30 @@ export function tickFlight(flight: ColonyShipFlight): FlightTickResult {
   // pre-empt them.
   tickLifeSupportAndCrew(flight)
   tickPowerSystem(flight)
+  // PHASE 17.L.A.1 — reactor scram check. After tickPowerSystem drains, if a reactor variant
+  // has hit 0 fuel, the reactor goes cold and the flight goes STRANDED in place. Crew + life
+  // support still drain in STRANDED state per existing PHASE 16.32 logic; eventually crew dies
+  // and EMPTY_HULK drift takes over (the "waiting time bomb" natural-end chain per user
+  // verbatim 2026-05-11).
+  if (
+    flight.powerSource === 'reactor' &&
+    flight.reactorFuelAtLaunch > 0 &&
+    flight.reactorFuelRemaining <= 0
+  ) {
+    flight.phase = 'STRANDED'
+    const distToTarget = vec3Distance(currentPosition, flight.trueTargetPosition)
+    return {
+      phaseChanged: true,
+      newPhase: 'STRANDED',
+      currentPosition,
+      progress,
+      outcome: null,
+      altitude: vec3Length(currentPosition),
+      distToTarget,
+      closingSpeed: 0,
+      signalLost: false,
+    }
+  }
   const distFromLaunch = vec3Distance(currentPosition, flight.arc.start)
   if (distFromLaunch > flight.signalRangeUnits) {
     flight.signalLostTicks += 1
@@ -620,7 +663,18 @@ function tickPowerSystem(flight: ColonyShipFlight): void {
     0,
     Math.min(flight.powerAtLaunch, flight.powerRemaining - drain + regen),
   )
+  // PHASE 17.L.A.1 — reactor fuel drain per tick. Solar/battery skip (reactorFuelAtLaunch = 0).
+  // The STRANDED transition on fuel-out is handled by tickFlight inline so it can return the
+  // proper FlightTickResult shape; here we just drain the counter.
+  if (flight.powerSource === 'reactor' && flight.reactorFuelRemaining > 0) {
+    flight.reactorFuelRemaining = Math.max(0, flight.reactorFuelRemaining - 1)
+  }
 }
+
+// PHASE 17.L.A.1 — buffer ticks added beyond totalTicks so normal-trajectory flights complete
+// with fuel margin but god-control redirects + long detours strand. Picked 50 = ~10 seconds of
+// gameplay at the default 5 tick/sec rate. Tunable.
+export const REACTOR_FUEL_BUFFER_TICKS = 50
 
 // PHASE 16.21 UMS-faithful outcome — replaces RNG roll. SMOL_REFERENCE_TRAJECTORY.md §19:
 // fnlDTT < detDist*2 (~100m) → TARGET_HIT. phase reached TARGET and fnlDTT < 500m →

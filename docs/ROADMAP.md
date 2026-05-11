@@ -655,6 +655,14 @@ PHASE 17 subdivided into focused sub-phases during the post-16 super-review cycl
    ║           interceptor. Per user verbatim "hold up now all      ║
    ║           ships have abort that can be triggered by the        ║
    ║           player at any time".                                 ║
+   ║  17.L Round 1 — Energy economy chain (A.1 + A.2 + A.3 atomic) ║
+   ║  17.L.A.2 Battery-bank fuel-stockpile cap (batteryCount ×     ║
+   ║           BATTERY_BANK_CAPACITY + baseline). Surplus lost.    ║
+   ║  17.L.A.3 Brownout building auto-disable (fuel-consuming      ║
+   ║           buildings idle when surplus<0 AND stock≤0).         ║
+   ║  17.L.A.1 Reactor mid-flight fuel drain → STRANDED. Reactor   ║
+   ║           variants carry trip-length+buffer fuel; god-control ║
+   ║           redirects + long detours can run out → STRANDED.    ║
    ║  17.L.A.4  Workforce reserved-pool enforcement — closes the   ║
    ║           17.J.9 double-count loop. New availableWorkers(pop)  ║
    ║           subtracts shipDutyReservedPool from worker pool.     ║

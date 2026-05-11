@@ -47,6 +47,9 @@ import {
   type TileId,
   AIControllerRegistry,
   AIController as AIControllerCtor,
+  BATTERY_BANK_CAPACITY,
+  BLDG_BATTERY_BANK,
+  FUEL_RAW_STOCKPILE_BASELINE,
   BLDG_FACTORY,
   BLDG_FARM,
   BLDG_LAB,
@@ -159,6 +162,7 @@ import {
   startPrint,
   startPrintFromBlueprint,
   startResearch,
+  clampResourceToCap,
   consumeResource,
   stockOf,
   tickActiveCampaign,
@@ -167,6 +171,7 @@ import {
   tickLastHopeEvac,
   tickMiningShip,
   tickPad,
+  getBuildingProduction,
   tickPlanetProduction,
   tileWorldPosition,
   tickResearch,
@@ -905,6 +910,24 @@ function captureSparklineSamples(state: MatchState): void {
   }
 }
 
+// PHASE 17.L.A.3 — pre-production surplus calc for brownout detection. Mirrors
+// PlanetEnergyPanel's computePlanetEnergyStats logic (capacity vs draw per tick). Returns
+// positive when fuel production exceeds consumption; negative when planet is net-burning fuel.
+function computeFuelSurplusPerTick(planetState: MatchPlanetState, techMultiplier: number): number {
+  let capacity = 0
+  let draw = 0
+  for (const [defId, count] of planetState.buildingsByDef) {
+    if (count === 0) continue
+    const prod = getBuildingProduction(defId)
+    if (!prod) continue
+    const fuelOut = prod.outputs.find((o) => o.resource === RESOURCE_FUEL)?.amount ?? 0
+    if (fuelOut > 0) capacity += fuelOut * count * techMultiplier
+    const fuelIn = prod.inputs.find((i) => i.resource === RESOURCE_FUEL)?.amount ?? 0
+    if (fuelIn > 0) draw += fuelIn * count
+  }
+  return capacity - draw
+}
+
 function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
   const civState = state.civs.get(planetState.civId)
   if (!civState) return
@@ -919,6 +942,14 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
     for (let i = 0; i < count; i++) buildings.push({ defId, def })
   }
 
+  // PHASE 17.L.A.3 — brownout state computed BEFORE production runs. Empty-fuel + planet
+  // already showing negative capacity-surplus → fuel-consuming buildings get the gating skip
+  // this tick. PlanetEnergyPanel surfaces the warning; production tick enforces it.
+  const preProdFuelStock = stockOf(planetState.inventory, RESOURCE_FUEL)
+  const brownoutActive =
+    preProdFuelStock <= 0 &&
+    computeFuelSurplusPerTick(planetState, techEffects.buildingProductionMultiplier) < 0
+
   if (buildings.length > 0) {
     tickPlanetProduction({
       buildings,
@@ -929,8 +960,19 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
       techProductionMultiplier: techEffects.buildingProductionMultiplier,
       themeProductionMultiplier: themeMult,
       deceptionProductionMultiplier: decep.production,
+      brownoutActive,
     })
   }
+
+  // PHASE 17.L.A.2 — fuel-stockpile cap from Battery Banks. Cap = batteryCount ×
+  // BATTERY_BANK_CAPACITY + FUEL_RAW_STOCKPILE_BASELINE. Without batteries every planet still
+  // has a small raw stockpile baseline so they're not totally crippled; each Battery Bank adds
+  // BATTERY_BANK_CAPACITY (500) to the cap. Surplus fuel beyond cap is silently lost (the
+  // "extra production went somewhere — vented, dumped" fiction). Battery banks become a real
+  // gameplay choice. Per TODO 17.L.A.2.
+  const batteryCount = planetState.buildingsByDef.get(BLDG_BATTERY_BANK) ?? 0
+  const fuelCap = batteryCount * BATTERY_BANK_CAPACITY + FUEL_RAW_STOCKPILE_BASELINE
+  clampResourceToCap(planetState.inventory, RESOURCE_FUEL, fuelCap)
 
   applyDeceptionFactionTick(planetState.faction, {
     buildingCounts: planetState.buildingsByDef,
