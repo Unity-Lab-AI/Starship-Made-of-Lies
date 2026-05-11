@@ -90,6 +90,14 @@ export interface AuthHttpServerHandle {
   readonly close: () => void
 }
 
+export type ShutdownHook = () => Promise<void>
+
+let registeredShutdownHook: ShutdownHook | null = null
+
+export function registerShutdownHook(hook: ShutdownHook): void {
+  registeredShutdownHook = hook
+}
+
 export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
   const config = getGoogleOAuthServerConfig()
   if (!config) {
@@ -122,6 +130,28 @@ export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
         googleConfigured: config !== null,
         accountsRegistered: sharedAccountStore.list().length,
       })
+      return
+    }
+    if (req.method === 'POST' && req.url === '/api/admin/shutdown') {
+      respondJson(res, 200, {
+        ok: true,
+        message: 'Shutdown initiated — saving all active matches, disconnecting clients.',
+      })
+      // Schedule shutdown AFTER the response flushes (give it 250ms to send)
+      setTimeout(() => {
+        void (async () => {
+          if (registeredShutdownHook) {
+            console.info('[smol/auth] Shutdown hook invoked — running graceful shutdown...')
+            try {
+              await registeredShutdownHook()
+            } catch (err) {
+              console.error('[smol/auth] Shutdown hook failed:', err)
+            }
+          }
+          console.info('[smol/auth] Server exiting.')
+          process.exit(0)
+        })()
+      }, 250)
       return
     }
     setCors(res)
