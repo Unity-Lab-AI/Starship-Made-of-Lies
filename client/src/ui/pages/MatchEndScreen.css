@@ -109,10 +109,12 @@
 
 .match-end-screen__replay select,
 .match-end-screen__government-select {
-  /* Force solid dark bg + bright text overriding theme-tinted CSS vars. Fixes 'shite on shite'
-     contrast bug on theme-colored backgrounds where var(--fg-primary) matched the theme bg
-     too closely to read. Per user verbatim (LAW #0) 2026-05-10: 'the droop dowen for it is
-     illegiable its shite on shite'. */
+  /* PHASE 17.L.B.8 — profanity scrub per feedback_no_profanity_in_game.md memory: game code
+     stays clean. Original comment cited the user's verbatim "illegible dark-on-dark" report
+     from 2026-05-10. Full verbatim quote preserved in .claude/TODO.md and FINALIZED.md (those
+     are dev artifacts per LAW #0). Code stays clean.
+     Fixes low-contrast bug where var(--fg-primary) matched the theme background too closely
+     to read on the match-end government-picker dropdown. */
   padding: 0.55rem 0.85rem;
   background-color: #1a1a24 !important;
   border: 1px solid rgba(212, 161, 58, 0.5);

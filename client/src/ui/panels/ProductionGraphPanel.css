@@ -33,9 +33,11 @@
 .prod-graph__label {
   font-size: 0.7rem;
   letter-spacing: 0.04em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* PHASE 17.L.B.7 — full words always, no truncation per user verbatim Q2 PHASE 17 LOCKED:
+     "the 11 panel lcds and graphs shall HOVE NO TRUNCATION AND NO SHORTNEING OF WORDS THEY ALL
+     MSHALL BE FULLY WRITTEN OUT". Wrap long labels to multi-line instead. */
+  overflow-wrap: break-word;
+  word-break: break-word;
   opacity: 0.85;
 }
 

@@ -74,6 +74,8 @@
    │   Reactor mid-flight fuel drain → STRANDED    ✅ 17.L.A.1   │
    │   Battery-bank fuel-stockpile cap             ✅ 17.L.A.2   │
    │   Brownout building auto-disable              ✅ 17.L.A.3   │
+   │   NO TRUNCATION audit (10 CSS patterns fixed) ✅ 17.L.B.7   │
+   │   Profanity scrub in game code                ✅ 17.L.B.8   │
    ├─────────────────────────────────────────────────────────────┤
    │   ACTIVE — PHASE 17.L tail (super-review additions)         │
    ├─────────────────────────────────────────────────────────────┤

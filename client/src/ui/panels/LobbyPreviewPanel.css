@@ -79,9 +79,9 @@
 
 .lobby-panel__slot-name {
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* PHASE 17.L.B.7 — full words, no truncation. Player slot names wrap to multi-line. */
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .lobby-panel__host-tag {

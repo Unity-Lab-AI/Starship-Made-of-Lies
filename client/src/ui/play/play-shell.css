@@ -80,9 +80,9 @@
   font-style: italic;
   color: var(--fg-secondary, #a8a8b8);
   font-size: 0.78rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* PHASE 17.L.B.7 — full words, no truncation. Theme tagline wraps to multi-line if long. */
+  overflow-wrap: break-word;
+  word-break: break-word;
   max-width: 30ch;
 }
 

@@ -64,9 +64,10 @@
 }
 
 .boot-panel__row-label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* PHASE 17.L.B.7 — full words always, no truncation per user verbatim Q9 boot ceremony +
+     Q2 no-truncation lock. Boot rows wrap to multi-line if the check label is long. */
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .boot-panel__row-status {
