@@ -46,6 +46,7 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
         biome,
         radius: sizeRoll.worldRadius,
         sizeTier: sizeRoll.tier,
+        rng,
       }),
     )
   }

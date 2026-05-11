@@ -21,6 +21,7 @@ import { type MatchAISlotConfig, type MatchConfig } from '../../match/MatchSim'
 import { useMatchSim } from '../../match/useMatchSim'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
+import { MiningFleetPanel } from '../panels/MiningFleetPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
 import { IndigenousPanel } from '../panels/IndigenousPanel'
@@ -540,6 +541,24 @@ export function PlayPage() {
           variant="docked-bottom-right"
         >
           <BeaconPanel beacon={activePlanet.beacon} currentTick={sim.state.currentTick} />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('mining') && (
+        <PanelFrame
+          title="Mining Fleet"
+          emoji="⛏️"
+          onClose={() => closePanel('mining')}
+          variant="docked-right"
+        >
+          <MiningFleetPanel
+            planets={[...sim.state.planets.values()].map((mp) => mp.planet)}
+            themeByCiv={
+              new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))
+            }
+            beaconsByPlanet={new Map()}
+            humanCivId={sim.state.humanCivId}
+          />
         </PanelFrame>
       )}
 

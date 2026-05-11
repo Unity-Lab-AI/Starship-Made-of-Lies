@@ -25,6 +25,7 @@ import {
   syncFlightArcs,
   syncOwnerFlags,
 } from './galaxyLayer'
+import { buildSurfaceLayer, type SurfaceLayerHandle } from './surfaceLayer'
 import './scene.css'
 
 function civColorFromId(civId: string): number {
@@ -134,6 +135,20 @@ export function GalaxyView({
       homePlanetMesh ? homePlanetMesh.position.clone() : new THREE.Vector3(),
     )
     scene.add(rangeOverlayHandle.group)
+
+    // Build surface layers per planet (lazy on demand to save init cost)
+    const surfaceLayers = new Map<PlanetId, SurfaceLayerHandle>()
+    const ensureSurfaceLayer = (planet: Planet): SurfaceLayerHandle | null => {
+      const existing = surfaceLayers.get(planet.id)
+      if (existing) return existing
+      const planetMesh = galaxyHandle.planetMeshes.get(planet.id)
+      if (!planetMesh) return null
+      const handle = buildSurfaceLayer(planet)
+      planetMesh.add(handle.group)
+      surfaceLayers.set(planet.id, handle)
+      handle.syncBuildings(planet.tiles)
+      return handle
+    }
 
     const controller = attachCameraController(renderer.domElement, cameraState)
     bindCameraInputs(controller)
@@ -284,6 +299,25 @@ export function GalaxyView({
       // Range overlay visibility
       rangeOverlayHandle.setVisible(rangeVisibleRef.current)
 
+      // Surface layer visibility — show tiles when camera close to each planet
+      const camPos = cameraState.camera.position
+      for (const planet of galaxy.planets) {
+        const mesh = galaxyHandle.planetMeshes.get(planet.id)
+        if (!mesh) continue
+        const dx = camPos.x - mesh.position.x
+        const dy = camPos.y - mesh.position.y
+        const dz = camPos.z - mesh.position.z
+        const dist = Math.hypot(dx, dy, dz)
+        const visibilityThreshold = planet.surfaceRadius * 6
+        if (dist < visibilityThreshold) {
+          const handle = ensureSurfaceLayer(planet)
+          if (handle) handle.setVisibleAtDistance(dist, planet.surfaceRadius)
+        } else {
+          const existing = surfaceLayers.get(planet.id)
+          if (existing) existing.group.visible = false
+        }
+      }
+
       renderer.render(scene, cameraState.camera)
       raf = requestAnimationFrame(tick)
     }
@@ -301,6 +335,10 @@ export function GalaxyView({
       ownerFlagHandle.destroy()
       rangeOverlayHandle.destroy()
       galaxyHandle.destroy()
+      for (const surface of surfaceLayers.values()) {
+        surface.dispose()
+      }
+      surfaceLayers.clear()
       for (const ring of ringMaterials.values()) {
         ring.geometry.dispose()
         ;(ring.material as THREE.Material).dispose()
