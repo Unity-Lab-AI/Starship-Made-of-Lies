@@ -70,7 +70,12 @@ export function PlayPage() {
     const humanThemeId = hint?.humanThemeId ?? THEMES[Math.floor(Math.random() * THEMES.length)]!.id
     const objectives = hint?.objectives ?? DEFAULT_OBJECTIVES
     const aiSlots = hint?.aiSlots
-    const account: Account = newAnonymousAccount(accountIdValue('local-player'), 'You', 'gee', 0)
+    const account: Account = newAnonymousAccount(
+      accountIdValue('local-player'),
+      'Player 1',
+      'player-1',
+      0,
+    )
     const base: MatchConfig = {
       seed,
       planetCount,
