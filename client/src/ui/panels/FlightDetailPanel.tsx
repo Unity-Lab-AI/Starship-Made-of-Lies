@@ -74,6 +74,11 @@ export function FlightDetailPanel({
     flight.phase !== 'INTERCEPTED' &&
     flight.phase !== 'ABORTED' &&
     flight.phase !== 'CRASH_LANDED'
+  // PHASE 16.29: counter-colony-ships are defensive interceptors launched by the planet
+  // owner to intercept incoming attackers. Show an INTERCEPTOR badge in the header and hide
+  // the ABORT button (the defender doesn't manually abort their own counter — it self-
+  // destructs automatically when its target is intercepted, gone, or out of fuel).
+  const isCounter = def.canIntercept
 
   const fromLabel = fromPlanetLabel ?? String(flight.fromPlanetId)
   const toLabel = toPlanetLabel ?? String(flight.targetPlanetId)
@@ -89,6 +94,9 @@ export function FlightDetailPanel({
           <span className="flight-detail-panel__variant">
             {def.emoji} {def.name}
           </span>
+          {isCounter ? (
+            <span className="flight-detail-panel__interceptor-badge">🛡️ INTERCEPTOR</span>
+          ) : null}
           <span className="flight-detail-panel__tier">Darkness Tier {def.darknessTier}</span>
           <button
             type="button"
@@ -170,7 +178,7 @@ export function FlightDetailPanel({
           <p>{def.description}</p>
         </section>
 
-        {inFlight && onAbort ? (
+        {inFlight && onAbort && !isCounter ? (
           <section className="flight-detail-panel__actions">
             <button
               type="button"
@@ -179,7 +187,7 @@ export function FlightDetailPanel({
                 onAbort(String(flight.id))
                 onClose()
               }}
-              title="Self-destruct the ship in-flight (UMS-faithful abort). PHASE 16.24 will add AoE damage based on fuel + payload at detonation."
+              title="Self-destruct the ship in-flight (UMS-faithful abort). AoE damage scales with fuel + payload at detonation."
             >
               💀 ABORT (self-destruct)
             </button>

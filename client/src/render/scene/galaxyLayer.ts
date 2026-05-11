@@ -10,6 +10,7 @@ import {
   type Theme,
   type TileId,
   type Vec3,
+  getColonyShipDef,
   planetRenderRadius,
 } from '@smol/shared'
 
@@ -560,6 +561,121 @@ function paintMineFieldCanvas(canvas: HTMLCanvasElement, intensity: number): voi
   ctx.fillText('💣', cx, cy + 2)
 }
 
+// === DETONATION FLASH LAYER ===
+// PHASE 16.24 (deferred completion) — per user verbatim 2026-05-10 "it damages area of effect
+// fo like sending them to attack all ships depending fuel and payload ect ect whats loaded
+// make them go bigg booms but it takes like 30-50 missile to wipe out a vmiulti plaet civ".
+// computeDetonationAoE + applyDetonationAoE in MatchSim already drive the sim damage; this
+// layer renders the visual punch. Each MatchDetonation spawns a sphere mesh at the impact
+// world position that expands from 0 → max-radius × 1.2 over ~1.5s wall-clock with a color
+// fade white → yellow → orange → red and opacity fade 0.9 → 0. Additive blending so multiple
+// overlapping detonations stack brighter. Animation is self-timed per entry (spawnedAt ms);
+// sim-side prune drops the source entry after DETONATION_LIFETIME_TICKS but the render-side
+// entry self-completes much faster.
+
+const DETONATION_FLASH_DURATION_MS = 1500
+
+export interface DetonationFlashInput {
+  readonly id: string
+  readonly worldPosition: Vec3
+  readonly radius: number
+  readonly magnitude: number
+}
+
+export interface DetonationFlashEntry {
+  readonly id: string
+  readonly mesh: THREE.Mesh
+  readonly spawnedAt: number
+  readonly maxRadius: number
+  readonly magnitude: number
+}
+
+export interface DetonationFlashLayerHandle {
+  readonly group: THREE.Group
+  readonly entries: Map<string, DetonationFlashEntry>
+  readonly destroy: () => void
+}
+
+export function buildDetonationFlashLayer(): DetonationFlashLayerHandle {
+  const group = new THREE.Group()
+  const entries = new Map<string, DetonationFlashEntry>()
+  return {
+    group,
+    entries,
+    destroy: () => {
+      for (const entry of entries.values()) {
+        entry.mesh.geometry.dispose()
+        ;(entry.mesh.material as THREE.Material).dispose()
+      }
+      entries.clear()
+    },
+  }
+}
+
+export function syncDetonationFlashes(
+  handle: DetonationFlashLayerHandle,
+  detonations: ReadonlyArray<DetonationFlashInput>,
+): void {
+  const now = performance.now()
+  const liveIds = new Set<string>()
+  for (const det of detonations) {
+    liveIds.add(det.id)
+    let entry = handle.entries.get(det.id)
+    if (!entry) {
+      const geom = new THREE.SphereGeometry(1, 24, 16)
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0xffe080,
+        transparent: true,
+        opacity: 1,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+      const mesh = new THREE.Mesh(geom, mat)
+      mesh.position.set(det.worldPosition.x, det.worldPosition.y, det.worldPosition.z)
+      mesh.userData = { kind: 'detonation-flash', detId: det.id }
+      handle.group.add(mesh)
+      entry = {
+        id: det.id,
+        mesh,
+        spawnedAt: now,
+        maxRadius: det.radius,
+        magnitude: det.magnitude,
+      }
+      handle.entries.set(det.id, entry)
+    }
+    const age = (now - entry.spawnedAt) / DETONATION_FLASH_DURATION_MS
+    if (age >= 1) continue
+    // Scale: 0 → 1.2 × maxRadius with eased-out cubic so flash blooms fast then settles.
+    const eased = 1 - Math.pow(1 - age, 3)
+    entry.mesh.scale.setScalar(entry.maxRadius * (0.05 + 1.15 * eased))
+    // Color fade: white → yellow → orange → red over lifetime. Brighter mid-flash mass-spike
+    // for high-magnitude strikes (Pilgrim/Heavy/Final variants paint a bigger boom).
+    const mat = entry.mesh.material as THREE.MeshBasicMaterial
+    if (age < 0.3) {
+      const t = age / 0.3
+      mat.color.setRGB(1, 1 - t * 0.15, 0.5 - t * 0.3)
+    } else if (age < 0.7) {
+      const t = (age - 0.3) / 0.4
+      mat.color.setRGB(1, 0.85 - t * 0.5, 0.2 - t * 0.15)
+    } else {
+      const t = (age - 0.7) / 0.3
+      mat.color.setRGB(1, 0.35 - t * 0.3, 0.05)
+      void t
+    }
+    // Opacity: 0.9 → 0 with quadratic fade so the flash lingers visibly then drops out.
+    mat.opacity = Math.max(0, 0.9 * (1 - age * age))
+  }
+  // Remove finished entries (animation complete OR entry no longer in input list).
+  for (const [id, entry] of handle.entries) {
+    const finished = (now - entry.spawnedAt) / DETONATION_FLASH_DURATION_MS >= 1
+    if (liveIds.has(id) && !finished) continue
+    handle.group.remove(entry.mesh)
+    entry.mesh.geometry.dispose()
+    ;(entry.mesh.material as THREE.Material).dispose()
+    handle.entries.delete(id)
+  }
+}
+
 // === FLIGHT ARC LAYER ===
 
 export interface FlightArcEntry {
@@ -635,6 +751,12 @@ export function syncFlightArcs(
     if (!sourceMesh || !targetMesh) continue
     const civColor = civColorMap.get(String(flight.launchingCivId)) ?? 0xd4a13a
     const progress = Math.min(1, flight.ticksFlown / Math.max(1, flight.totalTicks))
+    // PHASE 16.29: counter-colony-ships render as smaller, brighter, shorter-dashed cones
+    // so defensive interceptors read distinctly from attacking colony ships at galactic zoom.
+    // Same civ color (so player tells whose counter it is) but the geometry + dash cadence
+    // mark it as an intercept-trail vs. a cruise-arc.
+    const flightDef = getColonyShipDef(flight.variantId)
+    const isCounter = flightDef.canIntercept
 
     let entry = handle.entries.get(flightIdStr)
     if (!entry) {
@@ -647,8 +769,8 @@ export function syncFlightArcs(
       const geom = new THREE.BufferGeometry().setFromPoints(points)
       const mat = new THREE.LineDashedMaterial({
         color: civColor,
-        dashSize: 30,
-        gapSize: 18,
+        dashSize: isCounter ? 18 : 30,
+        gapSize: isCounter ? 10 : 18,
         linewidth: 2,
         transparent: true,
         opacity: 0.85,
@@ -658,11 +780,14 @@ export function syncFlightArcs(
       handle.group.add(line)
       // PHASE 16.x complete-3D-world-space: progress marker is now a directional cone
       // (oriented along arc tangent), not a sphere. Reads as a ship traveling its arc.
-      const dotGeom = new THREE.ConeGeometry(14, 36, 6)
+      // PHASE 16.29: counters use a smaller cone (interceptor missile, not colony ship).
+      const coneRadius = isCounter ? 8 : 14
+      const coneHeight = isCounter ? 22 : 36
+      const dotGeom = new THREE.ConeGeometry(coneRadius, coneHeight, 6)
       const dotMat = new THREE.MeshStandardMaterial({
         color: civColor,
         emissive: civColor,
-        emissiveIntensity: 0.7,
+        emissiveIntensity: isCounter ? 1.1 : 0.7,
         roughness: 0.35,
         metalness: 0.4,
       })
@@ -922,6 +1047,190 @@ export function syncPadStateGlows(
     handle.group.remove(entry.ring)
     entry.ring.geometry.dispose()
     ;(entry.ring.material as THREE.Material).dispose()
+    handle.entries.delete(key)
+  }
+}
+
+// === PAD SURFACE MESH LAYER (PHASE 16.30) ===
+// Per-pad industrial-visual layer alongside the existing PadStateGlow ring. Where the glow
+// ring is the at-a-glance state affordance (colored band, animated pulse), the pad mesh
+// gives the surface the actual look of a launch pad — a slab + a ship cone that scales with
+// pad-state progress. PRINT/BUILD/DOCK/FUEL/AMMO show progressive cone heights; READY/ARM
+// show full cone in their state color; LAUNCH shows full cone slightly elevated; GONE shows
+// the slab alone (cone gone). Reuses the PadStateGlowInput type (planetId + padId + state +
+// tileCentroid + tileNormal) so the parent only computes the data once.
+
+// Cone scale per state — fraction of full height. 0 = no cone visible.
+const PAD_STATE_CONE_SCALE: Readonly<Record<PadState, number>> = {
+  INIT: 0,
+  IDLE: 0,
+  PRINT: 0.3,
+  BUILD: 0.6,
+  DOCK: 0.85,
+  FUEL: 1.0,
+  AMMO: 1.0,
+  READY: 1.0,
+  ARM: 1.0,
+  LAUNCH: 1.0,
+  GONE: 0,
+}
+
+// Pad slab visibility per state — 1 = fully visible, 0 = hidden. INIT hides entirely; GONE
+// shows the slab with a debris-cooldown vibe.
+const PAD_STATE_SLAB_OPACITY: Readonly<Record<PadState, number>> = {
+  INIT: 0,
+  IDLE: 0.85,
+  PRINT: 0.9,
+  BUILD: 0.9,
+  DOCK: 0.95,
+  FUEL: 0.95,
+  AMMO: 0.95,
+  READY: 1.0,
+  ARM: 1.0,
+  LAUNCH: 0.6,
+  GONE: 0.55,
+}
+
+const PAD_SLAB_RADIUS = 7
+const PAD_SLAB_HEIGHT = 1.5
+const PAD_CONE_RADIUS = 4.5
+const PAD_CONE_HEIGHT = 14
+
+export interface PadMeshEntry {
+  readonly key: string
+  readonly slab: THREE.Mesh
+  readonly cone: THREE.Mesh
+}
+
+export interface PadMeshLayerHandle {
+  readonly group: THREE.Group
+  readonly entries: Map<string, PadMeshEntry>
+  readonly destroy: () => void
+}
+
+export function buildPadMeshLayer(): PadMeshLayerHandle {
+  const group = new THREE.Group()
+  const entries = new Map<string, PadMeshEntry>()
+  return {
+    group,
+    entries,
+    destroy: () => {
+      for (const e of entries.values()) {
+        e.slab.geometry.dispose()
+        ;(e.slab.material as THREE.Material).dispose()
+        e.cone.geometry.dispose()
+        ;(e.cone.material as THREE.Material).dispose()
+      }
+      entries.clear()
+    },
+  }
+}
+
+export function syncPadMeshes(
+  handle: PadMeshLayerHandle,
+  pads: ReadonlyArray<PadStateGlowInput>,
+  planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>,
+): void {
+  const alive = new Set<string>()
+  for (const pad of pads) {
+    const planetMesh = planetMeshes.get(pad.planetId)
+    if (!planetMesh) continue
+    const key = `${String(pad.planetId)}:${String(pad.padId)}`
+    alive.add(key)
+    const color = PAD_STATE_COLOR[pad.state]
+    const coneScale = PAD_STATE_CONE_SCALE[pad.state]
+    const slabOpacity = PAD_STATE_SLAB_OPACITY[pad.state]
+
+    let entry = handle.entries.get(key)
+    if (!entry) {
+      // Slab — flat cylinder disc. Dark gray industrial material, transparency driven by state.
+      const slabGeom = new THREE.CylinderGeometry(
+        PAD_SLAB_RADIUS,
+        PAD_SLAB_RADIUS,
+        PAD_SLAB_HEIGHT,
+        18,
+      )
+      const slabMat = new THREE.MeshStandardMaterial({
+        color: 0x44444a,
+        roughness: 0.8,
+        metalness: 0.45,
+        transparent: true,
+        opacity: slabOpacity,
+      })
+      const slab = new THREE.Mesh(slabGeom, slabMat)
+      slab.userData = { kind: 'pad-mesh-slab', planetId: pad.planetId, padId: pad.padId }
+      handle.group.add(slab)
+
+      // Cone — ship being assembled. State color drives both base + emissive so it reads from
+      // the side at any camera angle. ConeGeometry defaults to +Y up; orientation handled below.
+      const coneGeom = new THREE.ConeGeometry(PAD_CONE_RADIUS, PAD_CONE_HEIGHT, 8)
+      const coneMat = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.45,
+        roughness: 0.35,
+        metalness: 0.6,
+        transparent: true,
+        opacity: 0.95,
+      })
+      const cone = new THREE.Mesh(coneGeom, coneMat)
+      cone.userData = { kind: 'pad-mesh-cone', planetId: pad.planetId, padId: pad.padId }
+      handle.group.add(cone)
+
+      entry = { key, slab, cone }
+      handle.entries.set(key, entry)
+    } else {
+      const slabMat = entry.slab.material as THREE.MeshStandardMaterial
+      slabMat.opacity = slabOpacity
+      const coneMat = entry.cone.material as THREE.MeshStandardMaterial
+      if (coneMat.color.getHex() !== color) {
+        coneMat.color.setHex(color)
+        coneMat.emissive.setHex(color)
+      }
+    }
+
+    // World position: planet center + tile centroid (planet-local) + a small lift along normal
+    // so the slab sits flush on the surface, then cone stacks on top of the slab.
+    const base = {
+      x: planetMesh.position.x + pad.tileCentroid.x + pad.tileNormal.x * (PAD_SLAB_HEIGHT * 0.5),
+      y: planetMesh.position.y + pad.tileCentroid.y + pad.tileNormal.y * (PAD_SLAB_HEIGHT * 0.5),
+      z: planetMesh.position.z + pad.tileCentroid.z + pad.tileNormal.z * (PAD_SLAB_HEIGHT * 0.5),
+    }
+    entry.slab.position.set(base.x, base.y, base.z)
+
+    // Cone sits centered above the slab. Cone scaled by state — height scales the +Y axis only.
+    const coneHeightActual = PAD_CONE_HEIGHT * coneScale
+    const coneCenterOffset = PAD_SLAB_HEIGHT + coneHeightActual * 0.5
+    // LAUNCH adds a small extra lift so the ship visibly clears the slab.
+    const launchLift = pad.state === 'LAUNCH' ? PAD_CONE_HEIGHT * 0.3 : 0
+    entry.cone.position.set(
+      base.x + pad.tileNormal.x * (coneCenterOffset + launchLift),
+      base.y + pad.tileNormal.y * (coneCenterOffset + launchLift),
+      base.z + pad.tileNormal.z * (coneCenterOffset + launchLift),
+    )
+    entry.cone.visible = coneScale > 0
+    if (coneScale > 0) {
+      entry.cone.scale.set(1, coneScale, 1)
+    }
+
+    // Orient both meshes so their local +Y aligns with the tile normal (cylinder + cone both
+    // default to +Y up; matching them to the normal keeps the slab flat on the planet surface
+    // and the cone pointing up from the slab — exactly UMS UnityPad geometry).
+    const localUp = new THREE.Vector3(0, 1, 0)
+    const target = new THREE.Vector3(pad.tileNormal.x, pad.tileNormal.y, pad.tileNormal.z)
+    const quat = new THREE.Quaternion().setFromUnitVectors(localUp, target)
+    entry.slab.quaternion.copy(quat)
+    entry.cone.quaternion.copy(quat)
+  }
+  // Remove entries whose pads disappeared (pad demolished, planet lost, etc).
+  for (const [key, entry] of handle.entries) {
+    if (alive.has(key)) continue
+    handle.group.remove(entry.slab)
+    handle.group.remove(entry.cone)
+    entry.slab.geometry.dispose()
+    ;(entry.slab.material as THREE.Material).dispose()
+    entry.cone.geometry.dispose()
+    ;(entry.cone.material as THREE.Material).dispose()
     handle.entries.delete(key)
   }
 }

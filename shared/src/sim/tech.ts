@@ -109,6 +109,18 @@ export const TECH_SELF_REPLICATING_INDUSTRY = techId('selfReplicatingIndustry')
 export const TECH_DYSON_SWARM = techId('dysonSwarm')
 export const TECH_SINGULARITY = techId('singularity')
 
+// PHASE 16.25 — tech tree audit + expansion. Six new nodes fill progression gaps surfaced
+// by the audit: industrial tier 1+2 (HEAVY_INDUSTRY, AUTOMATED_LOGISTICS), spacefaring tier 2
+// (ROBOTICS), information-tier-2-bridge-to-control (CIVIL_DEFENSE), control tier 3
+// (VOLUNTEER_INDOCTRINATION), forbidden tier 3 (BLACK_OPS_RESEARCH). Per user verbatim:
+// "i dont thing tech tree is fully built out right".
+export const TECH_HEAVY_INDUSTRY = techId('heavyIndustry')
+export const TECH_AUTOMATED_LOGISTICS = techId('automatedLogistics')
+export const TECH_ROBOTICS = techId('robotics')
+export const TECH_CIVIL_DEFENSE = techId('civilDefense')
+export const TECH_VOLUNTEER_INDOCTRINATION = techId('volunteerIndoctrination')
+export const TECH_BLACK_OPS_RESEARCH = techId('blackOpsResearch')
+
 export const TECH_NODES: ReadonlyArray<TechNode> = [
   {
     id: TECH_INDUSTRIAL_LOGISTICS,
@@ -237,7 +249,9 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     costPoints: 60,
     effects: {
       unlockBuildings: [BLDG_LAUNCH_PAD],
-      unlockColonyShipVariants: ['Scout', 'Surveyor', 'Probe'],
+      // PHASE 16.25: normalized to def.id camelCase tokens so isColonyShipUnlocked's
+      // `unlockedVariantNames.has(def.id as unknown as string)` check matches reliably.
+      unlockColonyShipVariants: ['scout', 'surveyor', 'probe'],
       colonyShipPayloadTier: 1,
     },
   },
@@ -282,7 +296,20 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     prerequisites: [TECH_AEROSPACE],
     costPoints: 100,
     effects: {
-      unlockColonyShipVariants: ['Standard', 'LaserBeacon', 'Decoy', 'Boarding'],
+      // PHASE 16.25: def.id tokens (was capitalized name fragments that failed multi-word
+      // matches like 'LaserBeacon' vs def.name 'Laser-Targeting Beacon'). Also adds the
+      // 4 crossPeaceful variants (mining/refugee/embassy/resupply) which were never unlocked
+      // by any tech — bug fix per audit.
+      unlockColonyShipVariants: [
+        'standard',
+        'laserBeacon',
+        'decoy',
+        'boarding',
+        'mining',
+        'refugee',
+        'embassy',
+        'resupply',
+      ],
       colonyShipPayloadTier: 2,
       unlockBuildings: [BLDG_MINING_OUTPOST],
     },
@@ -327,8 +354,10 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     prerequisites: [TECH_COMPUTING, TECH_CONSUMER_ELECTRONICS],
     costPoints: 100,
     effects: {
+      // PHASE 16.25: Saboteur unlock moved to TECH_ANTIMATTER. LASER_OPTICS is tier 2 +
+      // doesn't bump colonyShipPayloadTier, so Saboteur (payloadTierRequired=3) was always
+      // dead-listed here. ANTIMATTER bumps payloadTier=3 which Saboteur needs.
       unlockBuildings: [BLDG_COUNTER_MISSILE],
-      unlockColonyShipVariants: ['Saboteur'],
     },
   },
   {
@@ -439,7 +468,9 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     costPoints: 200,
     effects: {
       unlockBiomes: ['lava'],
-      unlockColonyShipVariants: ['Explosive', 'Heavy', 'CounterColony'],
+      // PHASE 16.25: normalized to def.id tokens + Saboteur moved here from LASER_OPTICS
+      // since Saboteur needs colonyShipPayloadTier=3 which this tech provides.
+      unlockColonyShipVariants: ['explosive', 'heavy', 'counterColony', 'saboteur'],
       colonyShipPayloadTier: 3,
     },
   },
@@ -487,7 +518,16 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     conquestGate: { minCapturedPlanets: 1, requiredAncientTech: 5 },
     effects: {
       unlockBiomes: ['ringworld'],
-      unlockColonyShipVariants: ['PilgrimVolunteer', 'MassEvacuation', 'OrbitalWeaponPlatform'],
+      // PHASE 16.25: normalized to def.id tokens + adds finalColonyShip (the tier-4 apex
+      // suicide variant). Before this fix none of these matched isColonyShipUnlocked's
+      // def.id check ('PilgrimVolunteer' matches neither def.id 'pilgrimVolunteer' nor
+      // def.name 'Pilgrim Volunteer') so the entire tier 4 catalog was dead-listed.
+      unlockColonyShipVariants: [
+        'pilgrimVolunteer',
+        'massEvacuation',
+        'orbitalWeaponPlatform',
+        'finalColonyShip',
+      ],
       colonyShipPayloadTier: 4,
     },
   },
@@ -584,6 +624,103 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     requiresApexCheck: true,
     effects: {
       winsGame: true,
+    },
+  },
+  // PHASE 16.25 — six new tech nodes filling progression gaps per audit. All use existing
+  // TechEffects fields (no schema additions) so aggregateEffects merges them naturally.
+  {
+    id: TECH_HEAVY_INDUSTRY,
+    name: 'Heavy Industry',
+    emoji: '⚙️',
+    tier: 1,
+    visibility: 'mainstream',
+    category: 'industrial',
+    description:
+      'Mass-scale manufacturing infrastructure. Production lines absorb shock losses; output climbs across every industrial building.',
+    prerequisites: [TECH_MASS_PRODUCTION, TECH_ELECTRIC_POWER],
+    costPoints: 60,
+    effects: {
+      buildingProductionMultiplier: 1.2,
+    },
+  },
+  {
+    id: TECH_AUTOMATED_LOGISTICS,
+    name: 'Automated Logistics',
+    emoji: '📦',
+    tier: 2,
+    visibility: 'mainstream',
+    category: 'industrial',
+    description:
+      'Computer-routed supply chains. Stockpile turnover speeds up; factories run hotter without manual intervention.',
+    prerequisites: [TECH_HEAVY_INDUSTRY, TECH_COMPUTING],
+    costPoints: 100,
+    effects: {
+      buildingProductionMultiplier: 1.3,
+    },
+  },
+  {
+    id: TECH_ROBOTICS,
+    name: 'Robotics',
+    emoji: '🤖',
+    tier: 2,
+    visibility: 'mainstream',
+    category: 'spacefaring',
+    description:
+      'Automated assembly + worker augmentation. Citizens promote faster as automation frees them for skilled labor.',
+    prerequisites: [TECH_CONSUMER_ELECTRONICS, TECH_MASS_PRODUCTION],
+    costPoints: 100,
+    effects: {
+      citizenPromotionRateMultiplier: 1.3,
+      buildingProductionMultiplier: 1.15,
+    },
+  },
+  {
+    id: TECH_CIVIL_DEFENSE,
+    name: 'Civil Defense',
+    emoji: '🚨',
+    tier: 2,
+    visibility: 'mainstream',
+    category: 'information',
+    description:
+      'Civilian emergency-broadcast grid + neighborhood drills. Doubles as a propaganda channel reaching every household.',
+    prerequisites: [TECH_WARNING_SYSTEM, TECH_TELECOMMUNICATIONS],
+    costPoints: 100,
+    effects: {
+      propagandaPowerMultiplier: 1.3,
+    },
+  },
+  {
+    id: TECH_VOLUNTEER_INDOCTRINATION,
+    name: 'Volunteer Indoctrination',
+    emoji: '🎤',
+    tier: 3,
+    visibility: 'suppressed',
+    category: 'control',
+    description:
+      'Curated lifelong propaganda pipeline. Citizens eagerly volunteer for one-way colony ships when called.',
+    prerequisites: [TECH_MEMETIC_ENGINEERING, TECH_TELECOMMUNICATIONS],
+    costPoints: 200,
+    conquestGate: { minDefeatedCivs: 1 },
+    effects: {
+      volunteerPoolMultiplier: 1.4,
+      propagandaPowerMultiplier: 1.5,
+    },
+  },
+  {
+    id: TECH_BLACK_OPS_RESEARCH,
+    name: 'Black Ops Research',
+    emoji: '🕵️',
+    tier: 3,
+    visibility: 'forbidden',
+    category: 'forbidden',
+    description:
+      'Off-the-books research division. Forbidden techs accelerate; tier promotions clear oversight faster.',
+    prerequisites: [TECH_BEHAVIORAL_COMPLIANCE, TECH_ANCIENT_TECH_REVERSE],
+    costPoints: 300,
+    conquestGate: { minDefeatedCivs: 2 },
+    effects: {
+      researchSpeedMultiplier: 1.6,
+      citizenPromotionRateMultiplier: 1.5,
     },
   },
 ]

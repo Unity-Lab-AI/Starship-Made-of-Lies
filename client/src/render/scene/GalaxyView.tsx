@@ -18,24 +18,29 @@ import {
   tickCameraFromInput,
 } from './cameraController'
 import {
+  type DetonationFlashInput,
   type IndigenousMarkerInput,
   type PadStateGlowInput,
   type PlanetCivPresence,
   buildBeaconPulseLayer,
+  buildDetonationFlashLayer,
   buildFlightArcLayer,
   buildGalaxyLayer,
   buildLastHopeAlarmLayer,
   buildMineFieldLayer,
   buildMiningShipLayer,
   buildOwnerFlagLayer,
+  buildPadMeshLayer,
   buildPadStateGlowLayer,
   buildRangeOverlayLayer,
   syncBeaconPulses,
+  syncDetonationFlashes,
   syncFlightArcs,
   syncLastHopeAlarms,
   syncMineFields,
   syncMiningShips,
   syncOwnerFlags,
+  syncPadMeshes,
   syncPadStateGlows,
   type MineFieldInput,
 } from './galaxyLayer'
@@ -90,6 +95,10 @@ interface GalaxyViewProps {
   // FlightDetailPanel with per-ship make-up (crew / supplies / fuel / water / speed /
   // task / phase / ETA / signal-lost) per UMS UnityMissile.cs UNITY_MSL broadcast spec.
   readonly onSelectFlight?: (flightId: string) => void
+  // PHASE 16.24 (deferred completion): structured detonation events from MatchSim's
+  // applyDetonationAoE. Each entry spawns an expanding flash sphere at worldPosition that
+  // animates over ~1.5s wall-clock and fades. Pass empty array (or omit) to disable.
+  readonly detonations?: ReadonlyArray<DetonationFlashInput>
 }
 
 export function GalaxyView({
@@ -110,6 +119,7 @@ export function GalaxyView({
   padStateGlows,
   mineFields,
   onSelectFlight,
+  detonations,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -133,6 +143,7 @@ export function GalaxyView({
   const padStateGlowsRef = useRef<ReadonlyArray<PadStateGlowInput>>(padStateGlows ?? [])
   const mineFieldsRef = useRef<ReadonlyArray<MineFieldInput>>(mineFields ?? [])
   const onSelectFlightRef = useRef(onSelectFlight)
+  const detonationsRef = useRef<ReadonlyArray<DetonationFlashInput>>(detonations ?? [])
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
@@ -146,6 +157,7 @@ export function GalaxyView({
   padStateGlowsRef.current = padStateGlows ?? []
   mineFieldsRef.current = mineFields ?? []
   onSelectFlightRef.current = onSelectFlight
+  detonationsRef.current = detonations ?? []
   void humanCivId
 
   useEffect(() => {
@@ -207,8 +219,12 @@ export function GalaxyView({
     scene.add(lastHopeAlarmHandle.group)
     const padStateGlowHandle = buildPadStateGlowLayer()
     scene.add(padStateGlowHandle.group)
+    const padMeshHandle = buildPadMeshLayer()
+    scene.add(padMeshHandle.group)
     const mineFieldHandle = buildMineFieldLayer()
     scene.add(mineFieldHandle.group)
+    const detonationFlashHandle = buildDetonationFlashLayer()
+    scene.add(detonationFlashHandle.group)
     const homePlanetMesh = galaxyHandle.planetMeshes.get(homePlanetId)
     const rangeOverlayHandle = buildRangeOverlayLayer(
       homePlanetMesh ? homePlanetMesh.position.clone() : new THREE.Vector3(),
@@ -477,8 +493,18 @@ export function GalaxyView({
       // Sync per-pad state glow rings (PHASE 16.19)
       syncPadStateGlows(padStateGlowHandle, padStateGlowsRef.current, galaxyHandle.planetMeshes)
 
+      // Sync per-pad industrial-visual surface meshes (PHASE 16.30). Same input array as the
+      // glow ring; the mesh layer is the actual UnityPad geometry — slab + ship cone scaled
+      // by pad state. Glow ring stays as the at-a-glance affordance.
+      syncPadMeshes(padMeshHandle, padStateGlowsRef.current, galaxyHandle.planetMeshes)
+
       // Sync server-authoritative mine-field 💣 billboards (PHASE 16.22)
       syncMineFields(mineFieldHandle, mineFieldsRef.current)
+
+      // Sync 3D detonation flash spheres (PHASE 16.24 deferred completion). Each MatchDetonation
+      // emits an expanding sphere that times out on its own ~1.5s wall-clock — sim-side prune
+      // just keeps the source list bounded across long matches.
+      syncDetonationFlashes(detonationFlashHandle, detonationsRef.current)
 
       // Range overlay visibility
       rangeOverlayHandle.setVisible(rangeVisibleRef.current)
@@ -520,7 +546,9 @@ export function GalaxyView({
       miningShipHandle.destroy()
       lastHopeAlarmHandle.destroy()
       padStateGlowHandle.destroy()
+      padMeshHandle.destroy()
       mineFieldHandle.destroy()
+      detonationFlashHandle.destroy()
       rangeOverlayHandle.destroy()
       galaxyHandle.destroy()
       for (const surface of surfaceLayers.values()) {
