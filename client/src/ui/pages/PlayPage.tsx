@@ -731,6 +731,7 @@ export function PlayPage() {
         empireTechs={humanCivState.empire.researchedTechs.size}
         currentTick={sim.state.currentTick}
         activePlanetInventory={activePlanet.inventory}
+        sparklines={sim.state.sparklines}
       />
 
       {/* === Picker popups (centered) === */}

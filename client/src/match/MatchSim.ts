@@ -36,6 +36,8 @@ import {
   type PlanetWorkforce,
   type PlaystyleArchetype,
   type ShipLoadoutContext,
+  type SparklineBuffer,
+  type SparklineMetricId,
   type TargetingMode,
   type Theme,
   type ThemeId,
@@ -137,6 +139,7 @@ import {
   recordShipBeacon,
   recordPlanetGain,
   recordPlanetLoss,
+  recordSparklineSample,
   resolveMatchEnd,
   shouldAutoTriggerLastHope,
   spawnIndigenousCiv,
@@ -153,6 +156,20 @@ import {
   tickResearch,
   tickTierPromotion,
   totalPopulation,
+  newCanonicalSparklineMap,
+  SPARKLINE_CAPTURE_INTERVAL,
+  SPARKLINE_ACTIVE_FLIGHTS,
+  SPARKLINE_COMPONENTS,
+  SPARKLINE_DEFEATED_CIVS,
+  SPARKLINE_DETONATIONS,
+  SPARKLINE_FOOD,
+  SPARKLINE_FUEL,
+  SPARKLINE_INGOTS,
+  SPARKLINE_MINING_CARGO_PCT,
+  SPARKLINE_OWNED_PLANETS,
+  SPARKLINE_POPULATION,
+  SPARKLINE_RESOURCE_TOTAL,
+  SPARKLINE_TECH_POINTS,
 } from '@smol/shared'
 
 export type MatchPhase = 'STARTING' | 'IN_PROGRESS' | 'ENDED'
@@ -251,6 +268,9 @@ export interface MatchState {
   // PHASE 16.24 (deferred completion): structured detonation events for the 3D render layer.
   // Pruned every tick to keep within DETONATION_LIFETIME_TICKS.
   detonations: MatchDetonation[]
+  // PHASE 16.35 — UMS-faithful 12-graph sparkline cycle data. Per-metric circular buffer
+  // sampled every SPARKLINE_CAPTURE_INTERVAL ticks. Drives LCD slot 6 GRAPHS rendering.
+  readonly sparklines: Map<SparklineMetricId, SparklineBuffer>
   events: MatchEventLog[]
   currentTick: number
   startedAtTick: number
@@ -419,6 +439,8 @@ export function createMatch(config: MatchConfig): MatchState {
     counterFlightTargets: new Map(),
     counterLaunchesByAttacker: new Map(),
     detonations: [],
+    // PHASE 16.35 — canonical 12-metric sparkline cycle (UMS GRAPHS slot adaptation).
+    sparklines: newCanonicalSparklineMap(),
     humanCivId,
     objectives: config.objectives,
     tickCap: config.tickCapOverride,
@@ -652,7 +674,83 @@ export function tickMatch(state: MatchState): void {
     (d) => state.currentTick - d.atTick < DETONATION_LIFETIME_TICKS,
   )
 
+  // PHASE 16.35 — UMS-faithful sparkline capture every SPARKLINE_CAPTURE_INTERVAL ticks.
+  // Samples the human civ's empire-level metrics into the canonical 12-graph rotation buffer.
+  // Cheap: 12 metric reads + 12 buffer writes per capture tick (~once per 5 sim ticks).
+  if (state.currentTick % SPARKLINE_CAPTURE_INTERVAL === 0) {
+    captureSparklineSamples(state)
+  }
+
   resolveMatch(state)
+}
+
+// PHASE 16.35 — empire-level metric capture. Reads the human civ's aggregate state + appends
+// one sample to each canonical sparkline buffer. Buffers are circular (SPARKLINE_BUFFER_SIZE
+// samples = rolling window), so unbounded match length stays memory-bounded.
+function captureSparklineSamples(state: MatchState): void {
+  const humanCiv = state.civs.get(state.humanCivId)
+  if (!humanCiv) return
+
+  let resourceTotal = 0
+  let popTotal = 0
+  let foodStock = 0
+  let fuelStock = 0
+  let ingotsStock = 0
+  let componentsStock = 0
+  let cargoTotal = 0
+  let cargoCapacity = 0
+  for (const planet of state.planets.values()) {
+    if (planet.civId !== state.humanCivId) continue
+    for (const amt of planet.inventory.stocks.values()) resourceTotal += amt
+    popTotal += totalPopulation(planet.population)
+    foodStock += stockOf(planet.inventory, RESOURCE_FOOD)
+    fuelStock += stockOf(planet.inventory, RESOURCE_FUEL)
+    ingotsStock += stockOf(planet.inventory, RESOURCE_INGOTS)
+    componentsStock += stockOf(planet.inventory, RESOURCE_COMPONENTS)
+    for (const ship of planet.miningShips.values()) {
+      cargoTotal += ship.cargoAmount
+      cargoCapacity += ship.cargoCapacity
+    }
+  }
+  const cargoPct = cargoCapacity > 0 ? (cargoTotal / cargoCapacity) * 100 : 0
+  const techPoints = humanCiv.empire.researchedTechs.size
+  const activeFlights = [...state.flights.values()].filter(
+    (f) =>
+      f.launchingCivId === state.humanCivId &&
+      f.phase !== 'DETONATE' &&
+      f.phase !== 'INTERCEPTED' &&
+      f.phase !== 'ABORTED' &&
+      f.phase !== 'CRASH_LANDED',
+  ).length
+  const ownedPlanets = humanCiv.empire.controlledPlanetIds.size
+  // Defeated-civ count = civs no longer alive (excluding the human's own state).
+  let defeatedCivs = 0
+  for (const c of state.civs.values()) {
+    if (c.civId === state.humanCivId) continue
+    if (!c.alive) defeatedCivs += 1
+  }
+  // Detonations-in-rolling-window = how many detonation events still active (within the
+  // DETONATION_LIFETIME_TICKS prune window). Spikes when carpet-bomb runs are landing.
+  const detonationsWindow = state.detonations.length
+
+  const samples: ReadonlyArray<readonly [SparklineMetricId, number]> = [
+    [SPARKLINE_RESOURCE_TOTAL, resourceTotal],
+    [SPARKLINE_POPULATION, popTotal],
+    [SPARKLINE_TECH_POINTS, techPoints],
+    [SPARKLINE_ACTIVE_FLIGHTS, activeFlights],
+    [SPARKLINE_MINING_CARGO_PCT, cargoPct],
+    [SPARKLINE_FOOD, foodStock],
+    [SPARKLINE_FUEL, fuelStock],
+    [SPARKLINE_INGOTS, ingotsStock],
+    [SPARKLINE_COMPONENTS, componentsStock],
+    [SPARKLINE_OWNED_PLANETS, ownedPlanets],
+    [SPARKLINE_DEFEATED_CIVS, defeatedCivs],
+    [SPARKLINE_DETONATIONS, detonationsWindow],
+  ]
+  for (const [metricId, value] of samples) {
+    const buf = state.sparklines.get(metricId)
+    if (buf) recordSparklineSample(buf, value)
+  }
 }
 
 function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
