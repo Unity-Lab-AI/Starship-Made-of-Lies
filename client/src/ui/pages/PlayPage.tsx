@@ -95,9 +95,18 @@ export function PlayPage() {
   const [openPanels, setOpenPanels] = useState<Set<PanelId>>(() => new Set())
   const [buildMode, setBuildMode] = useState<BuildingDefId | null>(null)
   const [selectedPlanetId, setSelectedPlanetId] = useState<PlanetId | null>(null)
-  const [galaxyOpen, setGalaxyOpen] = useState(false)
   const [toasts, setToasts] = useState<ToastNotification[]>([])
   const lastSeenEventIdxRef = useRef(0)
+
+  // PHASE 16.13.9: /play canvas defaults to the 3D GalaxyView. The legacy 2D TilePlacementGrid
+  // is kept ONLY as a dev-debug overlay reachable via `?dev=hexgrid` URL flag. Per LAW #0
+  // 2026-05-10 the 3D x,y,z universe is the canonical canvas — NO 2D / hex-game / card-game
+  // fallback as the default. NEVER swap this default without verifying tile-click → placeBuilding
+  // is wired through GalaxyView (feedback_never_ship_canvas_pivot_without_wiring_all_interactions.md).
+  const isDevHexGridFallback = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    return new URLSearchParams(window.location.search).get('dev') === 'hexgrid'
+  }, [])
 
   // === Computed state ===
   const humanCivState = sim.state.civs.get(sim.state.humanCivId)!
@@ -227,6 +236,23 @@ export function PlayPage() {
     })
   }
 
+  // PHASE 16.13.10: surface tile click in 3D GalaxyView. The clicked planet drives the target;
+  // we DO NOT force activePlanetId switch here — user is looking at planetId, place on planetId.
+  // If they wanted a different planet, they'd zoom there. Build-mode + empty-tile gate identical
+  // to the 2D path so behavior is unified.
+  const handleSurfaceTileClick = useCallback(
+    (planetId: PlanetId, tile: Tile): void => {
+      if (!buildMode) return
+      if (tile.occupancy !== 'empty') return
+      sim.placeBuilding({
+        planetId,
+        tileId: tile.id,
+        defId: buildMode,
+      })
+    },
+    [buildMode, sim],
+  )
+
   const handleSelectCampaign = (archetype: CampaignArchetype): void => {
     sim.launchCampaign({
       planetId: activePlanet.planet.id,
@@ -235,10 +261,9 @@ export function PlayPage() {
     closePanel('campaigns')
   }
 
-  const handleSelectPlanet = (id: PlanetId): void => {
+  const handleSelectPlanet = useCallback((id: PlanetId): void => {
     setSelectedPlanetId(id)
-    closePanel('planets')
-  }
+  }, [])
 
   const handleResetTo = (themeId: ThemeId): void => {
     sim.resetMatch({
@@ -300,9 +325,7 @@ export function PlayPage() {
       else if (k === 'i') togglePanel('indigenous')
       else if (k === 'x') togglePanel('events')
       else if (k === 'g') togglePanel('planets')
-      else if (k === 'm') {
-        setGalaxyOpen((v) => !v)
-      } else if (k === ' ') {
+      else if (k === ' ') {
         e.preventDefault()
         sim.togglePause()
       } else if (k === '1') sim.setSpeed(1)
@@ -329,15 +352,48 @@ export function PlayPage() {
       className={`play-shell ${buildMode ? 'play-shell--build-mode' : ''}`}
       style={styleVars as React.CSSProperties}
     >
-      {/* World view — currently the SVG hex grid; replaced by Three.js scene in 16.2 */}
+      {/* PHASE 16.13.9: 3D GalaxyView is the always-on /play canvas. Legacy 2D TilePlacementGrid
+          remains only as a `?dev=hexgrid` URL-flag fallback for dev debugging. */}
       <div className="play-shell__world">
-        <TilePlacementGrid
-          tiles={activePlanet.planet.tiles.slice(0, 37)}
-          biome={activePlanet.planet.biome}
-          civResearchedTechs={humanCivState.empire.researchedTechs}
-          selectedBuildingDefId={buildMode}
-          onTileClick={handleTileClick}
-        />
+        {isDevHexGridFallback ? (
+          <TilePlacementGrid
+            tiles={activePlanet.planet.tiles.slice(0, 37)}
+            biome={activePlanet.planet.biome}
+            civResearchedTechs={humanCivState.empire.researchedTechs}
+            selectedBuildingDefId={buildMode}
+            onTileClick={handleTileClick}
+          />
+        ) : (
+          <GalaxyView
+            galaxy={sim.state.galaxy}
+            humanCivId={String(sim.state.humanCivId)}
+            ownedPlanetIds={new Set(ownedPlanets.map((p) => p.planet.id))}
+            homePlanetId={humanCivState.homePlanetId}
+            activeFlights={[...sim.state.flights.values()]}
+            alertedPlanetIds={
+              new Set(
+                [...sim.state.planets.values()]
+                  .filter(
+                    (p) =>
+                      p.civId === sim.state.humanCivId &&
+                      p.beacon.alerts.some(
+                        (a) =>
+                          a.kind === 'INCOMING_HOSTILE' && sim.state.currentTick - a.atTick < 200,
+                      ),
+                  )
+                  .map((p) => p.planet.id),
+              )
+            }
+            ownerByPlanet={
+              new Map([...sim.state.planets.values()].map((p) => [p.planet.id, p.civId] as const))
+            }
+            themeByCiv={
+              new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))
+            }
+            onSelectPlanet={handleSelectPlanet}
+            onSurfaceTileClick={handleSurfaceTileClick}
+          />
+        )}
       </div>
 
       <HUDOverlay
@@ -349,43 +405,9 @@ export function PlayPage() {
         setSpeed={sim.setSpeed}
         openPanels={openPanels}
         togglePanel={togglePanel}
-        onGalaxyClick={() => setGalaxyOpen((v) => !v)}
         buildModeBuildingDefId={buildMode}
         onCancelBuildMode={handleCancelBuildMode}
       />
-
-      {galaxyOpen && (
-        <GalaxyView
-          galaxy={sim.state.galaxy}
-          humanCivId={String(sim.state.humanCivId)}
-          ownedPlanetIds={new Set(ownedPlanets.map((p) => p.planet.id))}
-          homePlanetId={humanCivState.homePlanetId}
-          activeFlights={[...sim.state.flights.values()]}
-          alertedPlanetIds={
-            new Set(
-              [...sim.state.planets.values()]
-                .filter(
-                  (p) =>
-                    p.civId === sim.state.humanCivId &&
-                    p.beacon.alerts.some(
-                      (a) =>
-                        a.kind === 'INCOMING_HOSTILE' && sim.state.currentTick - a.atTick < 200,
-                    ),
-                )
-                .map((p) => p.planet.id),
-            )
-          }
-          ownerByPlanet={
-            new Map([...sim.state.planets.values()].map((p) => [p.planet.id, p.civId] as const))
-          }
-          themeByCiv={new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))}
-          onSelectPlanet={(id) => {
-            setSelectedPlanetId(id)
-            setGalaxyOpen(false)
-          }}
-          onClose={() => setGalaxyOpen(false)}
-        />
-      )}
 
       <Toasts toasts={toasts} onDismiss={dismissToast} />
 

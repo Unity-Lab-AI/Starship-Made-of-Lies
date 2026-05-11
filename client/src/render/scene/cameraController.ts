@@ -29,6 +29,15 @@ const ROTATE_SPEED = 0.012
 const ZOOM_TICK = 0.06
 const EDGE_THRESHOLD_PX = 20
 
+// Per user verbatim LAW #0 2026-05-10 (PHASE 16.13.7): "a mall pan and tilt when zooming to show
+// 3d world releativity". As we zoom IN (zoomT → 0), the camera position gets a small lateral pan
+// + small vertical lift offset relative to the look-at axis. The planet visibly parallaxes against
+// the starfield instead of growing along a straight Z line — the player FEELS the 3D depth.
+// Max offset = 8% of camera distance; smoothstep eases the magnitude across the zoom range.
+const ZOOM_DEPTH_CUE_MAX_FRACTION = 0.08
+const ZOOM_DEPTH_CUE_LATERAL_WEIGHT = 0.5
+const ZOOM_DEPTH_CUE_VERTICAL_WEIGHT = 0.3
+
 export function newCamera(aspect: number): CameraState {
   const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 50000)
   return {
@@ -53,6 +62,19 @@ export function applyCameraTransform(state: CameraState): void {
     Math.sin(state.pitch),
     Math.cos(state.yaw) * cosP,
   ).multiplyScalar(distance)
+
+  // Small pan + tilt depth cue (PHASE 16.13.7 LAW #0). depthT goes from 0 at galaxy zoom-out to
+  // 1 at planet-surface zoom-in; smoothstep softens the transition. cameraRight is the world-XZ
+  // perpendicular of the look-at axis so the lateral shift moves sideways, not toward/away.
+  const depthT = 1 - Math.max(0, Math.min(1, state.zoomT))
+  const depthEased = depthT * depthT * (3 - 2 * depthT)
+  const depthMag = ZOOM_DEPTH_CUE_MAX_FRACTION * distance * depthEased
+  const cameraRightX = Math.cos(state.yaw)
+  const cameraRightZ = -Math.sin(state.yaw)
+  offset.x += cameraRightX * depthMag * ZOOM_DEPTH_CUE_LATERAL_WEIGHT
+  offset.z += cameraRightZ * depthMag * ZOOM_DEPTH_CUE_LATERAL_WEIGHT
+  offset.y += depthMag * ZOOM_DEPTH_CUE_VERTICAL_WEIGHT
+
   state.camera.position.copy(state.target).add(offset)
   state.camera.lookAt(state.target)
   state.camera.updateMatrixWorld()

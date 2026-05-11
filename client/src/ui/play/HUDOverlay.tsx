@@ -12,11 +12,13 @@ interface HUDOverlayProps {
   readonly setSpeed: (s: 1 | 2 | 4 | 8) => void
   readonly openPanels: ReadonlySet<PanelId>
   readonly togglePanel: (id: PanelId) => void
-  readonly onGalaxyClick: () => void
   readonly buildModeBuildingDefId: string | null
   readonly onCancelBuildMode: () => void
 }
 
+// PHASE 16.13.9: the 🌌 galaxy toolbar button is suppressed because GalaxyView is now the always-on
+// /play canvas (no modal toggle needed). The TOOLBAR_BUTTONS array still includes 'galaxy' for
+// historical reasons; we filter it here at the render boundary.
 export function HUDOverlay({
   theme,
   currentTick,
@@ -26,7 +28,6 @@ export function HUDOverlay({
   setSpeed,
   openPanels,
   togglePanel,
-  onGalaxyClick,
   buildModeBuildingDefId,
   onCancelBuildMode,
 }: HUDOverlayProps) {
@@ -88,23 +89,7 @@ export function HUDOverlay({
       )}
 
       <footer className="hud-toolbar" role="toolbar" aria-label="Game toolbar">
-        {TOOLBAR_BUTTONS.map((btn) => {
-          if (btn.id === 'galaxy') {
-            return (
-              <button
-                key={btn.id}
-                type="button"
-                className="hud-toolbar__btn"
-                onClick={onGalaxyClick}
-                title={`${btn.label}${btn.hotkey ? ` (${btn.hotkey})` : ''}`}
-              >
-                <span aria-hidden className="hud-toolbar__btn-emoji">
-                  {btn.emoji}
-                </span>
-                <span className="hud-toolbar__btn-label">{btn.label}</span>
-              </button>
-            )
-          }
+        {TOOLBAR_BUTTONS.filter((b) => b.id !== 'galaxy').map((btn) => {
           const panelId = btn.id as PanelId
           const isOpen = openPanels.has(panelId)
           return (

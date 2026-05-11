@@ -7,6 +7,7 @@ import {
   type Planet,
   type PlanetId,
   type Theme,
+  type Tile,
 } from '@smol/shared'
 import {
   applyCameraTransform,
@@ -47,7 +48,10 @@ interface GalaxyViewProps {
   readonly ownerByPlanet: ReadonlyMap<PlanetId, CivId>
   readonly themeByCiv: ReadonlyMap<CivId, Theme>
   readonly onSelectPlanet: (id: PlanetId) => void
-  readonly onClose: () => void
+  // PHASE 16.5.6 + 16.13.10: when zoomed close enough that a planet's surface InstancedMesh is
+  // visible, clicking a tile fires this with the tile's parent planet + the picked Tile object.
+  // The parent decides what to do (place a building when buildMode active, inspect otherwise).
+  readonly onSurfaceTileClick?: (planetId: PlanetId, tile: Tile) => void
 }
 
 export function GalaxyView({
@@ -60,7 +64,7 @@ export function GalaxyView({
   ownerByPlanet,
   themeByCiv,
   onSelectPlanet,
-  onClose,
+  onSurfaceTileClick,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -70,11 +74,13 @@ export function GalaxyView({
   const ownerByPlanetRef = useRef(ownerByPlanet)
   const themeByCivRef = useRef(themeByCiv)
   const rangeVisibleRef = useRef(rangeOverlayVisible)
+  const onSurfaceTileClickRef = useRef(onSurfaceTileClick)
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
   themeByCivRef.current = themeByCiv
   rangeVisibleRef.current = rangeOverlayVisible
+  onSurfaceTileClickRef.current = onSurfaceTileClick
   void humanCivId
 
   useEffect(() => {
@@ -169,12 +175,48 @@ export function GalaxyView({
       onComplete: () => void
     } | null = null
 
+    // Surface raycast takes priority when any planet's surface layer is visible (camera close to
+    // planet). PHASE 16.5.6 + 16.13.10: click a surface tile → onSurfaceTileClick(planetId, tile).
+    const collectVisibleSurfaceMeshes = (): Array<{
+      mesh: THREE.InstancedMesh
+      planet: Planet
+    }> => {
+      const out: Array<{ mesh: THREE.InstancedMesh; planet: Planet }> = []
+      for (const planet of galaxy.planets) {
+        const handle = surfaceLayers.get(planet.id)
+        if (handle && handle.group.visible) out.push({ mesh: handle.tilesMesh, planet })
+      }
+      return out
+    }
+
     const onClick = (e: MouseEvent): void => {
       if (tween) return
       const rect = renderer.domElement.getBoundingClientRect()
       ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
       raycaster.setFromCamera(ndc, cameraState.camera)
+
+      // Try surface tile pick first
+      const surfaceMeshes = collectVisibleSurfaceMeshes()
+      if (surfaceMeshes.length > 0) {
+        const surfaceHits = raycaster.intersectObjects(
+          surfaceMeshes.map((s) => s.mesh),
+          false,
+        )
+        const sHit = surfaceHits[0]
+        if (sHit && typeof sHit.instanceId === 'number') {
+          const match = surfaceMeshes.find((s) => s.mesh === sHit.object)
+          if (match) {
+            const tile = match.planet.tiles[sHit.instanceId]
+            if (tile && onSurfaceTileClickRef.current) {
+              onSurfaceTileClickRef.current(match.planet.id, tile)
+              return
+            }
+          }
+        }
+      }
+
+      // Fall through to planet-mesh pick (galactic-scale planet click → tween-to-planet)
       const planetObjs = Array.from(galaxyHandle.planetMeshes.values())
       const hits = raycaster.intersectObjects(planetObjs, false)
       const hit = hits[0]
@@ -197,6 +239,36 @@ export function GalaxyView({
       ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
       raycaster.setFromCamera(ndc, cameraState.camera)
+
+      // Surface hover takes priority — sets the highlight ring on the hovered tile
+      const surfaceMeshes = collectVisibleSurfaceMeshes()
+      if (surfaceMeshes.length > 0) {
+        const surfaceHits = raycaster.intersectObjects(
+          surfaceMeshes.map((s) => s.mesh),
+          false,
+        )
+        const sHit = surfaceHits[0]
+        for (const sm of surfaceMeshes) {
+          const handle = surfaceLayers.get(sm.planet.id)
+          if (!handle) continue
+          if (sHit && typeof sHit.instanceId === 'number' && sHit.object === sm.mesh) {
+            const tile = sm.planet.tiles[sHit.instanceId]
+            handle.setHoveredFace(tile ? tile.faceIndex : null)
+          } else {
+            handle.setHoveredFace(null)
+          }
+        }
+        if (sHit) {
+          // Suppress planet-tooltip when hovering surface
+          if (pickedPlanetId !== null) {
+            pickedPlanetId = null
+            setHoveredPlanetId(null)
+          }
+          return
+        }
+      }
+
+      // Fall through to planet-mesh hover (galactic-scale planet tooltip)
       const planetObjs = Array.from(galaxyHandle.planetMeshes.values())
       const hits = raycaster.intersectObjects(planetObjs, false)
       const hit = hits[0]
@@ -354,24 +426,15 @@ export function GalaxyView({
     ? (galaxy.planets.find((p) => p.id === hoveredPlanetId) ?? null)
     : null
 
+  // PHASE 16.13.9: GalaxyView is the always-on /play canvas (not a modal dialog). Modal chrome
+  // (header / close button / role="dialog") removed — HUDOverlay sits on top as the chrome layer.
   return (
-    <div className="galaxy-view" role="dialog" aria-label="Galaxy view">
+    <div className="galaxy-view galaxy-view--canvas" aria-label="3D galaxy canvas">
       <div ref={mountRef} className="galaxy-view__canvas" />
-      <header className="galaxy-view__header">
-        <h2>🌌 Galaxy — {galaxy.planets.length} planets</h2>
-        <button
-          type="button"
-          className="galaxy-view__close"
-          onClick={onClose}
-          title="Close galaxy view (ESC)"
-        >
-          ✕ Close
-        </button>
-      </header>
       <aside className="galaxy-view__hint">
-        <strong>WASD</strong> pan · <strong>QE</strong> rotate · <strong>wheel</strong> zoom ·
+        <strong>WASD</strong> move · <strong>QE</strong> rotate · <strong>wheel</strong> zoom ·
         <strong>R</strong> {rangeOverlayVisible ? 'hide' : 'show'} range rings ·
-        <strong> click</strong> a planet to view
+        <strong> click</strong> a planet to fly there
       </aside>
       {hoveredPlanet && (
         <div className="galaxy-view__tooltip">
