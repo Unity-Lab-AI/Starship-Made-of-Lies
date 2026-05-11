@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { type Galaxy, type Planet, type PlanetId } from '@smol/shared'
+import { type ColonyShipFlight, type Galaxy, type Planet, type PlanetId } from '@smol/shared'
 
 const BIOME_COLORS: Readonly<Record<string, number>> = {
   jungle: 0x3aa860,
@@ -20,6 +20,7 @@ const BIOME_COLORS: Readonly<Record<string, number>> = {
 export interface GalaxyLayerHandle {
   readonly group: THREE.Group
   readonly planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>
+  readonly galaxyCenter: THREE.Vector3
   readonly destroy: () => void
 }
 
@@ -48,6 +49,7 @@ export function buildGalaxyLayer(galaxy: Galaxy): GalaxyLayerHandle {
   return {
     group,
     planetMeshes,
+    galaxyCenter: center,
     destroy: () => {
       group.traverse((obj) => {
         if (obj instanceof THREE.Mesh) {
@@ -106,6 +108,253 @@ function makePlanetMesh(planet: Planet, center: THREE.Vector3): THREE.Mesh {
   )
   mesh.userData = { kind: 'planet', planetId: planet.id }
   return mesh
+}
+
+// === FLIGHT ARC LAYER ===
+
+export interface FlightArcEntry {
+  readonly flightId: string
+  readonly line: THREE.Line
+  readonly progressDot: THREE.Mesh
+  readonly arcPoints: THREE.Vector3[]
+}
+
+export interface FlightArcLayerHandle {
+  readonly group: THREE.Group
+  readonly entries: Map<string, FlightArcEntry>
+  readonly destroy: () => void
+}
+
+export function buildFlightArcLayer(galaxyCenter: THREE.Vector3): FlightArcLayerHandle {
+  const group = new THREE.Group()
+  const entries = new Map<string, FlightArcEntry>()
+  return {
+    group,
+    entries,
+    destroy: () => {
+      for (const entry of entries.values()) {
+        entry.line.geometry.dispose()
+        ;(entry.line.material as THREE.Material).dispose()
+        entry.progressDot.geometry.dispose()
+        ;(entry.progressDot.material as THREE.Material).dispose()
+      }
+      entries.clear()
+    },
+  }
+  void galaxyCenter
+}
+
+function arcPoints(
+  start: THREE.Vector3,
+  end: THREE.Vector3,
+  segments: number,
+  bulge: number,
+): THREE.Vector3[] {
+  const mid = start.clone().add(end).multiplyScalar(0.5)
+  const dir = end.clone().sub(start)
+  const perp = new THREE.Vector3(-dir.z, dir.length() * 0.5, dir.x)
+    .normalize()
+    .multiplyScalar(bulge)
+  const peak = mid.clone().add(perp)
+  const points: THREE.Vector3[] = []
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments
+    // Quadratic Bezier: (1-t)^2 * start + 2(1-t)t * peak + t^2 * end
+    const u = 1 - t
+    const p = new THREE.Vector3()
+      .addScaledVector(start, u * u)
+      .addScaledVector(peak, 2 * u * t)
+      .addScaledVector(end, t * t)
+    points.push(p)
+  }
+  return points
+}
+
+export function syncFlightArcs(
+  handle: FlightArcLayerHandle,
+  flights: ReadonlyArray<ColonyShipFlight>,
+  planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>,
+  civColorMap: ReadonlyMap<string, number>,
+): void {
+  const alive = new Set<string>()
+  for (const flight of flights) {
+    const flightIdStr = String(flight.id)
+    alive.add(flightIdStr)
+    const sourceMesh = planetMeshes.get(flight.fromPlanetId)
+    const targetMesh = planetMeshes.get(flight.targetPlanetId)
+    if (!sourceMesh || !targetMesh) continue
+    const civColor = civColorMap.get(String(flight.launchingCivId)) ?? 0xd4a13a
+    const progress = Math.min(1, flight.ticksFlown / Math.max(1, flight.totalTicks))
+
+    let entry = handle.entries.get(flightIdStr)
+    if (!entry) {
+      const points = arcPoints(
+        sourceMesh.position,
+        targetMesh.position,
+        48,
+        sourceMesh.position.distanceTo(targetMesh.position) * 0.18,
+      )
+      const geom = new THREE.BufferGeometry().setFromPoints(points)
+      const mat = new THREE.LineDashedMaterial({
+        color: civColor,
+        dashSize: 30,
+        gapSize: 18,
+        linewidth: 2,
+        transparent: true,
+        opacity: 0.85,
+      })
+      const line = new THREE.Line(geom, mat)
+      line.computeLineDistances()
+      handle.group.add(line)
+      const dotGeom = new THREE.SphereGeometry(7, 8, 6)
+      const dotMat = new THREE.MeshBasicMaterial({ color: civColor })
+      const dot = new THREE.Mesh(dotGeom, dotMat)
+      handle.group.add(dot)
+      entry = { flightId: flightIdStr, line, progressDot: dot, arcPoints: points }
+      handle.entries.set(flightIdStr, entry)
+    } else {
+      // Update arc if planet positions changed (rare); just update color if needed
+      const mat = entry.line.material as THREE.LineDashedMaterial
+      if (mat.color.getHex() !== civColor) mat.color.setHex(civColor)
+      const dotMat = entry.progressDot.material as THREE.MeshBasicMaterial
+      if (dotMat.color.getHex() !== civColor) dotMat.color.setHex(civColor)
+    }
+    // Place progress dot along arc
+    const segIdx = Math.floor(progress * (entry.arcPoints.length - 1))
+    const seg = entry.arcPoints[Math.min(entry.arcPoints.length - 1, segIdx)]
+    if (seg) entry.progressDot.position.copy(seg)
+
+    // Animate dash offset for "moving forward" feel
+    const mat = entry.line.material as THREE.LineDashedMaterial
+    mat.dashSize = 30
+    mat.gapSize = 18
+    // dashOffset isn't natively supported in LineDashedMaterial, so emulate via toggling opacity over time
+    mat.opacity = 0.55 + Math.sin(performance.now() / 200 + progress * Math.PI) * 0.25
+  }
+  // Remove dead arcs
+  for (const [id, entry] of handle.entries) {
+    if (alive.has(id)) continue
+    handle.group.remove(entry.line)
+    handle.group.remove(entry.progressDot)
+    entry.line.geometry.dispose()
+    ;(entry.line.material as THREE.Material).dispose()
+    entry.progressDot.geometry.dispose()
+    ;(entry.progressDot.material as THREE.Material).dispose()
+    handle.entries.delete(id)
+  }
+}
+
+// === BEACON ALERT PULSE LAYER ===
+
+export interface BeaconPulseLayerHandle {
+  readonly group: THREE.Group
+  readonly entries: Map<PlanetId, THREE.Mesh>
+  readonly destroy: () => void
+}
+
+export function buildBeaconPulseLayer(): BeaconPulseLayerHandle {
+  const group = new THREE.Group()
+  const entries = new Map<PlanetId, THREE.Mesh>()
+  return {
+    group,
+    entries,
+    destroy: () => {
+      for (const m of entries.values()) {
+        m.geometry.dispose()
+        ;(m.material as THREE.Material).dispose()
+      }
+      entries.clear()
+    },
+  }
+}
+
+export function syncBeaconPulses(
+  handle: BeaconPulseLayerHandle,
+  alertedPlanetIds: ReadonlySet<PlanetId>,
+  planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>,
+  camera: THREE.Camera,
+): void {
+  for (const id of alertedPlanetIds) {
+    const mesh = planetMeshes.get(id)
+    if (!mesh) continue
+    let ring = handle.entries.get(id)
+    if (!ring) {
+      const r = mesh.geometry.boundingSphere?.radius ?? 80
+      const geom = new THREE.RingGeometry(r + 24, r + 38, 32)
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0xe02d4a,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.55,
+      })
+      ring = new THREE.Mesh(geom, mat)
+      ring.userData = { kind: 'beacon-pulse', planetId: id }
+      handle.group.add(ring)
+      handle.entries.set(id, ring)
+    }
+    ring.position.copy(mesh.position)
+    ring.lookAt(camera.position)
+    const mat = ring.material as THREE.MeshBasicMaterial
+    mat.opacity = 0.4 + Math.sin(performance.now() / 220) * 0.25
+  }
+  // Remove rings for planets no longer alerted
+  for (const [id, ring] of handle.entries) {
+    if (alertedPlanetIds.has(id)) continue
+    handle.group.remove(ring)
+    ring.geometry.dispose()
+    ;(ring.material as THREE.Material).dispose()
+    handle.entries.delete(id)
+  }
+}
+
+// === RANGE OVERLAY LAYER ===
+
+export interface RangeOverlayLayerHandle {
+  readonly group: THREE.Group
+  readonly rings: THREE.Mesh[]
+  setVisible(visible: boolean): void
+  readonly destroy: () => void
+}
+
+const TIER_RANGES: ReadonlyArray<{ tier: number; radius: number; color: number }> = [
+  { tier: 1, radius: 1500, color: 0x3aa860 },
+  { tier: 2, radius: 3500, color: 0xfde047 },
+  { tier: 3, radius: 7000, color: 0xfca5a5 },
+  { tier: 4, radius: 14000, color: 0xa970d4 },
+]
+
+export function buildRangeOverlayLayer(homeWorldPosition: THREE.Vector3): RangeOverlayLayerHandle {
+  const group = new THREE.Group()
+  const rings: THREE.Mesh[] = []
+  for (const tier of TIER_RANGES) {
+    const geom = new THREE.RingGeometry(tier.radius - 12, tier.radius, 96)
+    const mat = new THREE.MeshBasicMaterial({
+      color: tier.color,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.18,
+    })
+    const ring = new THREE.Mesh(geom, mat)
+    ring.position.copy(homeWorldPosition)
+    ring.rotation.x = -Math.PI / 2
+    ring.userData = { kind: 'range-ring', tier: tier.tier }
+    group.add(ring)
+    rings.push(ring)
+  }
+  group.visible = false
+  return {
+    group,
+    rings,
+    setVisible: (v: boolean) => {
+      group.visible = v
+    },
+    destroy: () => {
+      for (const ring of rings) {
+        ring.geometry.dispose()
+        ;(ring.material as THREE.Material).dispose()
+      }
+    },
+  }
 }
 
 function makeStarfield(seed: number): THREE.Points {
