@@ -197,6 +197,30 @@
   border-color: var(--danger, #ef4444);
 }
 
+.command-pad__salvo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  background: rgba(74, 222, 128, 0.06);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  border-radius: 6px;
+}
+
+.command-pad__salvo .command-pad__actions-title {
+  flex: 0 0 auto;
+}
+
+.command-pad__salvo .command-pad__btn {
+  flex: 0 0 auto;
+}
+
+.command-pad__salvo-status {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  color: var(--success, #4ade80);
+}
+
 .command-pad__note {
   margin: 0;
   font-size: 0.78rem;

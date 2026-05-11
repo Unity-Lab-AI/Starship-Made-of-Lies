@@ -103,6 +103,13 @@ export function PlayPage() {
   const [toasts, setToasts] = useState<ToastNotification[]>([])
   const lastSeenEventIdxRef = useRef(0)
 
+  // PHASE 16.19: salvo-round orchestrator state. One-click "Fire Salvo Round" cycles
+  // BUILDALL → wait → ARMALL → wait → LAUNCHALL. salvoRoundPhase tracks progress so the
+  // panel shows "BUILDING..." / "ARMING..." / "LAUNCHING..." live.
+  const [salvoRoundPhase, setSalvoRoundPhase] = useState<
+    null | 'BUILDING' | 'ARMING' | 'LAUNCHING'
+  >(null)
+
   // PHASE 16.13.9: /play canvas defaults to the 3D GalaxyView. The legacy 2D TilePlacementGrid
   // is kept ONLY as a dev-debug overlay reachable via `?dev=hexgrid` URL flag. Per LAW #0
   // 2026-05-10 the 3D x,y,z universe is the canonical canvas — NO 2D / hex-game / card-game
@@ -213,6 +220,38 @@ export function PlayPage() {
         if (!civState.alive) continue
         if (!civState.lastHopeTriggered) continue
         out.add(civState.homePlanetId)
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  // PHASE 16.19: per-launch-pad state glow inputs. For each pad on each planet we own,
+  // resolve the surface-tile centroid + normal so the 3D layer can position + orient a
+  // state-colored ring on that tile.
+  const padStateGlows = useMemo(
+    () => {
+      const out: Array<{
+        planetId: PlanetId
+        padId: import('@smol/shared').TileId
+        state: import('@smol/shared').PadState
+        tileCentroid: import('@smol/shared').Vec3
+        tileNormal: import('@smol/shared').Vec3
+      }> = []
+      for (const planetState of sim.state.planets.values()) {
+        if (planetState.launchPads.size === 0) continue
+        for (const pad of planetState.launchPads.values()) {
+          const tile = planetState.planet.tiles.find((t) => t.id === pad.id)
+          if (!tile) continue
+          out.push({
+            planetId: planetState.planet.id,
+            padId: pad.id,
+            state: pad.state,
+            tileCentroid: tile.centroid,
+            tileNormal: tile.normal,
+          })
+        }
       }
       return out
     },
@@ -523,6 +562,7 @@ export function PlayPage() {
             civsByPlanet={civsByPlanet}
             indigenousByPlanet={indigenousByPlanet}
             lastHopeTriggeredPlanetIds={lastHopeTriggeredPlanetIds}
+            padStateGlows={padStateGlows}
           />
         )}
       </div>
@@ -550,6 +590,7 @@ export function PlayPage() {
         populationTotal={empireTotals.pop}
         empireTechs={humanCivState.empire.researchedTechs.size}
         currentTick={sim.state.currentTick}
+        activePlanetInventory={activePlanet.inventory}
       />
 
       {/* === Picker popups (centered) === */}
@@ -747,6 +788,33 @@ export function PlayPage() {
             onLaunchAll={() => sim.controllerLaunchAll(activePlanet.planet.id)}
             onAbortAll={() => sim.controllerAbortAll(activePlanet.planet.id)}
             onCopyTargetFromController={() => sim.controllerCopyTarget(activePlanet.planet.id)}
+            onFireSalvoRound={() => {
+              if (salvoRoundPhase !== null) return
+              const planetId = activePlanet.planet.id
+              const variant = availableShipVariants[0]
+              if (!variant) return
+              setSalvoRoundPhase('BUILDING')
+              sim.controllerBuildAll(planetId, variant)
+              window.setTimeout(() => {
+                setSalvoRoundPhase('ARMING')
+                sim.controllerArmAll(planetId)
+              }, 8000)
+              window.setTimeout(() => {
+                setSalvoRoundPhase('LAUNCHING')
+                sim.controllerLaunchAll(planetId)
+              }, 11000)
+              window.setTimeout(() => setSalvoRoundPhase(null), 13000)
+            }}
+            salvoRoundActive={salvoRoundPhase !== null}
+            salvoRoundPhaseLabel={
+              salvoRoundPhase === 'BUILDING'
+                ? '⚙ BUILDING — pads loading...'
+                : salvoRoundPhase === 'ARMING'
+                  ? '⚡ ARMING ready pads...'
+                  : salvoRoundPhase === 'LAUNCHING'
+                    ? '🚀 LAUNCHING armed pads...'
+                    : undefined
+            }
           />
         </PanelFrame>
       )}

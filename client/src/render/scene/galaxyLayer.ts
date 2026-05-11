@@ -3,10 +3,13 @@ import {
   type CivId,
   type ColonyShipFlight,
   type Galaxy,
+  type PadState,
   type Planet,
   type PlanetId,
   type ShipBeaconBroadcast,
   type Theme,
+  type TileId,
+  type Vec3,
   planetRenderRadius,
 } from '@smol/shared'
 
@@ -663,6 +666,138 @@ export function syncBeaconPulses(
     ring.geometry.dispose()
     ;(ring.material as THREE.Material).dispose()
     handle.entries.delete(id)
+  }
+}
+
+// === PAD STATE GLOW LAYER (PHASE 16.19) ===
+// Each LaunchPad's state machine gets a colored ring around its surface tile so the player
+// reads pad state at a glance without opening a panel. PRINT/BUILD = yellow pulsing, FUEL/AMMO
+// = blue/pink steady, READY = green steady, ARM = red urgent pulse, LAUNCH = bright white
+// flash, GONE = dim gray fade-out.
+
+const PAD_STATE_COLOR: Readonly<Record<PadState, number>> = {
+  INIT: 0x555555,
+  IDLE: 0x6a6a78,
+  PRINT: 0xffa050,
+  BUILD: 0xffd960,
+  DOCK: 0xaa88ff,
+  FUEL: 0x66aaff,
+  AMMO: 0xff8acf,
+  READY: 0x55ff88,
+  ARM: 0xff3344,
+  LAUNCH: 0xffffff,
+  GONE: 0x44444a,
+}
+
+export interface PadStateGlowInput {
+  readonly planetId: PlanetId
+  readonly padId: TileId
+  readonly state: PadState
+  readonly tileCentroid: Vec3
+  readonly tileNormal: Vec3
+}
+
+export interface PadStateGlowEntry {
+  readonly key: string
+  readonly ring: THREE.Mesh
+}
+
+export interface PadStateGlowLayerHandle {
+  readonly group: THREE.Group
+  readonly entries: Map<string, PadStateGlowEntry>
+  readonly destroy: () => void
+}
+
+export function buildPadStateGlowLayer(): PadStateGlowLayerHandle {
+  const group = new THREE.Group()
+  const entries = new Map<string, PadStateGlowEntry>()
+  return {
+    group,
+    entries,
+    destroy: () => {
+      for (const e of entries.values()) {
+        e.ring.geometry.dispose()
+        ;(e.ring.material as THREE.Material).dispose()
+      }
+      entries.clear()
+    },
+  }
+}
+
+export function syncPadStateGlows(
+  handle: PadStateGlowLayerHandle,
+  pads: ReadonlyArray<PadStateGlowInput>,
+  planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>,
+): void {
+  const alive = new Set<string>()
+  for (const pad of pads) {
+    const planetMesh = planetMeshes.get(pad.planetId)
+    if (!planetMesh) continue
+    const key = `${String(pad.planetId)}:${String(pad.padId)}`
+    alive.add(key)
+    const color = PAD_STATE_COLOR[pad.state]
+    let entry = handle.entries.get(key)
+    if (!entry) {
+      // Ring sized relative to typical hex-tile scale (5-6.5 units from surfaceLayer
+      // TILE_HEX_SCALE_BY_TIER). Outer + inner radii make a thin glowing band.
+      const geom = new THREE.RingGeometry(7, 10, 24)
+      const mat = new THREE.MeshBasicMaterial({
+        color,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.85,
+        depthWrite: false,
+      })
+      const ring = new THREE.Mesh(geom, mat)
+      ring.userData = { kind: 'pad-state-glow', planetId: pad.planetId, padId: pad.padId }
+      handle.group.add(ring)
+      entry = { key, ring }
+      handle.entries.set(key, entry)
+    } else {
+      const mat = entry.ring.material as THREE.MeshBasicMaterial
+      if (mat.color.getHex() !== color) mat.color.setHex(color)
+    }
+    // World position = planetMesh.position + tile.centroid (centroid is in planet-local space)
+    const lift = 1.2
+    entry.ring.position.set(
+      planetMesh.position.x + pad.tileCentroid.x + pad.tileNormal.x * lift,
+      planetMesh.position.y + pad.tileCentroid.y + pad.tileNormal.y * lift,
+      planetMesh.position.z + pad.tileCentroid.z + pad.tileNormal.z * lift,
+    )
+    // Orient ring so its normal aligns with tile normal (ring lies flat on tile)
+    const up = new THREE.Vector3(0, 0, 1) // ring geometry's local +Z
+    const target = new THREE.Vector3(pad.tileNormal.x, pad.tileNormal.y, pad.tileNormal.z)
+    entry.ring.quaternion.setFromUnitVectors(up, target)
+    // Pulse / flash per state
+    const mat = entry.ring.material as THREE.MeshBasicMaterial
+    const t = performance.now()
+    switch (pad.state) {
+      case 'PRINT':
+      case 'BUILD':
+        mat.opacity = 0.55 + Math.sin(t / 220) * 0.3
+        break
+      case 'ARM':
+        mat.opacity = 0.55 + Math.sin(t / 110) * 0.4
+        break
+      case 'LAUNCH':
+        mat.opacity = 0.95
+        break
+      case 'READY':
+        mat.opacity = 0.85
+        break
+      case 'GONE':
+        mat.opacity = 0.35
+        break
+      default:
+        mat.opacity = 0.7
+    }
+  }
+  for (const [key, entry] of handle.entries) {
+    if (alive.has(key)) continue
+    handle.group.remove(entry.ring)
+    entry.ring.geometry.dispose()
+    ;(entry.ring.material as THREE.Material).dispose()
+    handle.entries.delete(key)
   }
 }
 

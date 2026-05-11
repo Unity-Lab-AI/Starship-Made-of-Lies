@@ -1,5 +1,10 @@
 import { useMemo, useState } from 'react'
-import { type ColonyShipFlight, type LaunchPad, type ShipBeaconBroadcast } from '@smol/shared'
+import {
+  type ColonyShipFlight,
+  type LaunchPad,
+  type PlanetInventory,
+  type ShipBeaconBroadcast,
+} from '@smol/shared'
 import './telemetry-rack.css'
 
 // PHASE 16.14 — UMS 11-LCD telemetry rack v1. UMS UnityPad/UnityInventory own 11 numbered LCDs
@@ -17,6 +22,8 @@ export interface TelemetryRackProps {
   readonly populationTotal: number
   readonly empireTechs: number
   readonly currentTick: number
+  // PHASE 16.19: active-planet inventory for LCD slot 4 INV CYCLE concrete data
+  readonly activePlanetInventory?: PlanetInventory
 }
 
 type LCDStatus = 'live' | 'stub'
@@ -48,8 +55,18 @@ export function TelemetryRack({
   populationTotal,
   empireTechs,
   currentTick,
+  activePlanetInventory,
 }: TelemetryRackProps) {
   const [expanded, setExpanded] = useState(false)
+
+  // PHASE 16.19: LCD slot 4 INV CYCLE — top 4 resources on the active planet by stock count.
+  // Cycles in the UMS-faithful 7-tab pattern (BUILD/MISSILE/FUEL/POWER/CARGO/PROD/FACILITIES)
+  // is roadmapped; v1 just shows the top stocks so the slot has live data.
+  const topInventoryEntries = useMemo<ReadonlyArray<readonly [string, number]>>(() => {
+    if (!activePlanetInventory) return []
+    const sorted = [...activePlanetInventory.stocks.entries()].sort((a, b) => b[1] - a[1])
+    return sorted.slice(0, 4).map(([id, amount]) => [String(id), amount] as const)
+  }, [activePlanetInventory])
 
   const padCounts = useMemo(() => {
     let idle = 0
@@ -203,10 +220,18 @@ export function TelemetryRack({
             </div>
           </LCDSlot>
 
-          <LCDSlot slot={4} title="INV CYCLE" status="stub">
-            <div className="telemetry-rack__stub">
-              7-tab inventory cycle (BUILD/MISSILE/FUEL/POWER/CARGO/PROD/FACILITIES) — pending.
-            </div>
+          <LCDSlot slot={4} title="INV CYCLE" status="live">
+            {topInventoryEntries.length === 0 ? (
+              <div className="telemetry-rack__stub">No active planet inventory data.</div>
+            ) : (
+              <>
+                {topInventoryEntries.map(([resId, amount]) => (
+                  <div key={resId} className="telemetry-rack__line">
+                    {resId}: <strong>{amount.toLocaleString()}</strong>
+                  </div>
+                ))}
+              </>
+            )}
           </LCDSlot>
 
           <LCDSlot slot={5} title="POWER" status="live">

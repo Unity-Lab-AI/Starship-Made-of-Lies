@@ -19,6 +19,7 @@ import {
 } from './cameraController'
 import {
   type IndigenousMarkerInput,
+  type PadStateGlowInput,
   type PlanetCivPresence,
   buildBeaconPulseLayer,
   buildFlightArcLayer,
@@ -26,12 +27,14 @@ import {
   buildLastHopeAlarmLayer,
   buildMiningShipLayer,
   buildOwnerFlagLayer,
+  buildPadStateGlowLayer,
   buildRangeOverlayLayer,
   syncBeaconPulses,
   syncFlightArcs,
   syncLastHopeAlarms,
   syncMiningShips,
   syncOwnerFlags,
+  syncPadStateGlows,
 } from './galaxyLayer'
 import { buildSurfaceLayer, type SurfaceLayerHandle } from './surfaceLayer'
 import './scene.css'
@@ -72,6 +75,10 @@ interface GalaxyViewProps {
   // PHASE 16.17: planet IDs where the owning civ has triggered LAST_HOPE_EVAC. Each gets
   // a pulsing orange alarm halo at galactic scale so the player sees civ-near-collapse.
   readonly lastHopeTriggeredPlanetIds?: ReadonlySet<PlanetId>
+  // PHASE 16.19: per-launch-pad state glow inputs. Each entry produces a colored ring
+  // around that pad's surface tile colored by pad.state (READY=green, ARM=red, LAUNCH=
+  // white flash, etc.). Visible when zoomed close enough to see the surface.
+  readonly padStateGlows?: ReadonlyArray<PadStateGlowInput>
 }
 
 export function GalaxyView({
@@ -89,6 +96,7 @@ export function GalaxyView({
   civsByPlanet,
   indigenousByPlanet,
   lastHopeTriggeredPlanetIds,
+  padStateGlows,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -109,6 +117,7 @@ export function GalaxyView({
   const lastHopeTriggeredRef = useRef<ReadonlySet<PlanetId>>(
     lastHopeTriggeredPlanetIds ?? new Set(),
   )
+  const padStateGlowsRef = useRef<ReadonlyArray<PadStateGlowInput>>(padStateGlows ?? [])
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
@@ -119,6 +128,7 @@ export function GalaxyView({
   civsByPlanetRef.current = civsByPlanet
   indigenousByPlanetRef.current = indigenousByPlanet ?? []
   lastHopeTriggeredRef.current = lastHopeTriggeredPlanetIds ?? new Set()
+  padStateGlowsRef.current = padStateGlows ?? []
   void humanCivId
 
   useEffect(() => {
@@ -178,6 +188,8 @@ export function GalaxyView({
     scene.add(miningShipHandle.group)
     const lastHopeAlarmHandle = buildLastHopeAlarmLayer()
     scene.add(lastHopeAlarmHandle.group)
+    const padStateGlowHandle = buildPadStateGlowLayer()
+    scene.add(padStateGlowHandle.group)
     const homePlanetMesh = galaxyHandle.planetMeshes.get(homePlanetId)
     const rangeOverlayHandle = buildRangeOverlayLayer(
       homePlanetMesh ? homePlanetMesh.position.clone() : new THREE.Vector3(),
@@ -423,6 +435,9 @@ export function GalaxyView({
         cameraState.camera,
       )
 
+      // Sync per-pad state glow rings (PHASE 16.19)
+      syncPadStateGlows(padStateGlowHandle, padStateGlowsRef.current, galaxyHandle.planetMeshes)
+
       // Range overlay visibility
       rangeOverlayHandle.setVisible(rangeVisibleRef.current)
 
@@ -462,6 +477,7 @@ export function GalaxyView({
       ownerFlagHandle.destroy()
       miningShipHandle.destroy()
       lastHopeAlarmHandle.destroy()
+      padStateGlowHandle.destroy()
       rangeOverlayHandle.destroy()
       galaxyHandle.destroy()
       for (const surface of surfaceLayers.values()) {

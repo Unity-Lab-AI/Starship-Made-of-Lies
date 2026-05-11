@@ -29,6 +29,11 @@ export interface CommandPadPanelProps {
   readonly onLaunchAll: () => void
   readonly onAbortAll: () => void
   readonly onCopyTargetFromController: () => void
+  // PHASE 16.19: one-click salvo orchestrator — fires BUILDALL → wait → ARMALL → wait → LAUNCHALL
+  // automatically. Parent owns the timing/state; panel just exposes the button.
+  readonly onFireSalvoRound?: () => void
+  readonly salvoRoundActive?: boolean | undefined
+  readonly salvoRoundPhaseLabel?: string | undefined
 }
 
 interface PadCounters {
@@ -88,6 +93,9 @@ export function CommandPadPanel({
   onLaunchAll,
   onAbortAll,
   onCopyTargetFromController,
+  onFireSalvoRound,
+  salvoRoundActive,
+  salvoRoundPhaseLabel,
 }: CommandPadPanelProps) {
   const counters = useMemo(() => tallyPads(pads), [pads])
   const controllerPad = pads[0] ?? null
@@ -224,6 +232,26 @@ export function CommandPadPanel({
           </button>
         </div>
       </section>
+
+      {onFireSalvoRound && (
+        <section className="command-pad__salvo">
+          <h4 className="command-pad__actions-title">Auto-fire round</h4>
+          <button
+            type="button"
+            className="command-pad__btn command-pad__btn--launch"
+            onClick={onFireSalvoRound}
+            disabled={salvoRoundActive || counters.total === 0}
+            title="One-click cycle: BUILDALL → wait → ARMALL → wait → LAUNCHALL"
+          >
+            ▶ Fire Salvo Round
+          </button>
+          {salvoRoundActive && (
+            <span className="command-pad__salvo-status">
+              {salvoRoundPhaseLabel ?? 'running...'}
+            </span>
+          )}
+        </section>
+      )}
 
       <p className="command-pad__note">
         v1 mass actions apply to every pad on this planet uniformly. UMS-faithful salvo stagger (15s
