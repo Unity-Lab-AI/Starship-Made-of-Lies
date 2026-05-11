@@ -1,8 +1,12 @@
 # STARSHIP MADE OF LIES — Skill Tree
 
-*Last Updated: 2026-05-09*
+*Last Updated: 2026-05-10*
 *Project: SMoL (Starship Made of Lies) — formerly Unity Missile System*
 *Unity AI Lab*
+
+> ## ⚠ REALITY CHECK 2026-05-10
+>
+> `/super-review` 2026-05-10 measured the SMoL codebase against the UMS canonical spec (the `.claude/SMOL_REFERENCE_*.md` extraction docs). The Status Summary table at the bottom of this skill tree has been updated to reflect what's actually in code vs what's still ⬜ planned. Per-row `⬜ planned` markers below are CORRECT design intent — they capture what each skill SHOULD do. The shipped-vs-pending status is rolled up in the Summary table. Active correction work is tracked in `.claude/TODO.md` PHASE 16.13 (true 3D rebuild per LAW #0) + PHASE 16.14 (doc reality sync). For the per-component UMS-vs-SMoL gap table, see `.claude/ARCHITECTURE.md` REALITY CHECK banner.
 
 ---
 
@@ -25,7 +29,7 @@
 #### 2. 3D Rendering (`client/3d/`, Three.js)
 | Skill | Phase | Status | Complexity | Priority |
 |-------|-------|--------|------------|----------|
-| 2D hex-grid renderer (TilePlacementGrid) | 1 | ✅ shipped | Basic | P0 — alpha. 3D Three.js scene deferred to v1.5+ |
+| ~~2D hex-grid renderer (TilePlacementGrid)~~ — RETIRED as player canvas 2026-05-10; reverted to dev-debug-only overlay per LAW #0 (TODO 16.13). Game is TRUE 3D x,y,z universe via Three.js, NO 2D fallback, NO hex-game framing, NO card-game framing. | 1 | dev-debug only | Basic | retired (see 16.13) |
 | Multi-level LOD swap (galaxy → planet → region → base → building) | 8 | ⬜ planned | Expert | P0 |
 | Planet-sphere mesh + hex-tile geodesic projection | 2 | ⬜ planned | Advanced | P0 |
 | WASD + QE rotate + mousewheel zoom + drag-pan camera | 8 | ⬜ planned | Intermediate | P0 |
@@ -33,12 +37,12 @@
 | Planet biome shading (10+ biomes, hostility tier visuals) | 2 | ⬜ planned | Advanced | P1 |
 | 1000-planet galaxy view at 60fps | 14 | ⬜ planned | Expert | P0 |
 
-#### 3. 2D Top-Down (`client/2d/`, Canvas/Pixi or Three.js orthographic)
+#### 3. 3D Surface Raycast UI (`client/src/render/` + `client/src/3d/`, Three.js raycast on surface InstancedMesh — NO separate 2D canvas per LAW #0 2026-05-10, TODO PHASE 16.13)
 | Skill | Phase | Status | Complexity | Priority |
 |-------|-------|--------|------------|----------|
-| Hex tile grid placement UI | 2 | ⬜ planned | Intermediate | P0 |
-| Fog-of-war rendering | 10 | ⬜ planned | Advanced | P0 |
-| Tile-level inspection (click to drill into 3D base view) | 8 | ⬜ planned | Intermediate | P0 |
+| Surface tile raycast (mouse → InstancedMesh face → tile id → `placeBuilding` action) — through the 3D camera, NOT a separate 2D canvas | 16.5.6 | ⬜ planned | Intermediate | P0 |
+| Fog-of-war as 3D camera-overlay shader (per-civ visibility rendered on planet sphere) | 16.8 | ⬜ planned | Advanced | P0 |
+| Tile-level inspection (mouse-hover surface tile → context popover in 3D scene, never a 2D modal) | 16.5 | ⬜ planned | Intermediate | P0 |
 
 #### 4. Galaxy + Planet Generation (`shared/gen/`)
 | Skill | Phase | Status | Complexity | Priority |
@@ -353,26 +357,28 @@
 - **`ROADMAP.md`** — Phase milestones overview
 - **`.claude/SMOL_REFERENCE_*.md`** (PHASE 0 deliverables) — UMS subsystem extractions referenced by Phase 6, 7, etc.
 
-### Skill Status Summary (will populate as PHASE 0+ progresses)
+### Skill Status Summary (updated 2026-05-10 per super-review reality sync — PHASE 16.14)
 
-| Domain | Total Skills | Complete | In Progress | Planned |
-|--------|--------------|----------|-------------|---------|
-| 1. Frontend / UI Shell | 6 | 0 | 0 | 6 |
-| 2. 3D Rendering | 7 | 0 | 0 | 7 |
-| 3. 2D Top-Down | 3 | 0 | 0 | 3 |
-| 4. Galaxy + Planet Generation | 5 | 0 | 0 | 5 |
-| 5. Civilization Building | 9 | 0 | 0 | 9 |
-| 6. Deception / Subterfuge | ~19 (was 7; expanded with 12 Citizen Tier System sub-skills) | 0 | 0 | ~19 |
-| 7. Government Theme System | 10 | 0 | 0 | 10 |
-| 8. Tech Tree & Research | 11 | 0 | 0 | 11 |
-| 9. Colony Ship System (UMS carryover + design extensions) | ~50 (was 22; expanded with 17+ ship variants × Tier 1-4 + cross-cutting) | 0 | 0 | ~50 |
-| 10. UMS Visual / Telemetry Carryover | 12 | 0 | 0 | 12 |
-| 11. AI Players | 7 | 0 | 0 | 7 |
-| 12. Multiplayer Server | 13 | 0 | 0 | 13 |
-| 13. Persistence + Meta-progression | 6 | 0 | 0 | 6 |
-| 14. Audio System | 8 | 0 | 0 | 8 |
-| 15. Cross-Platform Packaging | 10 | 0 | 0 | 10 |
-| **TOTAL** | **~176** (was 136; +40 for Colony Ship variants × tiers + Citizen Tier System) | **0** | **0** | **~176** |
+> Counts are rolled up from `/super-review` 2026-05-10 measurement of the codebase vs UMS canonical spec. "Shipped" = data structure + interface + UI surface reachable from `/play`. "Partial" = data + interface landed; UI surface partial OR tick wire-up pending. "Planned" = nothing yet OR data-only with no producer/consumer.
+
+| Domain | Total | Shipped | Partial | Planned | Notes |
+|--------|-------|---------|---------|---------|-------|
+| 1. Frontend / UI Shell | 6 | 3 | 2 | 1 | React shell + TS strict + CSS variable theming live; responsive mobile + per-theme skin loader partial; LCD-style panel components partial (4-tab overlay shipped, 11-LCD rack missing) |
+| 2. 3D Rendering | 7 | 3 | 2 | 2 | Camera controller + galaxy biome shading + surface InstancedMesh shipped; planet sphere + biome hostility tier visuals partial; multi-level LOD + 1000-planet 60fps + cinematic moments planned (PHASE 16.13 / 16.7 active) |
+| 3. 3D Surface Raycast UI | 3 | 0 | 1 | 2 | Tile-raycast scaffolded in PlayPage when galaxyOpen=true; primary placement still uses 2D TilePlacementGrid (PHASE 16.5.6 + 16.13.9 pending); fog-of-war shader planned |
+| 4. Galaxy + Planet Generation | 5 | 4 | 1 | 0 | 100-1000 planet procedural shipped; biome distribution + per-biome resources shipped; resource-node Vec3 scatter shipped; hostility-tier biome lock partial |
+| 5. Civilization Building | 9 | 5 | 3 | 1 | Hex tile data + building catalog + emoji resource system + per-planet inventory + workforce sliders shipped; population + auto-assignment + free-form-on-tile partial (multi-civ-per-planet UI per `feedback_planets_green_big_multi_civ.md` MISSING); upgradeable inventory capacity planned |
+| 6. Deception / Subterfuge | ~19 | 8 | 6 | ~5 | Propaganda + active campaigns + faction model + 5-tier citizens + per-suicide-ship tier validation shipped; Indoctrination buildings + Active Campaigns surface partial; some Citizen Tier UI rows (Volunteer Pool indicator, per-theme Chosen framing strings) planned |
+| 7. Government Theme System | 10 | 6 | 3 | 1 | 20-theme catalog + per-civ random + UI skin + per-theme propaganda + building emoji variants + boot reveal line shipped; per-theme music partial (synth fallback only, real .ogg pending); theme conversion on conquered planets planned |
+| 8. Tech Tree & Research | 11 | 7 | 3 | 1 | Future-only tree + Mainstream/Suppressed/Forbidden + research-points + tech apex gate shipped; conquest tech-loot + conquest resource-loot + planetary-coverage multiplier partial; tech tree visualizer planned |
+| 9. Colony Ship System | ~50 | 12 | 18 | ~20 | Pad state machine + 18-variant taxonomy + great-circle arc + mine intercept + counter-missile intercept + per-pad targeting queue + outcome enum + Tier 1 Scout/Surveyor/Probe + Tier 2 Standard shipped; build phase machine + 6 targeting modes + multi-pad controller mode mass actions + auto-fire / carpet bomb / auto-attack player surface MISSING (super-review Critical/High); mining colony ship auto-shuttle MISSING (Critical); Tier 3 / Tier 4 ship variant UI reachability partial |
+| 10. UMS Visual / Telemetry Carryover | 12 | 4 | 2 | 6 | LCD-frame component + flight telemetry panel + per-base inventory panel + beacon panel shipped; build-queue + production graphs partial (referenced but not default-visible per super-review); 11-LCD numbered rack + 12-graph sparkline cycle + personal-equipment 4-column + camera array + signal status + per-theme boot sequence flavor screen MISSING (super-review Critical/Medium) |
+| 11. AI Players | 7 | 3 | 3 | 1 | Background-process server + AI civs visible in multiplayer + simplified random AI shipped; archetype × difficulty + co-op mode partial (data exists; full AIController.tick wire-up pending); co-op diplomacy planned |
+| 12. Multiplayer Server | 13 | 8 | 4 | 1 | Authoritative server + WebSocket + per-room match + lobby + host config + slot system + theme reveal + auto-save shipped; tick-rate (5Hz) + per-civ fog-of-war filter + state-delta sync + action validation partial; disconnection AI takeover planned |
+| 13. Persistence + Meta-progression | 6 | 3 | 3 | 0 | Anonymous play + FileSnapshotStore + lifetime stats shipped; Google OAuth + Hall of Champions + achievement manifest partial (Google live 2026-05-10 per PHASE 17.0; leaderboard + achievement wire-up to real player data pending) |
+| 14. Audio System | 8 | 3 | 3 | 2 | Synth audio fallback + universal SFX + audio mixer shipped; per-theme soundtrack + UI SFX + per-theme mix presets partial (synth only, real recordings pending); adaptive music + spatial audio planned |
+| 15. Cross-Platform Packaging | 10 | 4 | 4 | 2 | Vite production bundle + Tauri config + Capacitor config + GitHub Actions matrix shipped; web deploy + CDN + desktop UX + auto-updater partial (local-host alpha only); app store assets + submission flows planned |
+| **TOTAL** | **~176** | **~73** | **~55** | **~48** | Roughly 41% shipped, 31% partial (data + interface + partial UI), 27% planned. Super-review gaps tracked in `.claude/TODO.md` PHASE 16.14. |
 
 ### Future Possibilities (Post-MVP / Out-of-Scope per TODO)
 

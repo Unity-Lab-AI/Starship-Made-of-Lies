@@ -1,8 +1,12 @@
 # STARSHIP MADE OF LIES — Roadmap
 
-*Last Updated: 2026-05-09*
+*Last Updated: 2026-05-10*
 *Project: SMoL (Starship Made of Lies) — formerly Unity Missile System (Space Engineers)*
 *Unity AI Lab*
+
+> ## ⚠ REALITY CHECK 2026-05-10
+>
+> This roadmap captures the **planned phase milestones**. `/super-review` 2026-05-10 measured the actual SMoL implementation against the UMS canonical spec and surfaced ~20+ gaps. Phases below are TRUE for design intent, but per-phase shipped-vs-pending status lives in `README.md` Status table (top-of-doc) and `.claude/TODO.md` (granular sub-tasks). Active correction work: PHASE 16.13 (true 3D x,y,z universe per LAW #0) + PHASE 16.14 (this doc reality sync). The active timeline below shows phase-level progress reality at the bottom.
 
 ---
 
@@ -44,14 +48,15 @@ Citizens DEFAULT to NOT wanting to die. Only the highest-tier / happiest / highe
 - The propaganda has worked TOO WELL: the elite citizens — the ones the player elevated, gave the best housing, the most honor — are exactly the ones who eagerly volunteer for one-way trips, because the propaganda told them "the eternal voyage is the highest honor; only the worthiest are chosen"
 - The dark comedy: your investment in elevating citizens IS the same investment that produces volunteers
 
-### Current Status
+### Current Status (updated 2026-05-10 per super-review reality sync — PHASE 16.14)
 
 | Metric | Value |
 |--------|-------|
-| **Phase** | PRE-DEVELOPMENT (PHASE 0 = UMS Reference Inventory + Extraction) |
-| **TODO** | `.claude/TODO.md` — PHASE 0-15, ~250+ tasks |
-| **Reference docs** | `.claude/SMOL_REFERENCE_*.md` (PHASE 0 deliverables) |
-| **UMS source** | PRESERVED in repo as reference material until PHASE 15 |
+| **Phase** | mid-PHASE 16 + 17 active. PHASE 0 closed 2026-05-09. PHASES 1-14 partially shipped (data + interfaces + partial UI). PHASE 16.13 (true 3D rebuild per LAW #0) + PHASE 16.14 (doc reality sync) + PHASE 16.5.6 (surface raycast) + PHASE 16.7 / 16.8 (LOD blending + fog of war) actively pending. PHASE 17.0 (auth overhaul) shipped 2026-05-10. |
+| **TODO** | `.claude/TODO.md` — PHASE 0-18, ~280+ tasks. PHASE 16.13 + 16.14 are the current active blocks. |
+| **Super-review gap analysis** | `/super-review` 2026-05-10 surfaced ~20+ UMS-spec-vs-SMoL-implementation gaps. Encoded into TODO PHASE 16.14 sub-tasks + the per-component status table in `.claude/ARCHITECTURE.md` REALITY CHECK banner. |
+| **Reference docs** | `.claude/SMOL_REFERENCE_*.md` (PHASE 0 deliverables, authoritative spec — DO NOT edit) |
+| **UMS source** | PRESERVED in `_ums-reference/` as reference material until PHASE 15 (project-completion-gated, NOT calendar-gated) |
 | **Repo** | `https://github.com/Unity-Lab-AI/Starship-Made-of-Lies` (public; `.claude/` proprietary, gitignored) |
 
 ### SMoL Phase Milestones (cross-reference `.claude/TODO.md` PHASE 0-15)
@@ -123,6 +128,8 @@ Citizens DEFAULT to NOT wanting to die. Only the highest-tier / happiest / highe
 | 2026-05-09 | Citizen Tier System: 5-tier (Worker/Skilled/Privileged/Elite/Pinnacle); Tier 4-5 required for suicide ships; player invests in propaganda buildings to manufacture high-tier citizens | "remember above all citizens dont want to kill them selves but for the most high tiered/happy/statas we have" |
 | 2026-05-09 | Mining colony ships use UMS-style auto-shuttle mechanic (UnityBeacon shuttle-cycle + UnityInventory cargo correlation); SMoL adds multi-planet rotation queue, auto-recall on threat, fleet auto-balancing | "and mining needs to using the mining s er like we had... in UMS... just more automated... with target ore send miner on auto settings ect ect similare way if not exact way" |
 | 2026-05-09 | Dark-humor tone is the through-line — every dark mechanic wrapped in increasingly desperate propaganda cover stories per government theme | "heheh dark humar games!" |
+| 2026-05-10 | TRUE 3D x,y,z universe is the canvas — NO 2D / hex-game / card-game fallback (LAW #0, PHASE 16.13) | *"a fucking top down 3D universei with a mall pan and tilt when zooming to show 3d world releativity witth qand e to rotate!!!! and wasd to move tharound thats 3 fucking dimentions!"* |
+| 2026-05-10 | Doc reality sync — clear wrong info + write correct info in every doc; super-review gap list is canonical (PHASE 16.14) | *"write the correc workflow files, todo, and public documents, and clear out the wrong information in every document editing in the correct information where every single document everywher is wrong!"* |
 
 ### Risk Assessment (SMoL)
 
@@ -148,7 +155,7 @@ PHASE 4     ████  Government Theme System
 PHASE 5     ████  Deception / Subterfuge
 PHASE 6     ████  Missile System (UMS carryover)
 PHASE 7     ████  UMS Visual / Telemetry Carryover
-PHASE 8     ████  Playable Match Loop (alpha — 2D hex grid; 3D zoom v1.5+)
+PHASE 8/16  ████  Playable Match Loop in TRUE 3D x,y,z universe (NO 2D fallback per LAW #0 2026-05-10 — see TODO 16.13)
 PHASE 9     ████  AI Players
 PHASE 10    ████  Multiplayer Server
 PHASE 11    ████  Persistence + Meta-progression
