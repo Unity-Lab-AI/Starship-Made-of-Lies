@@ -5,6 +5,7 @@ import {
   type LootDropId,
   type PlanetId,
   abortFlight,
+  setShipDutyPercent as setShipDutyPercentImpl,
 } from '@smol/shared'
 import {
   type BuildShipInputs,
@@ -63,6 +64,13 @@ export interface UseMatchSimResult {
   // PHASE 16.31: gate check exposed to UI so the FlightDetailPanel can show / hide the
   // "Select for Redirect" button + the PlayPage hint banner.
   readonly godControlReady: boolean
+  // PHASE 17.J.9 — set per-tier ship-duty allocation percentage on a specific planet. The
+  // CitizensPanel slider invokes this on every change. Persisted in PlanetPopulation.
+  readonly setShipDutyPercent: (
+    planetId: PlanetId,
+    tier: 1 | 2 | 3 | 4 | 5,
+    percent: number,
+  ) => void
 }
 
 export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
@@ -278,6 +286,18 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
 
   const godControlReady = isHumanGodControlReady(stateRef.current)
 
+  // PHASE 17.J.9 — apply a slider change immediately. Doesn't bump tickCount because the
+  // slider drag would fire 20× per second; volunteer-pool readouts derive on next natural tick.
+  const setShipDutyPercent = useCallback(
+    (planetId: PlanetId, tier: 1 | 2 | 3 | 4 | 5, percent: number) => {
+      const planet = stateRef.current.planets.get(planetId)
+      if (!planet) return
+      setShipDutyPercentImpl(planet.population, tier, percent)
+      setTickCount((n) => n + 1)
+    },
+    [],
+  )
+
   return {
     state: stateRef.current,
     tickCount,
@@ -301,5 +321,6 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     abortFlightById,
     redirectFlight,
     godControlReady,
+    setShipDutyPercent,
   }
 }

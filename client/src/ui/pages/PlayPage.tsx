@@ -27,9 +27,11 @@ import { useMatchSim } from '../../match/useMatchSim'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
 import { CommandPadPanel } from '../panels/CommandPadPanel'
+import { CitizensPanel } from '../panels/CitizensPanel'
 import { FlightDetailPanel } from '../panels/FlightDetailPanel'
 import { MiningFleetPanel } from '../panels/MiningFleetPanel'
 import { PlanetEnergyPanel } from '../panels/PlanetEnergyPanel'
+import { ShipBuilderPanel } from '../panels/ShipBuilderPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
 import { IndigenousPanel } from '../panels/IndigenousPanel'
@@ -722,6 +724,8 @@ export function PlayPage() {
       else if (k === 'x') togglePanel('events')
       else if (k === 'g') togglePanel('planets')
       else if (k === 'y') togglePanel('energy')
+      else if (k === 'n') togglePanel('citizens')
+      else if (k === 'u') togglePanel('shipBuilder')
       // PHASE 16.33: 'm' toggles the UMS 6-mode targeting picker. Chosen 'm' (mode) since
       // 't' is tech, 'p' is propaganda/campaigns, 'b' is build — all the obvious candidates
       // are taken. Per-keyboard-shortcut hotkey map in `feedback_mode_switching.md` is for
@@ -765,6 +769,15 @@ export function PlayPage() {
         planetLabel: `${p.planet.biome.emoji} ${String(p.planet.id)}`,
         buildingsByDef: p.buildingsByDef as ReadonlyMap<BuildingDefId, number>,
         fuelStock: p.inventory.stocks.get(RESOURCE_FUEL) ?? 0,
+      })),
+    [ownedPlanets],
+  )
+
+  const citizensPanelPlanets = useMemo(
+    () =>
+      ownedPlanets.map((p) => ({
+        planetLabel: `${p.planet.biome.emoji} ${String(p.planet.id)}`,
+        population: p.population,
       })),
     [ownedPlanets],
   )
@@ -1134,6 +1147,39 @@ export function PlayPage() {
             <PlanetEnergyPanel
               planets={energyPanelPlanets}
               techProductionMultiplier={techEffects.buildingProductionMultiplier}
+            />
+          </PanelFrame>
+        )}
+
+        {openPanels.has('citizens') && (
+          <PanelFrame
+            panelId="citizens"
+            title="Citizens"
+            emoji="👥"
+            onClose={() => closePanel('citizens')}
+            variant="docked-left"
+          >
+            <CitizensPanel
+              planets={citizensPanelPlanets}
+              onSetShipDuty={(planetIdString, tier, percent) =>
+                sim.setShipDutyPercent(planetIdString as unknown as PlanetId, tier, percent)
+              }
+            />
+          </PanelFrame>
+        )}
+
+        {openPanels.has('shipBuilder') && (
+          <PanelFrame
+            panelId="shipBuilder"
+            title="Ship Builder"
+            emoji="🛠"
+            onClose={() => closePanel('shipBuilder')}
+            variant="centered"
+            width={760}
+          >
+            <ShipBuilderPanel
+              inventory={activePlanet.inventory}
+              researchedTechs={humanCivState.empire.researchedTechs}
             />
           </PanelFrame>
         )}

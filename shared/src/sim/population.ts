@@ -78,6 +78,12 @@ export interface PlanetPopulation {
   faction: FactionSplit
   housingCap: number
   foodAvailability: number
+  // PHASE 17.J.9 — per-tier ship-duty allocation. Player-set percentage 0-100 indicating
+  // what share of each tier is RESERVED for the colony-ship-crew pool (not assigned to
+  // worker tasks). Default 0 for all tiers preserves prior behavior. shipDutyReservedPool()
+  // returns the derived head-count; the volunteer pool is augmented by the reserved share
+  // from tiers 1-3 (tier 4-5 already always volunteer per the citizen tier system).
+  shipDutyPercentByTier: Record<CitizenTier, number>
 }
 
 export function getCitizenTierDef(tier: CitizenTier): CitizenTierDef {
@@ -102,7 +108,35 @@ export function newPlanetPopulation(
     faction: newFactionSplit(initialTotal),
     housingCap: initialTotal,
     foodAvailability: 1,
+    shipDutyPercentByTier: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
   }
+}
+
+// PHASE 17.J.9 — derived total of citizens reserved for the colony-ship-crew pool. Computed
+// from shipDutyPercentByTier × tierCounts. Returned as a Record<CitizenTier, number> for
+// per-tier display + a totalReserved aggregate for the planet header.
+export function shipDutyReservedPool(pop: PlanetPopulation): {
+  byTier: Record<CitizenTier, number>
+  totalReserved: number
+} {
+  const byTier: Record<CitizenTier, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+  let totalReserved = 0
+  for (const tier of [1, 2, 3, 4, 5] as CitizenTier[]) {
+    const pct = Math.max(0, Math.min(100, pop.shipDutyPercentByTier[tier] ?? 0))
+    const reserved = Math.floor((pop.tierCounts[tier] * pct) / 100)
+    byTier[tier] = reserved
+    totalReserved += reserved
+  }
+  return { byTier, totalReserved }
+}
+
+export function setShipDutyPercent(
+  pop: PlanetPopulation,
+  tier: CitizenTier,
+  percent: number,
+): void {
+  const clamped = Math.max(0, Math.min(100, Math.round(percent)))
+  pop.shipDutyPercentByTier[tier] = clamped
 }
 
 export function totalPopulation(pop: PlanetPopulation): number {
@@ -116,9 +150,16 @@ export function totalPopulation(pop: PlanetPopulation): number {
 }
 
 export function volunteerPool(pop: PlanetPopulation, includeWithPropaganda: boolean): number {
+  // Tier 4-5 always volunteer per CITIZEN_TIERS.willVolunteerForOneWayTrip flag.
   const base = pop.tierCounts[4] + pop.tierCounts[5]
-  if (!includeWithPropaganda) return base
-  return base + pop.tierCounts[3]
+  // PHASE 17.J.9 — citizens reserved for ship-duty via the player slider are added to the
+  // volunteer pool regardless of tier. The reservation is the player's explicit assignment
+  // ("these are my colony-ship-crew pool, not workers"), so they count even from tier 1-2.
+  // Tier 4-5 reservation is already counted in base — subtract to avoid double-counting.
+  const reserved = shipDutyReservedPool(pop)
+  const reservedFromBelow = reserved.byTier[1] + reserved.byTier[2] + reserved.byTier[3]
+  if (!includeWithPropaganda) return base + reservedFromBelow
+  return base + pop.tierCounts[3] + reserved.byTier[1] + reserved.byTier[2]
 }
 
 export function promoteCitizens(

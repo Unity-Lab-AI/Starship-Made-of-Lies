@@ -16,6 +16,8 @@ export type PanelId =
   | 'events'
   | 'command'
   | 'energy'
+  | 'citizens'
+  | 'shipBuilder'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -42,6 +44,8 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'mining', emoji: '⛏️', label: 'Mining Fleet' },
   { id: 'command', emoji: '🎛', label: 'Command Pad' },
   { id: 'energy', emoji: '⚡', label: 'Energy', hotkey: 'Y' },
+  { id: 'citizens', emoji: '👥', label: 'Citizens', hotkey: 'N' },
+  { id: 'shipBuilder', emoji: '🛠', label: 'Ship Builder', hotkey: 'U' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },
