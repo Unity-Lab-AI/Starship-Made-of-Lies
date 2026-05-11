@@ -41,7 +41,11 @@ You start innocent — sending scout ships to map nearby planets. You end up run
 
 ## 🌍 The 3D Universe
 
-This is a **true 3D x,y,z universe** rendered in a single Three.js scene — not a hex grid, not a card game, not a 2D map with zoom levels. The camera flies between planets through galactic space. Continuous LOD: galaxy → planet → region → base → building, all in one camera ride.
+This is a **true 3D x,y,z universe** rendered in a single Three.js scene. **Not a flat 2D hex-grid map. Not a card game. Not a top-down tile board with zoom levels pretending to be 3D.** The camera flies between solar systems through galactic space — one continuous Three.js scene with continuous LOD from galactic cluster down to surface emoji buildings, all in one camera ride.
+
+**Subtle but important distinction:**
+- The **WORLD LAYOUT** is a 3D cluster of solar systems — _no_ 2D hex map.
+- Each planet's **3D spherical SURFACE** is divided into hex (and pentagon) tiles via an icosphere subdivision — that's the building-placement grid, wrapped onto the planet sphere. Click a tile → place a 🏘️ on it. The tiles are CURVED ON THE PLANET, not flat squares on a map.
 
 ```
         ZOOM-OUT                              ZOOM-IN
@@ -52,15 +56,26 @@ This is a **true 3D x,y,z universe** rendered in a single Three.js scene — not
    │   *      *      │                  │   🏘  🏭  🏘     │
    └─────────────────┘                  └──────────────────┘
      Galactic scale                       Surface tile scale
-     100–1000 planets                     Hex tiles on sphere
-     Great-circle arcs                    Emoji buildings
-     Civ flag banners                     Multi-civ on planet
+     ── solar systems ──                  ── icosphere tiles ──
+     • 14–143 stars, 4-10 planets each   • hex + pentagon tiles
+       (100–1000 planets total)            wrapped onto sphere
+     • Stars sized 4× galaxy's largest   • Emoji buildings per tile
+       planet (LAW #0 2026-05-11)        • Multi-civ presence visible
+     • Spectral classes O/B/A/F/G/K/M     • Owner flags at tile-cluster
+     • Toroidal universe wrap at           centroids (multi-flag stack
+       ±60000 units                        on contested planets)
+     • Great-circle arc flights          • Mining outpost spawns
+     • Owner-civ flag banners              build-it-don't-spawn miners
+       (fade-with-distance readable)
 ```
 
-**Controls:** `WASD` to move · `Q/E` to rotate · mouse-wheel to zoom · small pan + tilt on zoom-in for genuine 3D depth perception.
-**Surface tiles** activate as you zoom into a planet — click a tile to place a building, scan resources, or inspect occupancy.
-**Multi-civ planets** are first-class: every civ owning at least one tile gets a flag billboard above its **tile-cluster centroid**, so contested planets visibly show territory boundaries in 3D.
-**Mining ships, in-flight colony ships, mine fields, pad-state glow rings, indigenous markers, LAST HOPE alarm halos, galactic-center sun** — all rendered as first-class 3D entities, not 2D overlays.
+**Galaxy structure:** the cluster is real solar systems. Each STAR has its own 4–10 planets orbiting at static offsets. Solar systems are placed with collision-aware rejection sampling so no two systems' bounding spheres overlap (wrap-aware distance). Same seed always produces the same galaxy.
+
+**Controls:** `WASD` to move · `Q/E` to rotate · mouse-wheel to zoom · small pan + tilt on zoom-in for genuine 3D depth perception · `M` to switch between the 6 missile targeting modes (GPS / ANTENNA / SENSOR / LIDAR / MANUAL / SATELLITE).
+**Surface tiles** activate as the camera enters a planet's atmosphere. Click a tile to place a building, scan resources, or inspect occupancy. Build-validation gives specific error messages: "❌ Not your tile" / "❌ Tile already has X" / "❌ Need 50 ingots (have 30)".
+**Multi-civ planets** are first-class — every civ owning at least one tile gets a flag billboard above its **tile-cluster centroid**, so contested planets visibly show territory boundaries in 3D. Flags fade with camera distance: full opacity in the useful zoom band, invisible at galactic scale, gone again when you zoom past the planet's surface.
+**Mining ships, in-flight colony ships, mine fields, pad-state glow rings, indigenous markers, LAST HOPE alarm halos, real stars** — all rendered as first-class 3D entities with HDR-emissive halos, never 2D overlays.
+**Fog of war:** undiscovered planets are HIDDEN — the player sees only their home planet at match start. Other planets reveal as the player launches colony ships at them (attacker discovery) or as incoming attacks arrive (defender discovery).
 
 ---
 
@@ -492,7 +507,32 @@ Source-available, all-rights-reserved during alpha. Repo is public for code revi
 
 ## 🚧 Development Status
 
-Active development. The full game vision above is the **intended design** — see [`docs/ROADMAP.md`](./docs/ROADMAP.md) for phase milestones and current implementation progress. The TypeScript stack is scaffolded and running; many systems are partially wired with their full game-vision behavior tracked through ongoing development. Honest implementation-state-vs-design-intent breakdown lives in [`docs/ROADMAP.md`](./docs/ROADMAP.md).
+Active development. The full game vision above is the **intended design**. Honest implementation-state breakdown:
+
+```
+   ┌─────────────────────────────────────────────────────────────┐
+   │   Code-review fixes (super-review × 2):       100% ✓        │
+   │   Core game loop (build→economy→launch→win):  ~85%          │
+   │   UMS-faithful immersion (panels/UI):         ~50% (17.J)   │
+   │   Ready-to-sell business surface:             ~20%          │
+   └─────────────────────────────────────────────────────────────┘
+```
+
+**Working today:** everything described in the **🌍 The 3D Universe**, **🛸 Colony Ship System**, **🎭 Citizen Tier System**, **🏛️ Governments**, **🌱 Empire Mechanics**, **🛡️ Defense**, **📡 UMS Telemetry Heritage** sections above.
+
+**Active feature work (PHASE 17.J — ~8-12 working days):**
+- Draggable / floating panel framework
+- Unified top toolbar (all resources + citizen-tier breakdown)
+- Quick-toggle bar per panel
+- Modular 8-slot ship builder + saved blueprints
+- Reactor fuel loading (radioactives → ship reactors)
+- Planet energy panel (capacity / draw / surplus / battery storage)
+- Citizen panel with ship-duty sliders
+- Per-launch crew + cargo loading UI
+
+**Aspirational (PHASE 17.D/E — business-decision gated):** OAuth tail (Discord/Apple/email) · Tauri desktop + Capacitor mobile packaging · replay archive · diplomacy + treaties · cinematics · localization · GDPR + payment integration.
+
+For full phase milestones + per-phase capability breakdown: [`docs/ROADMAP.md`](./docs/ROADMAP.md) + [`docs/SKILL_TREE.md`](./docs/SKILL_TREE.md).
 
 **Quickstart:** see [`docs/BUILD.md`](./docs/BUILD.md). **Hosting scripts:** `windows/start-smol.bat` (Windows) or `linux/start-smol.sh` (Linux).
 

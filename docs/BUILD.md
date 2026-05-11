@@ -9,7 +9,7 @@
 ---
 
 **Version:** v0.01.0 — Alpha (stays at this version until explicitly bumped)
-**Community:** Discord — [`discord.gg/YWYk4CBr`](https://discord.gg/YWYk4CBr) — bug reports, ideas, weirdest match stories
+**Community:** Discord — [`discord.gg/JyF2bY4BC6`](https://discord.gg/JyF2bY4BC6) — bug reports, ideas, weirdest match stories
 **Live alpha host:** `https://smol.unityailab.com` (self-hosted on Gee's Windows PC during alpha)
 
 ---
