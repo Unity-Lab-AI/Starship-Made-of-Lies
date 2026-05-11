@@ -455,6 +455,111 @@ function paintIndigenousCanvas(canvas: HTMLCanvasElement, label: string): void {
   ctx.fillText(label, canvas.width / 2, canvas.height / 2)
 }
 
+// === MINE FIELD LAYER ===
+// PHASE 16.22 — UMS-faithful mine-field 3D visualization per SMOL_REFERENCE_TRAJECTORY §17
+// + UnityPad.cs mine logic. Each MineField on the planet surface gets a 💣 emoji billboard
+// rendered at its world position. Sprite scale keys off detonationRadius so player can SEE
+// the trigger envelope. Sprite fades as remainingDetonations depletes (red→dim) so players
+// can tell which mines are spent.
+
+export interface MineFieldEntry {
+  readonly id: string
+  readonly sprite: THREE.Sprite
+  readonly texture: THREE.Texture
+  readonly canvas: HTMLCanvasElement
+}
+
+export interface MineFieldLayerHandle {
+  readonly group: THREE.Group
+  readonly entries: Map<string, MineFieldEntry>
+  readonly destroy: () => void
+}
+
+export function buildMineFieldLayer(): MineFieldLayerHandle {
+  const group = new THREE.Group()
+  const entries = new Map<string, MineFieldEntry>()
+  return {
+    group,
+    entries,
+    destroy: () => {
+      for (const entry of entries.values()) {
+        entry.texture.dispose()
+        ;(entry.sprite.material as THREE.SpriteMaterial).dispose()
+      }
+      entries.clear()
+    },
+  }
+}
+
+export interface MineFieldInput {
+  readonly id: string
+  readonly worldPosition: Vec3
+  readonly remainingDetonations: number
+  readonly detonationRadius: number
+}
+
+export function syncMineFields(
+  handle: MineFieldLayerHandle,
+  inputs: ReadonlyArray<MineFieldInput>,
+): void {
+  const liveIds = new Set<string>()
+  for (const m of inputs) {
+    liveIds.add(m.id)
+    let entry = handle.entries.get(m.id)
+    if (!entry) {
+      const canvas = document.createElement('canvas')
+      canvas.width = 64
+      canvas.height = 64
+      const tex = new THREE.CanvasTexture(canvas)
+      tex.minFilter = THREE.LinearFilter
+      tex.needsUpdate = true
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: true })
+      const sprite = new THREE.Sprite(mat)
+      handle.group.add(sprite)
+      entry = { id: m.id, sprite, texture: tex, canvas }
+      handle.entries.set(m.id, entry)
+    }
+    // Sprite size keyed off detonation radius — larger detonationRadius means larger
+    // visible billboard (player sees trigger envelope at a glance).
+    const spriteSize = Math.max(40, m.detonationRadius * 2)
+    entry.sprite.scale.set(spriteSize, spriteSize, 1)
+    // Position at the mine's world position. Add a small +y nudge so the sprite floats just
+    // above surface tile geometry instead of clipping into it.
+    entry.sprite.position.set(m.worldPosition.x, m.worldPosition.y, m.worldPosition.z)
+    // Repaint canvas — depletion shows as dimmer red.
+    const intensity = Math.max(0.4, Math.min(1, m.remainingDetonations / 3))
+    paintMineFieldCanvas(entry.canvas, intensity)
+    entry.texture.needsUpdate = true
+  }
+  // GC mines that no longer exist (consumed all detonations or planet lost).
+  for (const [id, entry] of handle.entries) {
+    if (liveIds.has(id)) continue
+    handle.group.remove(entry.sprite)
+    entry.texture.dispose()
+    ;(entry.sprite.material as THREE.SpriteMaterial).dispose()
+    handle.entries.delete(id)
+  }
+}
+
+function paintMineFieldCanvas(canvas: HTMLCanvasElement, intensity: number): void {
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  // Translucent red disc background (intercept envelope hint).
+  const cx = canvas.width / 2
+  const cy = canvas.height / 2
+  const grad = ctx.createRadialGradient(cx, cy, 4, cx, cy, canvas.width / 2)
+  grad.addColorStop(0, `rgba(239, 68, 68, ${0.55 * intensity})`)
+  grad.addColorStop(1, 'rgba(239, 68, 68, 0)')
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  // 💣 emoji at center.
+  ctx.font = `${Math.round(36 * (0.7 + intensity * 0.3))}px system-ui, sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('💣', cx, cy + 2)
+}
+
 // === FLIGHT ARC LAYER ===
 
 export interface FlightArcEntry {

@@ -21,6 +21,7 @@ import {
   type LaunchPad,
   type LootDrop,
   type LootDropId,
+  type MineField,
   type MiningShip,
   type MissionObjectiveConfig,
   type MissionObjectiveId,
@@ -47,6 +48,7 @@ import {
   BLDG_LAUNCH_PAD,
   BLDG_LUMBER_CAMP,
   BLDG_MINE,
+  BLDG_MINE_FIELD,
   BLDG_TV_STATION,
   CAMPAIGNS,
   COLONY_SHIPS,
@@ -112,6 +114,8 @@ import {
   newMiningShip,
   newPlanetBeacon,
   newPlanetInventory,
+  mineFieldCheckIntercept,
+  newMineField,
   newPlanetPopulation,
   newPlanetShipBeaconBuffer,
   newPlanetWorkforce,
@@ -158,6 +162,10 @@ export interface MatchPlanetState {
   shipBeacons: PlanetShipBeaconBuffer
   activeCampaigns: ActiveCampaign[]
   indigenousCivId: CivId | null
+  // PHASE 16.22: server-authoritative mine fields per UMS spec. Player places BLDG_MINE_FIELD
+  // tile → a MineField is created at the tile's world position. Per-tick intercept check
+  // compares each in-flight ship arc position vs every mine field on the target planet.
+  mineFields: MineField[]
 }
 
 export interface MatchCivState {
@@ -419,6 +427,7 @@ function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
     miningShips: new Map(),
     shipBeacons: newPlanetShipBeaconBuffer(planet.id),
     activeCampaigns: [],
+    mineFields: [],
     indigenousCivId: null,
   }
 }
@@ -473,6 +482,28 @@ export function tickMatch(state: MatchState): void {
 
   for (const flight of [...state.flights.values()]) {
     tickFlight(flight)
+    // PHASE 16.22: per-tick mine-field intercept check per UMS UnityPad.cs mine logic +
+    // SMOL_REFERENCE_TRAJECTORY §17. For each in-flight ship, walk the target planet's
+    // mineFields[] and call mineFieldCheckIntercept — flips flight.phase to INTERCEPTED
+    // when current arc position falls within field.detonationRadius. The check itself
+    // gates on phase=REENTRY|TARGET so cruise-phase ships pass safely overhead.
+    if (flight.phase === 'REENTRY' || flight.phase === 'TARGET') {
+      const targetPlanet = state.planets.get(flight.targetPlanetId)
+      if (targetPlanet) {
+        for (const field of targetPlanet.mineFields) {
+          const hit = mineFieldCheckIntercept(field, flight)
+          if (hit) {
+            pushEvent(state, {
+              atTick: state.currentTick,
+              civId: field.civId,
+              kind: 'intercept',
+              message: `💥 Mine intercept — ${String(flight.id)} downed over ${String(targetPlanet.planet.id)}`,
+            })
+            break
+          }
+        }
+      }
+    }
     if (
       flight.phase === 'DETONATE' ||
       flight.phase === 'INTERCEPTED' ||
@@ -1411,6 +1442,21 @@ function placeBuildingInternal(
     const pad = newLaunchPad(empty.id, planet.civId, planet.planet.id, false)
     planet.launchPads.set(empty.id, pad)
   }
+  if (defId === BLDG_MINE_FIELD) {
+    // PHASE 16.22: per UMS spec + SMOL_REFERENCE_TRAJECTORY §17 — placing a mine-field
+    // tile creates a server-authoritative MineField at the tile's world position. The
+    // detonation radius scales with planet radius (UMS detDist=50m on flat-Earth → SMoL
+    // great-circle arc scale uses planet.radius * 0.12 ≈ 50-200 units depending on
+    // planet size — catches arc-passes within roughly one tile's width).
+    empty.occupancy = 'mineField'
+    const worldPos = {
+      x: planet.planet.position.x + empty.centroid.x,
+      y: planet.planet.position.y + empty.centroid.y,
+      z: planet.planet.position.z + empty.centroid.z,
+    }
+    const detRadius = Math.max(50, planet.planet.radius * 0.12)
+    planet.mineFields.push(newMineField(planet.planet.id, planet.civId, worldPos, 3, detRadius))
+  }
   void state
   return true
 }
@@ -1463,6 +1509,18 @@ export function placeBuildingAction(inputs: PlaceBuildingInputs): boolean {
   if (inputs.defId === BLDG_LAUNCH_PAD) {
     const pad = newLaunchPad(tile.id, planet.civId, planet.planet.id, false)
     planet.launchPads.set(tile.id, pad)
+  }
+  if (inputs.defId === BLDG_MINE_FIELD) {
+    // PHASE 16.22: see placeBuildingInternal for full UMS-spec rationale. Player-placement
+    // path mirrors AI placement path so mines work identically regardless of who places them.
+    tile.occupancy = 'mineField'
+    const worldPos = {
+      x: planet.planet.position.x + tile.centroid.x,
+      y: planet.planet.position.y + tile.centroid.y,
+      z: planet.planet.position.z + tile.centroid.z,
+    }
+    const detRadius = Math.max(50, planet.planet.radius * 0.12)
+    planet.mineFields.push(newMineField(planet.planet.id, planet.civId, worldPos, 3, detRadius))
   }
   pushEvent(inputs.state, {
     atTick: inputs.state.currentTick,

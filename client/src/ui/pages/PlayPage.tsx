@@ -321,6 +321,36 @@ export function PlayPage() {
     [sim.state, sim.state.currentTick],
   )
 
+  // PHASE 16.22: aggregate all server-authoritative mine-fields across every planet into the
+  // 3D-layer input shape. Per UMS spec + SMOL_REFERENCE_TRAJECTORY §17 — mines render as 💣
+  // billboards on the planet surface; size keys off detonationRadius so the player sees the
+  // trigger envelope. Id is `${planetId}:${index}` for stable per-frame entry reuse.
+  const allMineFields = useMemo(
+    () => {
+      const out: Array<{
+        id: string
+        worldPosition: import('@smol/shared').Vec3
+        remainingDetonations: number
+        detonationRadius: number
+      }> = []
+      for (const planetState of sim.state.planets.values()) {
+        for (let i = 0; i < planetState.mineFields.length; i++) {
+          const m = planetState.mineFields[i]!
+          if (m.remainingDetonations <= 0) continue
+          out.push({
+            id: `${String(planetState.planet.id)}:${i}`,
+            worldPosition: m.position,
+            remainingDetonations: m.remainingDetonations,
+            detonationRadius: m.detonationRadius,
+          })
+        }
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
   // PHASE 16.14: aggregate ship beacons from all player planets for MiningFleetPanel +
   // TelemetryRack. Per-planet map for MiningFleetPanel's per-planet dropdown grouping.
   // Recompute on every tick (sim.state is a stable ref via useRef; currentTick mutates).
@@ -597,6 +627,7 @@ export function PlayPage() {
             humanCivId={String(sim.state.humanCivId)}
             ownedPlanetIds={new Set(ownedPlanets.map((p) => p.planet.id))}
             homePlanetId={humanCivState.homePlanetId}
+            mineFields={allMineFields}
             activeFlights={[...sim.state.flights.values()]}
             alertedPlanetIds={
               new Set(

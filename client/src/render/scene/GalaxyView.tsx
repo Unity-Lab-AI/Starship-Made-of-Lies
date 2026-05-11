@@ -25,6 +25,7 @@ import {
   buildFlightArcLayer,
   buildGalaxyLayer,
   buildLastHopeAlarmLayer,
+  buildMineFieldLayer,
   buildMiningShipLayer,
   buildOwnerFlagLayer,
   buildPadStateGlowLayer,
@@ -32,9 +33,11 @@ import {
   syncBeaconPulses,
   syncFlightArcs,
   syncLastHopeAlarms,
+  syncMineFields,
   syncMiningShips,
   syncOwnerFlags,
   syncPadStateGlows,
+  type MineFieldInput,
 } from './galaxyLayer'
 import { buildSurfaceLayer, type SurfaceLayerHandle } from './surfaceLayer'
 import './scene.css'
@@ -79,6 +82,10 @@ interface GalaxyViewProps {
   // around that pad's surface tile colored by pad.state (READY=green, ARM=red, LAUNCH=
   // white flash, etc.). Visible when zoomed close enough to see the surface.
   readonly padStateGlows?: ReadonlyArray<PadStateGlowInput>
+  // PHASE 16.22: server-authoritative mine fields per UMS spec. Each entry renders a 💣
+  // billboard at the mine's world position with size keyed to detonationRadius. Visible
+  // any zoom; fades as remainingDetonations depletes.
+  readonly mineFields?: ReadonlyArray<MineFieldInput>
 }
 
 export function GalaxyView({
@@ -97,6 +104,7 @@ export function GalaxyView({
   indigenousByPlanet,
   lastHopeTriggeredPlanetIds,
   padStateGlows,
+  mineFields,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -118,6 +126,7 @@ export function GalaxyView({
     lastHopeTriggeredPlanetIds ?? new Set(),
   )
   const padStateGlowsRef = useRef<ReadonlyArray<PadStateGlowInput>>(padStateGlows ?? [])
+  const mineFieldsRef = useRef<ReadonlyArray<MineFieldInput>>(mineFields ?? [])
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
@@ -129,6 +138,7 @@ export function GalaxyView({
   indigenousByPlanetRef.current = indigenousByPlanet ?? []
   lastHopeTriggeredRef.current = lastHopeTriggeredPlanetIds ?? new Set()
   padStateGlowsRef.current = padStateGlows ?? []
+  mineFieldsRef.current = mineFields ?? []
   void humanCivId
 
   useEffect(() => {
@@ -190,6 +200,8 @@ export function GalaxyView({
     scene.add(lastHopeAlarmHandle.group)
     const padStateGlowHandle = buildPadStateGlowLayer()
     scene.add(padStateGlowHandle.group)
+    const mineFieldHandle = buildMineFieldLayer()
+    scene.add(mineFieldHandle.group)
     const homePlanetMesh = galaxyHandle.planetMeshes.get(homePlanetId)
     const rangeOverlayHandle = buildRangeOverlayLayer(
       homePlanetMesh ? homePlanetMesh.position.clone() : new THREE.Vector3(),
@@ -438,6 +450,9 @@ export function GalaxyView({
       // Sync per-pad state glow rings (PHASE 16.19)
       syncPadStateGlows(padStateGlowHandle, padStateGlowsRef.current, galaxyHandle.planetMeshes)
 
+      // Sync server-authoritative mine-field 💣 billboards (PHASE 16.22)
+      syncMineFields(mineFieldHandle, mineFieldsRef.current)
+
       // Range overlay visibility
       rangeOverlayHandle.setVisible(rangeVisibleRef.current)
 
@@ -478,6 +493,7 @@ export function GalaxyView({
       miningShipHandle.destroy()
       lastHopeAlarmHandle.destroy()
       padStateGlowHandle.destroy()
+      mineFieldHandle.destroy()
       rangeOverlayHandle.destroy()
       galaxyHandle.destroy()
       for (const surface of surfaceLayers.values()) {
