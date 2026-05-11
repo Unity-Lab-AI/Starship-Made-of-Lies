@@ -21,6 +21,7 @@ import {
   type LaunchPad,
   type LootDrop,
   type LootDropId,
+  type MiningShip,
   type MissionObjectiveConfig,
   type MissionObjectiveId,
   type ObservedEnemyPlanet,
@@ -30,6 +31,7 @@ import {
   type PlanetId,
   type PlanetInventory,
   type PlanetPopulation,
+  type PlanetShipBeaconBuffer,
   type PlanetWorkforce,
   type PlaystyleArchetype,
   type ShipLoadoutContext,
@@ -81,6 +83,7 @@ import {
   controlledPlanetCount,
   createLootDrop,
   deathsInWindow,
+  defaultHomeDockPosition,
   deceptionPenalties,
   defaultBuildFromShipDef,
   deriveCrashLootFromShipPayload,
@@ -106,15 +109,18 @@ import {
   newEmpire,
   newFactionSplit,
   newLaunchPad,
+  newMiningShip,
   newPlanetBeacon,
   newPlanetInventory,
   newPlanetPopulation,
+  newPlanetShipBeaconBuffer,
   newPlanetWorkforce,
   performanceMultiplier,
   pushBeaconAlert,
   qualityOfLifeIndex,
   recordColonyShipLaunch,
   recordDeath,
+  recordShipBeacon,
   recordPlanetGain,
   recordPlanetLoss,
   resolveMatchEnd,
@@ -127,6 +133,7 @@ import {
   tickFlight,
   tickIndigenousAttacks,
   tickLastHopeEvac,
+  tickMiningShip,
   tickPad,
   tickPlanetProduction,
   tickResearch,
@@ -147,6 +154,8 @@ export interface MatchPlanetState {
   buildingsByDef: Map<BuildingDefId, number>
   buildingsByTile: Map<TileId, BuildingDefId>
   launchPads: Map<TileId, LaunchPad>
+  miningShips: Map<string, MiningShip>
+  shipBeacons: PlanetShipBeaconBuffer
   activeCampaigns: ActiveCampaign[]
   indigenousCivId: CivId | null
 }
@@ -346,7 +355,7 @@ export function createMatch(config: MatchConfig): MatchState {
     }
   }
 
-  return {
+  const state: MatchState = {
     matchId: `match-${config.seed}-${Date.now()}`,
     seed: config.seed,
     galaxy,
@@ -375,6 +384,8 @@ export function createMatch(config: MatchConfig): MatchState {
     resolvedObjectiveId: null,
     rng,
   }
+  spawnInitialMiningShips(state)
+  return state
 }
 
 function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
@@ -405,8 +416,29 @@ function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
     buildingsByDef: new Map(),
     buildingsByTile: new Map(),
     launchPads: new Map(),
+    miningShips: new Map(),
+    shipBeacons: newPlanetShipBeaconBuffer(planet.id),
     activeCampaigns: [],
     indigenousCivId: null,
+  }
+}
+
+// Spawn 2 mining ships per civ at match start on their home planet (UMS-style auto-shuttle
+// fleet). Each ship cycles DOCKED → OUTBOUND → DRILLING → INBOUND → OFFLOADING against the
+// planet's ResourceNode deposits. Per `feedback_resource_miners_need_deposits.md`.
+const STARTING_MINING_SHIPS_PER_CIV = 2
+
+function spawnInitialMiningShips(state: MatchState): void {
+  for (const civState of state.civs.values()) {
+    const home = state.planets.get(civState.homePlanetId)
+    if (!home) continue
+    const dockPos = defaultHomeDockPosition(home.planet.position, home.planet.surfaceRadius)
+    for (let i = 0; i < STARTING_MINING_SHIPS_PER_CIV; i++) {
+      const shipId = `${civState.civId}-miner-${i + 1}`
+      const shipName = `${civState.theme.emoji} Drone ${String.fromCharCode(65 + i)}`
+      const ship = newMiningShip(shipId, shipName, civState.civId, home.planet.id, dockPos)
+      home.miningShips.set(shipId, ship)
+    }
   }
 }
 
@@ -533,6 +565,21 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
 
   for (const pad of planetState.launchPads.values()) {
     tickPad(pad, planetState.inventory)
+  }
+
+  // Mining ship auto-shuttle tick — each ship picks the closest non-depleted ResourceNode,
+  // travels to it, drills, returns, offloads into PlanetInventory.stocks. Beacons broadcast
+  // every 2 ticks (UMS MINER_BEACON cadence) so MiningFleetPanel + telemetry rack stay live.
+  for (const ship of planetState.miningShips.values()) {
+    const result = tickMiningShip({
+      ship,
+      planet: planetState.planet,
+      inventory: planetState.inventory,
+      currentTick: state.currentTick,
+    })
+    if (result.beacon) {
+      recordShipBeacon(planetState.shipBeacons, result.beacon)
+    }
   }
 }
 

@@ -1,0 +1,273 @@
+import { useMemo, useState } from 'react'
+import { type ColonyShipFlight, type LaunchPad, type ShipBeaconBroadcast } from '@smol/shared'
+import './telemetry-rack.css'
+
+// PHASE 16.14 — UMS 11-LCD telemetry rack v1. UMS UnityPad/UnityInventory own 11 numbered LCDs
+// in canonical positions (1=CONTROL, 2=BUILD, 3=SYSTEMS, 4=INV cycle, 5=POWER, 6=GRAPHS,
+// 7=FLIGHT, 8=STATUS, 9=FLEET, 10=MINER, 11=PERSONAL). This rack is the always-visible
+// SMoL equivalent — a collapsible 6×2 grid that surfaces compact one-line summaries per slot.
+// v1 ships concrete content for the slots that have live data flowing today (1, 2, 7, 9);
+// other slots show stub copy explaining what they will host once their data pipelines land.
+
+export interface TelemetryRackProps {
+  readonly activePads: ReadonlyArray<LaunchPad>
+  readonly miningBeacons: ReadonlyArray<ShipBeaconBroadcast>
+  readonly activeFlights: ReadonlyArray<ColonyShipFlight>
+  readonly resourceTotals: number
+  readonly populationTotal: number
+  readonly empireTechs: number
+  readonly currentTick: number
+}
+
+type LCDStatus = 'live' | 'stub'
+
+interface LCDSlotProps {
+  readonly slot: number
+  readonly title: string
+  readonly status: LCDStatus
+  readonly children: React.ReactNode
+}
+
+function LCDSlot({ slot, title, status, children }: LCDSlotProps) {
+  return (
+    <div className={`telemetry-rack__lcd telemetry-rack__lcd--${status}`}>
+      <header className="telemetry-rack__lcd-header">
+        <span className="telemetry-rack__lcd-slot">{slot}</span>
+        <span className="telemetry-rack__lcd-title">{title}</span>
+      </header>
+      <div className="telemetry-rack__lcd-body">{children}</div>
+    </div>
+  )
+}
+
+export function TelemetryRack({
+  activePads,
+  miningBeacons,
+  activeFlights,
+  resourceTotals,
+  populationTotal,
+  empireTechs,
+  currentTick,
+}: TelemetryRackProps) {
+  const [expanded, setExpanded] = useState(false)
+
+  const padCounts = useMemo(() => {
+    let idle = 0
+    let building = 0
+    let ready = 0
+    let armed = 0
+    let launched = 0
+    for (const pad of activePads) {
+      switch (pad.state) {
+        case 'INIT':
+        case 'IDLE':
+          idle += 1
+          break
+        case 'PRINT':
+        case 'BUILD':
+        case 'DOCK':
+        case 'FUEL':
+        case 'AMMO':
+          building += 1
+          break
+        case 'READY':
+          ready += 1
+          break
+        case 'ARM':
+          armed += 1
+          break
+        case 'LAUNCH':
+        case 'GONE':
+          launched += 1
+          break
+      }
+    }
+    return { idle, building, ready, armed, launched, total: activePads.length }
+  }, [activePads])
+
+  const fleetCounts = useMemo(() => {
+    let docked = 0
+    let outbound = 0
+    let drilling = 0
+    let inbound = 0
+    let offloading = 0
+    let cargoFull = 0
+    let cargoTotal = 0
+    for (const b of miningBeacons) {
+      switch (b.status) {
+        case 'DOCKED':
+        case 'IDLE':
+          docked += 1
+          break
+        case 'OUTBOUND_TRAVELING':
+          outbound += 1
+          break
+        case 'AT_DEPOSIT_DRILLING':
+          drilling += 1
+          break
+        case 'INBOUND_RETURNING':
+          inbound += 1
+          break
+        case 'OFFLOADING':
+          offloading += 1
+          break
+      }
+      cargoFull += b.cargoAmount
+      cargoTotal += b.cargoCapacity
+    }
+    const cargoPct = cargoTotal > 0 ? Math.round((cargoFull / cargoTotal) * 100) : 0
+    return {
+      total: miningBeacons.length,
+      docked,
+      outbound,
+      drilling,
+      inbound,
+      offloading,
+      cargoPct,
+    }
+  }, [miningBeacons])
+
+  const flightCounts = useMemo(() => {
+    let climb = 0
+    let coast = 0
+    let target = 0
+    let reentry = 0
+    let resolved = 0
+    for (const f of activeFlights) {
+      switch (f.phase) {
+        case 'CLIMB':
+          climb += 1
+          break
+        case 'COAST':
+          coast += 1
+          break
+        case 'REENTRY':
+          reentry += 1
+          break
+        case 'TARGET':
+          target += 1
+          break
+        case 'DETONATE':
+        case 'INTERCEPTED':
+        case 'ABORTED':
+        case 'CRASH_LANDED':
+          resolved += 1
+          break
+      }
+    }
+    return {
+      total: activeFlights.length,
+      climb,
+      coast,
+      reentry,
+      target,
+      resolved,
+    }
+  }, [activeFlights])
+
+  return (
+    <section
+      className={`telemetry-rack ${expanded ? 'telemetry-rack--expanded' : 'telemetry-rack--collapsed'}`}
+      aria-label="11-LCD telemetry rack"
+    >
+      <button
+        type="button"
+        className="telemetry-rack__toggle"
+        onClick={() => setExpanded((v) => !v)}
+        title={expanded ? 'Collapse the LCD rack' : 'Expand the 11-LCD rack (UMS telemetry)'}
+      >
+        {expanded ? '▾' : '▴'} LCD Rack · 11 panels
+      </button>
+      {expanded && (
+        <div className="telemetry-rack__grid">
+          <LCDSlot slot={1} title="CONTROL" status="live">
+            <div>
+              Pads: <strong>{padCounts.total}</strong>
+            </div>
+            <div className="telemetry-rack__line">
+              R/A/L: {padCounts.ready}/{padCounts.armed}/{padCounts.launched}
+            </div>
+            <div className="telemetry-rack__line">t{currentTick}</div>
+          </LCDSlot>
+
+          <LCDSlot slot={2} title="BUILD STATUS" status="live">
+            <div>
+              Building: <strong>{padCounts.building}</strong>
+            </div>
+            <div className="telemetry-rack__line">Idle: {padCounts.idle}</div>
+          </LCDSlot>
+
+          <LCDSlot slot={3} title="SHIP SYSTEMS" status="stub">
+            <div className="telemetry-rack__stub">
+              Per-pad missile-systems breakdown — landing with build-phase machine wire-up.
+            </div>
+          </LCDSlot>
+
+          <LCDSlot slot={4} title="INV CYCLE" status="stub">
+            <div className="telemetry-rack__stub">
+              7-tab inventory cycle (BUILD/MISSILE/FUEL/POWER/CARGO/PROD/FACILITIES) — pending.
+            </div>
+          </LCDSlot>
+
+          <LCDSlot slot={5} title="POWER" status="live">
+            <div>
+              Pop: <strong>{populationTotal.toLocaleString()}</strong>
+            </div>
+            <div className="telemetry-rack__line">
+              Stock: <strong>{resourceTotals.toLocaleString()}</strong>
+            </div>
+            <div className="telemetry-rack__line">Techs: {empireTechs}</div>
+          </LCDSlot>
+
+          <LCDSlot slot={6} title="GRAPHS" status="stub">
+            <div className="telemetry-rack__stub">
+              12-graph sparkline cycle (Bat/H2/O2/Cargo/Refinery/Asm/Prod/Power/Solar/Wind/ Reactor)
+              — pending.
+            </div>
+          </LCDSlot>
+
+          <LCDSlot slot={7} title="FLIGHT COMMS" status="live">
+            <div>
+              Flights: <strong>{flightCounts.total}</strong>
+            </div>
+            <div className="telemetry-rack__line">
+              CL/CO/RE/TG: {flightCounts.climb}/{flightCounts.coast}/{flightCounts.reentry}/
+              {flightCounts.target}
+            </div>
+            <div className="telemetry-rack__line">Resolved: {flightCounts.resolved}</div>
+          </LCDSlot>
+
+          <LCDSlot slot={8} title="MISSILE STATUS" status="stub">
+            <div className="telemetry-rack__stub">
+              Per-flight fuel/ammo/citizens load-out — pending build-phase machine wire-up.
+            </div>
+          </LCDSlot>
+
+          <LCDSlot slot={9} title="FLEET READINESS" status="live">
+            <div>
+              Miners: <strong>{fleetCounts.total}</strong>
+            </div>
+            <div className="telemetry-rack__line">
+              D/O/Dr/I/Of: {fleetCounts.docked}/{fleetCounts.outbound}/{fleetCounts.drilling}/
+              {fleetCounts.inbound}/{fleetCounts.offloading}
+            </div>
+            <div className="telemetry-rack__line">Cargo: {fleetCounts.cargoPct}%</div>
+          </LCDSlot>
+
+          <LCDSlot slot={10} title="MINER DETAIL" status="stub">
+            <div className="telemetry-rack__stub">
+              Per-ship detail + storage + trajectory — open the ⛏️ Mining Fleet panel for full
+              per-ship breakdown today.
+            </div>
+          </LCDSlot>
+
+          <LCDSlot slot={11} title="PERSONAL EQUIP." status="stub">
+            <div className="telemetry-rack__stub">
+              Tools / Weapons / Ammo / Bottles 4-column — pending equipment data model.
+            </div>
+          </LCDSlot>
+        </div>
+      )}
+    </section>
+  )
+}

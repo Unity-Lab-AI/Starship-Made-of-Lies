@@ -1,0 +1,131 @@
+.telemetry-rack {
+  position: fixed;
+  left: 50%;
+  bottom: 5.5rem;
+  transform: translateX(-50%);
+  z-index: 30;
+  background: rgba(8, 10, 16, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.12));
+  border-radius: 8px;
+  color: var(--fg-primary, #e6e6f0);
+  max-width: min(96vw, 1100px);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+}
+
+.telemetry-rack__toggle {
+  background: transparent;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  padding: 0.4rem 0.85rem;
+  color: var(--accent, #d4a13a);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+}
+
+.telemetry-rack__toggle:hover {
+  background: rgba(212, 161, 58, 0.1);
+}
+
+.telemetry-rack--collapsed .telemetry-rack__toggle {
+  border-radius: 8px;
+}
+
+.telemetry-rack__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 0.35rem;
+  padding: 0.4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 1100px) {
+  .telemetry-rack__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .telemetry-rack__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.telemetry-rack__lcd {
+  padding: 0.45rem 0.55rem;
+  background: rgba(20, 28, 22, 0.85);
+  border: 1px solid rgba(74, 222, 128, 0.18);
+  border-radius: 4px;
+  color: #c4f0d5;
+  min-height: 84px;
+}
+
+.telemetry-rack__lcd--stub {
+  background: rgba(20, 22, 26, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--fg-secondary, #a8a8b8);
+}
+
+.telemetry-rack__lcd-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px dashed rgba(74, 222, 128, 0.25);
+}
+
+.telemetry-rack__lcd--stub .telemetry-rack__lcd-header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.telemetry-rack__lcd-slot {
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: var(--accent, #d4a13a);
+  background: rgba(212, 161, 58, 0.18);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+}
+
+.telemetry-rack__lcd-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.telemetry-rack__lcd-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+.telemetry-rack__lcd-body strong {
+  color: var(--accent, #d4a13a);
+  font-weight: 700;
+}
+
+.telemetry-rack__line {
+  font-size: 0.72rem;
+  color: var(--fg-secondary, #a8a8b8);
+}
+
+.telemetry-rack__stub {
+  font-style: italic;
+  font-size: 0.7rem;
+  line-height: 1.3;
+}

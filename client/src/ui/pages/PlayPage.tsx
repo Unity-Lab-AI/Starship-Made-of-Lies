@@ -9,11 +9,14 @@ import {
   type LootDropId,
   type MissionObjectiveConfig,
   type PlanetId,
+  type ShipBeaconBroadcast,
   type ThemeId,
   type Tile,
+  COLONY_SHIPS,
   THEMES,
   accountId as accountIdValue,
   aggregateEffects,
+  getActiveShipBeacons,
   newAnonymousAccount,
   themeAsCSSVars,
 } from '@smol/shared'
@@ -21,6 +24,7 @@ import { type MatchAISlotConfig, type MatchConfig } from '../../match/MatchSim'
 import { useMatchSim } from '../../match/useMatchSim'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
+import { CommandPadPanel } from '../panels/CommandPadPanel'
 import { MiningFleetPanel } from '../panels/MiningFleetPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
@@ -37,6 +41,7 @@ import { CampaignPicker } from '../play/CampaignPicker'
 import { HUDOverlay } from '../play/HUDOverlay'
 import { PanelFrame } from '../play/PanelFrame'
 import { PlanetPicker } from '../play/PlanetPicker'
+import { TelemetryRack } from '../play/TelemetryRack'
 import { Toasts } from '../play/Toasts'
 import { type PanelId, type ToastNotification } from '../play/types'
 import { MatchEndScreen } from './MatchEndScreen'
@@ -152,6 +157,66 @@ export function PlayPage() {
 
   const techEffects = aggregateEffects(humanCivState.empire.researchedTechs)
   const firstPad = [...activePlanet.launchPads.values()][0] ?? null
+
+  // PHASE 16.14: aggregate ship beacons from all player planets for MiningFleetPanel +
+  // TelemetryRack. Per-planet map for MiningFleetPanel's per-planet dropdown grouping.
+  // Recompute on every tick (sim.state is a stable ref via useRef; currentTick mutates).
+  const beaconsByPlanet = useMemo(
+    () => {
+      const tick = sim.state.currentTick
+      const out = new Map<PlanetId, ReadonlyArray<ShipBeaconBroadcast>>()
+      for (const planetState of sim.state.planets.values()) {
+        if (planetState.civId !== sim.state.humanCivId) continue
+        const active = getActiveShipBeacons(planetState.shipBeacons, tick, 30)
+        if (active.length > 0) out.set(planetState.planet.id, active)
+      }
+      return out
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  const allHumanBeacons = useMemo<ReadonlyArray<ShipBeaconBroadcast>>(() => {
+    const out: ShipBeaconBroadcast[] = []
+    for (const arr of beaconsByPlanet.values()) out.push(...arr)
+    return out
+  }, [beaconsByPlanet])
+
+  // Empire-wide totals for the telemetry rack POWER slot. sim.state is a stable ref via
+  // useRef; currentTick is the primitive that increments each tick, so it's the re-memo
+  // trigger. eslint-disable below since the dep IS intentional re-memo signal.
+  const empireTotals = useMemo(
+    () => {
+      let resources = 0
+      let pop = 0
+      for (const planetState of sim.state.planets.values()) {
+        if (planetState.civId !== sim.state.humanCivId) continue
+        for (const amount of planetState.inventory.stocks.values()) resources += amount
+        for (const count of Object.values(planetState.population.tierCounts)) {
+          pop += count as number
+        }
+      }
+      return { resources, pop }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sim.state, sim.state.currentTick],
+  )
+
+  const activePads = useMemo(
+    () => [...activePlanet.launchPads.values()],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activePlanet, sim.state.currentTick],
+  )
+
+  // Unlocked colony-ship variants — for the Command Pad BUILDALL dropdown. Filtered by
+  // the tech-effects-driven maxPayloadTier (same gate ShipBuildPanel uses).
+  const availableShipVariants = useMemo<ReadonlyArray<ColonyShipVariantId>>(() => {
+    const out: ColonyShipVariantId[] = []
+    for (const def of COLONY_SHIPS) {
+      if (def.payloadTierRequired <= techEffects.maxPayloadTier) out.push(def.id)
+    }
+    return out
+  }, [techEffects.maxPayloadTier])
 
   // === Toast lifecycle: auto-purge expired ===
   useEffect(() => {
@@ -411,6 +476,16 @@ export function PlayPage() {
 
       <Toasts toasts={toasts} onDismiss={dismissToast} />
 
+      <TelemetryRack
+        activePads={activePads}
+        miningBeacons={allHumanBeacons}
+        activeFlights={[...sim.state.flights.values()]}
+        resourceTotals={empireTotals.resources}
+        populationTotal={empireTotals.pop}
+        empireTechs={humanCivState.empire.researchedTechs.size}
+        currentTick={sim.state.currentTick}
+      />
+
       {/* === Picker popups (centered) === */}
       {openPanels.has('build') && (
         <BuildPicker
@@ -583,8 +658,29 @@ export function PlayPage() {
             themeByCiv={
               new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))
             }
-            beaconsByPlanet={new Map()}
+            beaconsByPlanet={beaconsByPlanet}
             humanCivId={sim.state.humanCivId}
+          />
+        </PanelFrame>
+      )}
+
+      {openPanels.has('command') && (
+        <PanelFrame
+          title="Command Pad"
+          emoji="🎛"
+          onClose={() => closePanel('command')}
+          variant="docked-right"
+        >
+          <CommandPadPanel
+            planetId={activePlanet.planet.id}
+            theme={humanTheme}
+            pads={activePads}
+            availableVariants={availableShipVariants}
+            onBuildAll={(variantId) => sim.controllerBuildAll(activePlanet.planet.id, variantId)}
+            onArmAll={() => sim.controllerArmAll(activePlanet.planet.id)}
+            onLaunchAll={() => sim.controllerLaunchAll(activePlanet.planet.id)}
+            onAbortAll={() => sim.controllerAbortAll(activePlanet.planet.id)}
+            onCopyTargetFromController={() => sim.controllerCopyTarget(activePlanet.planet.id)}
           />
         </PanelFrame>
       )}
