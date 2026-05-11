@@ -13,6 +13,11 @@ export interface Empire {
   defeatedCivIds: Set<CivId>
   capturedPlanetIds: Set<PlanetId>
   ancientTechCount: number
+  // PHASE 16.38 — fog of war discovery state. Planets this civ has discovered by direct
+  // observation (home planet + targets of launched flights + sources of incoming flights +
+  // newly captured planets). Undiscovered planets render greyed-out + no civ flag in the 3D
+  // galaxy view for the human civ. AI civs use this same set when scoring targets.
+  discoveredPlanetIds: Set<PlanetId>
 }
 
 export function newEmpire(civId: CivId, startingPlanetId: PlanetId): Empire {
@@ -25,7 +30,16 @@ export function newEmpire(civId: CivId, startingPlanetId: PlanetId): Empire {
     defeatedCivIds: new Set<CivId>(),
     capturedPlanetIds: new Set<PlanetId>(),
     ancientTechCount: 0,
+    discoveredPlanetIds: new Set<PlanetId>([startingPlanetId]),
   }
+}
+
+// PHASE 16.38 — discovery hook. Idempotent — calling with an already-discovered planet is a
+// no-op. Used by MatchSim on flight launch (launching civ discovers target) + on conquest
+// (capturing civ adds the captured planet) + on incoming flight detection (defender discovers
+// attacker's source planet).
+export function discoverPlanet(empire: Empire, planetId: PlanetId): void {
+  empire.discoveredPlanetIds.add(planetId)
 }
 
 export function controlledPlanetCount(empire: Empire): number {

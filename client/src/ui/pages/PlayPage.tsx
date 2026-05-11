@@ -198,6 +198,11 @@ export function PlayPage() {
   // if the mean vector length is too small, anchor on the first owned tile.
   const civsByPlanet = useMemo(
     () => {
+      // PHASE 16.38 — fog of war: suppress civ-presence (flag billboards) for planets the
+      // human civ hasn't discovered yet. Player still sees planet sprites at galactic scale
+      // so the map is navigable, but enemy ownership stays hidden until the player launches
+      // a flight there OR an enemy launches AT them (defender discovery).
+      const humanDiscovered = humanCivState.empire.discoveredPlanetIds
       const out = new Map<
         PlanetId,
         ReadonlyArray<{
@@ -208,6 +213,7 @@ export function PlayPage() {
       >()
       for (const planetState of sim.state.planets.values()) {
         const planet = planetState.planet
+        if (!humanDiscovered.has(planet.id)) continue
         const counts = new Map<import('@smol/shared').CivId, number>()
         const sums = new Map<
           import('@smol/shared').CivId,
@@ -743,7 +749,14 @@ export function PlayPage() {
               )
             }
             ownerByPlanet={
-              new Map([...sim.state.planets.values()].map((p) => [p.planet.id, p.civId] as const))
+              new Map(
+                [...sim.state.planets.values()]
+                  // PHASE 16.38 — fog of war: only expose ownership for planets the human civ
+                  // has discovered. Undiscovered enemy planets show up as raw sprites with no
+                  // civ flag — the player must scout (launch a flight there) to learn who's home.
+                  .filter((p) => humanCivState.empire.discoveredPlanetIds.has(p.planet.id))
+                  .map((p) => [p.planet.id, p.civId] as const),
+              )
             }
             themeByCiv={
               new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))
