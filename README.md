@@ -4,7 +4,7 @@
 
 ### *The galaxy belongs to whoever tells the prettiest lie.*
 
-![Starship Made of Lies — Conquer the Galaxy](Starship%20Made%20of%20Lies.png)
+![Starship Made of Lies — Conquer the Galaxy](archive/Starship%20Made%20of%20Lies.png)
 
 **A real-time, multi-hour, planet-scale strategy game where every "starship" your government launches is actually a colony-ship-shaped missile, your citizens think they're going to new worlds, the propaganda gets prettier as your actions get worse, and the player is the god in the sky.**
 
