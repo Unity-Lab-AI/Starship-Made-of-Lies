@@ -62,6 +62,9 @@ interface MatchSetupHint {
   readonly humanThemeId?: ThemeId
   readonly objectives?: ReadonlyArray<MissionObjectiveConfig>
   readonly aiSlots?: ReadonlyArray<MatchAISlotConfig>
+  // PHASE 17.K — host-chosen fog-of-war toggle. Default true (UMS-faithful). When false, the
+  // map renders without fog and every enemy planet/flag is visible from match start.
+  readonly fogOfWarEnabled?: boolean
 }
 
 const DEFAULT_OBJECTIVES: ReadonlyArray<MissionObjectiveConfig> = [
@@ -113,6 +116,7 @@ export function PlayPage() {
       humanAccount: account,
       objectives,
       tickCapOverride: null,
+      fogOfWarEnabled: hint?.fogOfWarEnabled ?? true,
     }
     return aiSlots ? { ...base, aiSlots } : base
   }, [location.state])

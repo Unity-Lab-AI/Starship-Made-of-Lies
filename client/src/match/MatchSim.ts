@@ -320,6 +320,13 @@ export interface MatchConfig {
   readonly objectives: ReadonlyArray<MissionObjectiveConfig>
   readonly tickCapOverride: number | null
   readonly aiSlots?: ReadonlyArray<MatchAISlotConfig>
+  // PHASE 17.K — per user verbatim 2026-05-11 "lets make a toggle in new game settup to be
+  // able to toggle the hosted games fog of war on and off so starting a new game can choose
+  // the option". When false, every civ's empire.discoveredPlanetIds is populated with EVERY
+  // planet at match start — the galactic map renders without fog, all enemy planets visible
+  // + all enemy flag billboards visible. Defender-discovery and launch-target-discovery still
+  // fire but become no-ops since the planet is already in the set. Default true (UMS-faithful).
+  readonly fogOfWarEnabled?: boolean
 }
 
 const HOME_PLANET_STARTING_POP = 1000
@@ -452,6 +459,18 @@ export function createMatch(config: MatchConfig): MatchState {
         rngSeed: (config.seed ^ 0x1337) + i * 7919,
       }),
     )
+  }
+
+  // PHASE 17.K — fog-of-war host toggle. When disabled at match setup, populate every civ's
+  // discoveredPlanetIds with EVERY planet in the galaxy so the map renders without fog and
+  // every flag billboard is visible from match start. Defender-discovery and launch-target-
+  // discovery still fire downstream but become no-ops since the planet is already discovered.
+  if (config.fogOfWarEnabled === false) {
+    for (const civState of civs.values()) {
+      for (const planet of galaxy.planets) {
+        discoverPlanet(civState.empire, planet.id)
+      }
+    }
   }
 
   for (const civState of civs.values()) {
