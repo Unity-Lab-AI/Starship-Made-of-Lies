@@ -164,10 +164,16 @@ function buildBeacon(ship: MiningShip, currentTick: number, etaTicks: number): S
   }
 }
 
-// Super-review fix: NO_SIGNAL internal trigger. When a ship's battery drops to zero
-// mid-travel or mid-drill, it can no longer power its beacon/comms → signal lost. Crawl-home
-// behavior in the NO_SIGNAL case body handles the rest. Re-docking resets ticksInNoSignal.
-const NO_SIGNAL_BATTERY_THRESHOLD = 0
+// Super-review SR2-4 fix: NO_SIGNAL internal trigger. Threshold bumped 0 → 8 so the ship
+// has battery left to actually CRAWL home when it goes dark — previously the trigger fired
+// AT empty battery and the crawl-home logic couldn't move (it gates on battery > 0),
+// stranding ships forever with no recovery path.
+const NO_SIGNAL_BATTERY_THRESHOLD = 8
+// Solar trickle recharge in NO_SIGNAL state. Even ships that hit 0 battery before triggering
+// (e.g., spawning into NO_SIGNAL from an external event) get a slow recharge so they
+// eventually limp home. 0.05%/tick = full recharge in ~2000 ticks (~6 min); ship would
+// usually crawl home and re-dock well before that.
+const NO_SIGNAL_SOLAR_TRICKLE = 0.05
 function maybeEnterNoSignal(ship: MiningShip): void {
   if (ship.status === 'NO_SIGNAL') return
   if (ship.status === 'DOCKED' || ship.status === 'IDLE' || ship.status === 'OFFLOADING') return
@@ -303,13 +309,15 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
     }
 
     case 'NO_SIGNAL': {
-      // PHASE 17.B.5 — signal-lost crawl-home behavior. The ship drops drilling, broadcasts
-      // a "stranded" beacon, and crawls toward homePosition at half normal speed on battery
-      // alone (no fuel use — the engines are throttled by the offline autopilot). If battery
-      // dies en route the ship sits dead in space; if it reaches home it re-docks and the
-      // normal cycle resumes. UMS UnityBeacon laser-home parity.
+      // PHASE 17.B.5 + SR2-4 — signal-lost crawl-home behavior. The ship drops drilling,
+      // broadcasts a "stranded" beacon, and crawls toward homePosition at half normal speed
+      // on battery alone (no fuel use — engines throttled by the offline autopilot). If
+      // battery hits 0 mid-crawl, the solar trickle (NO_SIGNAL_SOLAR_TRICKLE) keeps building
+      // charge so the ship eventually limps home rather than pinning forever.
       ship.ticksInNoSignal += 1
       ship.targetNodeId = null
+      // Solar trickle ALWAYS runs in NO_SIGNAL — even at 0 battery, ship slowly recharges.
+      ship.batteryPercent = Math.min(100, ship.batteryPercent + NO_SIGNAL_SOLAR_TRICKLE)
       const dx = ship.homePosition.x - ship.worldPosition.x
       const dy = ship.homePosition.y - ship.worldPosition.y
       const dz = ship.homePosition.z - ship.worldPosition.z
@@ -319,7 +327,9 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
         ship.status = 'DOCKED'
         ship.ticksInStatus = 0
         ship.ticksInNoSignal = 0
-      } else if (ship.batteryPercent > 0) {
+      } else if (ship.batteryPercent > NO_SIGNAL_BATTERY_BURN) {
+        // Crawl only if there's enough battery to pay the per-tick burn cost. Otherwise the
+        // ship sits and recharges via solar trickle until it has enough to move again.
         const t = NO_SIGNAL_CRAWL_SPEED_UNITS_PER_TICK / dist
         ship.worldPosition = {
           x: ship.worldPosition.x + dx * t,

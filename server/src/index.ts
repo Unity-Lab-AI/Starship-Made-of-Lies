@@ -1,12 +1,20 @@
 import { Server } from '@colyseus/core'
 import { WebSocketTransport } from '@colyseus/ws-transport'
 import { matchMaker } from '@colyseus/core'
+import { validateBuildingProductionCatalog } from '@smol/shared'
 import { GameRoom } from './rooms/GameRoom'
 import { registerShutdownHook, startAuthHttpServer } from './auth/httpServer'
 import { getSharedFileSnapshotStore } from './persistence/FileSnapshotStore'
 
 const PORT = Number(process.env.PORT ?? 2567)
 const AUTH_PORT = Number(process.env.AUTH_PORT ?? 2568)
+
+// Super-review SR2-13 fix: catalog drift gate on server boot too (was client-only). Same
+// contract as client/src/main.tsx — throws loudly in dev if a BLDG_* is missing a production
+// entry AND isn't declared utility-only. Production server skips the check (safe to import).
+if (process.env.NODE_ENV !== 'production') {
+  validateBuildingProductionCatalog()
+}
 
 export function createServer(): Server {
   const server = new Server({

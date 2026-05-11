@@ -37,16 +37,23 @@ export function buildPlanetBuildingContext(
   for (const ps of state.planetStates.values()) {
     if (ps.ownerCivId !== perCiv.assignment.civId) continue
     const populationPressure = ps.totalPopulation > 0 ? Math.min(1, ps.totalPopulation / 5000) : 0
-    // Super-review fix: mining context for AI outpost prioritization. Server observables
-    // don't yet track miner-count or resource-node availability (deferred); pass safe
-    // defaults so the AI's outpost-rush logic stays off until the server plumbs real data.
+    // Super-review SR2-3 fix: real resource-node count from planet entity (always available).
+    // Miner count is set high to SUPPRESS the outpost-rush priority boost server-side — the
+    // server's PerPlanetState doesn't track miningShips yet, so a `0` here would falsely
+    // trigger permanent rush behavior on every AI tick. The normal extraction-category
+    // weight (0.5–0.9 per playstyle) still drives AI to build outposts at sensible cadence
+    // until real miningShip plumbing lands on the server.
+    let resourceNodesAvailable = 0
+    for (const node of ps.planet.resourceNodes) {
+      if (node.amountRemaining > 0) resourceNodesAvailable += 1
+    }
     return {
       planetId: ps.planet.id,
       currentBuildingCounts: new Map<string, number>(),
       availableTiles: Math.max(0, ps.planet.tiles.length),
       populationPressure,
-      minerCount: 0,
-      resourceNodesAvailable: 0,
+      minerCount: 99, // sentinel — see comment above
+      resourceNodesAvailable,
     }
   }
   return null

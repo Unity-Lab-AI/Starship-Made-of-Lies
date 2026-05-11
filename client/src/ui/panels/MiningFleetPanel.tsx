@@ -32,7 +32,13 @@ function renderShipRow(
 ): ReactElement {
   const theme = themeByCiv.get(beacon.civId)
   const civEmoji = theme?.emoji ?? '🏳️'
-  const statusLabel = describeShipStatus(beacon.status)
+  // Super-review SR2-5 fix: surface ticksInNoSignal when the ship is stranded so the
+  // player can decide abandon vs. rescue. PHASE 17.B.5 contract said "beacon broadcasts
+  // stranded status" — the broadcast field exists; this is the UI consumer that was missing.
+  const statusLabel =
+    beacon.status === 'NO_SIGNAL' && beacon.ticksInNoSignal > 0
+      ? `${describeShipStatus(beacon.status)} · stranded ${beacon.ticksInNoSignal}t`
+      : describeShipStatus(beacon.status)
   const statusClass = shipStatusColorClass(beacon.status)
   const cargoPct = clampPercent(beacon.cargoPercent)
   const fuelPct = clampPercent(beacon.fuelPercent)

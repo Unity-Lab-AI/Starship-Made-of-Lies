@@ -1,7 +1,7 @@
 import { type CivId, type PlanetId } from '../types/index'
 import { type PlaystyleProfile, type TargetSelectionMode } from './ai-archetype'
 import { type AIDifficultyConfig, rollSuboptimalChoice } from './ai-difficulty'
-import { type BuildingDef, BUILDINGS } from './building'
+import { type BuildingDef, BLDG_MINING_OUTPOST, BUILDINGS } from './building'
 import { CAMPAIGNS, type CampaignDef } from './deception'
 import {
   type ColonyShipDef,
@@ -93,11 +93,13 @@ export function pickConstructionTarget(
       building.category === 'industry' || building.category === 'extraction'
         ? inputs.playstyle.economyFocus * 0.2
         : 0
-    // Super-review fix: rush an outpost when mining is needed AND not running. Boost is
-    // critical (1.5) when there are drillable nodes but fewer than 2 miners on the planet.
-    // Tapers as outposts accumulate so AI doesn't spam them all over.
-    const isOutpost = (building.id as unknown as string) === 'miningOutpost'
-    const existingOutposts = ctx.currentBuildingCounts.get('miningOutpost') ?? 0
+    // Super-review SR-5 + SR2-11: rush an outpost when mining is needed AND not running.
+    // Boost is critical (+1.5) when there are drillable nodes but fewer than 2 miners on
+    // the planet. Tapers as outposts accumulate so AI doesn't spam them all over.
+    // Brand-safe compare via BLDG_MINING_OUTPOST constant — survives renames of the literal.
+    const isOutpost = building.id === BLDG_MINING_OUTPOST
+    const existingOutposts =
+      ctx.currentBuildingCounts.get(BLDG_MINING_OUTPOST as unknown as string) ?? 0
     const outpostBoost =
       isOutpost && ctx.resourceNodesAvailable > 0 && ctx.minerCount < 2 && existingOutposts < 3
         ? 1.5

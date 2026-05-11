@@ -79,10 +79,3 @@ export const MINING_OUTPOST_SHIP_COST_INGOTS = 40
 export const MINING_OUTPOST_SHIP_COST_COMPONENTS = 20
 export const MINING_OUTPOST_SHIP_COST_FUEL = 15
 export const MAX_MINERS_PER_OUTPOST = 3
-
-// Helper for ai-difficulty consumers — wraps the multiplier choice based on level so the
-// caller doesn't need to know which level skips dilution.
-export function effectiveAIDecisionInterval(rawIntervalTicks: number, isBrutal: boolean): number {
-  const mult = isBrutal ? AI_DECISION_INTERVAL_MULTIPLIER_BRUTAL : AI_DECISION_INTERVAL_MULTIPLIER
-  return Math.max(1, Math.round(rawIntervalTicks * mult))
-}

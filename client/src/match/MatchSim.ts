@@ -223,6 +223,10 @@ export interface MatchPlanetState {
   // PHASE 17.B.2 — monotonic miner serial per planet so generated ids never collide even when
   // multiple outposts spawn on the same tick.
   nextMinerSerial: number
+  // Super-review SR2-9 fix: cached tile lookup, built once at planet-state creation. Avoids
+  // per-tick Array.find + per-tick Map rebuild in tickMiningOutpost. Tiles are immutable
+  // (built from icosphere), so this Map stays valid for the entire match.
+  readonly tilesById: ReadonlyMap<TileId, Tile>
 }
 
 export interface MatchCivState {
@@ -356,7 +360,22 @@ export function createMatch(config: MatchConfig): MatchState {
 
   const humanCivId = civId(`civ-human-${config.humanAccount.profile.handle}`)
   const humanTheme = getTheme(config.humanThemeId)
-  const humanHomePlanet = galaxy.planets[0]!
+  // Super-review SR2-10 fix: spawn assignment must pick HOSPITABLE biomes, not first-N
+  // entries in the flat planet list (which is solar-system-clustered after 17.I — first
+  // planet may be a tier-3 lava world). Collect tier-0 (and tier-1 as fallback) planets in
+  // deterministic order; assign first to the human civ, then to AI civs in order.
+  const hospitablePlanets: Planet[] = []
+  for (const p of galaxy.planets) {
+    if (p.biome.hostilityTier === 0) hospitablePlanets.push(p)
+  }
+  for (const p of galaxy.planets) {
+    if (p.biome.hostilityTier === 1) hospitablePlanets.push(p)
+  }
+  if (hospitablePlanets.length === 0) {
+    throw new Error('No tier-0 or tier-1 planets in galaxy — generation produced unplayable map')
+  }
+  let spawnCursor = 0
+  const humanHomePlanet = hospitablePlanets[spawnCursor++]!
   civs.set(humanCivId, {
     civId: humanCivId,
     themeId: config.humanThemeId,
@@ -390,7 +409,10 @@ export function createMatch(config: MatchConfig): MatchState {
     const themeIdx = Math.floor(rng() * themePool.length)
     const aiTheme = themePool[themeIdx] ?? THEMES[(i + 1) % THEMES.length]!
     usedThemes.add(aiTheme.id)
-    const homePlanet = galaxy.planets[i + 1]
+    // SR2-10: AI civs spawn from the same hospitable-planets list as the human, in order.
+    // Once we exhaust hospitable planets, remaining AI slots can't spawn — bail rather than
+    // putting AI on hostile-tier rocks.
+    const homePlanet = hospitablePlanets[spawnCursor++]
     if (!homePlanet) break
     const slotCfg = config.aiSlots?.[i]
     const playstyle = slotCfg?.playstyle ?? playstyles[i % playstyles.length]!
@@ -516,6 +538,9 @@ function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
     indigenousCivId: null,
     outpostBuildTicks: new Map(),
     nextMinerSerial: 0,
+    // SR2-9: cache tile-by-id lookup once. Tiles are immutable; this Map persists for the
+    // life of the planet state.
+    tilesById: new Map(planet.tiles.map((t) => [t.id, t])),
   }
 }
 
@@ -537,18 +562,12 @@ const MINING_OUTPOST_DOCK_OFFSET = 30
 // not to the planet's north pole" contract holds. Owner check is implicit — buildingsByTile is
 // keyed on owned tiles only because placeBuildingCanonical refuses non-owned tiles.
 //
-// Super-review fix: tile lookup is now O(1) via a single per-tick Map<TileId, Tile> build
-// instead of O(n) Array.find per outpost. At late-game saturation (~30 outposts × 200 tiles
-// × 100 planets) this drops a 600k-op tick spike to ~3k ops + 1 Map alloc.
+// Super-review fix (SR-7 + SR2-9): tile lookup is O(1) via the planet-state's CACHED Map
+// (built once in makePlanetState, persists for match lifetime). No per-tick allocation.
 function tickMiningOutpost(state: MatchState, planetState: MatchPlanetState): void {
-  let tilesById: Map<TileId, Tile> | null = null
   for (const [tileId, defId] of planetState.buildingsByTile) {
     if (defId !== BLDG_MINING_OUTPOST) continue
-    if (tilesById === null) {
-      tilesById = new Map<TileId, Tile>()
-      for (const t of planetState.planet.tiles) tilesById.set(t.id, t)
-    }
-    const tile = tilesById.get(tileId)
+    const tile = planetState.tilesById.get(tileId)
     if (!tile) continue
     const progress = (planetState.outpostBuildTicks.get(tileId) ?? 0) + 1
     if (progress < MINING_OUTPOST_SHIP_INTERVAL_TICKS) {
