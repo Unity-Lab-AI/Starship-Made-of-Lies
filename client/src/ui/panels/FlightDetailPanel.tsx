@@ -15,7 +15,8 @@ import './FlightDetailPanel.css'
 // closing speed / signal-lost) comes from flightTelemetrySnapshot helper (PHASE 16.21).
 // Static per-variant load-out (fuel / ammo / cargo / citizens / payload type) comes from
 // getColonyShipDef. Per-flight dynamic load-out (fuelRemaining, cargoBurned) is roadmapped
-// to PHASE 16.24 (dark-theme auto-destruct + AoE damage scaling).
+// to PHASE 16.24 (self-destruct + AoE damage scaling per the SMoL premise — "dark theme"
+// in user shorthand was the dystopian fiction framing, NOT a code feature).
 
 export interface FlightDetailPanelProps {
   readonly flight: ColonyShipFlight
@@ -123,6 +124,18 @@ export function FlightDetailPanel({
             <FlightCell label="Progress" value={`${Math.round(tel.progress * 100)}%`} />
             <FlightCell label="ETA" value={inFlight ? ticksToEtaLabel(ticksRemaining) : '—'} />
             <FlightCell label="Total flight" value={`${flight.totalTicks}t`} />
+            <FlightCell
+              label="Fuel remaining"
+              value={`${tel.fuelRemaining.toFixed(0)}/${tel.fuelAtLaunch} u (${Math.round(tel.fuelPct * 100)}%)`}
+            />
+            <FlightCell
+              label="Self-destruct AoE"
+              value={
+                def.suicideShip || def.payload.explosiveYield > 0 || def.payload.weaponPayload > 0
+                  ? 'armed — explosive payload'
+                  : 'no payload — small boom'
+              }
+            />
           </div>
         </section>
 
@@ -140,7 +153,10 @@ export function FlightDetailPanel({
               label="Explosive yield"
               value={def.payload.explosiveYield.toLocaleString()}
             />
-            <FlightCell label="Suicide ship" value={def.suicideShip ? 'yes — fucked up' : 'no'} />
+            <FlightCell
+              label="Suicide ship"
+              value={def.suicideShip ? 'yes — self-destructs on arrival' : 'no'}
+            />
             <FlightCell label="Fuel at launch" value={`${def.fuelRequirement} u`} />
             <FlightCell label="Ammo at launch" value={`${def.ammoRequirement} u`} />
             <FlightCell label="Speed multiplier" value={def.speedMultiplier.toFixed(2) + '×'} />

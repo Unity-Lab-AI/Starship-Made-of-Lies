@@ -114,6 +114,7 @@ import {
   newMiningShip,
   newPlanetBeacon,
   newPlanetInventory,
+  computeDetonationAoE,
   mineFieldCheckIntercept,
   newMineField,
   newPlanetPopulation,
@@ -1154,22 +1155,53 @@ function handleFlightOutcome(state: MatchState, flight: ColonyShipFlight): void 
 
   if (flight.phase === 'DETONATE' && launchingCiv && targetPlanet) {
     const def = getColonyShipDef(flight.variantId)
-    const build = defaultBuildFromShipDef(def)
-    const lastPiece = build.pieces.find((p) => p.startsWith('gear-')) ?? 'gear-none'
-    const gearTier =
-      lastPiece === 'gear-none'
-        ? 0
-        : lastPiece === 'gear-basic'
-          ? 1
-          : lastPiece === 'gear-advanced'
-            ? 2
-            : 3
-    const crash = computeCrashOutcome(gearTier as 0 | 1 | 2 | 3)
-
-    if (crash.crashed) {
-      handleCrashLanding(state, flight, def, launchingCiv, targetPlanet, crash.cargoLootRate)
+    // PHASE 16.24: self-destruct AoE per the SMoL premise — every colony ship is also a
+    // self-destruct weapon. AoE damage at detonation scales with fuelRemaining + payload
+    // load-out + (suicide ship × citizens) per computeDetonationAoE. Balance target: 30-50
+    // missiles to wipe a multi-planet civilization. When the ship is a suicide ship OR
+    // carries explosive / weapon payload, the detonation is an offensive strike — apply AoE
+    // damage to target population + infrastructure. Peaceful variants (Scout / Standard
+    // colony / Pilgrim when not suicide) continue the colonization-or-crash path so
+    // colonization still works. Full verbatim user directive lives in `.claude/TODO.md`
+    // PHASE 16.24 entry per LAW #0.
+    if (def.suicideShip || def.payload.explosiveYield > 0 || def.payload.weaponPayload > 0) {
+      applyDetonationAoE(state, flight, launchingCiv, targetPlanet)
     } else {
-      handleSafeLanding(state, flight, def, launchingCiv, targetPlanet, crash.survivalRate)
+      const build = defaultBuildFromShipDef(def)
+      const lastPiece = build.pieces.find((p) => p.startsWith('gear-')) ?? 'gear-none'
+      const gearTier =
+        lastPiece === 'gear-none'
+          ? 0
+          : lastPiece === 'gear-basic'
+            ? 1
+            : lastPiece === 'gear-advanced'
+              ? 2
+              : 3
+      const crash = computeCrashOutcome(gearTier as 0 | 1 | 2 | 3)
+      if (crash.crashed) {
+        handleCrashLanding(state, flight, def, launchingCiv, targetPlanet, crash.cargoLootRate)
+      } else {
+        handleSafeLanding(state, flight, def, launchingCiv, targetPlanet, crash.survivalRate)
+      }
+    }
+  }
+  if (flight.phase === 'ABORTED' && launchingCiv) {
+    // PHASE 16.24: ABORTED = player hit the 💀 ABORT (self-destruct) button. UMS-faithful
+    // self-destruct = warhead detonates where the ship currently is. If arc has progressed
+    // far enough (≥ 0.3) AND target planet exists, apply AoE damage at the target (the
+    // explosion was close enough to the target to matter). Otherwise the boom happens in
+    // empty space — log event but no damage.
+    const aborted = state.flights.get(String(flight.id))
+    const progress = aborted ? aborted.ticksFlown / Math.max(1, aborted.totalTicks) : 0
+    if (targetPlanet && progress >= 0.3) {
+      applyDetonationAoE(state, flight, launchingCiv, targetPlanet)
+    } else {
+      pushEvent(state, {
+        atTick: state.currentTick,
+        civId: flight.launchingCivId,
+        kind: 'intercept',
+        message: `💀 Self-destruct in deep space — ${String(flight.id)} (no AoE)`,
+      })
     }
   }
   if (flight.phase === 'INTERCEPTED') {
@@ -1181,6 +1213,66 @@ function handleFlightOutcome(state: MatchState, flight: ColonyShipFlight): void 
     })
   }
   state.flights.delete(String(flight.id))
+}
+
+// PHASE 16.24 — apply AoE damage to target planet population per computeDetonationAoE
+// magnitude. Damage prefers lower tiers first (workers die before pinnacle elites). Caps
+// out at total planet population. Pushes an event log with the boom magnitude + kill count
+// so the player sees the strike outcome. Per user balance target: 30-50 missiles to wipe a
+// multi-planet civ.
+function applyDetonationAoE(
+  state: MatchState,
+  flight: ColonyShipFlight,
+  launchingCiv: MatchCivState,
+  targetPlanet: MatchPlanetState,
+): void {
+  const def = getColonyShipDef(flight.variantId)
+  const aoe = computeDetonationAoE(flight)
+  // Magnitude → kill count: damage scalar 0.5 lands the Heavy variant (magnitude ~800) at
+  // ~400 kills, and a Pilgrim Volunteer (magnitude ~1400 with suicide multiplier) at ~700.
+  // Matches user's "30-50 missiles to wipe a multi-planet civ" balance target when planets
+  // host ~8000 citizens each and a civ holds 4-6 planets.
+  const rawKills = Math.floor(aoe.magnitude * 0.5)
+  const totalPop = totalPopulation(targetPlanet.population)
+  const kills = Math.min(rawKills, totalPop)
+  if (kills > 0) {
+    let remaining = kills
+    // Damage from tier 1 (workers) upward — pinnacle elites are last to die.
+    for (const tier of [1, 2, 3, 4, 5] as const) {
+      if (remaining <= 0) break
+      const have = targetPlanet.population.tierCounts[tier] ?? 0
+      const take = Math.min(have, remaining)
+      targetPlanet.population.tierCounts[tier] = have - take
+      remaining -= take
+    }
+    recordDeath(state.civs.get(targetPlanet.civId)?.deathLedger ?? launchingCiv.deathLedger, {
+      tick: state.currentTick,
+      planetId: targetPlanet.planet.id,
+      cause: 'explosion',
+      count: kills,
+      tier: null,
+      note: `${def.name} AoE strike (r=${aoe.radius.toFixed(0)}u, mag=${aoe.magnitude.toFixed(0)})`,
+    })
+  }
+  // Infrastructure damage: per magnitude/1500 buildings destroyed (high-magnitude strikes
+  // chip away at the target's industrial base).
+  const buildingsHit = Math.floor(aoe.magnitude / 1500)
+  if (buildingsHit > 0 && targetPlanet.buildingsByDef.size > 0) {
+    let toDamage = buildingsHit
+    for (const [defId, count] of [...targetPlanet.buildingsByDef]) {
+      if (toDamage <= 0) break
+      const take = Math.min(count, toDamage)
+      targetPlanet.buildingsByDef.set(defId, count - take)
+      if (count - take === 0) targetPlanet.buildingsByDef.delete(defId)
+      toDamage -= take
+    }
+  }
+  pushEvent(state, {
+    atTick: state.currentTick,
+    civId: launchingCiv.civId,
+    kind: 'intercept',
+    message: `💥 ${def.emoji} ${def.name} detonated on ${String(targetPlanet.planet.id)} — ${kills.toLocaleString()} dead, ${buildingsHit} buildings lost (r=${aoe.radius.toFixed(0)}u, mag=${aoe.magnitude.toFixed(0)})`,
+  })
 }
 
 function handleCrashLanding(

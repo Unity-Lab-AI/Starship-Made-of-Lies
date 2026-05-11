@@ -15,9 +15,9 @@ import {
   vec3Sub,
 } from './trajectory'
 
-// PHASE 16.21 — UMS-faithful colony-ship flight per .claude/SMOL_REFERENCE_TRAJECTORY.md §19 +
-// .claude/SMOL_REFERENCE_MISSILE.md UNITY_MSL telemetry spec. User verbatim LAW #0 2026-05-10:
-// "the UMS ads the fucking exact guide on the SMoL Missiles shall be tracked and work fucker".
+// PHASE 16.21 — UMS-faithful colony-ship flight per SMOL_REFERENCE_TRAJECTORY §19 +
+// SMOL_REFERENCE_MISSILE UNITY_MSL telemetry spec. Full verbatim user directive lives in
+// `.claude/TODO.md` PHASE 16.21 entry per LAW #0 (workflow docs only — code stays clean).
 //
 // What this module ports from UMS source (`_ums-reference/src/scripts/UnityMissile.cs` +
 // `UnityPad.cs`):
@@ -92,6 +92,12 @@ export interface ColonyShipFlight {
   // final ship position against trueTargetPosition.
   readonly trueTargetPosition: Vec3
   readonly dispersionOffsetMagnitude: number
+  // PHASE 16.24: per-flight fuel state per user verbatim "depending fuel and payload ect ect
+  // whats loaded make them go bigg booms". fuelAtLaunch = def.fuelRequirement at creation.
+  // fuelRemaining decays each tick at a variant-tuned rate; at detonation, AoE damage scales
+  // with fuel-remaining + payload (more fuel = bigger boom, less fuel = smaller).
+  readonly fuelAtLaunch: number
+  fuelRemaining: number
   ticksFlown: number
   phase: FlightPhase
   outcome: ColonyShipOutcome | null
@@ -179,6 +185,8 @@ export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight
     totalTicks,
     trueTargetPosition: { ...opts.targetPosition },
     dispersionOffsetMagnitude,
+    fuelAtLaunch: def.fuelRequirement,
+    fuelRemaining: def.fuelRequirement,
     ticksFlown: 0,
     phase: 'CLIMB',
     outcome: null,
@@ -235,6 +243,17 @@ export function tickFlight(flight: ColonyShipFlight): FlightTickResult {
   flight.ticksFlown += 1
   const progress = Math.min(1, flight.ticksFlown / Math.max(1, flight.totalTicks))
   const currentPosition = pointAlongArc(flight.arc, progress)
+
+  // PHASE 16.24: fuel decay per tick. UMS UnityMissile.cs burns thrusters in CLIMB+REENTRY,
+  // coasts free in COAST. SMoL model: fuel rate is variant-driven (faster ships burn faster)
+  // + phase-driven (CLIMB/REENTRY = 1.5×, COAST = 0.5×, TARGET = 1.0×). Total burn over
+  // the full flight should land in 60-90% of fuelAtLaunch so ABORTED self-destructs in mid-
+  // cruise still have meaningful fuel-fed AoE, while terminal detonations burn most fuel.
+  const baseFuelPerTick = (flight.fuelAtLaunch / Math.max(1, flight.totalTicks)) * 0.75
+  let phaseFuelMult = 1.0
+  if (flight.phase === 'CLIMB' || flight.phase === 'REENTRY') phaseFuelMult = 1.5
+  else if (flight.phase === 'COAST') phaseFuelMult = 0.5
+  flight.fuelRemaining = Math.max(0, flight.fuelRemaining - baseFuelPerTick * phaseFuelMult)
 
   // UMS-faithful phase transitions — progress thresholds are tunable. UMS uses altitude/
   // distance-to-target on flat-Earth math; on SMoL's great-circle arc the analogous
@@ -335,6 +354,10 @@ export interface FlightTelemetrySnapshot {
   readonly closingSpeed: number
   readonly signalLost: boolean
   readonly progress: number
+  // PHASE 16.24: per-flight fuel state for live FlightDetailPanel display.
+  readonly fuelRemaining: number
+  readonly fuelAtLaunch: number
+  readonly fuelPct: number
 }
 
 export function flightTelemetrySnapshot(flight: ColonyShipFlight): FlightTelemetrySnapshot {
@@ -352,5 +375,56 @@ export function flightTelemetrySnapshot(flight: ColonyShipFlight): FlightTelemet
   }
   const signalLost =
     progress >= SIGNAL_RANGE_PROGRESS_THRESHOLD && progress < 0.9 && flight.phase !== 'TARGET'
-  return { altitude, distToTarget, closingSpeed, signalLost, progress }
+  const fuelPct =
+    flight.fuelAtLaunch > 0 ? Math.max(0, flight.fuelRemaining / flight.fuelAtLaunch) : 0
+  return {
+    altitude,
+    distToTarget,
+    closingSpeed,
+    signalLost,
+    progress,
+    fuelRemaining: flight.fuelRemaining,
+    fuelAtLaunch: flight.fuelAtLaunch,
+    fuelPct,
+  }
+}
+
+// PHASE 16.24 — AoE damage computation per user verbatim "it damages area of effect fo like
+// sending them to attack all ships depending fuel and payload ect ect whats loaded make them
+// go bigg booms but it takes like 30-50 missile to wipe out a vmiulti plaet civ".
+//
+// Damage formula:
+//   fuelEnergy      = fuelRemaining / 50            // normalized "burn boom" scalar
+//   payloadEnergy   = explosiveYield + weaponPayload * 0.5
+//   citizenEnergy   = suicideShip ? citizens * 2 : 0   // dark-comedy multiplier
+//   totalEnergy     = fuelEnergy + payloadEnergy + citizenEnergy + 1
+//   radius          = 80 + sqrt(totalEnergy) * 14     // visible AoE in world units
+//   magnitude       = totalEnergy * (suicide ? 1.4 : 1.0)
+//
+// Balance check at default values:
+// - Heavy variant (suicide, payload 800, citizens 0, fuel 150):
+//     fuelEnergy = 3, payloadEnergy = 800, citizenEnergy = 0 → totalEnergy = 804
+//     radius = 80 + 28.4*14 ≈ 478, magnitude = 804 → ~1 missile = significant city damage
+// - Pilgrim Volunteer (suicide, payload 0, citizens 500, fuel 80):
+//     fuelEnergy = 1.6, payloadEnergy = 0, citizenEnergy = 1000 → 1002 totalEnergy
+//     radius = 80 + 31.6*14 ≈ 522, magnitude × 1.4 = 1403 → fewer needed for a full wipe
+// - 30-50 missile balance target for multi-planet civ ≈ population ÷ avg-magnitude
+
+export interface FlightDetonationAoE {
+  readonly radius: number
+  readonly magnitude: number
+  readonly fuelEnergy: number
+  readonly payloadEnergy: number
+  readonly citizenEnergy: number
+}
+
+export function computeDetonationAoE(flight: ColonyShipFlight): FlightDetonationAoE {
+  const def = getColonyShipDef(flight.variantId)
+  const fuelEnergy = flight.fuelRemaining / 50
+  const payloadEnergy = def.payload.explosiveYield + def.payload.weaponPayload * 0.5
+  const citizenEnergy = def.suicideShip ? flight.citizensAboard * 2 : 0
+  const totalEnergy = fuelEnergy + payloadEnergy + citizenEnergy + 1
+  const radius = 80 + Math.sqrt(totalEnergy) * 14
+  const magnitude = totalEnergy * (def.suicideShip ? 1.4 : 1.0)
+  return { radius, magnitude, fuelEnergy, payloadEnergy, citizenEnergy }
 }
