@@ -19,6 +19,12 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       strictPort: true,
       allowedHosts: ['localhost', '127.0.0.1', 'smol.unityailab.com', '.unityailab.com'],
+      proxy: {
+        '/api': {
+          target: process.env['VITE_AUTH_SERVER_PROXY_TARGET'] ?? 'http://localhost:2568',
+          changeOrigin: true,
+        },
+      },
     },
     build: {
       outDir: 'dist',
