@@ -1844,47 +1844,121 @@ function pushEvent(state: MatchState, ev: MatchEventLog): void {
   while (state.events.length > MAX_EVENTS) state.events.shift()
 }
 
+// PHASE 17.A.1 + 17.A.4 — canonical placeBuilding. Validates in strict order so player error
+// messages are accurate and AI + player paths share the same logic. Validation order:
+// (1) building def exists, (2) tile lookup, (3) tile owned by this civ, (4) tile empty,
+// (5) resources available. Failures push a specific event when `suppressEvents` is false.
+// AI callers pass `suppressEvents: true` to avoid spamming the human's event log with AI builds.
+function placeBuildingCanonical(
+  state: MatchState,
+  planet: MatchPlanetState,
+  defId: BuildingDefId,
+  tileId: TileId | undefined,
+  suppressEvents: boolean,
+): boolean {
+  const def = getBuildingDef(defId)
+  if (!def) {
+    if (!suppressEvents) {
+      pushEvent(state, {
+        atTick: state.currentTick,
+        civId: planet.civId,
+        kind: 'system',
+        message: `❌ Build failed — unknown building "${String(defId)}"`,
+      })
+    }
+    return false
+  }
+  let tile = tileId ? planet.planet.tiles.find((t) => t.id === tileId) : null
+  if (!tile) {
+    tile = planet.planet.tiles.find((t) => t.ownerCivId === planet.civId && t.occupancy === 'empty')
+  }
+  if (!tile) {
+    if (!suppressEvents) {
+      pushEvent(state, {
+        atTick: state.currentTick,
+        civId: planet.civId,
+        kind: 'system',
+        message: `❌ Build failed — no available tile on ${String(planet.planet.id)}`,
+      })
+    }
+    return false
+  }
+  if (tile.ownerCivId !== planet.civId) {
+    if (!suppressEvents) {
+      pushEvent(state, {
+        atTick: state.currentTick,
+        civId: planet.civId,
+        kind: 'system',
+        message: `❌ Can't build ${def.emoji} ${def.name} — that's not your tile`,
+      })
+    }
+    return false
+  }
+  if (tile.occupancy !== 'empty') {
+    if (!suppressEvents) {
+      pushEvent(state, {
+        atTick: state.currentTick,
+        civId: planet.civId,
+        kind: 'system',
+        message: `❌ Can't build ${def.emoji} ${def.name} — tile already has ${tile.occupancy}`,
+      })
+    }
+    return false
+  }
+  for (const cost of def.buildCost) {
+    const have = stockOf(planet.inventory, cost.resource)
+    if (have < cost.amount) {
+      if (!suppressEvents) {
+        pushEvent(state, {
+          atTick: state.currentTick,
+          civId: planet.civId,
+          kind: 'system',
+          message: `❌ Can't build ${def.emoji} ${def.name} — need ${cost.amount} ${String(cost.resource)} (have ${have})`,
+        })
+      }
+      return false
+    }
+  }
+  // All gates passed — deduct + place.
+  for (const cost of def.buildCost) {
+    const cur = stockOf(planet.inventory, cost.resource)
+    planet.inventory.stocks.set(cost.resource, cur - cost.amount)
+  }
+  tile.occupancy = 'building'
+  planet.buildingsByDef.set(defId, (planet.buildingsByDef.get(defId) ?? 0) + 1)
+  planet.buildingsByTile.set(tile.id, defId)
+  if (defId === BLDG_LAUNCH_PAD) {
+    const pad = newLaunchPad(tile.id, planet.civId, planet.planet.id, false)
+    planet.launchPads.set(tile.id, pad)
+  }
+  if (defId === BLDG_MINE_FIELD) {
+    tile.occupancy = 'mineField'
+    const worldPos = {
+      x: planet.planet.position.x + tile.centroid.x,
+      y: planet.planet.position.y + tile.centroid.y,
+      z: planet.planet.position.z + tile.centroid.z,
+    }
+    const detRadius = Math.max(50, planet.planet.radius * 0.12)
+    planet.mineFields.push(newMineField(planet.planet.id, planet.civId, worldPos, 3, detRadius))
+  }
+  if (!suppressEvents) {
+    pushEvent(state, {
+      atTick: state.currentTick,
+      civId: planet.civId,
+      kind: 'build',
+      message: `Built ${def.name} on ${String(planet.planet.id)}`,
+    })
+  }
+  return true
+}
+
+// AI-path wrapper — silent on failure, picks any empty owned tile.
 function placeBuildingInternal(
   state: MatchState,
   planet: MatchPlanetState,
   defId: BuildingDefId,
 ): boolean {
-  const def = getBuildingDef(defId)
-  for (const cost of def.buildCost) {
-    if (stockOf(planet.inventory, cost.resource) < cost.amount) return false
-  }
-  const empty = planet.planet.tiles.find(
-    (t) => t.ownerCivId === planet.civId && t.occupancy === 'empty',
-  )
-  if (!empty) return false
-  for (const cost of def.buildCost) {
-    const cur = stockOf(planet.inventory, cost.resource)
-    planet.inventory.stocks.set(cost.resource, cur - cost.amount)
-  }
-  empty.occupancy = 'building'
-  planet.buildingsByDef.set(defId, (planet.buildingsByDef.get(defId) ?? 0) + 1)
-  planet.buildingsByTile.set(empty.id, defId)
-  if (defId === BLDG_LAUNCH_PAD) {
-    const pad = newLaunchPad(empty.id, planet.civId, planet.planet.id, false)
-    planet.launchPads.set(empty.id, pad)
-  }
-  if (defId === BLDG_MINE_FIELD) {
-    // PHASE 16.22: per UMS spec + SMOL_REFERENCE_TRAJECTORY §17 — placing a mine-field
-    // tile creates a server-authoritative MineField at the tile's world position. The
-    // detonation radius scales with planet radius (UMS detDist=50m on flat-Earth → SMoL
-    // great-circle arc scale uses planet.radius * 0.12 ≈ 50-200 units depending on
-    // planet size — catches arc-passes within roughly one tile's width).
-    empty.occupancy = 'mineField'
-    const worldPos = {
-      x: planet.planet.position.x + empty.centroid.x,
-      y: planet.planet.position.y + empty.centroid.y,
-      z: planet.planet.position.z + empty.centroid.z,
-    }
-    const detRadius = Math.max(50, planet.planet.radius * 0.12)
-    planet.mineFields.push(newMineField(planet.planet.id, planet.civId, worldPos, 3, detRadius))
-  }
-  void state
-  return true
+  return placeBuildingCanonical(state, planet, defId, undefined, true)
 }
 
 export interface PlaceBuildingInputs {
@@ -1896,65 +1970,25 @@ export interface PlaceBuildingInputs {
 
 export function placeBuildingAction(inputs: PlaceBuildingInputs): boolean {
   const planet = inputs.state.planets.get(inputs.planetId)
-  if (!planet) return false
-  if (planet.civId !== inputs.state.humanCivId) return false
-  const def = getBuildingDef(inputs.defId)
-  if (!def) return false
-  for (const cost of def.buildCost) {
-    const have = stockOf(planet.inventory, cost.resource)
-    if (have < cost.amount) {
-      pushEvent(inputs.state, {
-        atTick: inputs.state.currentTick,
-        civId: planet.civId,
-        kind: 'system',
-        message: `❌ Can't build ${def.emoji} ${def.name} — need ${cost.amount} ${String(cost.resource)} (have ${have})`,
-      })
-      return false
-    }
-  }
-  let tile = inputs.tileId ? planet.planet.tiles.find((t) => t.id === inputs.tileId) : null
-  if (!tile) {
-    tile = planet.planet.tiles.find((t) => t.ownerCivId === planet.civId && t.occupancy === 'empty')
-  }
-  if (!tile || tile.occupancy !== 'empty') {
+  if (!planet) {
     pushEvent(inputs.state, {
       atTick: inputs.state.currentTick,
-      civId: planet.civId,
+      civId: inputs.state.humanCivId,
       kind: 'system',
-      message: `❌ Can't build ${def.emoji} ${def.name} — no empty owned tile available`,
+      message: `❌ Build failed — planet "${String(inputs.planetId)}" not found`,
     })
     return false
   }
-  for (const cost of def.buildCost) {
-    const cur = stockOf(planet.inventory, cost.resource)
-    planet.inventory.stocks.set(cost.resource, cur - cost.amount)
+  if (planet.civId !== inputs.state.humanCivId) {
+    pushEvent(inputs.state, {
+      atTick: inputs.state.currentTick,
+      civId: inputs.state.humanCivId,
+      kind: 'system',
+      message: `❌ Can't build there — you don't own ${String(inputs.planetId)}`,
+    })
+    return false
   }
-  tile.occupancy = 'building'
-  planet.buildingsByDef.set(inputs.defId, (planet.buildingsByDef.get(inputs.defId) ?? 0) + 1)
-  planet.buildingsByTile.set(tile.id, inputs.defId)
-  if (inputs.defId === BLDG_LAUNCH_PAD) {
-    const pad = newLaunchPad(tile.id, planet.civId, planet.planet.id, false)
-    planet.launchPads.set(tile.id, pad)
-  }
-  if (inputs.defId === BLDG_MINE_FIELD) {
-    // PHASE 16.22: see placeBuildingInternal for full UMS-spec rationale. Player-placement
-    // path mirrors AI placement path so mines work identically regardless of who places them.
-    tile.occupancy = 'mineField'
-    const worldPos = {
-      x: planet.planet.position.x + tile.centroid.x,
-      y: planet.planet.position.y + tile.centroid.y,
-      z: planet.planet.position.z + tile.centroid.z,
-    }
-    const detRadius = Math.max(50, planet.planet.radius * 0.12)
-    planet.mineFields.push(newMineField(planet.planet.id, planet.civId, worldPos, 3, detRadius))
-  }
-  pushEvent(inputs.state, {
-    atTick: inputs.state.currentTick,
-    civId: planet.civId,
-    kind: 'build',
-    message: `Built ${def.name} on ${String(planet.planet.id)}`,
-  })
-  return true
+  return placeBuildingCanonical(inputs.state, planet, inputs.defId, inputs.tileId, false)
 }
 
 export interface StartResearchInputs {

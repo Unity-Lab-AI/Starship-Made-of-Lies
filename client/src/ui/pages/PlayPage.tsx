@@ -786,6 +786,7 @@ export function PlayPage() {
             lastHopeTriggeredPlanetIds={lastHopeTriggeredPlanetIds}
             padStateGlows={padStateGlows}
             detonations={sim.state.detonations}
+            humanDiscoveredPlanetIds={humanCivState.empire.discoveredPlanetIds}
             {...(redirectModeFlightId
               ? {
                   onContextMenuPlanet: (planetId: PlanetId) => {
