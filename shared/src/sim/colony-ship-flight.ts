@@ -1,6 +1,7 @@
 import { type CivId, type PlanetId, type Vec3 } from '../types/index'
 import { UNIVERSE_HALF_EXTENT } from './balance-constants'
 import { type ColonyShipDef, type ColonyShipVariantId, getColonyShipDef } from './colony-ship'
+import { type ResolvedShipStats } from './colony-ship-build'
 import { type PadOutcome } from './launch-pad'
 import {
   arcDuration,
@@ -165,9 +166,22 @@ const MIN_GUIDANCE_FACTOR = 0.3
 // Noise weight is the seed-driven portion of dispersion (the deterministic-per-flight randomness).
 const NOISE_FLOOR = 0.55
 
+// PHASE 17.J.10 — custom build flown from a saved blueprint. When set on a flight, the
+// `flightDef()` helper synthesizes a ColonyShipDef-shape from `stats` + base variant metadata
+// instead of looking up the catalog. `baseVariantId` is the closest-match catalog variant
+// used for visual rendering + downstream code paths that need a stable variant id (e.g.
+// suicideShip flag, canIntercept flag). Stats themselves come from the blueprint resolution.
+export interface CustomShipBuild {
+  readonly displayName: string
+  readonly pieces: ReadonlyArray<string>
+  readonly stats: ResolvedShipStats
+  readonly baseVariantId: ColonyShipVariantId
+}
+
 export interface ColonyShipFlight {
   readonly id: ColonyShipFlightId
   readonly variantId: ColonyShipVariantId
+  readonly customBuild: CustomShipBuild | null
   readonly launchingCivId: CivId
   readonly fromPlanetId: PlanetId
   readonly targetPlanetId: PlanetId
@@ -229,6 +243,11 @@ export interface FlightCreateOptions {
   // PHASE 16.33 — optional. Defaults to GPS when omitted (AI / auto-fire / legacy code paths).
   // Player-facing launch flows thread the selected mode through from TargetingModePanel state.
   readonly targetingMode?: TargetingMode
+  // PHASE 17.J.10 — when set, this flight was built from a saved blueprint rather than a
+  // catalog ship. variantId still carries the closest-match base variant for downstream code
+  // that needs a stable id; customBuild.stats override the per-tick numbers (fuel/power/etc.)
+  // via flightDef().
+  readonly customBuild?: CustomShipBuild
 }
 
 export const BASE_TRAVEL_SPEED_PER_TICK = 5
@@ -270,7 +289,13 @@ function computeDispersionRadius(def: ColonyShipDef, seed: number, mode: Targeti
 }
 
 export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight {
-  const def = getColonyShipDef(opts.variantId)
+  // PHASE 17.J.10 — when a customBuild is supplied, derive runtime def from blueprint stats
+  // overlaid on the base variant's metadata. Base variant supplies suicideShip / canIntercept /
+  // emoji / payload-tier-required / power-source-derived fields; blueprint stats override
+  // fuel / power / signal-relevant numbers.
+  const def = opts.customBuild
+    ? synthesizeCustomDef(opts.customBuild)
+    : getColonyShipDef(opts.variantId)
   const seed = opts.signalLossSeed ?? 0
   const targetingMode = opts.targetingMode ?? DEFAULT_TARGETING_MODE
 
@@ -294,6 +319,7 @@ export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight
   return {
     id: opts.id,
     variantId: opts.variantId,
+    customBuild: opts.customBuild ?? null,
     launchingCivId: opts.launchingCivId,
     fromPlanetId: opts.fromPlanetId,
     targetPlanetId: opts.targetPlanetId,
@@ -633,8 +659,45 @@ export function flightDistanceToTarget(flight: ColonyShipFlight): number {
 }
 
 export function flightDef(flight: ColonyShipFlight): ColonyShipDef {
+  // PHASE 17.J.10 — custom-build flights synthesize a def from the blueprint stats overlaid
+  // on the base variant. Catalog flights pass straight through.
+  if (flight.customBuild) return synthesizeCustomDef(flight.customBuild)
   return getColonyShipDef(flight.variantId)
 }
+
+// PHASE 17.J.10 — build a ColonyShipDef-shaped object from a blueprint. Base variant supplies
+// suicideShip / canIntercept / category / darknessTier / payloadTierRequired / power-source-
+// derived fields; blueprint stats override the per-tick numbers. Used by `newColonyShipFlight`
+// + `flightDef` so downstream code paths don't have to branch on custom-vs-catalog.
+function synthesizeCustomDef(build: CustomShipBuild): ColonyShipDef {
+  const base = getColonyShipDef(build.baseVariantId)
+  const stats = build.stats
+  // buildCost: aggregate from blueprint pieces — kept as derived field at the build-action
+  // layer; at the flight layer we only need per-tick economy fields. Use base.buildCost as a
+  // sensible default for any consumer that reads it post-launch (which is rare — buildCost
+  // is consumed at print/build phase, not flight phase).
+  return {
+    ...base,
+    name: build.displayName,
+    fuelRequirement: stats.fuelRequirement || base.fuelRequirement,
+    ammoRequirement: stats.ammoRequirement || base.ammoRequirement,
+    payload: {
+      citizenCapacity: stats.citizenCapacity || base.payload.citizenCapacity,
+      cargoCapacity: stats.cargoCapacity || base.payload.cargoCapacity,
+      weaponPayload: stats.weaponPayload || base.payload.weaponPayload,
+      explosiveYield: stats.explosiveYield || base.payload.explosiveYield,
+    },
+    speedMultiplier: base.speedMultiplier + (stats.speedDelta || 0),
+    evasionMultiplier: base.evasionMultiplier + (stats.evasionDelta || 0),
+    // Note: powerCapacity / powerDrainPerTick / solarRegenPerTick / signalRange /
+    // autoGuidanceInstalled / crewSupportTicks all carry over from base. The blueprint
+    // refines payload + propulsion + fuel; deeper system overrides land in v2.
+  }
+}
+
+// PHASE 17.J.10 — re-export so consumers (MatchSim buildShipFromBlueprintAction) can synthesize
+// the same shape when staging a pad for a blueprint build.
+export { synthesizeCustomDef }
 
 // PHASE 16.21 — deterministic telemetry snapshot computable from flight state alone (no
 // dependence on cross-tick caches). Used by LCD slot 8 MISSILE STATUS to render UMS-style
@@ -763,7 +826,7 @@ export interface FlightDetonationAoE {
 }
 
 export function computeDetonationAoE(flight: ColonyShipFlight): FlightDetonationAoE {
-  const def = getColonyShipDef(flight.variantId)
+  const def = flightDef(flight)
   const fuelEnergy = flight.fuelRemaining / 50
   const payloadEnergy = def.payload.explosiveYield + def.payload.weaponPayload * 0.5
   const citizenEnergy = def.suicideShip ? flight.citizensAboard * 2 : 0

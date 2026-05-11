@@ -1180,6 +1180,20 @@ export function PlayPage() {
             <ShipBuilderPanel
               inventory={activePlanet.inventory}
               researchedTechs={humanCivState.empire.researchedTechs}
+              activePlanetLabel={`${activePlanet.planet.biome.emoji} ${String(activePlanet.planet.id)}`}
+              idlePads={[...activePlanet.launchPads.values()].filter(
+                (p) => p.state === 'IDLE' || p.state === 'GONE',
+              )}
+              onPrintBlueprint={(padId, baseVariantId, displayName, pieces, stats, totalCost) =>
+                sim.buildShipFromBlueprint({
+                  padId,
+                  baseVariantId,
+                  displayName,
+                  pieces,
+                  stats,
+                  totalCost,
+                })
+              }
             />
           </PanelFrame>
         )}

@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   type ColonyShipBuild,
+  type ColonyShipVariantId,
+  type LaunchPad,
   type PlanetInventory,
+  type ResolvedShipStats,
   type ShipPieceDef,
   type ShipPieceSlot,
   type TechId,
+  SHIP_EXPLOSIVE,
+  SHIP_HEAVY,
   SHIP_PIECES,
+  SHIP_PROBE,
+  SHIP_STANDARD,
   piecesBySlot,
   resolveShipBuild,
   stockOf,
@@ -65,6 +72,16 @@ function persistBlueprints(list: ReadonlyArray<SavedBlueprint>): void {
 interface ShipBuilderPanelProps {
   readonly inventory: PlanetInventory
   readonly researchedTechs: ReadonlySet<TechId>
+  readonly activePlanetLabel: string
+  readonly idlePads: ReadonlyArray<LaunchPad>
+  readonly onPrintBlueprint: (
+    padId: LaunchPad['id'],
+    baseVariantId: ColonyShipVariantId,
+    displayName: string,
+    pieces: ReadonlyArray<string>,
+    stats: ResolvedShipStats,
+    totalCost: ReadonlyArray<{ resource: import('@smol/shared').ResourceId; amount: number }>,
+  ) => boolean
 }
 
 function emptySelections(): Record<ShipPieceSlot, string | null> {
@@ -80,7 +97,24 @@ function emptySelections(): Record<ShipPieceSlot, string | null> {
   }
 }
 
-export function ShipBuilderPanel({ inventory, researchedTechs }: ShipBuilderPanelProps) {
+// PHASE 17.J.10 — pick the closest-match catalog variant for a blueprint. Used as the BASE
+// variant id stored on the pad/flight so downstream code (render layer, suicide-ship flag,
+// can-intercept flag) has a stable reference. Blueprint stats override the per-tick numbers
+// via flightDef() — this just resolves "what KIND of ship is this".
+function inferBaseVariantFromStats(stats: ResolvedShipStats): ColonyShipVariantId {
+  if (stats.explosiveYield > 0) return SHIP_EXPLOSIVE
+  if (stats.citizenCapacity >= 800) return SHIP_HEAVY
+  if (stats.citizenCapacity >= 50) return SHIP_STANDARD
+  return SHIP_PROBE
+}
+
+export function ShipBuilderPanel({
+  inventory,
+  researchedTechs,
+  activePlanetLabel,
+  idlePads,
+  onPrintBlueprint,
+}: ShipBuilderPanelProps) {
   const [selections, setSelections] =
     useState<Record<ShipPieceSlot, string | null>>(emptySelections)
   const [blueprintName, setBlueprintName] = useState<string>('')
@@ -290,34 +324,86 @@ export function ShipBuilderPanel({ inventory, researchedTechs }: ShipBuilderPane
 
       <div className="ship-builder-panel__library">
         <h4 className="ship-builder-panel__library-title">Saved Blueprints ({saved.length})</h4>
+        <p className="ship-builder-panel__library-context">
+          Active planet: <strong>{activePlanetLabel}</strong> · {idlePads.length} idle pad
+          {idlePads.length === 1 ? '' : 's'} ready to print
+        </p>
         {saved.length === 0 ? (
           <p className="ship-builder-panel__library-empty">
             No saved blueprints yet. Build a ship and save it above.
           </p>
         ) : (
           <ul className="ship-builder-panel__library-list">
-            {saved.map((bp) => (
-              <li key={bp.id} className="ship-builder-panel__library-row">
-                <span className="ship-builder-panel__library-name">{bp.name}</span>
-                <span className="ship-builder-panel__library-meta">{bp.pieces.length} parts</span>
-                <button
-                  type="button"
-                  className="ship-builder-panel__library-btn"
-                  onClick={() => handleLoad(bp)}
-                  title="Load this blueprint into the picker"
-                >
-                  Load
-                </button>
-                <button
-                  type="button"
-                  className="ship-builder-panel__library-btn ship-builder-panel__library-btn--danger"
-                  onClick={() => handleDelete(bp)}
-                  title="Delete this blueprint"
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
+            {saved.map((bp) => {
+              const bpBuild: ColonyShipBuild = {
+                buildId: bp.id,
+                displayName: bp.name,
+                pieces: bp.pieces,
+              }
+              const bpResolved = resolveShipBuild(bpBuild, researchedTechs)
+              const bpCost = aggregateCost(bpResolved.totalCost)
+              const canAfford = bpCost.every((c) => stockOf(inventory, c.resource) >= c.amount)
+              const hasMissingTech = bpResolved.missingTechs.length > 0
+              const canPrint = idlePads.length > 0 && canAfford && !hasMissingTech
+              const printTitle = !canPrint
+                ? idlePads.length === 0
+                  ? 'No idle pads on this planet — wait for a pad to reach IDLE or GONE state'
+                  : hasMissingTech
+                    ? `Missing techs: ${bpResolved.missingTechs.map(String).join(', ')}`
+                    : 'Cannot afford — check Total Cost above'
+                : `Print on first idle pad (${String(idlePads[0]!.id)})`
+              return (
+                <li key={bp.id} className="ship-builder-panel__library-row">
+                  <span className="ship-builder-panel__library-name">{bp.name}</span>
+                  <span className="ship-builder-panel__library-meta">{bp.pieces.length} parts</span>
+                  <button
+                    type="button"
+                    className="ship-builder-panel__library-btn"
+                    onClick={() => handleLoad(bp)}
+                    title="Load this blueprint into the picker"
+                  >
+                    Load
+                  </button>
+                  <button
+                    type="button"
+                    className="ship-builder-panel__library-btn ship-builder-panel__library-btn--print"
+                    onClick={() => {
+                      const pad = idlePads[0]
+                      if (!pad) {
+                        setStatusMessage('No idle pads on this planet.')
+                        return
+                      }
+                      const baseVariant = inferBaseVariantFromStats(bpResolved.stats)
+                      const ok = onPrintBlueprint(
+                        pad.id,
+                        baseVariant,
+                        bp.name,
+                        bp.pieces,
+                        bpResolved.stats,
+                        bpCost,
+                      )
+                      setStatusMessage(
+                        ok
+                          ? `Printing "${bp.name}" on pad ${String(pad.id)}.`
+                          : 'Print failed — pad busy or inventory short.',
+                      )
+                    }}
+                    disabled={!canPrint}
+                    title={printTitle}
+                  >
+                    🚀 Print
+                  </button>
+                  <button
+                    type="button"
+                    className="ship-builder-panel__library-btn ship-builder-panel__library-btn--danger"
+                    onClick={() => handleDelete(bp)}
+                    title="Delete this blueprint"
+                  >
+                    ✕
+                  </button>
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>

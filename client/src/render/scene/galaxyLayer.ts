@@ -11,7 +11,7 @@ import {
   type Theme,
   type TileId,
   type Vec3,
-  getColonyShipDef,
+  flightDef as resolveFlightDef,
   planetRenderRadius,
 } from '@smol/shared'
 
@@ -871,7 +871,7 @@ export function syncFlightArcs(
     // so defensive interceptors read distinctly from attacking colony ships at galactic zoom.
     // Same civ color (so player tells whose counter it is) but the geometry + dash cadence
     // mark it as an intercept-trail vs. a cruise-arc.
-    const flightDef = getColonyShipDef(flight.variantId)
+    const flightDef = resolveFlightDef(flight)
     const isCounter = flightDef.canIntercept
 
     let entry = handle.entries.get(flightIdStr)

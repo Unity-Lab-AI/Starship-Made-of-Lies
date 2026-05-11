@@ -2,6 +2,7 @@ import { type CivId, type PlanetId, type Vec3 } from '../types/index'
 import {
   type ColonyShipFlight,
   flightCurrentPosition,
+  flightDef,
   flightDistanceToTarget,
   intercept,
   newColonyShipFlight,
@@ -82,7 +83,7 @@ export function attemptCounterMissileLaunch(
   const variantId = defender.counterShipVariantId ?? SHIP_COUNTER_COLONY
   const counterDef = getColonyShipDef(variantId)
   const counterSpeed = 5 * counterDef.speedMultiplier
-  const attackerDef = getColonyShipDef(attacker.variantId)
+  const attackerDef = flightDef(attacker)
   const attackerSpeed = 5 * attackerDef.speedMultiplier
   const solution = solveIntercept(
     attacker.arc,
