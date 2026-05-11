@@ -655,6 +655,11 @@ PHASE 17 subdivided into focused sub-phases during the post-16 super-review cycl
    ║           interceptor. Per user verbatim "hold up now all      ║
    ║           ships have abort that can be triggered by the        ║
    ║           player at any time".                                 ║
+   ║  17.L.A.4  Workforce reserved-pool enforcement — closes the   ║
+   ║           17.J.9 double-count loop. New availableWorkers(pop)  ║
+   ║           subtracts shipDutyReservedPool from worker pool.     ║
+   ║           tickCivResearch now uses it — research labor drops   ║
+   ║           when citizens are reserved for ship duty.            ║
    ║  17.L.A.17 Self-Destruct Systems tech + flight gate. New       ║
    ║           TECH_SELF_DESTRUCT_SYSTEMS (tier 1 industrial) +     ║
    ║           ColonyShipDef.selfDestructCapable derived flag +     ║

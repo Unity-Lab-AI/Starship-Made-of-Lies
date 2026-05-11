@@ -70,6 +70,7 @@
    │   Citizen tier-gate enforcement at launch     ✅ 17.L.A.6   │
    │   All ships abortable at any time             ✅ 17.L.A.16  │
    │   Self-Destruct Systems tech + flight gate    ✅ 17.L.A.17  │
+   │   Workforce reserved-pool enforcement         ✅ 17.L.A.4   │
    ├─────────────────────────────────────────────────────────────┤
    │   ACTIVE — PHASE 17.L tail (super-review additions)         │
    ├─────────────────────────────────────────────────────────────┤

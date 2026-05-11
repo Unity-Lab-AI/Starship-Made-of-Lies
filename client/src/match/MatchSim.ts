@@ -172,6 +172,7 @@ import {
   tickResearch,
   tickTierPromotion,
   totalPopulation,
+  availableWorkers,
   newCanonicalSparklineMap,
   SPARKLINE_CAPTURE_INTERVAL,
   SPARKLINE_ACTIVE_FLIGHTS,
@@ -1066,7 +1067,10 @@ function tickCivResearch(state: MatchState, civState: MatchCivState): void {
   for (const planetId of civState.empire.controlledPlanetIds) {
     const ps = state.planets.get(planetId)
     if (!ps) continue
-    const total = totalPopulation(ps.population)
+    // PHASE 17.L.A.4 — research-side workforce uses availableWorkers (citizens minus ship-duty
+    // reserved pool). Closes the 17.J.9 double-count loop where ship-duty-reserved citizens
+    // still counted as research labor while also being available as colony-ship volunteers.
+    const total = availableWorkers(ps.population)
     const counts = ps.buildingsByDef
     points.push(
       generatePlanetResearchPoints({
