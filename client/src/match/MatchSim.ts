@@ -35,6 +35,8 @@ import {
   type PlanetShipBeaconBuffer,
   type PlanetWorkforce,
   type PlaystyleArchetype,
+  type ResolvedShipStats,
+  type ResourceId,
   type ShipLoadoutContext,
   type SparklineBuffer,
   type SparklineMetricId,
@@ -104,6 +106,7 @@ import {
   deriveCrashLootFromShipPayload,
   dissidentRatio,
   flightCurrentPosition,
+  flightDef as resolveFlightDef,
   generateGalaxy,
   generatePlanetResearchPoints,
   getBuildingDef,
@@ -151,6 +154,7 @@ import {
   shouldAutoTriggerLastHope,
   spawnIndigenousCiv,
   startPrint,
+  startPrintFromBlueprint,
   startResearch,
   consumeResource,
   stockOf,
@@ -675,7 +679,7 @@ export function tickMatch(state: MatchState): void {
 
   for (const flight of [...state.flights.values()]) {
     tickFlight(flight)
-    const flightDef = getColonyShipDef(flight.variantId)
+    const flightDef = resolveFlightDef(flight)
     const flightIdStr = String(flight.id)
     // PHASE 16.29: counter-colony-ship intercept tick. If this flight is a counter chasing
     // a registered attacker, run tickCounterFlight proximity check. On intercept both ships
@@ -735,7 +739,7 @@ export function tickMatch(state: MatchState): void {
         const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
         if (dist < candidatePlanet.planet.surfaceRadius * 1.2) {
           const launchingCiv = state.civs.get(flight.launchingCivId)
-          const def = getColonyShipDef(flight.variantId)
+          const def = resolveFlightDef(flight)
           if (
             launchingCiv &&
             candidatePlanet.civId !== launchingCiv.civId &&
@@ -1600,7 +1604,7 @@ function handleFlightOutcome(state: MatchState, flight: ColonyShipFlight): void 
   const targetPlanet = state.planets.get(flight.targetPlanetId)
 
   if (flight.phase === 'DETONATE' && launchingCiv && targetPlanet) {
-    const def = getColonyShipDef(flight.variantId)
+    const def = resolveFlightDef(flight)
     // PHASE 16.24: self-destruct AoE per the SMoL premise — every colony ship is also a
     // self-destruct weapon. AoE damage at detonation scales with fuelRemaining + payload
     // load-out + (suicide ship × citizens) per computeDetonationAoE. Balance target: 30-50
@@ -1690,7 +1694,7 @@ function applyDetonationAoE(
   launchingCiv: MatchCivState,
   targetPlanet: MatchPlanetState,
 ): void {
-  const def = getColonyShipDef(flight.variantId)
+  const def = resolveFlightDef(flight)
   const aoe = computeDetonationAoE(flight)
   // Magnitude → kill count: damage scalar 0.5 lands the Heavy variant (magnitude ~800) at
   // ~400 kills, and a Pilgrim Volunteer (magnitude ~1400 with suicide multiplier) at ~700.
@@ -2189,6 +2193,40 @@ export function buildShipAction(inputs: BuildShipInputs): boolean {
   return false
 }
 
+// PHASE 17.J.10 — staging a pad for a print run driven by a saved blueprint instead of the
+// COLONY_SHIPS catalog. baseVariantId is the closest-match catalog variant supplying the
+// suicideShip / canIntercept / payload-tier / power-source-derived fields; the resolved
+// blueprint stats override the per-tick numbers via flightDef(). totalCost is the aggregated
+// resource sum from the blueprint pieces (NOT the base variant's catalog buildCost), so a
+// custom build pays exactly what its pieces add up to.
+export interface BuildShipFromBlueprintInputs {
+  readonly state: MatchState
+  readonly padId: TileId
+  readonly baseVariantId: ColonyShipVariantId
+  readonly displayName: string
+  readonly pieces: ReadonlyArray<string>
+  readonly stats: ResolvedShipStats
+  readonly totalCost: ReadonlyArray<{ resource: ResourceId; amount: number }>
+}
+
+export function buildShipFromBlueprintAction(inputs: BuildShipFromBlueprintInputs): boolean {
+  for (const planet of inputs.state.planets.values()) {
+    if (planet.civId !== inputs.state.humanCivId) continue
+    const pad = planet.launchPads.get(inputs.padId)
+    if (!pad) continue
+    return startPrintFromBlueprint(
+      pad,
+      inputs.baseVariantId,
+      inputs.displayName,
+      inputs.pieces,
+      inputs.stats,
+      inputs.totalCost,
+      planet.inventory,
+    )
+  }
+  return false
+}
+
 export interface LaunchShipInputs {
   readonly state: MatchState
   readonly padId: TileId
@@ -2227,6 +2265,9 @@ export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
       consumeResource(planet.inventory, def.reactorFuelType, def.reactorFuelAmount)
     }
     const flightIdStr = `flight-${inputs.state.currentTick}-${planet.civId}-${pad.id}`
+    // PHASE 17.J.10 — thread loadedCustomBuild into the flight so flightDef() resolves to the
+    // blueprint-derived stats instead of the base variant. baseVariantId is set so downstream
+    // code paths (suicide-ship flag, can-intercept flag, render-layer color) still resolve.
     const flight = newColonyShipFlight({
       id: colonyShipFlightId(flightIdStr),
       variantId: pad.loadedShipVariantId,
@@ -2239,6 +2280,16 @@ export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
       citizensAboard: pad.citizensLoaded,
       signalLossSeed: Math.floor(inputs.state.rng() * 0xffffff),
       ...(inputs.targetingMode ? { targetingMode: inputs.targetingMode } : {}),
+      ...(pad.loadedCustomBuild
+        ? {
+            customBuild: {
+              displayName: pad.loadedCustomBuild.displayName,
+              pieces: pad.loadedCustomBuild.pieces,
+              stats: pad.loadedCustomBuild.stats,
+              baseVariantId: pad.loadedShipVariantId,
+            },
+          }
+        : {}),
     })
     inputs.state.flights.set(flightIdStr, flight)
     pad.state = 'GONE'

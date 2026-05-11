@@ -35,6 +35,17 @@ export interface LaunchPad {
   state: PadState
   isController: boolean
   loadedShipVariantId: ColonyShipVariantId | null
+  // PHASE 17.J.10 — when the pad is staged from a saved blueprint instead of the catalog,
+  // loadedShipVariantId carries the closest-match BASE variant (for downstream code paths
+  // that need a stable id — render layer, suicide-ship flag, can-intercept flag), and this
+  // field carries the resolved stats + display name. Cleared when the pad transitions to GONE
+  // or is reset. launchShipFromPadAction reads this and threads `customBuild` into the
+  // ColonyShipFlight via FlightCreateOptions.
+  loadedCustomBuild: {
+    displayName: string
+    pieces: ReadonlyArray<string>
+    stats: import('./colony-ship-build').ResolvedShipStats
+  } | null
   buildTicksRemaining: number
   fuelLoaded: number
   ammoLoaded: number
@@ -58,6 +69,7 @@ export function newLaunchPad(
     state: 'INIT',
     isController,
     loadedShipVariantId: null,
+    loadedCustomBuild: null,
     buildTicksRemaining: 0,
     fuelLoaded: 0,
     ammoLoaded: 0,
@@ -180,7 +192,43 @@ export function startPrint(
   const def = getColonyShipDef(shipVariantId)
   if (!tryConsumeAll(inventory, def.buildCost)) return false
   pad.loadedShipVariantId = shipVariantId
+  pad.loadedCustomBuild = null
   pad.buildTicksRemaining = Math.max(1, Math.round(def.buildTimeTicks * buildTimeMultiplier))
+  pad.fuelLoaded = 0
+  pad.ammoLoaded = 0
+  pad.citizensLoaded = 0
+  pad.state = 'PRINT'
+  pad.lastOutcome = null
+  return true
+}
+
+// PHASE 17.J.10 — start a print run from a saved blueprint. The pad's loadedShipVariantId is
+// the closest-match base variant (for downstream code paths that need a stable id —
+// suicide-ship flag / can-intercept flag / payload tier / render layer). loadedCustomBuild
+// carries the resolved blueprint stats which override the per-flight numbers via
+// flightDef(). Total build cost = aggregated piece costs (NOT the base variant's buildCost).
+export function startPrintFromBlueprint(
+  pad: LaunchPad,
+  baseVariantId: ColonyShipVariantId,
+  displayName: string,
+  pieces: ReadonlyArray<string>,
+  stats: import('./colony-ship-build').ResolvedShipStats,
+  totalCost: ReadonlyArray<{ resource: import('../types/index').ResourceId; amount: number }>,
+  inventory: PlanetInventory,
+  buildTimeMultiplier = 1,
+): boolean {
+  if (pad.state !== 'IDLE' && pad.state !== 'GONE') return false
+  if (!tryConsumeAll(inventory, totalCost)) return false
+  const baseDef = getColonyShipDef(baseVariantId)
+  // Blueprint build time = base variant's build time scaled by piece-driven delta. Falls back
+  // to baseDef.buildTimeTicks when the blueprint produces no delta (typical for v1 pieces).
+  const buildTime = Math.max(
+    1,
+    Math.round((baseDef.buildTimeTicks + (stats.buildTimeDelta || 0)) * buildTimeMultiplier),
+  )
+  pad.loadedShipVariantId = baseVariantId
+  pad.loadedCustomBuild = { displayName, pieces, stats }
+  pad.buildTicksRemaining = buildTime
   pad.fuelLoaded = 0
   pad.ammoLoaded = 0
   pad.citizensLoaded = 0

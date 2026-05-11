@@ -8,6 +8,7 @@ import {
   setShipDutyPercent as setShipDutyPercentImpl,
 } from '@smol/shared'
 import {
+  type BuildShipFromBlueprintInputs,
   type BuildShipInputs,
   type LaunchCampaignInputs,
   type LaunchShipInputs,
@@ -16,6 +17,7 @@ import {
   type PlaceBuildingInputs,
   type StartResearchInputs,
   buildShipAction,
+  buildShipFromBlueprintAction,
   claimLootDropAction,
   createMatch,
   isHumanGodControlReady,
@@ -41,6 +43,7 @@ export interface UseMatchSimResult {
   readonly startResearchTech: (input: Omit<StartResearchInputs, 'state'>) => boolean
   readonly launchCampaign: (input: Omit<LaunchCampaignInputs, 'state'>) => boolean
   readonly buildShip: (input: Omit<BuildShipInputs, 'state'>) => boolean
+  readonly buildShipFromBlueprint: (input: Omit<BuildShipFromBlueprintInputs, 'state'>) => boolean
   readonly launchShipFromPad: (input: Omit<LaunchShipInputs, 'state'>) => boolean
   readonly claimLoot: (dropId: LootDropId) => boolean
   readonly triggerLastHope: (civId: CivId) => boolean
@@ -107,6 +110,14 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     if (ok) setTickCount((n) => n + 1)
     return ok
   }, [])
+  const buildShipFromBlueprint = useCallback(
+    (input: Omit<BuildShipFromBlueprintInputs, 'state'>) => {
+      const ok = buildShipFromBlueprintAction({ ...input, state: stateRef.current })
+      if (ok) setTickCount((n) => n + 1)
+      return ok
+    },
+    [],
+  )
   const buildShip = useCallback((input: Omit<BuildShipInputs, 'state'>) => {
     const ok = buildShipAction({ ...input, state: stateRef.current })
     if (ok) setTickCount((n) => n + 1)
@@ -309,6 +320,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     startResearchTech,
     launchCampaign,
     buildShip,
+    buildShipFromBlueprint,
     launchShipFromPad,
     claimLoot,
     triggerLastHope,

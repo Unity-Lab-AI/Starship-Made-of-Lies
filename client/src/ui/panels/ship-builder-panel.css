@@ -215,6 +215,27 @@
   font-style: italic;
 }
 
+.ship-builder-panel__library-context {
+  margin: 0 0 0.35rem;
+  font-size: 0.74rem;
+  color: var(--fg-secondary, #a8a8b8);
+}
+
+.ship-builder-panel__library-btn--print {
+  background: rgba(120, 200, 130, 0.16);
+  border-color: #88e090;
+  color: #88e090;
+}
+
+.ship-builder-panel__library-btn--print:not(:disabled):hover {
+  background: rgba(120, 200, 130, 0.3);
+}
+
+.ship-builder-panel__library-btn--print:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .ship-builder-panel__library-list {
   list-style: none;
   margin: 0;
@@ -226,7 +247,7 @@
 
 .ship-builder-panel__library-row {
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
+  grid-template-columns: 1fr auto auto auto auto;
   gap: 0.35rem;
   align-items: center;
   padding: 0.25rem 0.35rem;
