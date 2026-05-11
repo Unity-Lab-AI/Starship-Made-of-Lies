@@ -369,6 +369,10 @@ export function PlayPage() {
                 .map((p) => p.planet.id),
             )
           }
+          ownerByPlanet={
+            new Map([...sim.state.planets.values()].map((p) => [p.planet.id, p.civId] as const))
+          }
+          themeByCiv={new Map([...sim.state.civs.values()].map((c) => [c.civId, c.theme] as const))}
           onSelectPlanet={(id) => {
             setSelectedPlanetId(id)
             setGalaxyOpen(false)
