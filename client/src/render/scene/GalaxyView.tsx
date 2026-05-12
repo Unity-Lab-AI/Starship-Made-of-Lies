@@ -216,7 +216,13 @@ export function GalaxyView({
     // distance + far-plane scale with the actual galaxy size. Tiny galaxies don't open
     // zoomed-out beyond the cluster; Large galaxies can still frame the whole thing.
     const cameraState = newCamera(mount.clientWidth / mount.clientHeight, galaxy.universeHalfExtent)
-    cameraState.zoomT = 0.78
+    // PHASE 17.L.D.2 (HOTFIX 2026-05-11) — initial zoom bumped 0.78 -> 1.0 so first-mount
+    // view frames the WHOLE cluster from outside instead of dropping into the middle of
+    // the galaxy. Per user verbatim *"i p[ricked a 100 p[lanet map and there is only 3
+    // star with about 5 splanets each around each star"* — at the old 0.78 default, only
+    // ~35% of a Small (14-star) cluster fit in the view frustum. zoomT=1.0 frames the
+    // entire universe; player zooms IN (wheel) to focus on home system.
+    cameraState.zoomT = 1.0
     scene.add(cameraState.camera)
     const galaxyHandle = buildGalaxyLayer(galaxy)
     scene.add(galaxyHandle.group)

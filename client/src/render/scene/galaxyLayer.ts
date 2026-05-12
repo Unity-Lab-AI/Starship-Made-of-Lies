@@ -57,7 +57,11 @@ export function buildGalaxyLayer(galaxy: Galaxy): GalaxyLayerHandle {
   const starMeshes = new Map<string, THREE.Mesh>()
 
   // Starfield background
-  const starfield = makeStarfield(galaxy.seed ?? 12345)
+  // PHASE 17.L.D.2 (HOTFIX 2026-05-11) — starfield radius scales with universe size so it
+  // sits as an outer-shell backdrop around the entire cluster. Per user verbatim *"the
+  // starlight like pinpoint lifght needs to be a outer shell of the univewrse curently it
+  // is a sphere of lights in the center of the galaxy"*.
+  const starfield = makeStarfield(galaxy.seed ?? 12345, galaxy.universeHalfExtent)
   group.add(starfield)
 
   // Center the galaxy on its mean position
@@ -1468,7 +1472,15 @@ export function buildRangeOverlayLayer(homeWorldPosition: THREE.Vector3): RangeO
   }
 }
 
-function makeStarfield(seed: number): THREE.Points {
+// PHASE 17.L.D.2 (HOTFIX 2026-05-11) — outer-shell starfield. Radius scales with the
+// galaxy's universe half-extent so the backdrop always sits FAR outside the cluster from
+// every camera angle. Per user verbatim *"the starlight like pinpoint lifght needs to be
+// a outer shell of the univewrse curently it is a sphere of lights in the center of the
+// galaxy"*. Floor at 2_000_000 so even the smallest Tiny galaxy still has a distant
+// horizon-style backdrop. Point size scales modestly with shell radius so far stars don't
+// shrink to invisibility at large universe scales (sizeAttenuation handles the per-pixel
+// scaling; the BASE size needs the bump because distance is now ~30x bigger).
+function makeStarfield(seed: number, universeHalfExtent?: number): THREE.Points {
   const count = 2500
   const positions = new Float32Array(count * 3)
   const colors = new Float32Array(count * 3)
@@ -1477,15 +1489,16 @@ function makeStarfield(seed: number): THREE.Points {
     s = (s * 1664525 + 1013904223) >>> 0
     return s / 0xffffffff
   }
+  const shellRadius = Math.max(2_000_000, (universeHalfExtent ?? 60_000) * 3)
   for (let i = 0; i < count; i++) {
-    // Spread stars on a giant sphere
+    // Spread stars on the outer shell — they form a distant horizon-style backdrop, not a
+    // pinpoint ball at the galactic center.
     const u = rand() * 2 - 1
     const t = rand() * Math.PI * 2
-    const r = 18000
     const phi = Math.acos(u)
-    const x = r * Math.sin(phi) * Math.cos(t)
-    const y = r * Math.sin(phi) * Math.sin(t)
-    const z = r * Math.cos(phi)
+    const x = shellRadius * Math.sin(phi) * Math.cos(t)
+    const y = shellRadius * Math.sin(phi) * Math.sin(t)
+    const z = shellRadius * Math.cos(phi)
     positions[i * 3 + 0] = x
     positions[i * 3 + 1] = y
     positions[i * 3 + 2] = z
@@ -1497,8 +1510,14 @@ function makeStarfield(seed: number): THREE.Points {
   const geom = new THREE.BufferGeometry()
   geom.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   geom.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  // Point size scales with shell radius so the backdrop stays visible at any zoom.
+  // sizeAttenuation=true means three.js renders gl_PointSize = size × (height/2) /
+  // (distance × tan(fov/2)). At shellRadius ~2M with camera ~200k from target, the
+  // typical camera-to-shell-star distance is ~1.8-2.2M; we want ~3-4 px visible
+  // pinpoint stars, so size ≈ 10000 world units gives the right perceptual scale.
+  const pointSize = Math.max(8000, shellRadius * 0.005)
   const mat = new THREE.PointsMaterial({
-    size: 24,
+    size: pointSize,
     sizeAttenuation: true,
     vertexColors: true,
     transparent: true,
