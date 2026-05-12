@@ -12,9 +12,11 @@ import {
   skipCinematic,
   subscribeCinematics,
 } from './CinematicsManager'
+import { useT } from '../i18n/i18n'
 import './cinematics.css'
 
 export function CinematicsOverlay() {
+  const t = useT()
   const [active, setActive] = useState<ActiveCinematic | null>(null)
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export function CinematicsOverlay() {
         )}
         {beat.title && <h1 className="cinematic-overlay__title">{beat.title}</h1>}
         {beat.subtitle && <p className="cinematic-overlay__subtitle">{beat.subtitle}</p>}
-        <div className="cinematic-overlay__skip-hint">Press Esc / Space / click to skip</div>
+        <div className="cinematic-overlay__skip-hint">{t('cinematic.skipHint')}</div>
       </div>
     </div>
   )
