@@ -1,0 +1,74 @@
+/* PHASE 18.3 — Replay buffer panel. List of past snapshots + load buttons. */
+
+.replay-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.replay-panel__summary {
+  font-size: 0.85rem;
+  color: var(--muted-text, #8895a3);
+  margin: 0;
+}
+
+.replay-panel__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.replay-panel__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.45rem 0.65rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 0.3rem;
+}
+
+.replay-panel__row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.replay-panel__row-tick {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.replay-panel__row-delta {
+  font-size: 0.75rem;
+  color: var(--muted-text, #8895a3);
+}
+
+.replay-panel__row-load {
+  flex-shrink: 0;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--accent, #6abf69);
+  color: var(--accent-text, #0c1014);
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.replay-panel__row-load:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.replay-panel__row-load:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted-text, #8895a3);
+  cursor: default;
+}

@@ -98,8 +98,10 @@ import {
   applyStarvationDeaths,
   attemptIndigenousParley,
   buildHumanCoopAlliance,
+  canTradeBetweenCivs,
   civId,
   claimLootDrop,
+  type CoopAlliance,
   colonyShipFlightId,
   computeCrashOutcome,
   controlledPlanetCount,
@@ -231,6 +233,7 @@ import {
   SPARKLINE_RESOURCE_TOTAL,
   SPARKLINE_TECH_POINTS,
 } from '@smol/shared'
+import { shouldTickPlanetThisFrame, type PlanetTickPriority } from './planetAggregates'
 
 export type MatchPhase = 'STARTING' | 'IN_PROGRESS' | 'ENDED'
 
@@ -391,6 +394,18 @@ export interface MatchState {
   // PHASE 18.4 — locked-in intensity (defaulted from config.randomEventIntensity ?? 'medium').
   // Stored on state so a save-loaded match keeps the host's original setting.
   randomEventIntensity: RandomEventIntensity
+  // PHASE 18.5 — coop alliances. Empty in single-player; populated when a coop lobby spawns a
+  // human-side alliance via `buildHumanCoopAlliance`. Consumed by `canTradeBetweenCivs` /
+  // `canShareIntelBetweenCivs` / `isHostileBetweenCivs` resolvers in `shared/sim/diplomacy.ts`
+  // so trade caravans + fog-of-war intel sharing + AI hostility checks all consult the same
+  // alliance roster. Per user verbatim 2026-05-10 *"diplomacy ONLY in coop, AIs always hostile"*.
+  alliances: CoopAlliance[]
+  // PHASE 17.13.9 — optional per-planet tick priority resolver. Default behavior (resolver
+  // unset) = every planet ticks every frame, matching pre-17.13.9 behavior. Host may attach a
+  // resolver that returns 'focused' / 'nearby' / 'background' so background-empire planets tick
+  // every 4th or 12th frame, freeing CPU for the camera-focused planet. Wire from PlayPage when
+  // empire scale (100+ planets per feedback_no_caps_on_empire.md) starts to bite.
+  planetTickPriorityFor?: (planetId: PlanetId) => PlanetTickPriority
   events: MatchEventLog[]
   // PHASE 17.12.6 — achievement IDs newly unlocked by THIS match's end resolver. Populated by
   // tickMatch when phase transitions to 'ENDED'. Empty during play. useMatchSim watches this
@@ -631,6 +646,9 @@ export function createMatch(config: MatchConfig): MatchState {
     // PHASE 18.4 — random events bookkeeping.
     activeRandomEvents: new Map<CivId, ActiveRandomEvent[]>(),
     randomEventIntensity: config.randomEventIntensity ?? 'medium',
+    // PHASE 18.5 — coop alliances default empty in single-player. Coop lobby spawns populate
+    // this via buildHumanCoopAlliance when humans team up; AI civs never enter alliances.
+    alliances: [],
     humanCivId,
     objectives: config.objectives,
     tickCap: config.tickCapOverride,
@@ -834,8 +852,18 @@ export function tickMatch(state: MatchState): void {
   if (state.phase !== 'IN_PROGRESS') return
   state.currentTick += 1
 
+  // PHASE 17.13.9 — off-camera tick throttle gate. Default priority = 'focused' = always tick;
+  // hosts that want to throttle background empires for late-game scale (per
+  // feedback_no_caps_on_empire.md target of 100+ planets) can override the resolver per-planet
+  // by attaching `state.planetTickPriorityFor` ahead of the tick call. The default keeps every
+  // planet at every-tick parity so existing balance + AI behavior don't drift; opt-in throttle
+  // is a host knob, not a default.
   for (const planet of state.planets.values()) {
     if (!isCivAlive(state, planet.civId)) continue
+    const priority: PlanetTickPriority = state.planetTickPriorityFor
+      ? state.planetTickPriorityFor(planet.planet.id)
+      : 'focused'
+    if (!shouldTickPlanetThisFrame(state.currentTick, priority)) continue
     tickPlanet(state, planet)
   }
 
@@ -3463,8 +3491,19 @@ export function createCaravanAction(inputs: CreateCaravanActionInputs): CreateCa
   if (fromPlanet.civId !== inputs.state.humanCivId) {
     return { ok: false, reason: 'source planet not owned' }
   }
-  if (toPlanet.civId !== inputs.state.humanCivId) {
-    return { ok: false, reason: 'destination planet not owned' }
+  // PHASE 18.5 — destination civ gate via diplomacy resolver. Allows the same intra-empire
+  // trade as before (humanCiv → humanCiv tested via canTradeBetweenCivs returning 'self') AND
+  // newly allows trade to ANY coop ally's planet. Hostile / neutral destinations rejected.
+  const indigenousCivIdSet = new Set(inputs.state.indigenousCivs.keys())
+  if (
+    !canTradeBetweenCivs(
+      inputs.state.humanCivId,
+      toPlanet.civId,
+      inputs.state.alliances,
+      indigenousCivIdSet,
+    )
+  ) {
+    return { ok: false, reason: 'destination civ is not an ally — trade gate denies' }
   }
   if (inputs.fromPlanetId === inputs.toPlanetId) {
     return { ok: false, reason: 'source and destination must differ' }

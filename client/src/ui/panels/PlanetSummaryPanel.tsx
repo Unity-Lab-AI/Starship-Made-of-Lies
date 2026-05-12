@@ -19,6 +19,7 @@ import {
   type Tile,
   type TileId,
 } from '@smol/shared'
+import { useT } from '../../i18n/i18n'
 import './PlanetSummaryPanel.css'
 
 // PHASE 17.L.C.4 — Planet summary popup per user verbatim 2026-05-10:
@@ -82,6 +83,7 @@ export function PlanetSummaryPanel({
   tiles,
   buildingsByTile,
 }: PlanetSummaryPanelProps) {
+  const t = useT()
   const totalPop = (Object.values(population.tierCounts) as ReadonlyArray<number>).reduce(
     (s, n) => s + n,
     0,
@@ -108,21 +110,21 @@ export function PlanetSummaryPanel({
         </div>
         <dl className="planet-summary-panel__topo">
           <div>
-            <dt>Tiles used</dt>
+            <dt>{t('planetSummary.tilesUsed')}</dt>
             <dd>
               {tilesUsed.toLocaleString()} / {tilesTotal.toLocaleString()}
             </dd>
           </div>
           <div>
-            <dt>Buildings</dt>
+            <dt>{t('planetSummary.buildings')}</dt>
             <dd>{buildingCountTotal.toLocaleString()}</dd>
           </div>
           <div>
-            <dt>Total population</dt>
+            <dt>{t('planetSummary.totalPopulation')}</dt>
             <dd>{totalPop.toLocaleString()}</dd>
           </div>
           <div>
-            <dt>Storage tier</dt>
+            <dt>{t('planetSummary.storageTier')}</dt>
             <dd>T{inventoryCapacityTier}</dd>
           </div>
         </dl>
@@ -135,7 +137,7 @@ export function PlanetSummaryPanel({
               className={`planet-summary-panel__view-toggle-btn${!showDetail ? ' is-active' : ''}`}
               onClick={() => setViewMode('aggregate')}
             >
-              Planet aggregate
+              {t('planetSummary.viewAggregate')}
             </button>
             <button
               type="button"
@@ -144,7 +146,7 @@ export function PlanetSummaryPanel({
               className={`planet-summary-panel__view-toggle-btn${showDetail ? ' is-active' : ''}`}
               onClick={() => setViewMode('perSettlement')}
             >
-              Per settlement ({settlements!.length})
+              {t('planetSummary.viewPerSettlement')} ({settlements!.length})
             </button>
           </div>
         )}
@@ -261,7 +263,7 @@ export function PlanetSummaryPanel({
           className="planet-summary-panel__open-inventory-btn"
           onClick={onOpenInventory}
         >
-          🗄 Open Planet Inventory (upgradeable)
+          🗄 {t('planetSummary.openInventory')}
         </button>
       </footer>
     </section>

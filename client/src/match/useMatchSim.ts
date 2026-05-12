@@ -23,7 +23,7 @@ import {
   loadMatchFromStorage,
   saveMatchToStorage,
 } from './saveLoad'
-import { recordReplaySnapshot } from './replay'
+import { loadReplaySnapshot, recordReplaySnapshot } from './replay'
 import { applyAchievementUnlocks } from './achievementStorage'
 import { applyMatchScores } from './leaderboardStorage'
 import {
@@ -162,6 +162,10 @@ export interface UseMatchSimResult {
   readonly loadSavedMatch: () => boolean
   readonly clearSavedMatch: () => void
   readonly hasSavedMatch: boolean
+  // PHASE 18.3 — rewind to a buffered replay snapshot. Resolves the entry from the replay
+  // ring buffer, deserializes it via the saveLoad pipeline, swaps stateRef + bumps tickCount.
+  // Returns false if the index is unknown / serialize round-trip failed.
+  readonly loadReplaySnapshotAt: (index: number) => boolean
   // PHASE 17.13.10 — player rename mutator. SettlementPickerPanel surfaces a rename button per
   // settlement; this callback applies the rename through the sim action so the themed default
   // restores cleanly on blank-input + the change re-renders any panel reading settlement.name.
@@ -696,6 +700,16 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     setSavedMatchPresent(false)
   }, [])
 
+  // PHASE 18.3 — rewind to a replay snapshot. ReplayPanel calls this with a snapshot index;
+  // we resolve the entry from the ring buffer, deserialize, swap stateRef, force re-render.
+  const loadReplaySnapshotAt = useCallback((index: number): boolean => {
+    const restored = loadReplaySnapshot(index)
+    if (!restored) return false
+    stateRef.current = restored
+    setTickCount((n) => n + 1)
+    return true
+  }, [])
+
   // PHASE 17.1.6 — public salvo lifecycle. startSalvoRound primes a BUILDING-phase coord
   // and triggers BUILDALL on every pad of the target planet. The tick effect drives the
   // coord from there. cancelSalvoRound resets to IDLE without affecting in-flight ships.
@@ -773,6 +787,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     loadSavedMatch,
     clearSavedMatch: clearSavedMatchCallback,
     hasSavedMatch: savedMatchPresent,
+    loadReplaySnapshotAt,
     salvoPhase,
     salvoActive: salvoCoordRef.current !== null,
     startSalvoRound,

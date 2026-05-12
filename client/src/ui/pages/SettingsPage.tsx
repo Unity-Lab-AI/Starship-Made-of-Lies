@@ -8,10 +8,11 @@ import { AccessibilitySettingsPanel } from '../panels/AccessibilitySettingsPanel
 import { AudioSettingsPanel } from '../panels/AudioSettingsPanel'
 import { CameraSettingsPanel } from '../panels/CameraSettingsPanel'
 import { KeybindingsPanel } from '../panels/KeybindingsPanel'
+import { LocalePicker } from '../../i18n/LocalePicker'
 import './SubPage.css'
 import './SettingsPage.css'
 
-type SettingsTab = 'audio' | 'accessibility' | 'camera' | 'keybinds' | 'game' | 'about'
+type SettingsTab = 'audio' | 'accessibility' | 'camera' | 'keybinds' | 'game' | 'language' | 'about'
 
 const TABS: ReadonlyArray<{ id: SettingsTab; label: string; emoji: string }> = [
   { id: 'audio', label: 'Audio', emoji: '🔊' },
@@ -19,6 +20,7 @@ const TABS: ReadonlyArray<{ id: SettingsTab; label: string; emoji: string }> = [
   { id: 'camera', label: 'Camera', emoji: '🎮' },
   { id: 'keybinds', label: 'Keybinds', emoji: '⌨️' },
   { id: 'game', label: 'Game', emoji: '🎯' },
+  { id: 'language', label: 'Language', emoji: '🌐' },
   { id: 'about', label: 'About', emoji: 'ℹ️' },
 ]
 
@@ -59,6 +61,16 @@ export function SettingsPage() {
           {tab === 'camera' && <CameraSettingsPanel />}
           {tab === 'keybinds' && <KeybindingsPanel initial={keybindMapInitial} />}
           {tab === 'game' && <GameSettingsPanel />}
+          {tab === 'language' && (
+            <div className="settings-page__language">
+              <h2>Language</h2>
+              <p className="settings-page__game-help">
+                Pick the UI language. English is the base; other locales fall back to English until
+                per-locale translations land. Choice is saved to your browser.
+              </p>
+              <LocalePicker />
+            </div>
+          )}
           {tab === 'about' && (
             <div className="settings-page__about">
               <h2>SMoL Alpha v0.01.0</h2>

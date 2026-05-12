@@ -54,6 +54,10 @@ export type PanelId =
   // 17.2.3 — Per-flight telemetry SVG sparklines (distance / altitude / fuel% / LS%). Client-
   // side rolling buffer keyed by flight.id.
   | 'telemetryGraph'
+  // PHASE 18.3 — match replay buffer viewer. Lists every snapshot the replay ring buffer
+  // captured this session + a load-this-snapshot button that swaps the live MatchState to a
+  // past tick via the existing saveLoad pipeline.
+  | 'replay'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -94,6 +98,7 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'caravans', emoji: '🛒', label: 'Caravans' },
   { id: 'signalHub', emoji: '📡', label: 'Signal Hub' },
   { id: 'telemetryGraph', emoji: '📈', label: 'Telemetry' },
+  { id: 'replay', emoji: '📼', label: 'Replay Buffer' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },
