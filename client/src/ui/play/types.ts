@@ -106,3 +106,100 @@ export interface ToastNotification {
   readonly kind: 'info' | 'warning' | 'error' | 'success'
   readonly expiresAtMs: number
 }
+
+// PHASE 17.L 2026-05-12 user feedback: "we need sub sections not a wall of ui buttons".
+// Toolbar buttons now grouped into 6 collapsible categories. Each category renders as a
+// single button in the bottom HUD; clicking one expands a row of its child buttons above.
+// Settings is a SPECIAL category — instead of panel-toggle buttons, it renders inline
+// utility actions (Save / Load / Reset Layout / Quit / Mute Audio).
+export type ToolbarCategoryId = 'build' | 'fleet' | 'intel' | 'research' | 'comms' | 'settings'
+
+export interface ToolbarCategoryDef {
+  readonly id: ToolbarCategoryId
+  readonly emoji: string
+  readonly label: string
+  // Panel ids in this category. Empty for the Settings category — that one is rendered
+  // specially with inline utility actions.
+  readonly panelIds: ReadonlyArray<PanelId>
+  // When true, the entire category is hidden until the player has at least one launch pad
+  // built. Per user feedback: "i should have access to launch controls when i dont have a
+  // build launch pad yet... like wtf did you do to my ui button layout" — Fleet is the
+  // category that's irrelevant pre-pad and shouldn't clutter the toolbar.
+  readonly requiresLaunchPad?: boolean
+}
+
+export const TOOLBAR_CATEGORIES: ReadonlyArray<ToolbarCategoryDef> = [
+  {
+    id: 'build',
+    emoji: '🏗',
+    label: 'Build',
+    panelIds: ['build', 'quotas', 'productionChains', 'energy', 'techDetail'],
+  },
+  {
+    id: 'fleet',
+    emoji: '🚀',
+    label: 'Fleet',
+    panelIds: [
+      'ships',
+      'flights',
+      'shipBuilder',
+      'mining',
+      'beacon',
+      'command',
+      'trackingCamera',
+      'defense',
+    ],
+    requiresLaunchPad: true,
+  },
+  {
+    id: 'intel',
+    emoji: '📊',
+    label: 'Intel',
+    panelIds: [
+      'planets',
+      'planetSummary',
+      'planetInventory',
+      'settlements',
+      'citizens',
+      'resources',
+      'events',
+      'ai',
+      'indigenous',
+      'caravans',
+    ],
+  },
+  {
+    id: 'research',
+    emoji: '🧬',
+    label: 'Research',
+    panelIds: ['tech'],
+  },
+  {
+    id: 'comms',
+    emoji: '📡',
+    label: 'Comms',
+    panelIds: [
+      'signalHub',
+      'telemetryGraph',
+      'campaigns',
+      'deception',
+      'hallOfChampions',
+      'loot',
+      'lastHope',
+    ],
+  },
+  {
+    id: 'settings',
+    emoji: '⚙',
+    label: 'Settings',
+    panelIds: [],
+  },
+]
+
+// O(1) lookup: panel id → toolbar button def so the category sub-row knows the emoji/label
+// per panel without re-walking TOOLBAR_BUTTONS.
+export const TOOLBAR_BUTTON_BY_PANEL: ReadonlyMap<PanelId, ToolbarButtonDef> = new Map(
+  TOOLBAR_BUTTONS.filter(
+    (b): b is ToolbarButtonDef & { readonly id: PanelId } => b.id !== 'galaxy' && b.id !== 'quit',
+  ).map((b) => [b.id, b]),
+)
