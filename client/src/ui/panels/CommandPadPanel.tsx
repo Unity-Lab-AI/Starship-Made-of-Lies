@@ -2,12 +2,42 @@ import { useMemo, useState } from 'react'
 import {
   type ColonyShipVariantId,
   type LaunchPad,
+  type PadState,
   type PadTargetWaypoint,
   type PlanetId,
   type Theme,
   getColonyShipDef,
+  readinessPercent,
 } from '@smol/shared'
 import './command-pad-panel.css'
+
+const PAD_STATE_LABELS: Readonly<Record<PadState, string>> = {
+  INIT: 'Initializing',
+  IDLE: 'Idle',
+  PRINT: 'Printing',
+  BUILD: 'Building',
+  DOCK: 'Docked',
+  FUEL: 'Fueling',
+  AMMO: 'Loading Ammo',
+  READY: 'Ready',
+  ARM: 'Armed',
+  LAUNCH: 'Launching',
+  GONE: 'Departed',
+}
+
+const PAD_STATE_GLYPH: Readonly<Record<PadState, string>> = {
+  INIT: '◌',
+  IDLE: '·',
+  PRINT: '▰',
+  BUILD: '▰▰',
+  DOCK: '⚓',
+  FUEL: '⛽',
+  AMMO: '🔫',
+  READY: '✓',
+  ARM: '⚠',
+  LAUNCH: '🚀',
+  GONE: '✦',
+}
 
 // PHASE 16.14 — multi-pad controller mode UI. UMS UnityPad has the "controller pad" concept:
 // one pad on a planet is designated as the controller and gains mass-action commands
@@ -195,6 +225,51 @@ export function CommandPadPanel({
           onSetWaypoints={onSetWaypoints}
         />
       )}
+
+      <section
+        className="command-pad__pad-table"
+        aria-label="Per-pad status — every pad on this planet"
+      >
+        <h4 className="command-pad__pad-table-title">Pad roster · {pads.length}</h4>
+        <ul className="command-pad__pad-rows">
+          {pads.map((pad, idx) => {
+            const isController = idx === 0
+            const padLabel = pad.padOrdinal > 0 ? `Pad #${pad.padOrdinal}` : String(pad.id)
+            const readiness = Math.round(readinessPercent(pad) * 100)
+            const tgtCount = pad.targetQueue.length
+            const stateLabel = PAD_STATE_LABELS[pad.state]
+            const stateGlyph = PAD_STATE_GLYPH[pad.state]
+            return (
+              <li
+                key={String(pad.id)}
+                className={`command-pad__pad-row command-pad__pad-row--${pad.state.toLowerCase()}`}
+              >
+                <span className="command-pad__pad-name">
+                  {isController ? '◆ ' : ''}
+                  {padLabel}
+                </span>
+                <span
+                  className={`command-pad__pad-state command-pad__pad-state--${pad.state.toLowerCase()}`}
+                  title={stateLabel}
+                >
+                  {stateGlyph} {stateLabel}
+                </span>
+                <span className="command-pad__pad-readiness">
+                  <span
+                    className="command-pad__pad-readiness-bar"
+                    style={{ width: `${readiness}%` }}
+                    aria-hidden
+                  />
+                  <span className="command-pad__pad-readiness-label">{readiness}%</span>
+                </span>
+                <span className="command-pad__pad-targets" title="Target queue length">
+                  🎯 {tgtCount}
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
 
       <section className="command-pad__actions">
         <h4 className="command-pad__actions-title">Mass actions</h4>
