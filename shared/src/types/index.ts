@@ -8,6 +8,10 @@ export type BuildingId = Brand<string, 'BuildingId'>
 export type BuildingDefId = Brand<string, 'BuildingDefId'>
 export type ResourceId = Brand<string, 'ResourceId'>
 export type StarId = Brand<string, 'StarId'>
+// PHASE 17.13.1 — Settlement id brand. One Settlement scopes a region of a planet (its
+// civic-center tile + claimed territory). Every planet ships with a default 'Capital'
+// settlement at match-start; additional settlements are founded via BLDG_CIVIC_CENTER.
+export type SettlementId = Brand<string, 'SettlementId'>
 
 export const civId = (s: string): CivId => s as CivId
 export const planetId = (s: string): PlanetId => s as PlanetId
@@ -16,6 +20,7 @@ export const buildingId = (s: string): BuildingId => s as BuildingId
 export const buildingDefId = (s: string): BuildingDefId => s as BuildingDefId
 export const resourceId = (s: string): ResourceId => s as ResourceId
 export const starId = (s: string): StarId => s as StarId
+export const settlementId = (s: string): SettlementId => s as SettlementId
 
 export interface Vec3 {
   readonly x: number

@@ -5,6 +5,7 @@ import {
   BLDG_AQUEDUCT,
   BLDG_BATTERY_BANK,
   BLDG_CATHEDRAL,
+  BLDG_CIVIC_CENTER,
   BLDG_CORP_PROMOTIONS,
   BLDG_COUNTER_MISSILE,
   BLDG_FACTORY,
@@ -342,6 +343,9 @@ export const UTILITY_BUILDINGS_NO_PRODUCTION: ReadonlySet<BuildingDefId> = new S
   // sim doesn't apply a hard storage cap yet (FUEL accumulates uncapped). v1 surfaces the
   // metric visually, hard cap lands in a later sub-phase if/when energy gating ships.
   BLDG_BATTERY_BANK,
+  // PHASE 17.13.2 — Civic Center founds a settlement on placement. Pure structural / political
+  // role — no per-tick production. Settlement-aware action handler manages founding.
+  BLDG_CIVIC_CENTER,
 ])
 
 // PHASE 17.J.7 — per-battery storage capacity. Read by the planet energy panel to compute

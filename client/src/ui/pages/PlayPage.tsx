@@ -37,6 +37,7 @@ import { ProductionChainsPanel } from '../panels/ProductionChainsPanel'
 import { TrackingCameraPanel } from '../panels/TrackingCameraPanel'
 import { PlanetSummaryPanel } from '../panels/PlanetSummaryPanel'
 import { PlanetInventoryPanel } from '../panels/PlanetInventoryPanel'
+import { SettlementsPanel, type SettlementGroupSnapshot } from '../panels/SettlementsPanel'
 import { QuotasPanel } from '../panels/QuotasPanel'
 import { ShipBuilderPanel } from '../panels/ShipBuilderPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
@@ -204,6 +205,14 @@ export function PlayPage() {
   // the PlanetInventoryPanel as a one-line acknowledgement.
   const [summaryPlanetId, setSummaryPlanetId] = useState<PlanetId | null>(null)
   const [inventoryFeedback, setInventoryFeedback] = useState<string | null>(null)
+
+  // PHASE 17.13.5 — active settlement for the picker UI. v1 read-only — picking a settlement
+  // doesn't yet retarget Stockpile/Workforce/Loyalty panels (that's 17.13.6's aggregate-vs-
+  // detail toggle when per-settlement state lives in sim). Stored here so the panel can
+  // highlight the selection across renders.
+  const [activeSettlementId, setActiveSettlementId] = useState<
+    import('@smol/shared').SettlementId | null
+  >(null)
 
   // PHASE 17.12.9 — camera position presets. Slot N maps to a PlanetId the player saved with
   // Ctrl+N; Shift+N recalls that planet (fires focus-and-zoom). Slot 0 is always implicit
@@ -979,6 +988,20 @@ export function PlayPage() {
     [ownedPlanets],
   )
 
+  // PHASE 17.13.5 — settlement groups for the SettlementsPanel. One group per owned planet
+  // with the planet's full settlement list. Memoized on currentTick so the panel reflects
+  // freshly-founded settlements after a Civic Center lands.
+  const settlementGroups = useMemo<ReadonlyArray<SettlementGroupSnapshot>>(
+    () =>
+      ownedPlanets.map((p) => ({
+        planetId: p.planet.id,
+        planetLabel: `${p.planet.biome.emoji} ${String(p.planet.id)}`,
+        settlements: [...p.settlements.values()],
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ownedPlanets, sim.state.currentTick],
+  )
+
   const citizensPanelPlanets = useMemo(
     () =>
       ownedPlanets.map((p) => ({
@@ -1687,6 +1710,30 @@ export function PlayPage() {
             </div>
           </div>
         ) : null}
+
+        {/* PHASE 17.13.5 — Settlements picker. Read-only list of every settlement on every
+            owned planet, grouped by planet. Active-settlement-switch lands in 17.13.6 when
+            per-settlement state lives in sim. */}
+        {openPanels.has('settlements') && (
+          <PanelFrame
+            panelId="settlements"
+            title="Settlements"
+            emoji="🏘"
+            onClose={() => closePanel('settlements')}
+            variant="docked-left"
+            width={420}
+          >
+            <SettlementsPanel
+              groups={settlementGroups}
+              activeSettlementId={activeSettlementId}
+              onSelectSettlement={(planetIdValue, settlementIdValue) => {
+                setActiveSettlementId(settlementIdValue)
+                setSelectedPlanetId(planetIdValue)
+                setFocusPlanetTrigger({ planetId: planetIdValue, nonce: Date.now() })
+              }}
+            />
+          </PanelFrame>
+        )}
 
         {/* PHASE 17.L.C.4 — Planet Summary popup. Opens whenever the player clicks a planet
             row in PlanetPicker (also fires focus-and-zoom). Renders if summaryPlanetId AND

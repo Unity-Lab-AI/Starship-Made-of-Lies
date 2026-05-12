@@ -53,6 +53,7 @@ import {
   BLDG_FACTORY,
   BLDG_FARM,
   BLDG_LAB,
+  BLDG_CIVIC_CENTER,
   BLDG_LAUNCH_PAD,
   BLDG_GOD_CONTROL,
   BLDG_LUMBER_CAMP,
@@ -119,8 +120,13 @@ import {
   getThemePolish,
   ACHIEVEMENTS,
   type AccountId,
+  type Settlement,
+  type SettlementId,
+  canFoundSettlementAt,
   checkMatchEndAchievements,
   hasWonByTech,
+  newCapitalSettlement,
+  newFoundedSettlement,
   indigenousLootOnDefeat,
   initiateLastHopeEvac,
   isCampaignActive,
@@ -261,6 +267,15 @@ export interface MatchPlanetState {
   // shown in PlanetInventoryPanel + enforced by enforceCapacityCaps every production tick.
   // Player upgrades via the panel button (cost scales with current tier). Defaults to 1.
   inventoryCapacityTier: number
+  // PHASE 17.13.1 — multi-settlement-per-planet data model. Every planet ships with a default
+  // Capital settlement covering every tile; founding a Civic Center carves out new settlements.
+  // Per-settlement inventory / population / workforce bifurcation lands in 17.13.6's aggregate-
+  // vs-detail toggle. Until then planet-level aggregates remain the source of truth and the
+  // Capital is the implicit container for all of it.
+  settlements: Map<SettlementId, Settlement>
+  // Monotonic ordinal for naming founded settlements (Region-1, Region-2, etc.). First founded
+  // = 1, second = 2, etc. Capital uses ordinal 0 (always 'Capital').
+  nextSettlementOrdinal: number
   // PHASE 17.B.2 — monotonic miner serial per planet so generated ids never collide even when
   // multiple outposts spawn on the same tick.
   nextMinerSerial: number
@@ -639,6 +654,20 @@ function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
     // PlanetInventoryPanel consumes resources + bumps the tier; production tick clamps each
     // stock to the per-resource tier-derived cap.
     inventoryCapacityTier: 1,
+    // PHASE 17.13.1 — every planet boots with a single Capital settlement covering every tile.
+    // Founding additional civic centers carves out new settlements from the Capital's
+    // controlledTileIds set.
+    settlements: (() => {
+      const m = new Map<SettlementId, Settlement>()
+      const capital = newCapitalSettlement(
+        planet.id,
+        planet.tiles.map((t) => t.id),
+        String(planet.id),
+      )
+      m.set(capital.id, capital)
+      return m
+    })(),
+    nextSettlementOrdinal: 1,
     // SR2-9: cache tile-by-id lookup once. Tiles are immutable; this Map persists for the
     // life of the planet state.
     tilesById: new Map(planet.tiles.map((t) => [t.id, t])),
@@ -2395,6 +2424,87 @@ function placeBuildingCanonical(
     }
     const detRadius = Math.max(50, planet.planet.radius * 0.12)
     planet.mineFields.push(newMineField(planet.planet.id, planet.civId, worldPos, 3, detRadius))
+  }
+  // PHASE 17.13.2 + 17.13.3 + 17.13.11 — Civic Center founds a new settlement. Eligibility
+  // gate already enforced above (tile owned + tile empty); the founding-physics gate fires
+  // here AFTER the building lands. We carve out the 3-ring radius around the civic center
+  // tile, claiming up to a few adjacent owned tiles. Tiles already claimed by another founded
+  // settlement stay where they are; the new settlement takes only the unclaimed ones (which
+  // implicitly means the Capital relinquishes them). Empty adjacency falls through cleanly —
+  // founding still succeeds even when the radius hits the planet edge.
+  if (defId === BLDG_CIVIC_CENTER) {
+    const claimedByOtherFounded = new Set<TileId>()
+    for (const other of planet.settlements.values()) {
+      if (other.status === 'capital') continue
+      for (const tid of other.controlledTileIds) claimedByOtherFounded.add(tid)
+    }
+    const eligibility = canFoundSettlementAt({
+      civicCenterTileEmpty: false, // tile is now BUILT not empty
+      civicCenterTileOwnedByCiv: tile.ownerCivId === planet.civId,
+      civicCenterTileAlreadyClaimed: claimedByOtherFounded.has(tile.id),
+      nearbyEmptyTileCount: planet.planet.tiles.filter(
+        (t) =>
+          t.ownerCivId === planet.civId &&
+          t.occupancy === 'empty' &&
+          !claimedByOtherFounded.has(t.id),
+      ).length,
+    })
+    // The eligibility check above asserts civicCenterTileEmpty:false because we just BUILT
+    // on it; we still call the helper for the ownership + claimed-by-other gates. If the
+    // gate fails on those, surface the reason and roll back the building placement is too
+    // expensive — for v1 we just push a warning event noting the founded settlement is being
+    // skipped while the building itself remains as a structural-only marker.
+    if (eligibility.ok || eligibility.reason === 'civicCenterTileNotEmpty') {
+      const ordinal = planet.nextSettlementOrdinal
+      planet.nextSettlementOrdinal += 1
+      // 3-ring radius approximation: pick up to 6 nearest owned-empty tiles by world distance.
+      // True hex-ring traversal lives in PHASE 17.13.3's polish pass.
+      const here = tile.centroid
+      const neighbors = planet.planet.tiles
+        .filter(
+          (t) =>
+            t.id !== tile.id && t.ownerCivId === planet.civId && !claimedByOtherFounded.has(t.id),
+        )
+        .map((t) => ({
+          id: t.id,
+          d2:
+            (t.centroid.x - here.x) ** 2 +
+            (t.centroid.y - here.y) ** 2 +
+            (t.centroid.z - here.z) ** 2,
+        }))
+        .sort((a, b) => a.d2 - b.d2)
+        .slice(0, 6)
+        .map((n) => n.id)
+      const claimedIds = [tile.id, ...neighbors]
+      const founded = newFoundedSettlement(
+        planet.planet.id,
+        String(planet.planet.id),
+        ordinal,
+        tile.id,
+        claimedIds,
+        state.currentTick,
+      )
+      planet.settlements.set(founded.id, founded)
+      // Capital cedes the claimed tiles so the founded settlement owns them exclusively.
+      for (const settlement of planet.settlements.values()) {
+        if (settlement.status === 'capital') {
+          for (const tid of claimedIds) settlement.controlledTileIds.delete(tid)
+        }
+      }
+      pushEvent(state, {
+        atTick: state.currentTick,
+        civId: planet.civId,
+        kind: 'planet_claimed',
+        message: `🏛️ ${founded.name} founded on ${String(planet.planet.id)} — ${claimedIds.length} tiles claimed.`,
+      })
+    } else {
+      pushEvent(state, {
+        atTick: state.currentTick,
+        civId: planet.civId,
+        kind: 'system',
+        message: `🏛️ Civic Center built but settlement founding skipped (${eligibility.reason ?? 'unknown'}).`,
+      })
+    }
   }
   if (!suppressEvents) {
     pushEvent(state, {
