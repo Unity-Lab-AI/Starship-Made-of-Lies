@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { DISCORD_INVITE_URL } from '../../services/community'
 import './SubPage.css'
 import './AboutPage.css'
 
@@ -132,7 +133,7 @@ export function AboutPage() {
           >
             GitHub source →
           </a>
-          <a href="https://discord.gg/YWYk4CBr" target="_blank" rel="noreferrer">
+          <a href={DISCORD_INVITE_URL} target="_blank" rel="noreferrer">
             Discord →
           </a>
         </section>
