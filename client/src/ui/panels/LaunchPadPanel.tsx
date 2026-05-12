@@ -44,6 +44,34 @@ const STATE_GLYPH: Readonly<Record<PadState, string>> = {
   GONE: '✦',
 }
 
+// 17.1.3 — 9-segment state-machine progress bar. UMS-faithful: each visited state lights up
+// as the pad advances PRINT → BUILD → DOCK → FUEL → AMMO → READY → ARM → LAUNCH → GONE.
+const STATE_MACHINE_SEGMENTS: ReadonlyArray<PadState> = [
+  'PRINT',
+  'BUILD',
+  'DOCK',
+  'FUEL',
+  'AMMO',
+  'READY',
+  'ARM',
+  'LAUNCH',
+  'GONE',
+]
+
+const STATE_MACHINE_INDEX: Readonly<Record<PadState, number>> = {
+  INIT: -1,
+  IDLE: -1,
+  PRINT: 0,
+  BUILD: 1,
+  DOCK: 2,
+  FUEL: 3,
+  AMMO: 4,
+  READY: 5,
+  ARM: 6,
+  LAUNCH: 7,
+  GONE: 8,
+}
+
 export function LaunchPadPanel({ pad, onAfterAction }: LaunchPadPanelProps) {
   const def: ColonyShipDef | null = pad.loadedShipVariantId
     ? getColonyShipDef(pad.loadedShipVariantId)
@@ -94,6 +122,33 @@ export function LaunchPadPanel({ pad, onAfterAction }: LaunchPadPanelProps) {
           {Math.round(readiness * 100)}% ready
         </span>
       </div>
+
+      <ol
+        className="launch-pad-panel__state-machine"
+        aria-label="Pad state machine — PRINT through GONE"
+      >
+        {STATE_MACHINE_SEGMENTS.map((segState) => {
+          const segIdx = STATE_MACHINE_INDEX[segState]
+          const currentIdx = STATE_MACHINE_INDEX[pad.state]
+          const reached = currentIdx >= segIdx
+          const active = currentIdx === segIdx
+          const cls = [
+            'launch-pad-panel__segment',
+            reached ? 'launch-pad-panel__segment--reached' : '',
+            active ? 'launch-pad-panel__segment--active' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')
+          return (
+            <li key={segState} className={cls} title={STATE_LABELS[segState]}>
+              <span className="launch-pad-panel__segment-glyph" aria-hidden>
+                {STATE_GLYPH[segState]}
+              </span>
+              <span className="launch-pad-panel__segment-label">{STATE_LABELS[segState]}</span>
+            </li>
+          )
+        })}
+      </ol>
 
       {def ? (
         <ul className="launch-pad-panel__loadout">

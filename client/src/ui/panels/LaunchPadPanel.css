@@ -1,3 +1,53 @@
+.launch-pad-panel__state-machine {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.2rem;
+}
+
+.launch-pad-panel__segment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem 0.15rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.3rem;
+  opacity: 0.45;
+  transition:
+    opacity 160ms,
+    background 160ms,
+    border-color 160ms;
+}
+
+.launch-pad-panel__segment--reached {
+  opacity: 1;
+  background: rgba(212, 161, 58, 0.18);
+  border-color: rgba(212, 161, 58, 0.45);
+}
+
+.launch-pad-panel__segment--active {
+  background: rgba(212, 161, 58, 0.35);
+  border-color: var(--accent, #d4a13a);
+  box-shadow: 0 0 0 2px rgba(212, 161, 58, 0.25);
+}
+
+.launch-pad-panel__segment-glyph {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.launch-pad-panel__segment-label {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--text-soft, rgba(255, 255, 255, 0.75));
+}
+
 .launch-pad-panel {
   background: var(--bg-secondary, #14181f);
   border: 1px solid var(--border, #30363d);
