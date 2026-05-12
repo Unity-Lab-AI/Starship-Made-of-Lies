@@ -76,7 +76,13 @@ async function gracefulShutdown(server: Server): Promise<void> {
 const server = createServer()
 server.listen(PORT)
 console.info(`[smol/server] listening on ws://localhost:${PORT}`)
-startAuthHttpServer(AUTH_PORT)
+// startAuthHttpServer is async (awaits AccountStore.warmCache before bind so the first
+// /api/auth/* call doesn't race the cache hydration). Fire-and-forget at module scope; any
+// error here prints + the auth server stays unbound. Wrapping in void to satisfy no-floating-
+// promises lint.
+void startAuthHttpServer(AUTH_PORT).catch((err) => {
+  console.error('[smol/server] startAuthHttpServer failed at boot:', err)
+})
 
 // Wire shutdown hook into the auth HTTP server's /api/admin/shutdown endpoint
 registerShutdownHook(async () => {

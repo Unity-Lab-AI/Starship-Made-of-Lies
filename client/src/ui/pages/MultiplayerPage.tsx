@@ -47,8 +47,10 @@ export function MultiplayerPage() {
   const [busy, setBusy] = useState<boolean>(false)
   const roomHandleRef = useRef<SmolRoomHandle | null>(null)
 
-  const handleJoin = async (): Promise<void> => {
-    setBusy(true)
+  // Worker that does the three-step flow. `isRetry=true` is the recursion path after a 401
+  // wiped a stale localStorage token — we mint a fresh guest token + try once more. Cap at
+  // one retry so a persistently-misconfigured server doesn't infinite-loop.
+  const attemptJoin = async (isRetry: boolean): Promise<void> => {
     // ─── Step 1: ensure we have a session token ─────────────────────────────
     let sessionToken = readLocalSessionToken()
     if (!sessionToken) {
@@ -72,11 +74,23 @@ export function MultiplayerPage() {
       sessionToken,
       preferences: {},
     })
-    if (!pre) {
-      setStatus(
-        `Matchmaking unavailable — auth server may be offline at ${DEFAULT_AUTH_URL}, or your ` +
-          'session token expired (server restart clears in-memory sessions). Refresh or sign in again.',
-      )
+    if (!pre.ok) {
+      // 401 → server doesn't know this token. Most common cause: server was restarted
+      // (in-memory session map wiped) but the client still has the old token in
+      // localStorage. Clear it + retry once with a freshly-minted guest token. Single
+      // transparent retry is honest UX; persistent failures fall through.
+      if (pre.status === 401 && !isRetry) {
+        try {
+          window.localStorage.removeItem(SESSION_TOKEN_KEY)
+        } catch {
+          // localStorage disabled — proceed anyway.
+        }
+        setStatus('Session expired (server may have restarted) — re-minting guest token…')
+        return attemptJoin(true)
+      }
+      const detail =
+        pre.status === 0 ? `Network error: ${pre.message}` : `${pre.message} (HTTP ${pre.status})`
+      setStatus(`Matchmaking unavailable — ${detail}.`)
       setBusy(false)
       return
     }
@@ -103,6 +117,11 @@ export function MultiplayerPage() {
       )
     }
     setBusy(false)
+  }
+
+  const handleJoin = async (): Promise<void> => {
+    setBusy(true)
+    await attemptJoin(false)
   }
 
   return (

@@ -52,9 +52,22 @@ const MINING_MODE_OPTIONS: ReadonlyArray<{
     id: 'oneway',
     label: 'One-way (sacrifice)',
     short: 'One-way',
-    hint: 'Ship parks at the deposit + drills directly into planet inventory (bypasses cargo cap). Retires when deposit depletes. Highest sustained extraction; loses the ship.',
+    hint: 'Ship parks at the deposit + drills directly into planet inventory (bypasses cargo cap). Retires when deposit depletes. Burst extraction; loses the ship.',
   },
 ]
+
+// Confirm message shown when player switches a ship FROM another mode TO oneway. Skipped
+// when the ship is already oneway (no-op switches) or when switching away from oneway.
+// window.confirm is a minimum-effort blocking dialog — a custom modal is a future polish
+// pass. Returns true if the player confirmed; false to cancel the mode change.
+function confirmOnewayTransition(shipName: string): boolean {
+  return window.confirm(
+    `Switch "${shipName}" to ONE-WAY mode?\n\n` +
+      'The ship will park at the next deposit and drill directly into planet inventory.\n' +
+      'When that deposit depletes, the ship retires permanently (no return trip).\n\n' +
+      'Best for burst extraction (first-ship sprint, tech rush). Loses the ship.',
+  )
+}
 
 function clampPercent(value: number): number {
   if (!Number.isFinite(value)) return 0
@@ -134,7 +147,16 @@ function renderShipRow(
             <span className="mining-row__mode-label">Mode:</span>
             <select
               value={beacon.mode}
-              onChange={(e) => onSetMode(planetId, beacon.shipId, e.target.value as MiningShipMode)}
+              onChange={(e) => {
+                const nextMode = e.target.value as MiningShipMode
+                if (nextMode === beacon.mode) return
+                // Confirm gate for oneway — the ship is sacrificed when its deposit depletes.
+                // Misclicks should not silently lose an asset.
+                if (nextMode === 'oneway' && !confirmOnewayTransition(beacon.shipName)) {
+                  return
+                }
+                onSetMode(planetId, beacon.shipId, nextMode)
+              }}
               aria-label={`Mining mode for ${beacon.shipName}`}
               title={MINING_MODE_OPTIONS.find((m) => m.id === beacon.mode)?.hint}
             >
