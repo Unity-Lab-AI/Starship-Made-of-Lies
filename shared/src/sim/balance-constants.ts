@@ -51,24 +51,27 @@ export const WIN_THRESHOLD_MAP_CONTROL_FRACTION = 0.6 // need 60% of planets vs.
 // PHASE 17.I — toroidal universe wrap half-extent. Positions wrap modulo 2 × this on each
 // axis. Previously a private const in colony-ship-flight (8000), then centralized at 60000.
 //
-// PHASE 17.L.D.1 (HOTFIX 2026-05-11) — bumped to 500000 and made the GLOBAL CAP. Actual
-// per-galaxy half-extent is now computed via computeUniverseHalfExtent(starCount) below so
-// 2-system "Tiny" galaxies don't sit in the same 60k cube as 143-system "Large" galaxies.
-// Per user verbatim playtest report: *"the stars need to be appropriate distances from each
-// other so that theri owen planets have enough space as not to bump into other systems and
-// their planets... astronically there is still plunty of space for planets and you took
-// cluster way too literally"*. The OLD 60000 packed 15-system Small galaxies at theoretical
-// maximum sphere-packing density. NEW 500000 cap accommodates the largest preset with
-// astronomical breathing room. Hulk-wrap continues using the cap (worst-case wrap; harmless).
-export const UNIVERSE_HALF_EXTENT = 500000
+// PHASE 17.L.D.5 (HOTFIX 2026-05-11) — bumped cap 500000 → 2500000 because D.5 bumped
+// PLANET_ORBIT_MIN/MAX (8000/16000 → 20000/40000) + STAR_CLEARANCE_FACTOR (1.2 → 3.0) to
+// keep planets out of the star corona. System bounding-radius grew to ~80k, which needs
+// proportionally bigger universes (Large preset hits ~1.9M half-extent). Hulk-wrap continues
+// using the cap (worst-case wrap; harmless cosmetic at any scale).
+//
+// PHASE 17.L.D.1 — global CAP. Actual per-galaxy half-extent computed via
+// computeUniverseHalfExtent(starCount) below so 2-system "Tiny" galaxies don't sit in the
+// same cube as 143-system "Large" galaxies.
+export const UNIVERSE_HALF_EXTENT = 2500000
 
-// PHASE 17.L.D.1 — per-galaxy half-extent scaling. Solar-system count drives the universe
-// size linearly so density stays constant regardless of preset. Floor + slope tuned so a
-// 2-system Tiny galaxy still has 160k+ cube width (systems comfortably 60-120k apart) while
-// a 143-system Large galaxy reaches ~800k half-extent (~30k average system spacing). Cap at
-// UNIVERSE_HALF_EXTENT above so absurd presets don't blow up wrap math.
-export const UNIVERSE_HALF_EXTENT_FLOOR = 80000
-export const UNIVERSE_HALF_EXTENT_PER_STAR = 5000
+// PHASE 17.L.D.5 (HOTFIX 2026-05-11) — FLOOR 80000 → 150000, PER_STAR 5000 → 12000 to
+// match the bigger system bounding-radius after STAR_CLEARANCE + ORBIT bumps. Math:
+//   system bounding-radius = orbit_max (40k) + bounding pad (25k) + star_max (15k) = ~80k
+//   min center-to-center spacing = 2 × 80k = 160k
+//   N-system cube side ≈ N^(1/3) × 160k × 1.2 (packing factor)
+//   Tiny (3):   side ≈ 277k → half 138k. FLOOR=150k covers + margin.
+//   Small (14): side ≈ 463k → half 231k. FLOOR + 14×12k = 318k → comfortable.
+//   Large (143): side ≈ 1.00M → half 502k. FLOOR + 143×12k = 1.87M → very comfortable.
+export const UNIVERSE_HALF_EXTENT_FLOOR = 150000
+export const UNIVERSE_HALF_EXTENT_PER_STAR = 12000
 
 export function computeUniverseHalfExtent(starCount: number): number {
   const scaled = UNIVERSE_HALF_EXTENT_FLOOR + Math.max(0, starCount) * UNIVERSE_HALF_EXTENT_PER_STAR
@@ -87,8 +90,14 @@ export const STAR_RADIUS_PLANET_MULTIPLIER = 4
 // at solar-system zoom but spaced enough that they don't visually overlap each other.
 export const MIN_PLANETS_PER_STAR = 4
 export const MAX_PLANETS_PER_STAR = 10
-export const PLANET_ORBIT_MIN_OFFSET = 8000
-export const PLANET_ORBIT_MAX_OFFSET = 16000
+// PHASE 17.L.D.5 (HOTFIX 2026-05-11) — bumped 8000→20000 and 16000→40000 to give planets
+// clear breathing room outside the star corona. Combined with STAR_CLEARANCE_FACTOR 3.0
+// in galaxy.ts, the effective orbit_min for a star of any spectral class is now
+// max(20000, star_radius × 3.0), which keeps planet centers >18k off the star surface
+// at every class. Per user verbatim *"planets are way too close to the stars.. they are
+// literally in the stars' corona"*.
+export const PLANET_ORBIT_MIN_OFFSET = 20000
+export const PLANET_ORBIT_MAX_OFFSET = 40000
 // Padding added to each solar system's bounding sphere so adjacent systems have visual
 // breathing room (no two planets ALMOST touching across system boundaries).
 //
