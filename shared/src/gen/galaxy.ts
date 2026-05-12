@@ -251,11 +251,17 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
     const spectral = rollSpectralClass(rng)
     spectralClasses.push(spectral)
     const starRadiusForThisSystem = starRadius * spectral.radiusMultiplier
+    // PHASE 17.L.D.5 (HOTFIX 2026-05-11) — STAR_CLEARANCE_FACTOR bumped 1.2 → 3.0. Per user
+    // verbatim *"planets are way too close to the stars.. they are literally in the stars'
+    // corona"*. The old 1.2× barely cleared the photosphere — for an O-class star (radius
+    // 10240), orbit_min = 12288 = only 548 units of gap between planet edge and star surface
+    // (in-corona). 3.0× gives orbit_min = 30720, putting planet edge ~19000 units off the
+    // star surface — clearly outside the corona at every spectral class.
+    //
     // Super-review SR2-2 fix: per-system orbit-min must clear the spectral-scaled star
     // radius with safety margin. O-class star at 10240 radius would otherwise engulf planets
-    // orbiting at the global PLANET_ORBIT_MIN_OFFSET (8000). 1.2× clearance keeps planets
-    // visibly outside the photosphere without crowding the orbit band.
-    const STAR_CLEARANCE_FACTOR = 1.2
+    // orbiting at the global PLANET_ORBIT_MIN_OFFSET (8000).
+    const STAR_CLEARANCE_FACTOR = 3.0
     const systemOrbitMin = Math.max(
       PLANET_ORBIT_MIN_OFFSET,
       starRadiusForThisSystem * STAR_CLEARANCE_FACTOR,

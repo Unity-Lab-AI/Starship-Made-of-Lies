@@ -84,7 +84,14 @@ function randomAISlot(rng: () => number): AISlotConfig {
 
 export function NewGamePage() {
   const navigate = useNavigate()
-  const [galaxySize, setGalaxySize] = useState<GalaxyPreset>('tiny')
+  // PHASE 17.L.D.5 (HOTFIX 2026-05-11) — default back to 'small' (100 planets / ~14 stars).
+  // D.1 had switched the default to 'tiny' (20 planets / ~3 systems) as a mis-response to
+  // the original "shit tones of stars" playtest complaint — but the real fix was D.1's
+  // universe-spacing rewrite (per-galaxy scaling + loose-cluster pad). User wanted Small to
+  // FEEL right at 100 planets, not to drop to fewer. Per user verbatim *"WHERE ARE MY 100
+  // planets ???? on the 100 planets setting? should be liek 10-15 stars for the 100 planet
+  // gameplay"*. Tiny preset stays as an option for quick testing.
+  const [galaxySize, setGalaxySize] = useState<GalaxyPreset>('small')
   const [aiCount, setAiCount] = useState(3)
   const [coopMode, setCoopMode] = useState(false)
   // PHASE 17.K — host-chosen fog-of-war toggle per user verbatim 2026-05-11. Default ON.
