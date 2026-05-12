@@ -541,6 +541,40 @@ export function GalaxyView({
         }
       }
 
+      // PHASE 17.L.D.4 (HOTFIX 2026-05-11) — screen-space minimum-size scaling for planet
+      // meshes. After D.1 bumped the universe to per-galaxy scaling (Small ~155k half-extent,
+      // camera distance ~400k+), planets at their 400-1600 world-unit radii were rendering
+      // at sub-pixel apparent size = functionally invisible. Per user verbatim *"there are
+      // lots of planets they just dont render at distance even with fog of war off"*. Per
+      // frame, each planet mesh gets its scale set so the apparent screen radius stays at
+      // MIN_APPARENT_RADIUS_PX or larger. Capped at MAX_SCALE_FACTOR so close-zoom rendering
+      // stays normal (sphere is naturally bigger than the minimum threshold). Atmosphere
+      // halos scale with the same factor so they don't visually detach from the planet.
+      {
+        const MIN_APPARENT_RADIUS_PX = 10
+        const MAX_SCALE_FACTOR = 6
+        const canvasHeight = renderer.domElement.clientHeight || 800
+        const fovRad = (cameraState.camera.fov * Math.PI) / 180
+        const focalPx = canvasHeight / (2 * Math.tan(fovRad / 2))
+        const cameraWorldPos = cameraState.camera.position
+        for (const [id, mesh] of galaxyHandle.planetMeshes) {
+          if (!mesh.visible) {
+            mesh.scale.setScalar(1)
+            continue
+          }
+          const baseRadius = mesh.geometry.boundingSphere?.radius ?? 1000
+          const camDist = mesh.position.distanceTo(cameraWorldPos)
+          const apparentPx = (baseRadius * focalPx) / Math.max(1, camDist)
+          let scale = 1
+          if (apparentPx < MIN_APPARENT_RADIUS_PX) {
+            scale = Math.min(MAX_SCALE_FACTOR, MIN_APPARENT_RADIUS_PX / Math.max(0.1, apparentPx))
+          }
+          mesh.scale.setScalar(scale)
+          const halo = galaxyHandle.atmosphereMeshes.get(id)
+          if (halo) halo.scale.setScalar(scale)
+        }
+      }
+
       // PHASE 17.PRE.1 — reconcile ownership rings against the live ref. Add rings for newly
       // owned planets (capture), remove rings for planets we lost (defeated / re-captured by
       // enemy). Done in the RAF loop so the scene never tears down on ownership changes.
