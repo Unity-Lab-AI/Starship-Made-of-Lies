@@ -65,22 +65,25 @@ export function SettingsPage() {
             <div className="settings-page__language">
               <h2>Language</h2>
               <p className="settings-page__game-help">
-                Pick the UI language. English is the base; other locales fall back to English until
-                per-locale translations land. Choice is saved to your browser.
+                SMoL ships English-only today. Additional locales (Spanish / French / German /
+                Portuguese / Japanese / Chinese / Korean / Russian / Arabic / Hebrew) are planned
+                post-MVP once translator content is commissioned. The i18n plumbing is already in
+                place under <code>client/src/i18n/i18n.ts</code> — adding a locale will be a content
+                drop, not an engineering refactor.
               </p>
               <LocalePicker />
             </div>
           )}
           {tab === 'about' && (
             <div className="settings-page__about">
-              <h2>SMoL Alpha v0.01.0</h2>
+              <h2>SMoL Alpha v0.1.0</h2>
               <p>
                 Top-down emoji civilization-builder where you trick your own citizens onto colony
                 ships aimed at other civilizations.
               </p>
               <dl>
                 <dt>Version</dt>
-                <dd>v0.01.0 — Alpha</dd>
+                <dd>v0.1.0 — Alpha</dd>
                 <dt>Engine</dt>
                 <dd>TypeScript + React + Three.js + Vite + Colyseus</dd>
                 <dt>Public hosting</dt>

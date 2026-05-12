@@ -1,20 +1,16 @@
 // PHASE 17.0 + Layer E #3 — Postgres-backed AccountStore. Drop-in replacement for
 // FileAccountStore + InMemoryAccountStore. Activate via:
 //
-//   1. `pnpm add pg @types/pg` in server/
-//   2. Set DATABASE_URL=postgres://user:pass@host:5432/smol in .env.local
-//   3. Set SMOL_ACCOUNT_STORE_BACKEND=postgres in .env.local
-//   4. Run the schema migration in `server/sql/0001_accounts.sql` (file shipped alongside)
+//   1. Set DATABASE_URL=postgres://user:pass@host:5432/smol in .env.local
+//   2. Set SMOL_ACCOUNT_STORE_BACKEND=postgres in .env.local
+//   3. Run the schema migration in `server/sql/0001_accounts.sql` (idempotent — also
+//      auto-runs on first connect via the inlined ACCOUNT_SCHEMA_SQL constant below)
 //
-// Driver dependency is INTENTIONALLY dynamic-imported so the server doesn't require `pg`
-// to be installed when running on file-backed mode. The first call to any method lazily
-// loads pg + creates the pool. If pg isn't installed, that method throws a clear error.
-//
-// Why dynamic import + minimal local PgClient interface: keeps the bundle clean for ops
-// that don't want Postgres yet (alpha self-hosted devs running FileAccountStore). The type
-// shape declared here covers the subset of `pg` we actually use; consumers can swap to a
-// fully-typed `pg.Pool` when they bring the dependency in.
+// `pg` is a hard runtime dependency now (installed 2026-05-12 alongside @types/pg). Previous
+// Function-constructor dynamic-import hack retired — pg's installed, just import it. Same
+// minimal `PgClient` interface kept for type narrowness (we use a subset of pg.Pool's API).
 
+import { Pool } from 'pg'
 import {
   type Account,
   type AccountId,
@@ -29,8 +25,9 @@ import {
 } from '@smol/shared'
 import { type AccountStore } from './AccountStore'
 
-// Minimal local interface — `pg.Pool` is a superset. Allows the file to compile without the
-// `pg` package installed; the dynamic import below loads the real class at runtime.
+// Minimal interface mirroring the pg.Pool subset we use. Pool implements this contract +
+// more. Keeping the narrow interface so future refactor (e.g. swap to `postgres` package or
+// pgbouncer pool) only needs to satisfy the methods we call.
 interface PgClient {
   query<T = unknown>(
     sql: string,
@@ -123,31 +120,10 @@ export class PostgresAccountStore implements AccountStore {
     }
   }
 
-  // Lazy pg import + pool init. Resolves once on first call.
+  // Pool init + idempotent schema migration. Resolves once on first call.
   private async ensurePool(): Promise<PgClient> {
     if (this.pool) return this.pool
-    // Dynamic import so the file compiles + the server runs without `pg` installed when on
-    // file-backed mode. Operators activating Postgres must `pnpm add pg @types/pg` first.
-    let pgModule: { Pool: new (config: { connectionString: string }) => PgClient }
-    try {
-      // `pg` is an optional runtime dependency. Operators install it when activating
-      // Postgres mode; the file compiles without it because the import specifier is hidden
-      // behind a Function-constructed dynamic importer (TS can't see the literal string
-      // 'pg' so it doesn't try to resolve it during compile). At runtime Node resolves it
-      // normally; if the package isn't installed the catch below fires with a helpful error.
-      const dynamicImport = new Function('m', 'return import(m)') as (m: string) => Promise<unknown>
-      pgModule = (await dynamicImport('pg')) as {
-        Pool: new (config: { connectionString: string }) => PgClient
-      }
-    } catch (err) {
-      throw new Error(
-        '[smol/auth] PostgresAccountStore requires the `pg` package. Run `pnpm add pg @types/pg` in server/ ' +
-          `before enabling SMOL_ACCOUNT_STORE_BACKEND=postgres. Underlying: ${
-            err instanceof Error ? err.message : String(err)
-          }`,
-      )
-    }
-    this.pool = new pgModule.Pool({ connectionString: this.connectionString })
+    this.pool = new Pool({ connectionString: this.connectionString }) as unknown as PgClient
     // Auto-migrate the schema on first connect. Idempotent (CREATE TABLE IF NOT EXISTS).
     await this.pool.query(ACCOUNT_SCHEMA_SQL)
     return this.pool

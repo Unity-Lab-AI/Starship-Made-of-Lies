@@ -1,8 +1,8 @@
 // PHASE 18.3 — Replay buffer viewer. Lists every snapshot the ring buffer has captured
 // this session in newest-first order; each row shows the captured-at tick + the elapsed
-// real-time. "Load" button rewinds the live MatchState to that snapshot via the existing
-// saveLoad pipeline. Snapshots that pre-date the current state are reload-only (no future
-// replay forward yet — that's a follow-on polish pass).
+// real-time. "Rewind to here" rewinds the live MatchState backward to that snapshot via the
+// existing saveLoad pipeline. Forward-replay (re-ticking from a snapshot through recorded
+// events) is intentionally deferred per user 2026-05-12 — only backward rewind ships today.
 
 import { useEffect, useState } from 'react'
 import { listReplaySnapshots, replayBufferSize, type ReplaySnapshotEntry } from '../../match/replay'
@@ -34,7 +34,7 @@ export function ReplayPanel({ currentTick, onLoadSnapshot }: ReplayPanelProps) {
       <p className="replay-panel__summary">
         {totalCaptured === 0
           ? 'No snapshots captured yet. The buffer captures every ~12 seconds of play at 1× speed (every 60 sim ticks).'
-          : `${totalCaptured} snapshot${totalCaptured === 1 ? '' : 's'} in buffer (newest first). Each entry is a full save; loading rewinds the match.`}
+          : `${totalCaptured} snapshot${totalCaptured === 1 ? '' : 's'} in buffer (newest first). Each entry is a full save; "Rewind to here" loads the snapshot and resumes from that moment. Forward-replay (re-tick from snapshot through events) is a future polish pass.`}
       </p>
       {sorted.length > 0 && (
         <ul className="replay-panel__list">
@@ -63,7 +63,7 @@ export function ReplayPanel({ currentTick, onLoadSnapshot }: ReplayPanelProps) {
                   }}
                   disabled={tickDelta === 0}
                 >
-                  ⏪ Load
+                  ⏪ Rewind to here
                 </button>
               </li>
             )

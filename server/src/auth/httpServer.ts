@@ -56,6 +56,11 @@ function buildAccountStore(): AccountStore {
 
 const sharedAccountStore: AccountStore = buildAccountStore()
 
+// Public Colyseus WS URL the matchmaking endpoint returns to clients. Cached at module init
+// so /api/matchmaking/join doesn't re-read process.env on every request. Override at deploy
+// time via SMOL_PUBLIC_WS_URL (e.g. `wss://smol.unityailab.com` behind Cloudflare Tunnel).
+const PUBLIC_WS_URL = process.env.SMOL_PUBLIC_WS_URL ?? 'ws://localhost:2567'
+
 // Session tokens cover BOTH signed-in users (real accountId) AND guests (accountId === 'guest').
 // Guests use the `guest-<UUIDv4>` shape so log scrubbers can distinguish them at a glance.
 // Storing guests in the same map lets us treat token validation uniformly (lookup-based, no
@@ -83,6 +88,60 @@ function setCors(res: ServerResponse): void {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+}
+
+// ─── Rate limiting (in-memory, IP-keyed, sliding window) ────────────────────
+// Per-IP sliding window. Defends guest-mint + matchmaking endpoints against enumeration /
+// flood attacks (super-review 2026-05-12 Medium finding). In-memory is fine for alpha
+// single-instance hosting; production multi-instance would need Redis or sticky LB.
+interface RateLimitBucket {
+  count: number
+  windowStartMs: number
+}
+const rateLimitBuckets = new Map<string, Map<string, RateLimitBucket>>()
+
+function clientIpFor(req: IncomingMessage): string {
+  // x-forwarded-for honors Cloudflare Tunnel / reverse-proxy chains. Fall back to socket IP.
+  const fwd = req.headers['x-forwarded-for']
+  if (typeof fwd === 'string' && fwd.length > 0) {
+    const first = fwd.split(',')[0]
+    return (first ?? '').trim() || 'unknown'
+  }
+  if (Array.isArray(fwd) && fwd.length > 0) return fwd[0] ?? 'unknown'
+  return req.socket.remoteAddress ?? 'unknown'
+}
+
+function checkAndIncrementRateLimit(
+  bucketName: string,
+  ip: string,
+  maxRequests: number,
+  windowMs: number,
+): { ok: boolean; retryAfterMs: number } {
+  const now = Date.now()
+  let buckets = rateLimitBuckets.get(bucketName)
+  if (!buckets) {
+    buckets = new Map()
+    rateLimitBuckets.set(bucketName, buckets)
+  }
+  const bucket = buckets.get(ip)
+  if (!bucket || now - bucket.windowStartMs >= windowMs) {
+    buckets.set(ip, { count: 1, windowStartMs: now })
+    return { ok: true, retryAfterMs: 0 }
+  }
+  if (bucket.count >= maxRequests) {
+    return { ok: false, retryAfterMs: windowMs - (now - bucket.windowStartMs) }
+  }
+  bucket.count += 1
+  return { ok: true, retryAfterMs: 0 }
+}
+
+// 429 helper. Also seeds a Retry-After (seconds) header per RFC 6585.
+function respond429(res: ServerResponse, retryAfterMs: number, message: string): void {
+  setCors(res)
+  res.statusCode = 429
+  res.setHeader('Content-Type', 'application/json')
+  res.setHeader('Retry-After', String(Math.ceil(retryAfterMs / 1000)))
+  res.end(JSON.stringify({ error: message, retryAfterSeconds: Math.ceil(retryAfterMs / 1000) }))
 }
 
 function readJsonBody<T>(req: IncomingMessage): Promise<T> {
@@ -301,6 +360,14 @@ interface MatchmakingJoinBody {
 
 async function handleMatchmakingJoin(req: IncomingMessage, res: ServerResponse): Promise<void> {
   try {
+    // 30 matchmaking pre-checks per minute per IP. Lobby refresh + reconnect flows fit
+    // comfortably under that; brute-force token-guessing does not.
+    const ip = clientIpFor(req)
+    const limit = checkAndIncrementRateLimit('matchmaking', ip, 30, 60_000)
+    if (!limit.ok) {
+      respond429(res, limit.retryAfterMs, 'Too many matchmaking requests. Wait before retrying.')
+      return
+    }
     const authHeader = req.headers['authorization'] ?? ''
     const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null
     if (!bearer) {
@@ -319,9 +386,8 @@ async function handleMatchmakingJoin(req: IncomingMessage, res: ServerResponse):
       () => ({}) as MatchmakingJoinBody,
     )
     void body // preferences ignored at v1; future polish uses them for room filtering.
-    const host = process.env.SMOL_PUBLIC_WS_URL ?? 'ws://localhost:2567'
     respondJson(res, 200, {
-      host,
+      host: PUBLIC_WS_URL,
       tokenIsGuest: session.accountId === 'guest',
     })
   } catch (err) {
@@ -335,8 +401,16 @@ async function handleMatchmakingJoin(req: IncomingMessage, res: ServerResponse):
 // matching the OAuth callback responses so the client can stash it in the same localStorage
 // slot. Guest tokens are stored server-side (alongside signed-in tokens) so subsequent
 // validation is lookup-based, not heuristic.
-async function handleGuestMint(_req: IncomingMessage, res: ServerResponse): Promise<void> {
+async function handleGuestMint(req: IncomingMessage, res: ServerResponse): Promise<void> {
   try {
+    // 10 guest mints per minute per IP. Legitimate flows (page reload, anonymous join, brief
+    // localStorage clears) fit comfortably under that. Anything more is enumeration / flood.
+    const ip = clientIpFor(req)
+    const limit = checkAndIncrementRateLimit('guest-mint', ip, 10, 60_000)
+    if (!limit.ok) {
+      respond429(res, limit.retryAfterMs, 'Too many guest token mints. Wait before retrying.')
+      return
+    }
     const token = issueGuestSessionToken()
     respondJson(res, 200, {
       sessionToken: token,

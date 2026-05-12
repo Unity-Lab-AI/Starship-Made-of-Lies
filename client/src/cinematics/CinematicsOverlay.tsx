@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import {
   type ActiveCinematic,
   advanceCinematicBeat,
+  resolveBeatText,
   skipCinematic,
   subscribeCinematics,
 } from './CinematicsManager'
@@ -48,6 +49,9 @@ export function CinematicsOverlay() {
 
   if (!active) return null
   const beat = active.definition.beats[active.currentBeatIndex]!
+  // Resolver substitutes themed title/subtitle for the active player's theme when the beat
+  // has themedNarration entries; falls back to base copy otherwise.
+  const { title, subtitle } = resolveBeatText(beat, active.playerThemeId)
   return (
     <div
       className={`cinematic-overlay cinematic-overlay--${beat.mood}`}
@@ -61,8 +65,8 @@ export function CinematicsOverlay() {
             {beat.emoji}
           </div>
         )}
-        {beat.title && <h1 className="cinematic-overlay__title">{beat.title}</h1>}
-        {beat.subtitle && <p className="cinematic-overlay__subtitle">{beat.subtitle}</p>}
+        {title && <h1 className="cinematic-overlay__title">{title}</h1>}
+        {subtitle && <p className="cinematic-overlay__subtitle">{subtitle}</p>}
         <div className="cinematic-overlay__skip-hint">{t('cinematic.skipHint')}</div>
       </div>
     </div>

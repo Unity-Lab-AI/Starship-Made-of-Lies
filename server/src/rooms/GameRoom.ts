@@ -1,4 +1,10 @@
 import { Room, type Client } from '@colyseus/core'
+
+// Cached at module init. SMOL_MULTIPLAYER_AUTH=strict rejects accountId='guest' tokens at
+// onAuth time so signed-in-only servers can refuse anonymous joins. Default (anything else)
+// is permissive — guests join freely. Reading process.env per-onAuth was a hot-path smell
+// (super-review 2026-05-12 finding) — caching here is constant-time + restart-overridable.
+const STRICT_MULTIPLAYER_AUTH = process.env.SMOL_MULTIPLAYER_AUTH === 'strict'
 import {
   type AIPlayerStateMessage,
   type AnyProtocolMessage,
@@ -133,7 +139,7 @@ export class GameRoom extends Room {
         'Unknown session token. The auth server may have restarted (in-memory sessions clear). Mint a new guest token or sign in again.',
       )
     }
-    if (session.accountId === 'guest' && process.env.SMOL_MULTIPLAYER_AUTH === 'strict') {
+    if (session.accountId === 'guest' && STRICT_MULTIPLAYER_AUTH) {
       throw new Error('Guest tokens rejected — server in strict-auth mode. Sign in to play.')
     }
     return true

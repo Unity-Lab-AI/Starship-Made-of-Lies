@@ -1,31 +1,17 @@
-// PHASE 18.7 — i18n scaffolding. Lightweight string-catalog + locale-switching plumbing
-// designed so the UI can adopt translations incrementally (one panel / page at a time)
-// without forcing a big-bang migration. Keys live in a flat string map; missing keys fall
-// back to the English catalog with a console.warn flag in dev so untranslated strings
-// surface during testing.
+// i18n — collapsed to English-only per user 2026-05-12. The 11-locale scaffold that
+// previously shipped (es / fr / de / pt-BR / ja / zh-Hans / ko / ru / ar / he) was dead code
+// — none had translator content and the user explicitly mandated English-only. The `useT()`
+// hook + `t(key)` lookup + LocaleId type all stay so call sites in PlanetSummaryPanel /
+// CinematicsOverlay / etc. continue to work unchanged. Re-add locales here when translation
+// work actually begins (per-locale JSON, lazy-load, Intl date/number formatting, RTL flip).
 //
-// Locales ship empty (just English) — translation work is content/translator workload, not
-// engineering. The plumbing here is the path to bolt those in as JSON catalogs without
-// touching UI code. Future polish: load per-locale JSON lazily, parameterized interpolation
-// (`t('match.victory', { civ: 'Theocracy' })`), date/number formatting via Intl.
-//
-// RTL support: locales tagged `'rtl'` flip `document.documentElement.dir = 'rtl'`. UI panels
-// that depend on direction read `useLocaleDir()` to swap left/right alignment.
+// Why keep the surface area at all: re-introducing locales without a refactor of every call
+// site requires the lookup API to stay stable. The cost is one tiny module + zero runtime
+// branch (single-locale path is a Map.get with one entry).
 
 import { useEffect, useState } from 'react'
 
-export type LocaleId =
-  | 'en' // English (base)
-  | 'es' // Spanish
-  | 'fr' // French
-  | 'de' // German
-  | 'pt-BR' // Brazilian Portuguese
-  | 'ja' // Japanese
-  | 'zh-Hans' // Simplified Chinese
-  | 'ko' // Korean
-  | 'ru' // Russian
-  | 'ar' // Arabic (RTL)
-  | 'he' // Hebrew (RTL)
+export type LocaleId = 'en'
 
 export type TextDirection = 'ltr' | 'rtl'
 
@@ -34,8 +20,6 @@ export interface LocaleDefinition {
   readonly displayName: string
   readonly nativeName: string
   readonly dir: TextDirection
-  // Empty until translator content arrives. The English catalog below is the source-of-truth
-  // for available keys; other locales override per-key as translations land.
   readonly strings: Readonly<Record<string, string>>
 }
 
@@ -69,44 +53,15 @@ const EN_STRINGS: Readonly<Record<string, string>> = {
 
 export const LOCALES: ReadonlyArray<LocaleDefinition> = [
   { id: 'en', displayName: 'English', nativeName: 'English', dir: 'ltr', strings: EN_STRINGS },
-  { id: 'es', displayName: 'Spanish', nativeName: 'Español', dir: 'ltr', strings: {} },
-  { id: 'fr', displayName: 'French', nativeName: 'Français', dir: 'ltr', strings: {} },
-  { id: 'de', displayName: 'German', nativeName: 'Deutsch', dir: 'ltr', strings: {} },
-  {
-    id: 'pt-BR',
-    displayName: 'Portuguese (Brazil)',
-    nativeName: 'Português (Brasil)',
-    dir: 'ltr',
-    strings: {},
-  },
-  { id: 'ja', displayName: 'Japanese', nativeName: '日本語', dir: 'ltr', strings: {} },
-  {
-    id: 'zh-Hans',
-    displayName: 'Chinese (Simplified)',
-    nativeName: '简体中文',
-    dir: 'ltr',
-    strings: {},
-  },
-  { id: 'ko', displayName: 'Korean', nativeName: '한국어', dir: 'ltr', strings: {} },
-  { id: 'ru', displayName: 'Russian', nativeName: 'Русский', dir: 'ltr', strings: {} },
-  { id: 'ar', displayName: 'Arabic', nativeName: 'العربية', dir: 'rtl', strings: {} },
-  { id: 'he', displayName: 'Hebrew', nativeName: 'עברית', dir: 'rtl', strings: {} },
 ]
 
 const LOCALE_BY_ID: Map<LocaleId, LocaleDefinition> = new Map(LOCALES.map((l) => [l.id, l]))
 
 const LOCALE_STORAGE_KEY = 'smol.locale.v1'
 
-let activeLocale: LocaleId = (() => {
-  if (typeof window === 'undefined') return 'en'
-  try {
-    const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY) as LocaleId | null
-    if (stored && LOCALE_BY_ID.has(stored)) return stored
-  } catch {
-    /* localStorage disabled */
-  }
-  return 'en'
-})()
+// English-only today; the constant + listener machinery stays so a future re-introduction of
+// locales doesn't need to retrofit the hook API.
+let activeLocale: LocaleId = 'en'
 
 type LocaleListener = (locale: LocaleId) => void
 const listeners = new Set<LocaleListener>()
@@ -127,7 +82,7 @@ export function setActiveLocale(locale: LocaleId): void {
       document.documentElement.lang = locale
     }
   } catch {
-    /* ignore */
+    /* localStorage disabled */
   }
   for (const l of listeners) l(locale)
 }
@@ -139,19 +94,17 @@ export function subscribeLocale(listener: LocaleListener): () => void {
   }
 }
 
-// Translation lookup. Falls back to English when the active locale has no entry; falls back
-// to the raw key when English has no entry either (dev signal that a key wasn't registered).
+// Translation lookup. With English-only this is a single Map.get; falls back to raw key with
+// a dev-mode console.warn when a key isn't registered (signals dev they need to add it).
 export function t(key: string): string {
-  const active = LOCALE_BY_ID.get(activeLocale)
-  if (active && active.strings[key]) return active.strings[key]!
-  if (EN_STRINGS[key]) return EN_STRINGS[key]!
+  const value = EN_STRINGS[key]
+  if (value !== undefined) return value
   if (import.meta.env?.DEV) {
     console.warn(`[smol/i18n] Missing translation key: ${key}`)
   }
   return key
 }
 
-// React hook — re-renders the component when the active locale changes.
 export function useLocale(): LocaleId {
   const [locale, setLocale] = useState<LocaleId>(activeLocale)
   useEffect(() => {
@@ -160,16 +113,12 @@ export function useLocale(): LocaleId {
   return locale
 }
 
-// React hook — returns the active locale's text direction. Components that depend on bidi
-// flip layout (e.g. mirror flex-direction, swap left/right paddings) read this.
 export function useLocaleDir(): TextDirection {
-  useLocale() // subscribe for re-renders on locale change
+  useLocale()
   return LOCALE_BY_ID.get(activeLocale)!.dir
 }
 
-// React component-friendly t() wrapper that also subscribes to locale changes. Use this in
-// component bodies instead of plain `t()` so the component re-renders when locale switches.
 export function useT(): (key: string) => string {
-  useLocale() // subscribe for re-renders
+  useLocale()
   return t
 }
