@@ -252,13 +252,18 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
       new THREE.SpriteMaterial({
         map: tex,
         transparent: true,
-        depthTest: true,
+        // HOTFIX 17.L.D.18 — same z-clip fix as the building emoji sprite. The resource node
+        // emoji sprite is centered at the node's lifted position; at grazing angles the
+        // quad extends into the planet sphere and gets clipped. depthTest=false + renderOrder
+        // guarantees the emoji is always visible.
+        depthTest: false,
         depthWrite: false,
       }),
     )
+    sprite.renderOrder = 10
     const spriteSize = depositSize(node.tier) * 2.5
     sprite.scale.set(spriteSize, spriteSize, 1)
-    const spriteLift = liftAmt + depositSize(node.tier) * 1.4
+    const spriteLift = liftAmt + spriteSize * 0.6
     sprite.position.set(
       localX + nx * spriteLift,
       localY + ny * spriteLift,
@@ -366,21 +371,30 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
         new THREE.SpriteMaterial({
           map: tex,
           transparent: true,
-          depthTest: true,
+          // HOTFIX 17.L.D.18 — depthTest off + renderOrder high. The sprite quad is screen-
+          // facing centered at sprite.position. At grazing camera angles, the quad extends
+          // in screen-space directions where MOST of it ends up INSIDE the planet sphere
+          // (surfaceRadius 400-1600 units), getting z-clipped. Only a "tiny peck" sliver
+          // visible. Per user verbatim "every time i place a building i only see the
+          // spallest little peck apear in the center of the hex tile on planet". depthTest
+          // false guarantees the full sprite always renders on top of the planet regardless
+          // of camera angle. Render order +10 puts it after the surface tiles + building
+          // mesh in the draw order so the emoji is the FINAL layer the player sees.
+          depthTest: false,
           depthWrite: false,
         }),
       )
-      // HOTFIX 17.L.D.16 — sprite sized to fill the hex tile, not the (smaller) building
-      // mesh underneath. Per user verbatim "the emoji building once placesd are micoscopic
-      // and plaent level max zoom they need to be sized to fill the hex without going
-      // outside the hex they are built on". hexScale is the hexagon's outer radius;
-      // flat-to-flat width = 2 × radius × cos(30°) ≈ 1.73 × radius. Sprites are square so
-      // we use 1.55× radius to leave a slim margin and avoid spilling into neighbor hexes.
-      // Lift bumps the sprite slightly above the tile + the small mesh underneath so the
-      // emoji floats clearly without z-fighting against the building mesh.
+      sprite.renderOrder = 10
+      // HOTFIX 17.L.D.16 — sprite sized to fill the hex tile. hexScale is the hexagon's
+      // outer radius; flat-to-flat width = 2 × radius × cos(30°) ≈ 1.73 × radius. 1.55×
+      // radius leaves a slim margin so the square sprite doesn't spill into neighbor hexes.
+      //
+      // HOTFIX 17.L.D.18 — spriteLift bumped to spriteSize × 0.6 so the sprite QUAD CENTER
+      // is clearly outside the planet sphere surface. Combined with depthTest=false this
+      // guarantees the full emoji renders even at oblique camera angles to the tile normal.
       const spriteSize = hexScale * 1.55
       sprite.scale.set(spriteSize, spriteSize, 1)
-      const spriteLift = buildLift + size * 0.4 + 0.2
+      const spriteLift = spriteSize * 0.6
       sprite.position.set(
         tile.centroid.x + tile.normal.x * spriteLift,
         tile.centroid.y + tile.normal.y * spriteLift,
