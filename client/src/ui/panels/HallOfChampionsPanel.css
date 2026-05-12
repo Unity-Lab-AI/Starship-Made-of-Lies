@@ -5,6 +5,26 @@
   padding: 0.4rem 0.5rem;
 }
 
+.hoc-panel__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  margin: 0 0 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.hoc-panel__filter input {
+  accent-color: var(--accent, #d4a13a);
+}
+
+.hoc-panel__filter-count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+  font-size: 0.72rem;
+}
+
 .hoc-panel__empty {
   font-size: 0.75rem;
   opacity: 0.6;

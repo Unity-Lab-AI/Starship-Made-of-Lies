@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import {
   type LeaderboardCategory,
   type LeaderboardCategoryDef,
@@ -19,26 +20,55 @@ interface HallOfChampionsPanelProps {
 }
 
 export function HallOfChampionsPanel({ boards, highlightCategoryId }: HallOfChampionsPanelProps) {
+  const [hideEmpty, setHideEmpty] = useState(false)
+  const visibleBoards = useMemo(
+    () => (hideEmpty ? boards.filter((b) => b.topEntries.length > 0) : boards),
+    [boards, hideEmpty],
+  )
+  const populatedCount = useMemo(
+    () => boards.filter((b) => b.topEntries.length > 0).length,
+    [boards],
+  )
   return (
     <LCDFrame
       title="🏛️ Hall of Champions"
       statusGlyph="◈"
-      statusLabel={`${boards.length} boards`}
+      statusLabel={`${populatedCount}/${boards.length} populated`}
       variant="amber"
     >
       <div className="hoc-panel">
         {boards.length === 0 ? (
           <p className="hoc-panel__empty">No leaderboards recorded yet.</p>
         ) : (
-          <ul className="hoc-panel__list">
-            {boards.map((board, idx) => (
-              <CategoryBoard
-                key={`${board.categoryId}-${board.themeLabel ?? 'global'}-${idx}`}
-                board={board}
-                highlight={highlightCategoryId === board.categoryId}
+          <>
+            <label className="hoc-panel__filter">
+              <input
+                type="checkbox"
+                checked={hideEmpty}
+                onChange={(e) => setHideEmpty(e.target.checked)}
               />
-            ))}
-          </ul>
+              Hide empty boards
+              <span className="hoc-panel__filter-count">
+                {visibleBoards.length}/{boards.length}
+              </span>
+            </label>
+            {visibleBoards.length === 0 ? (
+              <p className="hoc-panel__empty">
+                Every board is empty — play a match to get the first ranking entry. Uncheck "Hide
+                empty boards" to see the full category list.
+              </p>
+            ) : (
+              <ul className="hoc-panel__list">
+                {visibleBoards.map((board, idx) => (
+                  <CategoryBoard
+                    key={`${board.categoryId}-${board.themeLabel ?? 'global'}-${idx}`}
+                    board={board}
+                    highlight={highlightCategoryId === board.categoryId}
+                  />
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </div>
     </LCDFrame>
