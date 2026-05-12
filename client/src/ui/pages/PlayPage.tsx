@@ -23,7 +23,7 @@ import {
   newAnonymousAccount,
   themeAsCSSVars,
 } from '@smol/shared'
-import { type MatchAISlotConfig, type MatchConfig } from '../../match/MatchSim'
+import { type MatchAISlotConfig, type MatchConfig, type MatchEventLog } from '../../match/MatchSim'
 import { selectEmpireAggregate } from '../../match/empireSelectors'
 import { useMatchSim } from '../../match/useMatchSim'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
@@ -1770,17 +1770,7 @@ export function PlayPage() {
             onClose={() => closePanel('events')}
             variant="docked-bottom-right"
           >
-            <ul className="event-log">
-              {[...sim.state.events]
-                .reverse()
-                .slice(0, 50)
-                .map((ev, i) => (
-                  <li key={i} className={`event-log__row event-log__row--${ev.kind}`}>
-                    <span className="event-log__tick">[t{ev.atTick}]</span>{' '}
-                    <span>{ev.message}</span>
-                  </li>
-                ))}
-            </ul>
+            <EventLogFilteredList events={sim.state.events} />
           </PanelFrame>
         )}
         {/* PHASE 16.23: clicked-flight detail popup. Renders when a flight cone in 3D is clicked
@@ -2138,5 +2128,85 @@ export function PlayPage() {
         })()}
       </div>
     </PanelLayoutProvider>
+  )
+}
+
+// Events panel filter shell. Was inline ad-hoc render; pulled out so the filter +
+// search state live alongside the list instead of bloating PlayPage's render scope.
+const EVENT_KIND_FILTERS: ReadonlyArray<{
+  readonly id: 'all' | MatchEventLog['kind']
+  readonly label: string
+}> = [
+  { id: 'all', label: 'All' },
+  { id: 'launch', label: 'Launches' },
+  { id: 'intercept', label: 'Intercepts' },
+  { id: 'crash', label: 'Crashes' },
+  { id: 'build', label: 'Builds' },
+  { id: 'research', label: 'Research' },
+  { id: 'campaign', label: 'Campaigns' },
+  { id: 'planet_claimed', label: 'Planets' },
+  { id: 'civ_defeated', label: 'Civ defeated' },
+  { id: 'indigenous', label: 'Indigenous' },
+  { id: 'loot', label: 'Loot' },
+  { id: 'last_hope', label: 'Last hope' },
+  { id: 'achievement_unlock', label: 'Achievements' },
+  { id: 'system', label: 'System' },
+]
+
+function EventLogFilteredList({ events }: { readonly events: ReadonlyArray<MatchEventLog> }) {
+  const [kindFilter, setKindFilter] = useState<'all' | MatchEventLog['kind']>('all')
+  const [searchTerm, setSearchTerm] = useState('')
+  const filtered = useMemo(() => {
+    const needle = searchTerm.trim().toLowerCase()
+    const out: MatchEventLog[] = []
+    for (let i = events.length - 1; i >= 0 && out.length < 200; i--) {
+      const ev = events[i]
+      if (!ev) continue
+      if (kindFilter !== 'all' && ev.kind !== kindFilter) continue
+      if (needle && !ev.message.toLowerCase().includes(needle)) continue
+      out.push(ev)
+    }
+    return out
+  }, [events, kindFilter, searchTerm])
+
+  return (
+    <div className="event-log-shell">
+      <div className="event-log-filters">
+        <select
+          className="event-log-filters__kind"
+          value={kindFilter}
+          onChange={(e) => setKindFilter(e.target.value as 'all' | MatchEventLog['kind'])}
+          aria-label="Filter events by kind"
+        >
+          {EVENT_KIND_FILTERS.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+        <input
+          type="search"
+          className="event-log-filters__search"
+          placeholder="Search messages…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          aria-label="Search event messages"
+        />
+        <span className="event-log-filters__count">
+          {filtered.length}/{events.length}
+        </span>
+      </div>
+      <ul className="event-log">
+        {filtered.length === 0 ? (
+          <li className="event-log__empty">No events match the current filter.</li>
+        ) : (
+          filtered.map((ev, i) => (
+            <li key={i} className={`event-log__row event-log__row--${ev.kind}`}>
+              <span className="event-log__tick">[t{ev.atTick}]</span> <span>{ev.message}</span>
+            </li>
+          ))
+        )}
+      </ul>
+    </div>
   )
 }
