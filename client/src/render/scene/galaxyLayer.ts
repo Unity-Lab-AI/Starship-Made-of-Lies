@@ -87,7 +87,14 @@ export function buildGalaxyLayer(galaxy: Galaxy): GalaxyLayerHandle {
   directional.position.set(1, 1, 0.5)
   const directionalFill = new THREE.DirectionalLight(0xffffff, 0.45)
   directionalFill.position.set(-1, -0.5, -0.5)
-  group.add(ambient, directional, directionalFill)
+  // HOTFIX 17.L.D.15 — hemisphere light wraps the planet in soft sky/ground tinting so the
+  // "diamond patterning" of the icosphere triangulation no longer reads as pitch black on
+  // the hemisphere facing away from the sun. Per user verbatim "black as charcoal mesh ...
+  // slight diamond patterning". Sky tint = warm white, ground tint = deep blue (mirrors the
+  // setClearColor 0x05050d backdrop), intensity 0.6 — soft enough not to wash out the
+  // directional contrast but strong enough to keep the dark side readable.
+  const hemisphere = new THREE.HemisphereLight(0xffeecc, 0x05050d, 0.6)
+  group.add(ambient, directional, directionalFill, hemisphere)
 
   // PHASE 17.I — real Stars from solar-system gen. Each star.position becomes a glowing
   // sphere sized to star.radius (4× galaxy-wide largest planet per LAW #0 2026-05-11).

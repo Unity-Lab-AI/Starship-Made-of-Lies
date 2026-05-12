@@ -237,9 +237,23 @@ export function GalaxyView({
     // logarithmically so meshes resolve correctly across all 6+ orders of magnitude.
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
-      alpha: true,
+      // HOTFIX 17.L.D.15 — alpha: false. Per user verbatim "all planets are still like a black
+      // as charcoal mesh or texture so when i zoom into them all i see is blackness with a
+      // slight diamond patterning". Transparent canvas + sRGB tonemapping in Firefox produced
+      // a dark composite of the surface tiles over the canvas backdrop. Opaque canvas pairs
+      // cleanly with the renderer's setClearColor below and the play-shell CSS isolation layer.
+      alpha: false,
       logarithmicDepthBuffer: true,
     })
+    // HOTFIX 17.L.D.15 — explicit color-space + tone-mapping. Three.js r155+ default
+    // outputColorSpace is SRGB but toneMapping defaults to NoToneMapping which leaves
+    // MeshStandardMaterial colors looking flat/dark especially in Firefox. ACES Filmic with
+    // exposure 1.4 brightens the surface tiles + planet sphere without blowing out the
+    // emissive cores of stars + resource deposits. This is the documented escalation path
+    // from the D.9 lighting bump that wasn't enough.
+    renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 1.4
     renderer.setPixelRatio(window.devicePixelRatio || 1)
     renderer.setSize(mount.clientWidth, mount.clientHeight)
     renderer.setClearColor(0x05050d, 1)
@@ -344,7 +358,15 @@ export function GalaxyView({
       const handle = buildSurfaceLayer(planet)
       planetMesh.add(handle.group)
       surfaceLayers.set(planet.id, handle)
-      handle.syncBuildings(planet.tiles)
+      // HOTFIX 17.L.D.15 — pass the LIVE buildingsByTile map on first creation so the
+      // initial sync renders correct building emojis instead of the 🏗️ default. Without
+      // this, the first frame after surface-layer creation shows generic build icons until
+      // the gated re-sync fires on a later count change. Per user verbatim "the emojis dont
+      // pop up when im placeing builds". Seed lastSyncedBuildingsCount so the gate logic
+      // stays consistent.
+      const initialMap = buildingsByPlanetRef.current?.get(planet.id)
+      handle.syncBuildings(planet.tiles, initialMap)
+      lastSyncedBuildingsCount.set(planet.id, initialMap?.size ?? 0)
       return handle
     }
 
