@@ -1,71 +1,107 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { THEMES, themeAsCSSVars } from '@smol/shared'
-import { connectToRoom, requestMatchmaking } from '../../multiplayer/MultiplayerClient'
+import {
+  joinSmolMatch,
+  mintGuestToken,
+  requestMatchmaking,
+  type SmolRoomHandle,
+} from '../../multiplayer/MultiplayerClient'
 import './SubPage.css'
 import './MultiplayerPage.css'
 
-// PHASE 18.1 — multiplayer client wire-up. The Colyseus + auth server is host-side work
-// gated on Layer E #3 (Postgres install + OAuth provider creds). When the server is down,
-// the matchmaking call fails fast with a clear error so the player sees real network
-// feedback instead of a forever-disabled button.
+// Multiplayer client wire-up over real colyseus.js. Three-step flow:
+//   1. Ensure session token in localStorage (mint a guest one if missing).
+//   2. POST /api/matchmaking/join for the Colyseus host hint + token pre-check.
+//   3. Client.joinOrCreate('smol_match', {token}) via joinSmolMatch().
 //
-// Default host targets the dev Vite proxy at localhost; production builds should override
-// via VITE_SMOL_AUTH_URL env var at build time. The Colyseus WS host is returned by the
-// matchmaking endpoint per-room so the client doesn't need to bake it in here.
+// Default host targets the dev auth server at localhost:2568; production builds should
+// override via VITE_SMOL_AUTH_URL env var at build time.
 const DEFAULT_AUTH_URL =
   (import.meta.env?.VITE_SMOL_AUTH_URL as string | undefined) ?? 'http://localhost:2568'
+
+const SESSION_TOKEN_KEY = 'smol.session.token.v1'
+
+function readLocalSessionToken(): string | null {
+  try {
+    return window.localStorage.getItem(SESSION_TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
+function writeLocalSessionToken(token: string): void {
+  try {
+    window.localStorage.setItem(SESSION_TOKEN_KEY, token)
+  } catch {
+    // localStorage disabled (private browsing, etc.) — caller falls back to in-memory token.
+  }
+}
 
 export function MultiplayerPage() {
   const theme = THEMES[0]!
   const styleVars = useMemo(() => themeAsCSSVars(theme), [theme])
-  const [status, setStatus] = useState<string>('Idle — sign in then click Join.')
+  const [status, setStatus] = useState<string>(
+    'Idle — click Join (signs you in as guest if needed).',
+  )
   const [busy, setBusy] = useState<boolean>(false)
+  const roomHandleRef = useRef<SmolRoomHandle | null>(null)
 
   const handleJoin = async (): Promise<void> => {
     setBusy(true)
-    setStatus('Requesting matchmaking…')
-    // PHASE 18.1 — pull session token from localStorage (set by the OAuth callback flow).
-    // Anonymous players get auto-guest behavior server-side, but the matchmaking endpoint
-    // requires SOME token; we fall back to a generated guest token.
-    let sessionToken: string
-    try {
-      sessionToken =
-        window.localStorage.getItem('smol.session.token.v1') ??
-        `guest-${Math.random().toString(36).slice(2, 10)}`
-    } catch {
-      sessionToken = `guest-${Math.random().toString(36).slice(2, 10)}`
+    // ─── Step 1: ensure we have a session token ─────────────────────────────
+    let sessionToken = readLocalSessionToken()
+    if (!sessionToken) {
+      setStatus('Minting guest session token…')
+      const minted = await mintGuestToken(DEFAULT_AUTH_URL)
+      if (!minted) {
+        setStatus(
+          `Guest token mint failed — auth server may be offline at ${DEFAULT_AUTH_URL}. ` +
+            'Start it with `pnpm dev:server` (port 2568).',
+        )
+        setBusy(false)
+        return
+      }
+      writeLocalSessionToken(minted)
+      sessionToken = minted
     }
-    const matchmaking = await requestMatchmaking({
+    // ─── Step 2: matchmaking pre-check ──────────────────────────────────────
+    setStatus('Pre-checking matchmaking…')
+    const pre = await requestMatchmaking({
       authServerUrl: DEFAULT_AUTH_URL,
       sessionToken,
       preferences: {},
     })
-    if (!matchmaking) {
+    if (!pre) {
       setStatus(
-        `Matchmaking unavailable — server may be offline. Tried ${DEFAULT_AUTH_URL}/api/matchmaking/join. ` +
-          'Activate via Layer E #3 (Postgres + OAuth creds + Colyseus server).',
+        `Matchmaking unavailable — auth server may be offline at ${DEFAULT_AUTH_URL}, or your ` +
+          'session token expired (server restart clears in-memory sessions). Refresh or sign in again.',
       )
       setBusy(false)
       return
     }
-    setStatus(`Connecting to room ${matchmaking.roomId} at ${matchmaking.host}…`)
-    connectToRoom({
-      host: matchmaking.host,
-      roomId: matchmaking.roomId,
+    // ─── Step 3: actual Colyseus join ───────────────────────────────────────
+    setStatus(`Connecting to Colyseus at ${pre.host}…`)
+    const handle = await joinSmolMatch({
+      host: pre.host,
       sessionToken,
       handlers: {
-        onOpen: () => setStatus(`Connected. Joined room ${matchmaking.roomId}.`),
-        onMessage: (envelope) => {
-          console.info('[smol/multiplayer] message:', envelope.type)
+        onOpen: (info) =>
+          setStatus(`Connected. Room: ${info.roomId} · Session: ${info.sessionId}.`),
+        onMessage: (type) => {
+          console.info('[smol/multiplayer] message:', type)
         },
-        onError: () => setStatus('Connection error — see browser console for details.'),
-        onClose: (code, reason) =>
-          setStatus(
-            `Disconnected (code ${code})${reason ? ` — ${reason}` : ''}. Click Join to reconnect.`,
-          ),
+        onError: (err) => setStatus(`Connection error — ${err.message}. See browser console.`),
+        onLeave: (code) => setStatus(`Disconnected (code ${code}). Click Join to reconnect.`),
       },
     })
+    roomHandleRef.current = handle
+    if (!handle) {
+      setStatus(
+        'Colyseus join failed — see browser console. Common causes: gameserver offline ' +
+          '(start with `pnpm dev:server`), token rejected by GameRoom.onAuth.',
+      )
+    }
     setBusy(false)
   }
 

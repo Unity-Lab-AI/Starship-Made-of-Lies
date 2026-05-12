@@ -223,7 +223,7 @@ Same Tier 5 citizen, different propaganda dressing:
 
 ---
 
-## 🏛️ Governments (15+ themes — rolled randomly per civ, per match)
+## 🏛️ Governments (20 themes — rolled randomly per civ, per match)
 
 Citizens never chose their government — they were born into it. The roll determines:
 
