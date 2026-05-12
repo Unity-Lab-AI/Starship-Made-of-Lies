@@ -20,6 +20,9 @@ export type PanelId =
   | 'shipBuilder'
   // PHASE 17.L.A.12 — Q11 LOCKED. Per-planet production-mode + quota controls panel.
   | 'quotas'
+  // HOTFIX 17.L.D.14 — Tech detail panel extracted from TechTreePanel into its own movable
+  // PanelFrame so it no longer overlays the tech grid (per user verbatim).
+  | 'techDetail'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -49,6 +52,7 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'citizens', emoji: '👥', label: 'Citizens', hotkey: 'N' },
   { id: 'shipBuilder', emoji: '🛠', label: 'Ship Builder', hotkey: 'U' },
   { id: 'quotas', emoji: '📋', label: 'Quotas' },
+  { id: 'techDetail', emoji: '🔍', label: 'Tech Detail' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },
