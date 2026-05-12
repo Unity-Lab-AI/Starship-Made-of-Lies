@@ -12,6 +12,7 @@ import {
 import { AchievementsPanel } from '../panels/AchievementsPanel'
 import { HallOfChampionsPanel, type CategoryBoardSnapshot } from '../panels/HallOfChampionsPanel'
 import { ProfilePanel } from '../panels/ProfilePanel'
+import { loadAchievementProgressFull } from '../../match/achievementStorage'
 import './SubPage.css'
 import './AchievementsPage.css'
 
@@ -23,6 +24,12 @@ export function AchievementsPage() {
   const account = useMemo<Account>(() => {
     return newAnonymousAccount(accountIdValue('local-anon'), 'Local Player', 'local-player', 0)
   }, [])
+
+  // PHASE 17.12.6 — real achievement progress loaded from localStorage. NEVER mock per
+  // feedback_no_mock_player_data_anywhere.md — empty list shows all locked rows until the
+  // player wins their first match.
+  const progressList = useMemo(() => loadAchievementProgressFull(), [])
+  const unlockedCount = progressList.filter((p) => p.unlockedAtTick !== null).length
 
   const boards = useMemo<ReadonlyArray<CategoryBoardSnapshot>>(() => {
     return [
@@ -62,9 +69,13 @@ export function AchievementsPage() {
           (PHASE 17.0 in progress).
         </p>
         <div className="achievements-page__grid">
-          <ProfilePanel account={account} achievementsUnlocked={0} achievementsTotal={20} />
+          <ProfilePanel
+            account={account}
+            achievementsUnlocked={unlockedCount}
+            achievementsTotal={progressList.length}
+          />
           <HallOfChampionsPanel boards={boards} highlightCategoryId="mostPlanetsControlled" />
-          <AchievementsPanel progressList={[]} currentTick={0} showHidden={false} />
+          <AchievementsPanel progressList={progressList} currentTick={0} showHidden={false} />
         </div>
       </main>
     </div>

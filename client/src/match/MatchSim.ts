@@ -117,6 +117,9 @@ import {
   getColonyShipDef,
   getTheme,
   getThemePolish,
+  ACHIEVEMENTS,
+  type AccountId,
+  checkMatchEndAchievements,
   hasWonByTech,
   indigenousLootOnDefeat,
   initiateLastHopeEvac,
@@ -300,6 +303,9 @@ export interface MatchEventLog {
     | 'indigenous'
     | 'last_hope'
     | 'planet_claimed'
+    // PHASE 17.12.6 / 17.12.10 — achievement unlock event. PlayPage watches for this kind +
+    // surfaces a gold-tinted persistent toast distinct from info/warning/error/success.
+    | 'achievement_unlock'
   readonly message: string
 }
 
@@ -336,6 +342,11 @@ export interface MatchState {
   // off the O(planets) hot path.
   readonly padIdToPlanetIdIndex: Map<TileId, PlanetId>
   events: MatchEventLog[]
+  // PHASE 17.12.6 — achievement IDs newly unlocked by THIS match's end resolver. Populated by
+  // tickMatch when phase transitions to 'ENDED'. Empty during play. useMatchSim watches this
+  // list + persists to localStorage via applyAchievementUnlocks (which deduplicates against
+  // any pre-existing unlocks from prior matches so the toast only fires for true transitions).
+  achievementUnlocksThisMatch: string[]
   currentTick: number
   startedAtTick: number
   phase: MatchPhase
@@ -564,6 +575,7 @@ export function createMatch(config: MatchConfig): MatchState {
         message: `Match started. ${civs.size} civs · ${galaxy.planets.length} planets · seed ${config.seed}`,
       },
     ],
+    achievementUnlocksThisMatch: [],
     currentTick: 0,
     startedAtTick: 0,
     phase: 'IN_PROGRESS',
@@ -2196,6 +2208,83 @@ function resolveMatch(state: MatchState): void {
         ? `Match ended — ${winner.theme.emoji} ${winner.displayName} prevailed (${resolution.resolvedObjectiveId ?? resolution.reason}).`
         : `Match ended — no winner (${resolution.reason ?? 'unknown'}).`,
     })
+
+    // PHASE 17.12.6 / 17.12.10 — achievement check at match end. Build inputs from available
+    // state + run the shared checkMatchEndAchievements resolver. Newly-unlocked IDs land in
+    // achievementUnlocksThisMatch for useMatchSim to persist + the PlayPage toast watcher to
+    // surface as gold-tinted notifications. Cross-match cumulative aggregates (themes-played,
+    // archetypes-won) deferred to the PHASE 17.0 sign-in shipping — local-only for now.
+    const humanCivAtEnd = state.civs.get(state.humanCivId)
+    if (humanCivAtEnd) {
+      const humanWon = resolution.winningCivId === state.humanCivId
+      const wonByLastCiv = humanWon && resolution.resolvedObjectiveId === 'last_civ_standing'
+      let enemiesEliminated = 0
+      let playedAgainstBrutal = false
+      for (const civ of state.civs.values()) {
+        if (civ.civId === state.humanCivId) continue
+        if (!civ.alive) enemiesEliminated += 1
+        if (civ.difficulty === 'brutal') playedAgainstBrutal = true
+      }
+      let hadFinal = false
+      let hadPilgrim1k = false
+      let suicideLaunched = 0
+      const totalLaunched = humanCivAtEnd.deceptionLedger.colonyShipsLaunched
+      for (const flight of state.flights.values()) {
+        if (flight.launchingCivId !== state.humanCivId) continue
+        const variantStr = String(flight.variantId)
+        if (variantStr === 'finalColonyShip') hadFinal = true
+        if (variantStr === 'pilgrimVolunteer' && flight.citizensAboard >= 1000) {
+          hadPilgrim1k = true
+        }
+        const suicideVariants = new Set([
+          'pilgrimVolunteer',
+          'massEvacuation',
+          'saboteur',
+          'explosive',
+          'finalColonyShip',
+        ])
+        if (suicideVariants.has(variantStr)) suicideLaunched += 1
+      }
+      const techIdStrings = new Set<string>()
+      for (const techId of humanCivAtEnd.empire.researchedTechs) {
+        techIdStrings.add(String(techId))
+      }
+      const unlocked = checkMatchEndAchievements({
+        accountId: state.humanCivId as unknown as AccountId,
+        civId: state.humanCivId,
+        themeId: humanCivAtEnd.themeId,
+        matchId: state.matchId,
+        atTick: state.currentTick,
+        won: humanWon,
+        wonByLastCivStanding: wonByLastCiv,
+        peakControlledPlanets: humanCivAtEnd.empire.controlledPlanetIds.size,
+        apexReachedAtTick: hasWonByTech(humanCivAtEnd.empire)
+          ? state.currentTick - state.startedAtTick
+          : null,
+        enemyCivsEliminated: enemiesEliminated,
+        maxDissidentRatioSustained: 0,
+        conscriptionCount: humanCivAtEnd.deceptionLedger.citizensConscripted,
+        colonyShipsLaunchedTotal: totalLaunched,
+        suicideShipsLaunched: suicideLaunched,
+        hadFinalColonyShip: hadFinal,
+        hadPilgrimWith1000Plus: hadPilgrim1k,
+        playedAgainstBrutalAI: playedAgainstBrutal,
+        didCoop: false,
+        themesPlayedCumulative: 1,
+        archetypesWonCumulative: humanWon ? 1 : 0,
+        researchedTechs: techIdStrings,
+      })
+      for (const achId of unlocked) {
+        state.achievementUnlocksThisMatch.push(achId)
+        const def = ACHIEVEMENTS.find((a) => a.id === achId)
+        pushEvent(state, {
+          atTick: state.currentTick,
+          civId: state.humanCivId,
+          kind: 'achievement_unlock',
+          message: def ? `🏆 ${def.emoji} ${def.name} — ${def.description}` : `🏆 ${achId}`,
+        })
+      }
+    }
   }
 }
 

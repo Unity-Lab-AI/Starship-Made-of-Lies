@@ -595,6 +595,16 @@ export function PlayPage() {
           kind: 'success',
           expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
         })
+      } else if (ev.kind === 'achievement_unlock') {
+        // PHASE 17.12.6 / 17.12.10 — gold-tinted achievement toast distinct from regular
+        // success. Persistent 8s window so the player has time to read the achievement name +
+        // description before it auto-dismisses.
+        newToasts.push({
+          id: `toast-ach-${ev.atTick}-${Math.random().toString(36).slice(2, 8)}`,
+          message: ev.message,
+          kind: 'success',
+          expiresAtMs: Date.now() + TOAST_LIFETIME_MS * 2.3,
+        })
       }
     }
     if (newToasts.length > 0) {
