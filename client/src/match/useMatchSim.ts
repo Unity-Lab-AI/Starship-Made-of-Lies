@@ -2,14 +2,20 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   type CivId,
   type ColonyShipVariantId,
+  type LaunchPad,
   type LootDropId,
   type PadTargetWaypoint,
   type PlanetId,
+  type SalvoCoordinator,
+  type SalvoPhase,
   abortFlight,
+  arm,
+  newSalvoCoordinator,
   resetPadCargoLoad,
   resetPadCitizenLoad,
   setShipDutyPercent as setShipDutyPercentImpl,
   setTargetQueue,
+  tickSalvo,
 } from '@smol/shared'
 import {
   clearSavedMatch,
@@ -150,6 +156,19 @@ export interface UseMatchSimResult {
   readonly loadSavedMatch: () => boolean
   readonly clearSavedMatch: () => void
   readonly hasSavedMatch: boolean
+  // PHASE 17.1.6 — tick-driven salvo orchestration. Replaces the setTimeout chain that lived
+  // in PlayPage.runSalvoRound (8s/11s/13s real-time delays). startSalvoRound kicks off a
+  // BUILDALL on the planet's pads and primes a SalvoCoordinator; tickSalvo (shared) advances
+  // it phase-by-phase using the actual sim tick clock so speed/pause obey the player. The
+  // launchFn callback passed to tickSalvo wires the real launchShipFromPadAction so flights
+  // actually get created (not just pad-state flipped). UI reads salvoPhase to render the
+  // BUILDING/ARMING/LAUNCHING badge.
+  readonly salvoPhase: SalvoPhase
+  readonly salvoActive: boolean
+  readonly startSalvoRound: (planetId: PlanetId, variantId: ColonyShipVariantId) => boolean
+  readonly cancelSalvoRound: () => void
+  readonly autoFireSalvoLoop: boolean
+  readonly setAutoFireSalvoLoop: (on: boolean) => void
 }
 
 export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
@@ -160,6 +179,20 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
   // PHASE 17.L.A.13 — Q12 LOCKED. Track whether a saved match exists in localStorage so the
   // UI can show / hide the 📂 Load button. Refreshed after every save/load/clear call.
   const [savedMatchPresent, setSavedMatchPresent] = useState<boolean>(() => hasSavedMatch())
+  // PHASE 17.1.6 — SalvoCoordinator state. coordRef holds the active orchestrator (null when
+  // no round in flight). planetIdRef caches which planet's pads the coord is driving so the
+  // tick effect doesn't have to re-resolve it. salvoPhase + salvoActive are derived state the
+  // UI reads. autoFireLoopRef is the indefinite-loop toggle that auto-restarts on COOLDOWN
+  // completion (replaces the PlayPage autoFireLoopActive state).
+  const salvoCoordRef = useRef<SalvoCoordinator | null>(null)
+  const salvoPlanetIdRef = useRef<PlanetId | null>(null)
+  const salvoVariantIdRef = useRef<ColonyShipVariantId | null>(null)
+  const [salvoPhase, setSalvoPhase] = useState<SalvoPhase>('IDLE')
+  const [autoFireSalvoLoop, setAutoFireSalvoLoopState] = useState(false)
+  const autoFireSalvoLoopRef = useRef(false)
+  useEffect(() => {
+    autoFireSalvoLoopRef.current = autoFireSalvoLoop
+  }, [autoFireSalvoLoop])
 
   useEffect(() => {
     if (!running) return
@@ -167,6 +200,83 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     const interval = DEFAULT_TICK_MS / speed
     const handle = setInterval(() => {
       tickMatch(stateRef.current)
+      // PHASE 17.1.6 — drive the salvo coord on every sim tick (not real-time). When the
+      // coord exists, run tickSalvo against the planet's pads with launchShipFromPadAction
+      // wired as the launchFn so STAGGERED_LAUNCH actually creates flights. Auto-fire-loop
+      // re-primes the coord on COOLDOWN exit; otherwise the round ends and coord clears.
+      const coord = salvoCoordRef.current
+      const planetId = salvoPlanetIdRef.current
+      if (coord && planetId) {
+        const planet = stateRef.current.planets.get(planetId)
+        if (!planet || planet.civId !== stateRef.current.humanCivId) {
+          // Planet lost or transferred away — drop the round.
+          salvoCoordRef.current = null
+          salvoPlanetIdRef.current = null
+          salvoVariantIdRef.current = null
+          setSalvoPhase('IDLE')
+        } else {
+          // Only consider pads that actually entered the build pipeline. Pads that failed
+          // buildShipAction (insufficient resources, wrong state, etc.) stay in IDLE/GONE
+          // with loadedShipVariantId === null — including them would hang the BUILDING
+          // phase's allReady check forever.
+          const pads = [...planet.launchPads.values()].filter((p) => p.loadedShipVariantId !== null)
+          const waypoints = pads[0]?.targetQueue ?? []
+          const launchFn = (pad: LaunchPad): boolean => {
+            const target = pad.targetQueue[pad.activeTargetIdx] ?? pad.targetQueue[0]
+            if (!target) return false
+            return launchShipFromPadAction({
+              state: stateRef.current,
+              padId: pad.id,
+              targetPlanetId: target.targetPlanetId,
+            })
+          }
+          const prevPhase = coord.phase
+          const result = tickSalvo(coord, {
+            currentTick: stateRef.current.currentTick,
+            pads,
+            waypoints,
+            launchFn,
+          })
+          // When a BUILDING coord sees all pads READY, tickSalvo arms them itself via shared
+          // arm() — but only flips state. That's correct here (no flight created on arm).
+          // Auto-arm covers the case where pads finished build between the orchestrator's
+          // BUILDALL primer and this tick — arm whatever READY pads tickSalvo missed.
+          if (result.phase === 'STAGGERED_LAUNCH' && prevPhase === 'BUILDING') {
+            for (const pad of pads) {
+              if (pad.state === 'READY') arm(pad)
+            }
+          }
+          // COOLDOWN → next round (auto-fire) or end-of-round cleanup.
+          let coordCleared = false
+          if (result.phase === 'COOLDOWN' && prevPhase === 'STAGGERED_LAUNCH') {
+            if (!autoFireSalvoLoopRef.current) {
+              // Single round done. Drop the coord; UI flips back to IDLE.
+              salvoCoordRef.current = null
+              salvoPlanetIdRef.current = null
+              salvoVariantIdRef.current = null
+              setSalvoPhase('IDLE')
+              coordCleared = true
+            }
+          }
+          // Auto-fire re-primer: COOLDOWN drained → kick off a fresh BUILDALL round.
+          if (
+            !coordCleared &&
+            result.phase === 'TARGETING' &&
+            prevPhase === 'COOLDOWN' &&
+            autoFireSalvoLoopRef.current &&
+            salvoVariantIdRef.current
+          ) {
+            const variantId = salvoVariantIdRef.current
+            for (const pad of pads) {
+              buildShipAction({ state: stateRef.current, padId: pad.id, variantId })
+            }
+            coord.phase = 'BUILDING'
+            setSalvoPhase('BUILDING')
+          } else if (!coordCleared && result.phase !== prevPhase) {
+            setSalvoPhase(result.phase)
+          }
+        }
+      }
       setTickCount((n) => n + 1)
     }, interval)
     return () => clearInterval(handle)
@@ -545,6 +655,43 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     setSavedMatchPresent(false)
   }, [])
 
+  // PHASE 17.1.6 — public salvo lifecycle. startSalvoRound primes a BUILDING-phase coord
+  // and triggers BUILDALL on every pad of the target planet. The tick effect drives the
+  // coord from there. cancelSalvoRound resets to IDLE without affecting in-flight ships.
+  const startSalvoRound = useCallback(
+    (planetId: PlanetId, variantId: ColonyShipVariantId): boolean => {
+      if (salvoCoordRef.current !== null) return false
+      const state = stateRef.current
+      const planet = padsOnPlanet(state, planetId)
+      if (!planet) return false
+      const pads = [...planet.launchPads.values()]
+      if (pads.length === 0) return false
+      let touched = 0
+      for (const pad of pads) {
+        if (buildShipAction({ state, padId: pad.id, variantId })) touched += 1
+      }
+      if (touched === 0) return false
+      const coord = newSalvoCoordinator(String(pads[0]!.id))
+      coord.phase = 'BUILDING'
+      salvoCoordRef.current = coord
+      salvoPlanetIdRef.current = planetId
+      salvoVariantIdRef.current = variantId
+      setSalvoPhase('BUILDING')
+      setTickCount((n) => n + 1)
+      return true
+    },
+    [],
+  )
+  const cancelSalvoRound = useCallback(() => {
+    salvoCoordRef.current = null
+    salvoPlanetIdRef.current = null
+    salvoVariantIdRef.current = null
+    setSalvoPhase('IDLE')
+  }, [])
+  const setAutoFireSalvoLoop = useCallback((on: boolean) => {
+    setAutoFireSalvoLoopState(on)
+  }, [])
+
   return {
     state: stateRef.current,
     tickCount,
@@ -583,5 +730,11 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     loadSavedMatch,
     clearSavedMatch: clearSavedMatchCallback,
     hasSavedMatch: savedMatchPresent,
+    salvoPhase,
+    salvoActive: salvoCoordRef.current !== null,
+    startSalvoRound,
+    cancelSalvoRound,
+    autoFireSalvoLoop,
+    setAutoFireSalvoLoop,
   }
 }

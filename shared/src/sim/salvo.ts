@@ -57,6 +57,10 @@ export interface SalvoTickInputs {
   readonly currentTick: number
   readonly pads: ReadonlyArray<LaunchPad>
   readonly waypoints: ReadonlyArray<PadTargetWaypoint>
+  // PHASE 17.1.6 — optional client-side launch override. Pure-sim consumers can omit this;
+  // tickSalvo falls back to launch(pad) which only flips state. Client wires the real
+  // launchShipFromPadAction so the flight is actually created on STAGGERED_LAUNCH.
+  readonly launchFn?: (pad: LaunchPad) => boolean
 }
 
 export interface SalvoTickResult {
@@ -109,7 +113,8 @@ export function tickSalvo(coord: SalvoCoordinator, inputs: SalvoTickInputs): Sal
       if (inputs.currentTick - coord.lastLaunchAtTick >= coord.intervalTicks) {
         const armedPad = inputs.pads.find((p) => p.state === 'ARM')
         if (armedPad) {
-          if (launch(armedPad)) {
+          const launcher = inputs.launchFn ?? launch
+          if (launcher(armedPad)) {
             launched.push(armedPad.id as unknown as string)
             coord.lastLaunchAtTick = inputs.currentTick
             coord.totalLaunchedThisRound += 1

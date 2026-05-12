@@ -235,16 +235,10 @@ export function PlayPage() {
     }
   }, [openPanels])
 
-  // PHASE 16.19: salvo-round orchestrator state. One-click "Fire Salvo Round" cycles
-  // BUILDALL → wait → ARMALL → wait → LAUNCHALL. salvoRoundPhase tracks progress so the
-  // panel shows "BUILDING..." / "ARMING..." / "LAUNCHING..." live.
-  const [salvoRoundPhase, setSalvoRoundPhase] = useState<
-    null | 'BUILDING' | 'ARMING' | 'LAUNCHING'
-  >(null)
-  // PHASE 16.37 — auto-fire indefinite-loop toggle. When ON, the salvo cycle auto-restarts
-  // on completion so the player can "fire and forget" a sustained barrage. Toggle OFF mid-
-  // cycle and the current round finishes naturally without queuing another.
-  const [autoFireLoopActive, setAutoFireLoopActive] = useState(false)
+  // PHASE 17.1.6 — salvo-round orchestrator now lives in useMatchSim (sim.salvoPhase /
+  // sim.startSalvoRound / sim.autoFireSalvoLoop). The orchestrator runs tick-driven via
+  // shared/src/sim/salvo.ts tickSalvo so pause + speed obey the player. The setTimeout
+  // chain (8s/11s/13s real-time delays) and local autoFireLoopActive state retired.
 
   // HOTFIX 17.L.D.14 — Tech detail selection state. Owned by PlayPage so TechTreePanel +
   // TechDetailPanel can react to the same selectedTechId independently. Clicking a tech in
@@ -959,38 +953,16 @@ export function PlayPage() {
     setToasts((current) => current.filter((t) => t.id !== id))
   }
 
-  // PHASE 16.37 — salvo round runner extracted from inline onFireSalvoRound. Stable callback
-  // so the auto-fire-loop useEffect can re-trigger it without dependency-array churn.
+  // PHASE 17.1.6 — salvo round runner now delegates to sim.startSalvoRound which primes the
+  // SalvoCoordinator and runs the BUILDING → STAGGERED_LAUNCH → COOLDOWN phase machine on
+  // every sim tick. Auto-fire loop also lives in the sim (sim.autoFireSalvoLoop); the
+  // re-trigger happens in the sim's tick effect when COOLDOWN drains.
   const runSalvoRound = useCallback(() => {
-    if (salvoRoundPhase !== null) return
     const planetId = activePlanet.planet.id
     const variant = availableShipVariants[0]
     if (!variant) return
-    setSalvoRoundPhase('BUILDING')
-    sim.controllerBuildAll(planetId, variant)
-    window.setTimeout(() => {
-      setSalvoRoundPhase('ARMING')
-      sim.controllerArmAll(planetId)
-    }, 8000)
-    window.setTimeout(() => {
-      setSalvoRoundPhase('LAUNCHING')
-      sim.controllerLaunchAll(planetId)
-    }, 11000)
-    window.setTimeout(() => setSalvoRoundPhase(null), 13000)
-  }, [activePlanet.planet.id, availableShipVariants, salvoRoundPhase, sim])
-
-  // PHASE 16.37 — auto-fire indefinite loop. When the toggle is ON and a round just finished
-  // (salvoRoundPhase transitioned to null), kick off the next round after a short cooldown so
-  // the cycle visibly resets between rounds. Toggle OFF mid-cycle and the next round simply
-  // doesn't queue.
-  useEffect(() => {
-    if (!autoFireLoopActive) return
-    if (salvoRoundPhase !== null) return
-    const handle = window.setTimeout(() => {
-      runSalvoRound()
-    }, 1500)
-    return () => window.clearTimeout(handle)
-  }, [autoFireLoopActive, salvoRoundPhase, runSalvoRound])
+    sim.startSalvoRound(planetId, variant)
+  }, [activePlanet.planet.id, availableShipVariants, sim])
 
   // === Keyboard shortcuts ===
   useEffect(() => {
@@ -1612,18 +1584,20 @@ export function PlayPage() {
               onAbortAll={() => sim.controllerAbortAll(activePlanet.planet.id)}
               onCopyTargetFromController={() => sim.controllerCopyTarget(activePlanet.planet.id)}
               onFireSalvoRound={runSalvoRound}
-              salvoRoundActive={salvoRoundPhase !== null}
+              salvoRoundActive={sim.salvoActive}
               salvoRoundPhaseLabel={
-                salvoRoundPhase === 'BUILDING'
+                sim.salvoPhase === 'BUILDING'
                   ? '⚙ BUILDING — pads loading...'
-                  : salvoRoundPhase === 'ARMING'
-                    ? '⚡ ARMING ready pads...'
-                    : salvoRoundPhase === 'LAUNCHING'
-                      ? '🚀 LAUNCHING armed pads...'
-                      : undefined
+                  : sim.salvoPhase === 'STAGGERED_LAUNCH'
+                    ? '🚀 STAGGERED LAUNCH — staggered fire...'
+                    : sim.salvoPhase === 'COOLDOWN'
+                      ? '🛡 COOLDOWN — pads regrouping...'
+                      : sim.salvoPhase === 'TARGETING'
+                        ? '🎯 TARGETING — picking next pad waypoints...'
+                        : undefined
               }
-              autoFireLoopActive={autoFireLoopActive}
-              onToggleAutoFireLoop={() => setAutoFireLoopActive((v) => !v)}
+              autoFireLoopActive={sim.autoFireSalvoLoop}
+              onToggleAutoFireLoop={() => sim.setAutoFireSalvoLoop(!sim.autoFireSalvoLoop)}
               targetablePlanets={targetablePlanetsForCommandPad}
               onSetWaypoints={(waypoints) =>
                 sim.setControllerWaypoints(activePlanet.planet.id, waypoints)
