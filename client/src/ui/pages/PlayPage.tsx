@@ -62,6 +62,7 @@ import { HallOfChampionsPanel } from '../panels/HallOfChampionsPanel'
 import { DefensePanel, type DefensePanelIncomingThreat } from '../panels/DefensePanel'
 import { CaravanPanel, type CaravanPanelPlanetSnapshot } from '../panels/CaravanPanel'
 import { SignalHubPanel } from '../panels/SignalHubPanel'
+import { TelemetryGraphPanel } from '../panels/TelemetryGraphPanel'
 import { CampaignPicker } from '../play/CampaignPicker'
 import { DockZoneOverlay } from '../play/DockZoneOverlay'
 import { HUDOverlay } from '../play/HUDOverlay'
@@ -1868,6 +1869,28 @@ export function PlayPage() {
               </PanelFrame>
             )
           })()}
+
+        {/* 17.2.3 — Telemetry graphs panel. Per-flight SVG sparklines (distance, altitude,
+            fuel%, life-support%). Client-side rolling buffer keyed by flight.id; samples every
+            250ms while at least one flight is in the air. Full sim-side telemetryLog ring
+            buffer ships separately (17.2.4) when telemetry persistence is needed for replay. */}
+        {openPanels.has('telemetryGraph') && (
+          <PanelFrame
+            panelId="telemetryGraph"
+            title="Telemetry"
+            emoji="📈"
+            onClose={() => closePanel('telemetryGraph')}
+            variant="centered"
+            width={420}
+          >
+            <TelemetryGraphPanel
+              flights={[...sim.state.flights.values()].filter(
+                (f) => f.launchingCivId === sim.state.humanCivId,
+              )}
+              currentTick={sim.state.currentTick}
+            />
+          </PanelFrame>
+        )}
 
         {/* PHASE 17.12.2 — Defense panel. Per-planet defensive stats + incoming threats +
             counter-missile-pad quick-build. Mines are LAUNCHED ships per user correction
