@@ -1,0 +1,104 @@
+/* PHASE 17.L.A.10 — Q14 LOCKED. ProductionChainsPanel stylesheet. SVG-based Sankey with
+   theme-aware accents + hover state. */
+
+.production-chains-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  color: var(--panel-fg, #d6e2ec);
+  font-family: var(--theme-font, 'Inter', system-ui, sans-serif);
+}
+
+.production-chains-panel__intro {
+  font-size: 0.82rem;
+  color: rgba(214, 226, 236, 0.75);
+  margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.production-chains-panel__svg-wrap {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(214, 226, 236, 0.15);
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 70vh;
+  padding: 0.4rem;
+}
+
+.production-chains-panel__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 900px;
+}
+
+.production-chains-panel__col-header {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--accent, #ff9d00);
+  letter-spacing: 0.05em;
+}
+
+.production-chains-panel__edge {
+  stroke: rgba(214, 226, 236, 0.35);
+  transition:
+    stroke 0.12s ease,
+    opacity 0.12s ease;
+  cursor: pointer;
+}
+
+.production-chains-panel__edge--highlight {
+  stroke: var(--accent, #ff9d00);
+  opacity: 1;
+}
+
+.production-chains-panel__edge--dim {
+  opacity: 0.15;
+}
+
+.production-chains-panel__edge-label {
+  fill: var(--accent, #ff9d00);
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.production-chains-panel__node {
+  stroke: rgba(214, 226, 236, 0.4);
+  stroke-width: 1;
+  transition: fill 0.12s ease;
+  cursor: pointer;
+}
+
+.production-chains-panel__node--raw {
+  fill: rgba(120, 180, 90, 0.25);
+}
+
+.production-chains-panel__node--refined {
+  fill: rgba(110, 160, 200, 0.25);
+}
+
+.production-chains-panel__node--component {
+  fill: rgba(200, 160, 110, 0.25);
+}
+
+.production-chains-panel__node--product {
+  fill: rgba(200, 110, 180, 0.25);
+}
+
+.production-chains-panel__node--strategic {
+  fill: rgba(220, 80, 80, 0.3);
+}
+
+.production-chains-panel__node--hover {
+  fill: rgba(255, 157, 0, 0.45);
+  stroke: var(--accent, #ff9d00);
+  stroke-width: 2;
+}
+
+.production-chains-panel__node-label {
+  fill: var(--panel-fg, #d6e2ec);
+  font-size: 12px;
+  pointer-events: none;
+}
