@@ -81,6 +81,8 @@
    │   Hard energy gating on blueprint print       ✅ 17.L.C.2   │
    │   Custom-build cost preview in library row    ✅ 17.L.B.3   │
    │   Multi-pad blueprint print picker            ✅ 17.L.B.4   │
+   │   Drag-bounds ghost outline while dragging    ✅ 17.L.C.7   │
+   │   Mid-flight reactor refuel (endgame god-ctrl) ✅ 17.L.C.1   │
    ├─────────────────────────────────────────────────────────────┤
    │   ACTIVE — PHASE 17.L tail (super-review additions)         │
    ├─────────────────────────────────────────────────────────────┤

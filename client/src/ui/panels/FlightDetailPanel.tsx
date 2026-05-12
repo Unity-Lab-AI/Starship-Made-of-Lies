@@ -35,6 +35,12 @@ export interface FlightDetailPanelProps {
   // this flight via sim.redirectFlight.
   readonly godControlReady?: boolean
   readonly onSelectForRedirect?: (flightId: string) => void
+  // PHASE 17.L.C.1 — endgame-tier god-control reactor refuel. Same TECH_GOD_CONTROL gate as
+  // redirect. When supplied AND godControlReady AND the flight is a reactor variant, surfaces
+  // a "Refuel reactor" button that consumes radioactives from the flight's source planet to
+  // refill reactorFuelRemaining back to reactorFuelAtLaunch. Per user 2026-05-11: "god control
+  // refuel sound like endgaem tech" — gated identically to god-control redirect.
+  readonly onRefuelReactor?: (flightId: string) => void
 }
 
 function ticksToEtaLabel(ticks: number): string {
@@ -79,6 +85,7 @@ export function FlightDetailPanel({
   onClose,
   godControlReady,
   onSelectForRedirect,
+  onRefuelReactor,
 }: FlightDetailPanelProps) {
   const def = getColonyShipDef(flight.variantId)
   const tel = flightTelemetrySnapshot(flight)
@@ -260,7 +267,10 @@ export function FlightDetailPanel({
           <p>{def.description}</p>
         </section>
 
-        {inFlight && (onAbort || (godControlReady && onSelectForRedirect)) ? (
+        {inFlight &&
+        (onAbort ||
+          (godControlReady && onSelectForRedirect) ||
+          (godControlReady && onRefuelReactor && flight.reactorFuelAtLaunch > 0)) ? (
           <section className="flight-detail-panel__actions">
             {godControlReady && onSelectForRedirect && !isCounter ? (
               <button
@@ -273,6 +283,20 @@ export function FlightDetailPanel({
                 title="God Control redirect: right-click any planet after selecting to redirect this ship mid-arc. Works on STRANDED + EMPTY_HULK ships too — the god intervenes from above."
               >
                 🕹️ Select for Redirect
+              </button>
+            ) : null}
+            {godControlReady && onRefuelReactor && flight.reactorFuelAtLaunch > 0 ? (
+              <button
+                type="button"
+                className="flight-detail-panel__btn flight-detail-panel__btn--redirect"
+                disabled={flight.reactorFuelRemaining >= flight.reactorFuelAtLaunch}
+                onClick={() => {
+                  onRefuelReactor(String(flight.id))
+                }}
+                title={`🕹️ Endgame-tier god-control reactor refuel. Consumes ${def.reactorFuelAmount} ${String(def.reactorFuelType)} from the flight's source planet (${String(flight.fromPlanetId)}) and refills reactor fuel to launch level. Rescues STRANDED reactor ships. Gated on TECH_GOD_CONTROL + BLDG_GOD_CONTROL.`}
+              >
+                ⚛️ Refuel Reactor (
+                {Math.round((flight.reactorFuelRemaining / flight.reactorFuelAtLaunch) * 100)}%)
               </button>
             ) : null}
             {onAbort ? (
