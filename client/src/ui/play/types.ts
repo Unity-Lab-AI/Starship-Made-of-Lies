@@ -51,6 +51,9 @@ export type PanelId =
   // 17.2.1 — Signal hub control panel. Detection range + early warning + incoming-flight roster
   // + own-flight link status (radio / laser-align / lost). Driven by `shared/sim/signal.ts`.
   | 'signalHub'
+  // 17.2.3 — Per-flight telemetry SVG sparklines (distance / altitude / fuel% / LS%). Client-
+  // side rolling buffer keyed by flight.id.
+  | 'telemetryGraph'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -90,6 +93,7 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'defense', emoji: '🛡', label: 'Defense' },
   { id: 'caravans', emoji: '🛒', label: 'Caravans' },
   { id: 'signalHub', emoji: '📡', label: 'Signal Hub' },
+  { id: 'telemetryGraph', emoji: '📈', label: 'Telemetry' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },
