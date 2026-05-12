@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { type Theme } from '@smol/shared'
 import { getAudioSystem } from '../../audio/AudioSystem'
 import { usePanelLayout } from './PanelLayoutContext'
 import {
@@ -12,12 +11,6 @@ import {
 import './play-shell.css'
 
 interface HUDOverlayProps {
-  readonly theme: Theme
-  readonly currentTick: number
-  readonly running: boolean
-  readonly speed: 1 | 2 | 4 | 8
-  readonly togglePause: () => void
-  readonly setSpeed: (s: 1 | 2 | 4 | 8) => void
   readonly openPanels: ReadonlySet<PanelId>
   readonly togglePanel: (id: PanelId) => void
   readonly buildModeBuildingDefId: string | null
@@ -42,12 +35,6 @@ interface HUDOverlayProps {
 //   - Fleet category hidden until the player has at least one launch pad (no irrelevant
 //     ship/flight/builder UI before the prerequisite building exists).
 export function HUDOverlay({
-  theme,
-  currentTick,
-  running,
-  speed,
-  togglePause,
-  setSpeed,
   openPanels,
   togglePanel,
   buildModeBuildingDefId,
@@ -128,34 +115,9 @@ export function HUDOverlay({
         >
           {expanded.id === 'settings' ? (
             <>
-              <span className="hud-toolbar-expanded__tick" title="Current tick + match theme">
-                t{currentTick} · {theme.emoji} {theme.name}
-              </span>
-              <button
-                type="button"
-                className="hud-toolbar__btn"
-                onClick={togglePause}
-                title={running ? 'Pause (Space)' : 'Resume (Space)'}
-              >
-                <span aria-hidden className="hud-toolbar__btn-emoji">
-                  {running ? '⏸' : '▶'}
-                </span>
-                <span className="hud-toolbar__btn-label">{running ? 'Pause' : 'Resume'}</span>
-              </button>
-              {([1, 2, 4, 8] as const).map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`hud-toolbar__btn ${speed === s ? 'hud-toolbar__btn--on' : ''}`}
-                  onClick={() => setSpeed(s)}
-                  title={`Speed ${s}× (key ${Math.log2(s) + 1})`}
-                >
-                  <span aria-hidden className="hud-toolbar__btn-emoji">
-                    {s}×
-                  </span>
-                  <span className="hud-toolbar__btn-label">Speed</span>
-                </button>
-              ))}
+              {/* Pause + speed migrated to TopToolbar's right edge per user feedback —
+                  always-visible time controls. Settings sub-row keeps the less-frequent
+                  utility actions only. */}
               <button
                 type="button"
                 className="hud-toolbar__btn"
