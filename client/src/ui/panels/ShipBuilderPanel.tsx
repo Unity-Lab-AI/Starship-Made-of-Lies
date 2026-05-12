@@ -20,6 +20,11 @@ import {
   stockOf,
   validateShipBuild,
 } from '@smol/shared'
+import {
+  type SavedBlueprint,
+  loadBlueprints,
+  persistBlueprints,
+} from '../../storage/blueprintStorage'
 import './ship-builder-panel.css'
 
 const SLOTS: ReadonlyArray<{ slot: ShipPieceSlot; label: string; required: boolean }> = [
@@ -33,50 +38,6 @@ const SLOTS: ReadonlyArray<{ slot: ShipPieceSlot; label: string; required: boole
   { slot: 'comms', label: 'Communications', required: false },
 ]
 
-const BLUEPRINTS_STORAGE_KEY = 'smol.ship-blueprints.v1'
-
-interface SavedBlueprint {
-  readonly id: string
-  readonly name: string
-  readonly pieces: ReadonlyArray<string>
-  readonly savedAt: number
-  // PHASE 17.L.A.5 — player-pickable base variant override. When set, replaces the
-  // inferBaseVariantFromStats heuristic at print time so the blueprint resolves to the
-  // explicit catalog variant (suicideShip / canIntercept / render color / emoji flow
-  // through unchanged). When omitted, fallback to the heuristic — preserves backwards
-  // compatibility for blueprints saved before this field existed.
-  readonly baseVariantOverride?: ColonyShipVariantId
-}
-
-function loadBlueprints(): ReadonlyArray<SavedBlueprint> {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = window.localStorage.getItem(BLUEPRINTS_STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as unknown
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter(
-      (b): b is SavedBlueprint =>
-        typeof b === 'object' &&
-        b !== null &&
-        typeof (b as SavedBlueprint).id === 'string' &&
-        typeof (b as SavedBlueprint).name === 'string' &&
-        Array.isArray((b as SavedBlueprint).pieces),
-    )
-  } catch {
-    return []
-  }
-}
-
-function persistBlueprints(list: ReadonlyArray<SavedBlueprint>): void {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(BLUEPRINTS_STORAGE_KEY, JSON.stringify(list))
-  } catch {
-    // ignore — quota or sandbox
-  }
-}
-
 interface ShipBuilderPanelProps {
   readonly inventory: PlanetInventory
   readonly researchedTechs: ReadonlySet<TechId>
@@ -89,6 +50,10 @@ interface ShipBuilderPanelProps {
     pieces: ReadonlyArray<string>,
     stats: ResolvedShipStats,
     totalCost: ReadonlyArray<{ resource: import('@smol/shared').ResourceId; amount: number }>,
+    // PHASE 17.L.A.7+A.8 — saved-blueprint id flows down to MatchSim → launch-pad.startPrintFromBlueprint
+    // → pad.loadedCustomBuild.sourceBlueprintId so the LaunchManifestModal can look up the
+    // player's saved crew/cargo preset and pre-fill the sliders at launch time.
+    sourceBlueprintId: string,
   ) => boolean
 }
 
@@ -491,6 +456,7 @@ export function ShipBuilderPanel({
                         bp.pieces,
                         bpResolved.stats,
                         bpCost,
+                        bp.id,
                       )
                       setStatusMessage(
                         ok

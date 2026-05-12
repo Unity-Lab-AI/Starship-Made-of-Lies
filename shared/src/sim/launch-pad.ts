@@ -1,4 +1,4 @@
-import { type CivId, type PlanetId, type TileId } from '../types/index'
+import { type CivId, type PlanetId, type ResourceId, type TileId } from '../types/index'
 import { type ColonyShipVariantId, getColonyShipDef } from './colony-ship'
 import { type PlanetInventory, stockOf, tryConsumeAll } from './inventory'
 import { type CitizenTier, type PlanetPopulation } from './population'
@@ -46,6 +46,12 @@ export interface LaunchPad {
     displayName: string
     pieces: ReadonlyArray<string>
     stats: import('./colony-ship-build').ResolvedShipStats
+    // PHASE 17.L.A.7+A.8 — link back to the saved blueprint id so the launch-manifest modal
+    // can look up the player's saved crew/cargo preset for THIS blueprint and pre-fill the
+    // sliders. Null when the print started from the catalog (ShipBuildPanel) instead of a
+    // saved blueprint (ShipBuilderPanel library). Preserves backwards-compat with pads built
+    // before this field landed.
+    sourceBlueprintId?: string
   } | null
   buildTicksRemaining: number
   fuelLoaded: number
@@ -58,6 +64,15 @@ export interface LaunchPad {
   // breakdown lets launchShipFromPadAction enforce the tier gate AND lets the deception ledger
   // record WHICH tiers were sent to their deaths for downstream propaganda-fallout math.
   citizensLoadedByTier: Record<CitizenTier, number>
+  // PHASE 17.L.A.7 — Q3 PHASE 17 LOCKED closure: "what crew and supplies and the loading of
+  // ammunition". The crew side already exists (citizensLoadedByTier). This is the cargo side
+  // — Map<ResourceId, number> of resources loaded into the ship's cargo hold before launch.
+  // Sum-of-values is gated by def.payload.cargoCapacity. Player allocates per-resource via
+  // the LaunchManifestModal. cargoLoaded transfers to ColonyShipFlight.cargoAboard at launch
+  // and stays on the flight until impact (where TARGET_HIT outcomes deposit the cargo into
+  // the target planet inventory — i.e. colonization supplies). Cleared on abort / GONE
+  // transition / pad reset.
+  cargoLoaded: Map<ResourceId, number>
   targetQueue: PadTargetWaypoint[]
   activeTargetIdx: number
   lastOutcome: PadOutcome | null
@@ -83,6 +98,7 @@ export function newLaunchPad(
     ammoLoaded: 0,
     citizensLoaded: 0,
     citizensLoadedByTier: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    cargoLoaded: new Map(),
     targetQueue: [],
     activeTargetIdx: 0,
     lastOutcome: null,
@@ -217,6 +233,7 @@ export function startPrint(
   pad.fuelLoaded = 0
   pad.ammoLoaded = 0
   zeroCitizenLoad(pad)
+  zeroCargoLoad(pad)
   pad.state = 'PRINT'
   pad.lastOutcome = null
   return true
@@ -230,8 +247,95 @@ function zeroCitizenLoad(pad: LaunchPad): void {
   pad.citizensLoadedByTier = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
 }
 
+// PHASE 17.L.A.7 — zero the cargo manifest. Same intent as zeroCitizenLoad — every print /
+// abort / GONE path routes through this so cargoLoaded never leaks between flights.
+function zeroCargoLoad(pad: LaunchPad): void {
+  pad.cargoLoaded.clear()
+}
+
 export function resetPadCitizenLoad(pad: LaunchPad): void {
   zeroCitizenLoad(pad)
+}
+
+// PHASE 17.L.A.7 — external reset hook for the cargo manifest. Mirrors resetPadCitizenLoad.
+// Called by external reset paths (controller abort-all, future save/load resume, etc.).
+export function resetPadCargoLoad(pad: LaunchPad): void {
+  zeroCargoLoad(pad)
+}
+
+// PHASE 17.L.A.7 — sum the cargo manifest. Used by loadCargoFromInventory to enforce the
+// def.payload.cargoCapacity cap across all resources combined (one cargo hold, not per-
+// resource silos). Also surfaced in the LaunchManifestModal for the "X / Y cargo capacity"
+// readout.
+export function getCargoLoadedTotal(pad: LaunchPad): number {
+  let total = 0
+  for (const amt of pad.cargoLoaded.values()) total += amt
+  return total
+}
+
+// PHASE 17.L.A.7 — Q3 LOCKED closure: "what crew and supplies and the loading of ammunition".
+// Pull `count` of `resource` from the planet inventory and stow it on the pad's cargoLoaded.
+// Mirrors loadCitizensFromVolunteerPool's contract: gated on pad state being mid-load (DOCK
+// through ARM), capped at both available stock AND remaining cargo capacity, returns the
+// actual amount loaded (may be less than requested if either limit binds). The inventory
+// side-effect is built in — caller does NOT subtract from inventory.stocks manually.
+export function loadCargoFromInventory(
+  pad: LaunchPad,
+  inventory: PlanetInventory,
+  resource: ResourceId,
+  amount: number,
+): number {
+  if (
+    pad.state !== 'DOCK' &&
+    pad.state !== 'FUEL' &&
+    pad.state !== 'AMMO' &&
+    pad.state !== 'READY' &&
+    pad.state !== 'ARM'
+  ) {
+    return 0
+  }
+  if (!pad.loadedShipVariantId) return 0
+  if (amount <= 0) return 0
+  const def = getColonyShipDef(pad.loadedShipVariantId)
+  const totalLoaded = getCargoLoadedTotal(pad)
+  const remainingCapacity = Math.max(0, def.payload.cargoCapacity - totalLoaded)
+  if (remainingCapacity <= 0) return 0
+  const available = stockOf(inventory, resource)
+  const taken = Math.min(amount, remainingCapacity, available)
+  if (taken <= 0) return 0
+  inventory.stocks.set(resource, available - taken)
+  pad.cargoLoaded.set(resource, (pad.cargoLoaded.get(resource) ?? 0) + taken)
+  return taken
+}
+
+// PHASE 17.L.A.7 — partial unload helper for the LaunchManifestModal "undo" path. Pulls the
+// loaded resource back into the planet inventory + decrements pad.cargoLoaded. Returns the
+// actual amount unloaded (may be less than requested if the pad doesn't have that much).
+// Mirrors the loadCargoFromInventory state-gate (DOCK through ARM).
+export function unloadCargoToInventory(
+  pad: LaunchPad,
+  inventory: PlanetInventory,
+  resource: ResourceId,
+  amount: number,
+): number {
+  if (
+    pad.state !== 'DOCK' &&
+    pad.state !== 'FUEL' &&
+    pad.state !== 'AMMO' &&
+    pad.state !== 'READY' &&
+    pad.state !== 'ARM'
+  ) {
+    return 0
+  }
+  if (amount <= 0) return 0
+  const onPad = pad.cargoLoaded.get(resource) ?? 0
+  const taken = Math.min(amount, onPad)
+  if (taken <= 0) return 0
+  const next = onPad - taken
+  if (next <= 0) pad.cargoLoaded.delete(resource)
+  else pad.cargoLoaded.set(resource, next)
+  inventory.stocks.set(resource, stockOf(inventory, resource) + taken)
+  return taken
 }
 
 // PHASE 17.J.10 — start a print run from a saved blueprint. The pad's loadedShipVariantId is
@@ -239,6 +343,11 @@ export function resetPadCitizenLoad(pad: LaunchPad): void {
 // suicide-ship flag / can-intercept flag / payload tier / render layer). loadedCustomBuild
 // carries the resolved blueprint stats which override the per-flight numbers via
 // flightDef(). Total build cost = aggregated piece costs (NOT the base variant's buildCost).
+//
+// PHASE 17.L.A.7+A.8 — sourceBlueprintId optionally threads back to the saved blueprint so
+// the launch-manifest modal can look up the player's saved crew/cargo preset for THIS
+// blueprint and pre-fill the sliders. Omitted for catalog-driven prints (where there's no
+// blueprint to link to).
 export function startPrintFromBlueprint(
   pad: LaunchPad,
   baseVariantId: ColonyShipVariantId,
@@ -248,6 +357,7 @@ export function startPrintFromBlueprint(
   totalCost: ReadonlyArray<{ resource: import('../types/index').ResourceId; amount: number }>,
   inventory: PlanetInventory,
   buildTimeMultiplier = 1,
+  sourceBlueprintId?: string,
 ): boolean {
   if (pad.state !== 'IDLE' && pad.state !== 'GONE') return false
   if (!tryConsumeAll(inventory, totalCost)) return false
@@ -259,11 +369,17 @@ export function startPrintFromBlueprint(
     Math.round((baseDef.buildTimeTicks + (stats.buildTimeDelta || 0)) * buildTimeMultiplier),
   )
   pad.loadedShipVariantId = baseVariantId
-  pad.loadedCustomBuild = { displayName, pieces, stats }
+  pad.loadedCustomBuild = {
+    displayName,
+    pieces,
+    stats,
+    ...(sourceBlueprintId ? { sourceBlueprintId } : {}),
+  }
   pad.buildTicksRemaining = buildTime
   pad.fuelLoaded = 0
   pad.ammoLoaded = 0
   zeroCitizenLoad(pad)
+  zeroCargoLoad(pad)
   pad.state = 'PRINT'
   pad.lastOutcome = null
   return true
@@ -332,6 +448,68 @@ export function loadCitizensFromVolunteerPool(
   return drawn
 }
 
+// PHASE 17.L.A.7 — per-tier citizen load primitive for the LaunchManifestModal. Same gating
+// as loadCitizensFromVolunteerPool (state window + capacity + variant cap) but pulls from a
+// SPECIFIC tier instead of fill-from-tier-order. The suicide-ship gate is NOT enforced here
+// — `padCitizenMixSatisfiesShip` is the authoritative gate fired at launch time, so the modal
+// can show all tiers and let the player make the call (refused at launch if the mix is wrong).
+// Returns the actual amount loaded (may be less than requested if available stock or remaining
+// capacity binds). Drains population.tierCounts[tier] as a side-effect.
+export function loadCitizensFromTier(
+  pad: LaunchPad,
+  population: PlanetPopulation,
+  tier: CitizenTier,
+  count: number,
+): number {
+  if (
+    pad.state !== 'DOCK' &&
+    pad.state !== 'FUEL' &&
+    pad.state !== 'AMMO' &&
+    pad.state !== 'READY' &&
+    pad.state !== 'ARM'
+  ) {
+    return 0
+  }
+  if (!pad.loadedShipVariantId) return 0
+  if (count <= 0) return 0
+  const def = getColonyShipDef(pad.loadedShipVariantId)
+  const remainingCap = Math.max(0, def.payload.citizenCapacity - pad.citizensLoaded)
+  const avail = population.tierCounts[tier]
+  const take = Math.min(count, remainingCap, avail)
+  if (take <= 0) return 0
+  population.tierCounts[tier] -= take
+  pad.citizensLoadedByTier[tier] += take
+  pad.citizensLoaded += take
+  return take
+}
+
+// PHASE 17.L.A.7 — restore the pad's currently-loaded citizens back to population.tierCounts.
+// Mirrors unloadCargoToInventory's "give back to source" contract for the crew side. Called
+// by the LaunchManifestModal "Apply Manifest" path so the modal can rewrite the whole crew
+// allocation cleanly. NOT state-gated on the load window — restore can happen any time the
+// modal is open (which is itself gated to the DOCK→ARM window upstream).
+export function restoreCitizensFromPadToPopulation(
+  pad: LaunchPad,
+  population: PlanetPopulation,
+): void {
+  for (const tier of [1, 2, 3, 4, 5] as const) {
+    const onPad = pad.citizensLoadedByTier[tier]
+    if (onPad > 0) population.tierCounts[tier] += onPad
+  }
+  pad.citizensLoadedByTier = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+  pad.citizensLoaded = 0
+}
+
+// PHASE 17.L.A.7 — restore the pad's currently-loaded cargo back to planet inventory. Mirrors
+// restoreCitizensFromPadToPopulation. Called by the LaunchManifestModal "Apply Manifest" path
+// so the player can rewrite the whole cargo allocation cleanly.
+export function restoreCargoFromPadToInventory(pad: LaunchPad, inventory: PlanetInventory): void {
+  for (const [resource, amount] of pad.cargoLoaded.entries()) {
+    inventory.stocks.set(resource, stockOf(inventory, resource) + amount)
+  }
+  pad.cargoLoaded.clear()
+}
+
 // PHASE 17.L.A.6 — citizen-tier gate enforcement for the launch action. Returns true when the
 // pad's loaded citizen mix satisfies the ship's payloadTierRequired. Suicide ships demand
 // 100% tier 4-5 aboard; non-suicide ships have no gate. Caller (launchShipFromPadAction) uses
@@ -391,6 +569,7 @@ export function abort(pad: LaunchPad): boolean {
     pad.fuelLoaded = 0
     pad.ammoLoaded = 0
     zeroCitizenLoad(pad)
+    zeroCargoLoad(pad)
     pad.lastOutcome = 'ABORTED'
     return true
   }

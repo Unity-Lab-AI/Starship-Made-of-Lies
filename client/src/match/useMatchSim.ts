@@ -6,6 +6,7 @@ import {
   type PadTargetWaypoint,
   type PlanetId,
   abortFlight,
+  resetPadCargoLoad,
   resetPadCitizenLoad,
   setShipDutyPercent as setShipDutyPercentImpl,
   setTargetQueue,
@@ -15,6 +16,8 @@ import {
   type BuildShipInputs,
   type LaunchCampaignInputs,
   type LaunchShipInputs,
+  type LoadPadManifestInputs,
+  type LoadPadManifestResult,
   type MatchConfig,
   type MatchState,
   type PlaceBuildingInputs,
@@ -26,6 +29,7 @@ import {
   isHumanGodControlReady,
   launchCampaignAction,
   launchShipFromPadAction,
+  loadPadManifestAction,
   placeBuildingAction,
   redirectFlightAction,
   refuelReactorFromGodControlAction,
@@ -49,6 +53,12 @@ export interface UseMatchSimResult {
   readonly buildShip: (input: Omit<BuildShipInputs, 'state'>) => boolean
   readonly buildShipFromBlueprint: (input: Omit<BuildShipFromBlueprintInputs, 'state'>) => boolean
   readonly launchShipFromPad: (input: Omit<LaunchShipInputs, 'state'>) => boolean
+  // PHASE 17.L.A.7+A.8 — Q3 PHASE 17 LOCKED closure. Apply the LaunchManifestModal's per-tier
+  // crew allocation + per-resource cargo allocation to a pad currently in the loading window
+  // (DOCK through ARM). Restore-then-load semantics — whatever was on the pad is returned to
+  // population.tierCounts / planet.inventory first, then the new manifest applies fresh. The
+  // sliders represent the WHOLE allocation, not deltas.
+  readonly loadPadManifest: (input: Omit<LoadPadManifestInputs, 'state'>) => LoadPadManifestResult
   readonly claimLoot: (dropId: LootDropId) => boolean
   readonly triggerLastHope: (civId: CivId) => boolean
   readonly resetMatch: (newConfig?: MatchConfig) => void
@@ -142,6 +152,14 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     if (ok) setTickCount((n) => n + 1)
     return ok
   }, [])
+  const loadPadManifest = useCallback(
+    (input: Omit<LoadPadManifestInputs, 'state'>): LoadPadManifestResult => {
+      const result = loadPadManifestAction({ ...input, state: stateRef.current })
+      if (result.ok) setTickCount((n) => n + 1)
+      return result
+    },
+    [],
+  )
   const claimLoot = useCallback((dropId: LootDropId) => {
     const ok = claimLootDropAction({ state: stateRef.current, dropId })
     if (ok) setTickCount((n) => n + 1)
@@ -250,6 +268,9 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
         pad.fuelLoaded = 0
         pad.ammoLoaded = 0
         resetPadCitizenLoad(pad)
+        // PHASE 17.L.A.7 — clear cargo too so mass-abort doesn't leak the player's manifest
+        // into the next print run. Mirrors the per-pad abort path in shared/sim/launch-pad.ts.
+        resetPadCargoLoad(pad)
         pad.lastOutcome = 'ABORTED'
         touched += 1
       }
@@ -367,6 +388,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     buildShip,
     buildShipFromBlueprint,
     launchShipFromPad,
+    loadPadManifest,
     claimLoot,
     triggerLastHope,
     resetMatch,

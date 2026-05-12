@@ -1,4 +1,4 @@
-import { type CivId, type PlanetId, type Vec3 } from '../types/index'
+import { type CivId, type PlanetId, type ResourceId, type Vec3 } from '../types/index'
 import { UNIVERSE_HALF_EXTENT } from './balance-constants'
 import { type ColonyShipDef, type ColonyShipVariantId, getColonyShipDef } from './colony-ship'
 import { type ResolvedShipStats } from './colony-ship-build'
@@ -240,6 +240,13 @@ export interface ColonyShipFlight {
   // the ship must end via natural causes (impact / crash / starvation / power-out / fuel-out /
   // reactor explosion at end-of-life).
   readonly selfDestructInstalled: boolean
+  // PHASE 17.L.A.7 — Q3 PHASE 17 LOCKED closure: "what crew and supplies and the loading of
+  // ammunition". Cargo manifest loaded into the ship at launch. Mirrors citizensAboard for the
+  // crew side. Map<ResourceId, number> — sum-of-values gated by def.payload.cargoCapacity on
+  // the pad side (loadCargoFromInventory). On TARGET_HIT outcomes the cargo deposits into the
+  // target planet inventory (colonization bootstrap). On other outcomes (signal-loss / abort /
+  // intercept / crash) the cargo is lost — same way as the citizens.
+  readonly cargoAboard: ReadonlyMap<ResourceId, number>
 }
 
 export interface FlightCreateOptions {
@@ -266,6 +273,10 @@ export interface FlightCreateOptions {
   // TECH_SELF_DESTRUCT_SYSTEMS AND the variant has def.selfDestructCapable. Defaults false for
   // legacy code paths (AI quickfire, test setup) so the gate stays restrictive by default.
   readonly selfDestructInstalled?: boolean
+  // PHASE 17.L.A.7 — cargo manifest copied from pad.cargoLoaded at launch. Defaults to empty
+  // for legacy AI / auto-fire paths that don't surface the LaunchManifestModal. Snapshot copy
+  // (caller's Map is not retained) so subsequent pad resets don't mutate the in-flight cargo.
+  readonly cargoAboard?: ReadonlyMap<ResourceId, number>
 }
 
 export const BASE_TRAVEL_SPEED_PER_TICK = 5
@@ -381,6 +392,11 @@ export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight
     signalLossSeed: seed,
     citizensAboard: opts.citizensAboard,
     targetingMode,
+    // PHASE 17.L.A.7 — snapshot the cargo manifest into a fresh Map so the pad can be
+    // recycled (cargoLoaded.clear() on next print) without disturbing the in-flight ship's
+    // cargo state. ReadonlyMap exposure (interface side) prevents downstream tick logic
+    // from mutating; the underlying instance is still a Map for fast iteration.
+    cargoAboard: opts.cargoAboard ? new Map(opts.cargoAboard) : new Map(),
   }
 }
 
