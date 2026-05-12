@@ -9,6 +9,18 @@ export type ShipBeaconStatus =
   | 'OFFLOADING'
   | 'NO_SIGNAL'
 
+// PHASE 17.L.A.11 (Q5 PHASE 17 LOCKED: "all three yes") — planet-local mining mode.
+// Mirrors the interplanetary FlightKind in colony-ship-flight.ts but operates on
+// MiningShip auto-shuttles cycling between home tile and resource deposits on the same
+// planet. The mode dictates the AT_DEPOSIT_DRILLING transition + multi-deposit queue:
+//   • 'shuttle-single' (default) — closest non-depleted node, cycle home-to-deposit-to-home.
+//   • 'shuttle-multi'  — rotate through up to 3 closest non-depleted nodes per cycle,
+//                        partial-fill each, return when cargo full or all visited.
+//   • 'oneway'         — ship parks AT the deposit, drills directly into PlanetInventory
+//                        (bypassing cargo cap), retires to IDLE when the deposit depletes.
+//                        Trade-off: sustained extraction at the cost of losing the ship.
+export type MiningShipMode = 'shuttle-single' | 'shuttle-multi' | 'oneway'
+
 export interface ShipBeaconBroadcast {
   readonly id: string
   readonly shipId: string
@@ -31,6 +43,11 @@ export interface ShipBeaconBroadcast {
   // surfaces this as "stranded for N ticks" so player can decide whether to abandon vs.
   // rescue (PHASE 17.B.5 contract — "beacon broadcasts stranded status").
   readonly ticksInNoSignal: number
+  // PHASE 17.L.A.11 — current mining mode. UI displays this + a mode picker.
+  readonly mode: MiningShipMode
+  // Cycles-completed counter. For shuttle modes: one cycle = OUTBOUND→DRILL→INBOUND→OFFLOAD.
+  // For oneway: 0 until the deposit depletes, then 1 (ship retires).
+  readonly cyclesCompleted: number
 }
 
 export interface PlanetShipBeaconBuffer {
@@ -149,5 +166,7 @@ export function emptyCargoBeacon(
     etaTicks: 0,
     atTick,
     ticksInNoSignal: 0,
+    mode: 'shuttle-single',
+    cyclesCompleted: 0,
   }
 }

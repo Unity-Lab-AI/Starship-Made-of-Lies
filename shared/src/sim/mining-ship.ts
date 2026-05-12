@@ -2,7 +2,7 @@ import { type CivId, type PlanetId, type ResourceId, type TileId, type Vec3 } fr
 import { type Planet } from '../gen/planet'
 import { type PlanetInventory } from './inventory'
 import { drillResourceNode, isDepleted, type ResourceNode } from './resource-node'
-import { type ShipBeaconBroadcast, type ShipBeaconStatus } from './ship-beacon'
+import { type MiningShipMode, type ShipBeaconBroadcast, type ShipBeaconStatus } from './ship-beacon'
 
 // MiningShip — UMS UnityBeacon auto-shuttle equivalent. Each ship lives on a home planet and
 // autonomously cycles DOCKED → OUTBOUND → DRILLING → INBOUND → OFFLOADING → DOCKED, drilling
@@ -10,6 +10,12 @@ import { type ShipBeaconBroadcast, type ShipBeaconStatus } from './ship-beacon'
 // Per `feedback_resource_miners_need_deposits.md` and `feedback_tile_xyz_addressing.md` —
 // targeting is by ResourceNode.worldPosition Vec3 (not q,r/faceIndex). Broadcasts a ShipBeacon
 // every 2 ticks (UMS MINER_BEACON cadence). Spawned at match start by MatchSim.
+//
+// PHASE 17.L.A.11 (Q5 PHASE 17 LOCKED: "all three yes") — ships now carry a `mode` field
+// (shuttle-single / shuttle-multi / oneway). The state machine branches on mode so the
+// player can pick the extraction strategy that fits the planet's deposit topology. Without
+// this, early-game economy can't get enough resource off home-planet deposits to build the
+// industry + tech path required for the first colony ships.
 
 const SHIP_SPEED_UNITS_PER_TICK = 80
 const MIN_TRAVEL_TICKS = 18
@@ -28,6 +34,23 @@ const BEACON_INTERVAL_TICKS = 2
 // Mirrors UMS UnityBeacon laser-home fallback when the antenna mesh is offline.
 const NO_SIGNAL_CRAWL_SPEED_UNITS_PER_TICK = 40
 const NO_SIGNAL_BATTERY_BURN = 0.2
+
+// PHASE 17.L.A.11 — shuttle-multi visits up to N closest non-depleted deposits per cycle.
+// Trade-off vs. shuttle-single: longer cycle time, but better coverage of clustered small
+// deposits + extracts multiple resource types per round-trip.
+const SHUTTLE_MULTI_DEPOSITS_PER_CYCLE = 3
+
+// oneway throughput: when parked at a deposit, ship drills directly into PlanetInventory.
+// This is THE FASTEST per-tick extraction (3.4× shuttle-single's ~1.75/tick) BUT the ship is
+// permanently committed — no return trip, no other deposit, ship retires to IDLE when the
+// deposit depletes. Trade-off: lose the ship, gain sustained extraction.
+const ONEWAY_DRILL_PER_TICK = 6
+// Battery burn while parked + drilling in oneway. Lower than normal drill burn because the
+// ship isn't traveling; solar trickle keeps it topped up indefinitely.
+const ONEWAY_BATTERY_BURN_DRILL = 0.1
+const ONEWAY_BATTERY_SOLAR_RECHARGE = 0.15
+
+export type { MiningShipMode } from './ship-beacon'
 
 export interface MiningShip {
   readonly id: string
@@ -57,6 +80,16 @@ export interface MiningShip {
   // been signal-dark so the beacon can broadcast "stranded for N ticks" and the player can
   // decide to abandon vs. rescue.
   ticksInNoSignal: number
+  // PHASE 17.L.A.11 — mining mode. Drives DOCKED→OUTBOUND target selection +
+  // AT_DEPOSIT_DRILLING transition. Default 'shuttle-single' (current behavior preserved).
+  mode: MiningShipMode
+  // For shuttle-multi: queue of node ids to visit on the current outbound cycle. Populated
+  // when DOCKED→OUTBOUND fires; emptied as nodes are visited; refilled at the start of the
+  // next cycle. Empty for shuttle-single and oneway.
+  assignedNodeIds: string[]
+  // Telemetry: complete OUTBOUND→DRILL→INBOUND→OFFLOAD round-trips since spawn (shuttle
+  // modes) or 1 when the parked deposit depletes (oneway). 0 until first cycle completes.
+  cyclesCompleted: number
 }
 
 export function newMiningShip(
@@ -66,6 +99,7 @@ export function newMiningShip(
   homePlanetId: PlanetId,
   homePosition: Vec3,
   homeTileId: TileId | null = null,
+  mode: MiningShipMode = 'shuttle-single',
 ): MiningShip {
   return {
     id,
@@ -89,7 +123,24 @@ export function newMiningShip(
     offloadTicksRemaining: 0,
     ticksInStatus: 0,
     ticksInNoSignal: 0,
+    mode,
+    assignedNodeIds: [],
+    cyclesCompleted: 0,
   }
+}
+
+// Switch a ship's mining mode at runtime. Active flights snap to the new mode on the NEXT
+// DOCKED→OUTBOUND boundary so we don't interrupt an in-progress cycle. Returns true if the
+// mode actually changed.
+export function setMiningShipMode(ship: MiningShip, mode: MiningShipMode): boolean {
+  if (ship.mode === mode) return false
+  ship.mode = mode
+  // Clear the multi queue if leaving shuttle-multi. Next cycle re-builds it appropriate to
+  // the new mode.
+  if (mode !== 'shuttle-multi') {
+    ship.assignedNodeIds = []
+  }
+  return true
 }
 
 export interface MiningShipTickArgs {
@@ -141,6 +192,25 @@ function pickClosestNode(ship: MiningShip, planet: Planet): ResourceNode | null 
   return best
 }
 
+// PHASE 17.L.A.11 — shuttle-multi queue builder. Returns up to N closest non-depleted nodes
+// in ascending distance order. Empty array when no deposits available; ship stays DOCKED.
+function pickClosestNNodes(
+  ship: MiningShip,
+  planet: Planet,
+  count: number,
+  excludeIds: ReadonlySet<string>,
+): ResourceNode[] {
+  const candidates: Array<{ node: ResourceNode; dist: number }> = []
+  for (const node of planet.resourceNodes) {
+    if (isDepleted(node)) continue
+    if (excludeIds.has(node.id)) continue
+    const d = distance3(ship.homePosition, node.worldPosition)
+    candidates.push({ node, dist: d })
+  }
+  candidates.sort((a, b) => a.dist - b.dist)
+  return candidates.slice(0, count).map((c) => c.node)
+}
+
 function buildBeacon(ship: MiningShip, currentTick: number, etaTicks: number): ShipBeaconBroadcast {
   return {
     id: `${ship.id}-${currentTick}`,
@@ -161,6 +231,8 @@ function buildBeacon(ship: MiningShip, currentTick: number, etaTicks: number): S
     etaTicks,
     atTick: currentTick,
     ticksInNoSignal: ship.ticksInNoSignal,
+    mode: ship.mode,
+    cyclesCompleted: ship.cyclesCompleted,
   }
 }
 
@@ -175,6 +247,9 @@ const NO_SIGNAL_BATTERY_THRESHOLD = 8
 // usually crawl home and re-dock well before that.
 const NO_SIGNAL_SOLAR_TRICKLE = 0.05
 function maybeEnterNoSignal(ship: MiningShip): void {
+  // Oneway ships parked at a deposit never enter NO_SIGNAL — they're stationary and have
+  // solar trickle keeping them alive. The crawl-home logic doesn't apply.
+  if (ship.mode === 'oneway' && ship.status === 'AT_DEPOSIT_DRILLING') return
   if (ship.status === 'NO_SIGNAL') return
   if (ship.status === 'DOCKED' || ship.status === 'IDLE' || ship.status === 'OFFLOADING') return
   if (ship.batteryPercent <= NO_SIGNAL_BATTERY_THRESHOLD) {
@@ -182,6 +257,77 @@ function maybeEnterNoSignal(ship: MiningShip): void {
     ship.ticksInStatus = 0
     ship.ticksInNoSignal = 0
   }
+}
+
+// PHASE 17.L.A.11 — DOCKED→OUTBOUND transition. Mode-specific target selection:
+//   - shuttle-single: closest non-depleted node
+//   - shuttle-multi:  populate assignedNodeIds with up to N closest; pick first as target
+//   - oneway:         closest non-depleted node (single trip, no queue)
+function selectInitialTarget(ship: MiningShip, planet: Planet): ResourceNode | null {
+  if (ship.mode === 'shuttle-multi') {
+    const queue = pickClosestNNodes(ship, planet, SHUTTLE_MULTI_DEPOSITS_PER_CYCLE, new Set())
+    if (queue.length === 0) return null
+    ship.assignedNodeIds = queue.map((n) => n.id)
+    return queue[0] ?? null
+  }
+  // shuttle-single + oneway both pick the single closest non-depleted node.
+  return pickClosestNode(ship, planet)
+}
+
+// PHASE 17.L.A.11 — after a deposit visit, decide next state based on mode:
+//   - oneway: stay parked at the deposit until it depletes. When depleted, retire to IDLE.
+//   - shuttle-single: always INBOUND to home for offload.
+//   - shuttle-multi: if cargo not full AND assignedNodeIds has more → OUTBOUND to next;
+//                    else INBOUND to home for offload.
+// Side-effect: mutates ship.travel* / ship.status fields. Returns nothing.
+function transitionAfterDrilling(
+  ship: MiningShip,
+  planet: Planet,
+  currentNodeDepleted: boolean,
+): void {
+  if (ship.mode === 'oneway') {
+    // Oneway ship retires once its assigned deposit is depleted. It never returns home.
+    if (currentNodeDepleted) {
+      ship.status = 'IDLE'
+      ship.ticksInStatus = 0
+      ship.targetNodeId = null
+      ship.cyclesCompleted = 1
+    }
+    // Else stay drilling — handled by the caller continuing to call AT_DEPOSIT_DRILLING.
+    return
+  }
+  if (ship.mode === 'shuttle-multi' && ship.cargoAmount < ship.cargoCapacity) {
+    // Pop the visited node off the queue; pick the next one if any remain non-depleted.
+    const consumed = new Set(ship.assignedNodeIds)
+    ship.assignedNodeIds = ship.assignedNodeIds.filter((id) => id !== ship.targetNodeId)
+    // Re-check each remaining queue entry — depleted ones drop out of the cycle.
+    ship.assignedNodeIds = ship.assignedNodeIds.filter((id) => {
+      const n = planet.resourceNodes.find((rn) => rn.id === id)
+      return n !== undefined && !isDepleted(n)
+    })
+    if (ship.assignedNodeIds.length > 0) {
+      const nextNode = planet.resourceNodes.find((n) => n.id === ship.assignedNodeIds[0])
+      if (nextNode) {
+        ship.targetNodeId = nextNode.id
+        ship.travelStartPosition = { ...ship.worldPosition }
+        ship.travelTotalTicks = computeTravelTicks(ship.worldPosition, nextNode.worldPosition)
+        ship.travelTicksRemaining = ship.travelTotalTicks
+        ship.status = 'OUTBOUND_TRAVELING'
+        ship.ticksInStatus = 0
+        // Use `consumed` for type narrowing so unused-var lint doesn't fire — this set is
+        // also useful documentation for what's already-visited this cycle.
+        void consumed
+        return
+      }
+    }
+  }
+  // shuttle-single OR shuttle-multi-with-empty-queue OR oneway-not-depleted (shouldn't reach
+  // here for oneway — guarded above): return home for offload.
+  ship.travelStartPosition = { ...ship.worldPosition }
+  ship.travelTotalTicks = computeTravelTicks(ship.worldPosition, ship.homePosition)
+  ship.travelTicksRemaining = ship.travelTotalTicks
+  ship.status = 'INBOUND_RETURNING'
+  ship.ticksInStatus = 0
 }
 
 export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
@@ -194,6 +340,9 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
   switch (ship.status) {
     case 'IDLE':
     case 'DOCKED': {
+      // Oneway retired ships sit in IDLE permanently — no relaunch, no recharge. Player
+      // recycles the ship via scrap action (not implemented yet) or it just stays.
+      if (ship.mode === 'oneway' && ship.status === 'IDLE') break
       ship.fuelPercent = Math.min(100, ship.fuelPercent + FUEL_RECHARGE_DOCKED)
       ship.batteryPercent = Math.min(100, ship.batteryPercent + BATTERY_RECHARGE_DOCKED)
       if (
@@ -201,10 +350,10 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
         ship.batteryPercent >= MIN_BATTERY_TO_LAUNCH &&
         ship.cargoAmount === 0
       ) {
-        const node = pickClosestNode(ship, planet)
-        if (node) {
-          ship.targetNodeId = node.id
-          ship.travelTotalTicks = computeTravelTicks(ship.homePosition, node.worldPosition)
+        const target = selectInitialTarget(ship, planet)
+        if (target) {
+          ship.targetNodeId = target.id
+          ship.travelTotalTicks = computeTravelTicks(ship.homePosition, target.worldPosition)
           ship.travelTicksRemaining = ship.travelTotalTicks
           ship.travelStartPosition = { ...ship.homePosition }
           ship.status = 'OUTBOUND_TRAVELING'
@@ -231,6 +380,7 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
           ship.status = 'AT_DEPOSIT_DRILLING'
           ship.ticksInStatus = 0
         } else {
+          // Target gone (depleted in-flight or removed). Return home empty.
           ship.travelStartPosition = { ...ship.worldPosition }
           ship.travelTotalTicks = computeTravelTicks(ship.worldPosition, ship.homePosition)
           ship.travelTicksRemaining = ship.travelTotalTicks
@@ -246,6 +396,27 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
       const node = ship.targetNodeId
         ? (planet.resourceNodes.find((n) => n.id === ship.targetNodeId) ?? null)
         : null
+      // PHASE 17.L.A.11 — mode branch. Oneway parks here, drilling directly into
+      // PlanetInventory until the deposit depletes. Solar trickle keeps battery up; no fuel
+      // burn (engines idle).
+      if (ship.mode === 'oneway') {
+        ship.batteryPercent = Math.max(0, ship.batteryPercent - ONEWAY_BATTERY_BURN_DRILL)
+        ship.batteryPercent = Math.min(100, ship.batteryPercent + ONEWAY_BATTERY_SOLAR_RECHARGE)
+        if (node) {
+          const amount = drillResourceNode(node, ONEWAY_DRILL_PER_TICK)
+          if (amount > 0) {
+            // Direct-deposit into PlanetInventory — bypass cargo cap entirely.
+            const current = inventory.stocks.get(node.resourceId) ?? 0
+            inventory.stocks.set(node.resourceId, current + amount)
+            drilled = amount
+          }
+        }
+        if (!node || isDepleted(node)) {
+          transitionAfterDrilling(ship, planet, true)
+        }
+        break
+      }
+      // shuttle-single / shuttle-multi: standard drill-into-cargo behavior.
       ship.batteryPercent = Math.max(0, ship.batteryPercent - BATTERY_BURN_DRILL)
       if (node) {
         const amount = drillResourceNode(node, DRILL_PER_TICK)
@@ -253,17 +424,11 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
         drilled = amount
         if (amount > 0) ship.cargoResourceId = node.resourceId
       }
-      if (
-        !node ||
-        isDepleted(node) ||
-        ship.cargoAmount >= ship.cargoCapacity ||
-        ship.batteryPercent <= 5
-      ) {
-        ship.travelStartPosition = { ...ship.worldPosition }
-        ship.travelTotalTicks = computeTravelTicks(ship.worldPosition, ship.homePosition)
-        ship.travelTicksRemaining = ship.travelTotalTicks
-        ship.status = 'INBOUND_RETURNING'
-        ship.ticksInStatus = 0
+      const cargoFull = ship.cargoAmount >= ship.cargoCapacity
+      const batteryDrained = ship.batteryPercent <= 5
+      const nodeDepleted = !node || isDepleted(node)
+      if (nodeDepleted || cargoFull || batteryDrained) {
+        transitionAfterDrilling(ship, planet, nodeDepleted)
       }
       break
     }
@@ -304,6 +469,9 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
         ship.status = 'DOCKED'
         ship.targetNodeId = null
         ship.ticksInStatus = 0
+        // Cycle complete — shuttle modes only. Oneway tallies its single cycle on deposit
+        // depletion via transitionAfterDrilling above.
+        ship.cyclesCompleted += 1
       }
       break
     }
