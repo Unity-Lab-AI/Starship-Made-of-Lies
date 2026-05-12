@@ -90,7 +90,8 @@
    │   Battery-bank fuel stockpile cap             🚧 17.L.A.2   │
    │   Brownout building auto-disable              🚧 17.L.A.3   │
    │   Workforce reserved-pool enforcement         🚧 17.L.A.4   │
-   │   Player-pickable base variant in builder     🚧 17.L.A.5   │
+   │   Player-pickable base variant in builder     ✅ 17.L.A.5   │
+   │   Waypoint queue editor in CommandPadPanel    ✅ 17.L.B.9   │
    │   Drag-allocate crew + cargo manifest UI      🚧 17.L.A.7   │
    │   Crew + cargo preset persistence             🚧 17.L.A.8   │
    │   Tracking camera panel (single-flight RTT)   🚧 17.L.A.9   │
@@ -246,7 +247,7 @@
 | Pad state machine (INIT → IDLE → PRINT → BUILD → DOCK → FUEL → AMMO → READY → ARM → LAUNCH → GONE) | 6 | ⬜ planned | Advanced | P0 | UnityPad.cs |
 | Per-pad targeting (different pads → different targets) | 6 | ⬜ planned | Intermediate | P0 | UnityPad.cs |
 | Salvo launch with stagger (15s default `svInt`) | 6 | ⬜ planned | Advanced | P1 | UnityPad.cs UpdateSalvo |
-| Saved-target locations (galaxy waypoint list) | 6 | ⬜ planned | Intermediate | P0 | UnityPad button-panel GPS |
+| Saved-target locations (galaxy waypoint list) | 6 | ✅ 17.L.B.9 — WaypointQueueEditor inside CommandPadPanel (live-saves through `setControllerWaypoints` → shared `setTargetQueue`) | Intermediate | P0 | UnityPad button-panel GPS |
 | Pad inventory + telemetry panels (per-pad LCD-style, theme-skinned) | 6, 7 | ⬜ planned | Intermediate | P0 | UnityPad LCDs |
 | Colony ship body construction (resource cost, build time, queued in pad) | 6 | ⬜ planned | Intermediate | P0 | UnityPad.cs BUILD state |
 | Citizen loading (configurable count, theme-flavored coax — gated by Citizen Tier System) | 6 | ✅ 17.L.A.6 partial — tier-gate at launch live; manual coax UI deferred to 17.L.A.7 | Intermediate | P0 | SMOL_DESIGN_COLONY_SHIPS §9-NEW + user verbatim *"citizens dont want to kill them selves but for the most high tiered/happy/statas we have"* |

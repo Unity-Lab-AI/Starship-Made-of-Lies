@@ -287,3 +287,29 @@
   border-color: #e88a8a;
   color: #f4a8a8;
 }
+
+/* PHASE 17.L.B.4 — per-blueprint pad picker (multi-pad print). Compact dropdown in the library
+   row between Load and 🚀 Print. */
+.ship-builder-panel__library-pad-picker {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  color: var(--fg-primary, #e6e6f0);
+  padding: 0.15rem 0.35rem;
+  font-family: inherit;
+  font-size: 0.72rem;
+}
+
+/* PHASE 17.L.A.5 — per-blueprint base-variant picker. Lets the player override the
+   inferBaseVariantFromStats heuristic. Default option = 🔮 Auto-detect using the stats-based
+   heuristic; specific catalog variants below. */
+.ship-builder-panel__library-variant-picker {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  color: var(--fg-primary, #e6e6f0);
+  padding: 0.15rem 0.35rem;
+  font-family: inherit;
+  font-size: 0.72rem;
+  max-width: 12rem;
+}
