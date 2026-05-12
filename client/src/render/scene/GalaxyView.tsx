@@ -717,11 +717,11 @@ export function GalaxyView({
   return (
     <div className="galaxy-view galaxy-view--canvas" aria-label="3D galaxy canvas">
       <div ref={mountRef} className="galaxy-view__canvas" />
-      <aside className="galaxy-view__hint">
-        <strong>WASD</strong> move · <strong>QE</strong> rotate · <strong>wheel</strong> zoom ·
-        <strong>R</strong> {rangeOverlayVisible ? 'hide' : 'show'} range rings ·
-        <strong> click</strong> a planet to fly there
-      </aside>
+      {/* PHASE 17.L.D.3 (HOTFIX 2026-05-11) — galaxy-view__hint movement-controls overlay
+         removed per user: "the only thing i see is the movement controls instructions
+         that i told you yesterday to remove when u built thew ui hud". Range-rings toggle
+         (R key) still works via the keyboard handler below; binding hints live in the
+         HUDOverlay panel toggle bar / future keybinds-help panel. */}
       {hoveredPlanet && (
         <div className="galaxy-view__tooltip">
           <div className="galaxy-view__tooltip-emoji">{hoveredPlanet.biome.emoji}</div>
