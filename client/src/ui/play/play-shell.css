@@ -1,9 +1,16 @@
 /* === FULL-SCREEN PLAY SHELL === */
 
 .play-shell {
+  /* PHASE 17.L.D.12 (HOTFIX 2026-05-11) — defensive isolation. D.6 added isolation:isolate
+     to .galaxy-view (the canvas wrapper) to prevent GPU compositing escapes. D.12 adds a
+     belt-and-suspenders contain:layout on .play-shell so any future regression where a
+     descendant tries to escape the parent's stacking context can't reach the HUD. Per user
+     verbatim *"AND WHAT THE FUCK THE WHOLE HUD UI IS INVISIBLE AGAIN!!!! I DONT SEE THE
+     RESOURCE BAR OR ANY PANEL OR THE BUTTON BAR THEY ALL ARE GONE AGAIN"*. */
   position: fixed;
   inset: 0;
   overflow: hidden;
+  isolation: isolate;
   background: linear-gradient(to bottom, var(--bg-primary, #0c0c14), var(--bg-secondary, #161624));
   color: var(--fg-primary, #e6e6f0);
   font-family: var(--font-body, sans-serif);

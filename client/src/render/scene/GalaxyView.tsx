@@ -315,6 +315,12 @@ export function GalaxyView({
 
     // Build surface layers per planet (lazy on demand to save init cost)
     const surfaceLayers = new Map<PlanetId, SurfaceLayerHandle>()
+    // PHASE 17.L.D.12 (HOTFIX 2026-05-11) — cache the last-synced building count per planet so
+    // we DON'T tear down + rebuild THREE.js meshes every frame. D.9's per-frame sync was the
+    // suspected cause of the HUD-vanished-again regression — GPU resource churn at 14 planets ×
+    // 60fps = 840 dispose/rebuild ops/sec, destabilizing WebGL state. Now sync only fires
+    // when the buildings-by-tile size for a planet actually changes (place / remove).
+    const lastSyncedBuildingsCount = new Map<PlanetId, number>()
     const ensureSurfaceLayer = (planet: Planet): SurfaceLayerHandle | null => {
       const existing = surfaceLayers.get(planet.id)
       if (existing) return existing
@@ -706,15 +712,20 @@ export function GalaxyView({
           const handle = ensureSurfaceLayer(planet)
           if (handle) {
             handle.setVisibleAtDistance(dist, planet.surfaceRadius)
-            // PHASE 17.L.D.9 (HOTFIX 2026-05-11) — re-sync buildings every visible-frame so
-            // placements update without a full layer rebuild. Threads the per-planet
-            // buildingsByTile map from MatchState so each placed building can resolve its
-            // emoji via BUILDING_DEFS lookup. Per user verbatim *"YEAH THER IS NO CORRECT
-            // EMOJI ICON FOR THE BUILDING PLACED APPERARING ON THE PLANETS WHEN PALCING
-            // BUILDINGS"* — v1 syncBuildings only ran ONCE at mount, so placements never
-            // appeared even with the emoji sprite landed in D.9.
+            // PHASE 17.L.D.12 (HOTFIX 2026-05-11) — gated re-sync. D.9's per-frame sync was
+            // calling syncBuildings (which disposes + rebuilds every mesh + sprite in the
+            // group) every single frame for every visible planet — 840+ GPU ops/sec at 14
+            // visible planets × 60fps. Suspected cause of the HUD-vanished-again regression
+            // (WebGL state instability cascading to canvas → compositor → HUD overlay
+            // rendering). Now we cache the buildings count per planet and only call
+            // syncBuildings when the count actually changes (placement or removal).
             const map = liveBuildingsByPlanet?.get(planet.id)
-            handle.syncBuildings(planet.tiles, map)
+            const currentCount = map?.size ?? 0
+            const lastCount = lastSyncedBuildingsCount.get(planet.id) ?? -1
+            if (currentCount !== lastCount) {
+              handle.syncBuildings(planet.tiles, map)
+              lastSyncedBuildingsCount.set(planet.id, currentCount)
+            }
           }
         } else {
           const existing = surfaceLayers.get(planet.id)
