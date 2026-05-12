@@ -67,6 +67,17 @@ const PUBLIC_WS_URL = process.env.SMOL_PUBLIC_WS_URL ?? 'ws://localhost:2567'
 // `startsWith` heuristic — that was a security hole flagged in super-review 2026-05-12).
 const sessionTokens = new Map<string, { accountId: string; issuedAt: number }>()
 
+// TTL policy: guest tokens expire after 24h (long enough for one play session, short enough
+// to bound the accumulation), signed-in tokens after 30d (matches typical session-cookie
+// lifetime). The background sweep purges expired entries every 60s.
+const GUEST_TOKEN_TTL_MS = 24 * 60 * 60 * 1000
+const SIGNED_IN_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000
+
+function isTokenExpired(session: { accountId: string; issuedAt: number }, nowMs: number): boolean {
+  const ttl = session.accountId === 'guest' ? GUEST_TOKEN_TTL_MS : SIGNED_IN_TOKEN_TTL_MS
+  return nowMs - session.issuedAt > ttl
+}
+
 function issueSessionToken(accountId: string): string {
   const token = randomUUID()
   sessionTokens.set(token, { accountId, issuedAt: Date.now() })
@@ -133,6 +144,64 @@ function checkAndIncrementRateLimit(
   }
   bucket.count += 1
   return { ok: true, retryAfterMs: 0 }
+}
+
+// Background sweep. Purges expired session tokens + expired rate-limit buckets. Without this
+// both maps grow unboundedly per unique IP / unique sign-in over the server's uptime — for an
+// always-on host (per user 2026-05-10 hosting decision) that's a memory leak.
+const SWEEP_INTERVAL_MS = 60_000
+// Rate-limit buckets older than 2× the longest window (60s window today → 120s purge) are
+// guaranteed-expired and safe to drop. The window-reset is in-place inside the bucket so a
+// hot IP keeps its bucket alive across many sweeps.
+const RATE_LIMIT_BUCKET_PURGE_MS = 120_000
+
+function sweepExpiredEntries(nowMs: number): {
+  tokensPurged: number
+  bucketsPurged: number
+} {
+  let tokensPurged = 0
+  for (const [token, session] of sessionTokens) {
+    if (isTokenExpired(session, nowMs)) {
+      sessionTokens.delete(token)
+      tokensPurged += 1
+    }
+  }
+  let bucketsPurged = 0
+  for (const [, buckets] of rateLimitBuckets) {
+    for (const [ip, b] of buckets) {
+      if (nowMs - b.windowStartMs > RATE_LIMIT_BUCKET_PURGE_MS) {
+        buckets.delete(ip)
+        bucketsPurged += 1
+      }
+    }
+  }
+  return { tokensPurged, bucketsPurged }
+}
+
+let sweepHandle: ReturnType<typeof setInterval> | null = null
+
+function startBackgroundSweep(): void {
+  if (sweepHandle) return
+  sweepHandle = setInterval(() => {
+    const stats = sweepExpiredEntries(Date.now())
+    if (stats.tokensPurged > 0 || stats.bucketsPurged > 0) {
+      console.info(
+        `[smol/auth] sweep purged ${stats.tokensPurged} expired session token(s) + ${stats.bucketsPurged} stale rate-limit bucket(s)`,
+      )
+    }
+  }, SWEEP_INTERVAL_MS)
+  // Don't keep the Node event loop alive solely on this interval — if the server is shutting
+  // down via graceful-shutdown handler, we want the process to exit, not block on the timer.
+  if (typeof sweepHandle === 'object' && sweepHandle !== null && 'unref' in sweepHandle) {
+    sweepHandle.unref()
+  }
+}
+
+function stopBackgroundSweep(): void {
+  if (sweepHandle) {
+    clearInterval(sweepHandle)
+    sweepHandle = null
+  }
 }
 
 // 429 helper. Also seeds a Retry-After (seconds) header per RFC 6585.
@@ -541,6 +610,10 @@ export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
     res.end('Not found')
   })
 
+  // Kick off the background sweep on bind. It purges expired session tokens + stale
+  // rate-limit buckets every 60s. unref()'d so it doesn't block graceful shutdown.
+  startBackgroundSweep()
+
   server.listen(port, () => {
     console.info(`[smol/auth] HTTP auth server listening on http://localhost:${port}`)
     console.info(`[smol/auth]   POST /api/auth/google/callback   (Google OAuth exchange)`)
@@ -573,6 +646,20 @@ export function getSharedAccountStore(): AccountStore {
   return sharedAccountStore
 }
 
+// Lookup with inline TTL check. Even if the background sweep hasn't fired yet, an expired
+// token can't auth. Defense-in-depth — the sweep purges entries, this check refuses them.
 export function lookupSessionToken(token: string): { accountId: string; issuedAt: number } | null {
-  return sessionTokens.get(token) ?? null
+  const session = sessionTokens.get(token)
+  if (!session) return null
+  if (isTokenExpired(session, Date.now())) {
+    sessionTokens.delete(token)
+    return null
+  }
+  return session
+}
+
+// Exposed for graceful-shutdown teardown — stops the periodic timer so the process can exit
+// cleanly. Tests + dev hot-reload scenarios also benefit from being able to dispose it.
+export function stopAuthBackgroundSweep(): void {
+  stopBackgroundSweep()
 }

@@ -23,7 +23,10 @@ import {
   loadMatchFromStorage,
   saveMatchToStorage,
 } from './saveLoad'
-import { clearReplayBuffer, loadReplaySnapshot, recordReplaySnapshot } from './replay'
+// Replay buffer retired from /play 2026-05-12 per user "no replay until the game is over".
+// clearReplayBuffer still wired to mount/reset cleanup so any latent captured snapshots from
+// older code paths get freed; recordReplaySnapshot + loadReplaySnapshot are no longer called.
+import { clearReplayBuffer } from './replay'
 import { applyAchievementUnlocks } from './achievementStorage'
 import { applyMatchScores } from './leaderboardStorage'
 import {
@@ -168,10 +171,6 @@ export interface UseMatchSimResult {
   readonly loadSavedMatch: () => boolean
   readonly clearSavedMatch: () => void
   readonly hasSavedMatch: boolean
-  // PHASE 18.3 — rewind to a buffered replay snapshot. Resolves the entry from the replay
-  // ring buffer, deserializes it via the saveLoad pipeline, swaps stateRef + bumps tickCount.
-  // Returns false if the index is unknown / serialize round-trip failed.
-  readonly loadReplaySnapshotAt: (index: number) => boolean
   // PHASE 17.13.10 — player rename mutator. SettlementPickerPanel surfaces a rename button per
   // settlement; this callback applies the rename through the sim action so the themed default
   // restores cleanly on blank-input + the change re-renders any panel reading settlement.name.
@@ -231,10 +230,9 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     const interval = DEFAULT_TICK_MS / speed
     const handle = setInterval(() => {
       tickMatch(stateRef.current)
-      // PHASE 18.3 — replay buffer capture. recordReplaySnapshot is a no-op except on the
-      // 60-tick interval boundary, so this stays cheap on every tick. Buffer is bounded so
-      // memory doesn't grow unbounded in a 10-24hr match.
-      recordReplaySnapshot(stateRef.current, initialConfig.seed)
+      // Replay capture removed 2026-05-12 — no UI consumer = pure memory waste (~10MB/match
+      // ceiling). Ring buffer infrastructure stays on disk under match/replay.ts for future
+      // post-match review wire-up, but the per-tick call is gone.
       // PHASE 17.1.6 — drive the salvo coord on every sim tick (not real-time). When the
       // coord exists, run tickSalvo against the planet's pads with launchShipFromPadAction
       // wired as the launchFn so STAGGERED_LAUNCH actually creates flights. Auto-fire-loop
@@ -315,10 +313,6 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
       setTickCount((n) => n + 1)
     }, interval)
     return () => clearInterval(handle)
-    // PHASE 18.3 — initialConfig.seed is stable across the match lifetime (it's captured
-    // from the initial MatchConfig); excluding it from deps keeps the interval handle from
-    // tearing down/re-creating every tick.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, speed])
 
   // PHASE 17.L.A.13 — Q12 LOCKED. Auto-save interval driven by config.saveMode. 'off' /
@@ -721,16 +715,6 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     setSavedMatchPresent(false)
   }, [])
 
-  // PHASE 18.3 — rewind to a replay snapshot. ReplayPanel calls this with a snapshot index;
-  // we resolve the entry from the ring buffer, deserialize, swap stateRef, force re-render.
-  const loadReplaySnapshotAt = useCallback((index: number): boolean => {
-    const restored = loadReplaySnapshot(index)
-    if (!restored) return false
-    stateRef.current = restored
-    setTickCount((n) => n + 1)
-    return true
-  }, [])
-
   // PHASE 17.1.6 — public salvo lifecycle. startSalvoRound primes a BUILDING-phase coord
   // and triggers BUILDALL on every pad of the target planet. The tick effect drives the
   // coord from there. cancelSalvoRound resets to IDLE without affecting in-flight ships.
@@ -809,7 +793,6 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     loadSavedMatch,
     clearSavedMatch: clearSavedMatchCallback,
     hasSavedMatch: savedMatchPresent,
-    loadReplaySnapshotAt,
     salvoPhase,
     salvoActive: salvoCoordRef.current !== null,
     startSalvoRound,

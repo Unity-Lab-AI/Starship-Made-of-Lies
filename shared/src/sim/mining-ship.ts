@@ -4,6 +4,12 @@ import { type PlanetInventory } from './inventory'
 import { drillResourceNode, isDepleted, type ResourceNode } from './resource-node'
 import { type MiningShipMode, type ShipBeaconBroadcast, type ShipBeaconStatus } from './ship-beacon'
 
+// Re-export MiningShipMode here for ergonomic imports — call sites that work with mining
+// ships typically import the rest of this module too. Single re-export, not a fresh
+// declaration; ship-beacon.ts holds the canonical definition (it's part of the beacon
+// broadcast schema). `export * from './sim/mining-ship'` in shared/src/index.ts surfaces
+// this re-export so consumers can `import { MiningShipMode } from '@smol/shared'`.
+
 // MiningShip — UMS UnityBeacon auto-shuttle equivalent. Each ship lives on a home planet and
 // autonomously cycles DOCKED → OUTBOUND → DRILLING → INBOUND → OFFLOADING → DOCKED, drilling
 // the closest non-depleted ResourceNode and depositing cargo into PlanetInventory.stocks.
@@ -297,16 +303,18 @@ function transitionAfterDrilling(
     return
   }
   if (ship.mode === 'shuttle-multi' && ship.cargoAmount < ship.cargoCapacity) {
-    // Pop the visited node off the queue; pick the next one if any remain non-depleted.
-    const consumed = new Set(ship.assignedNodeIds)
-    ship.assignedNodeIds = ship.assignedNodeIds.filter((id) => id !== ship.targetNodeId)
-    // Re-check each remaining queue entry — depleted ones drop out of the cycle.
+    // Drop the just-visited node + any newly-depleted entries from the cycle queue. Build
+    // an id→node index in one pass so we don't re-scan planet.resourceNodes (O(n)) for every
+    // queue entry. Important once a planet has many deposits + multiple in-flight ships.
+    const nodeIndex = new Map<string, ResourceNode>()
+    for (const n of planet.resourceNodes) nodeIndex.set(n.id, n)
     ship.assignedNodeIds = ship.assignedNodeIds.filter((id) => {
-      const n = planet.resourceNodes.find((rn) => rn.id === id)
+      if (id === ship.targetNodeId) return false
+      const n = nodeIndex.get(id)
       return n !== undefined && !isDepleted(n)
     })
     if (ship.assignedNodeIds.length > 0) {
-      const nextNode = planet.resourceNodes.find((n) => n.id === ship.assignedNodeIds[0])
+      const nextNode = nodeIndex.get(ship.assignedNodeIds[0]!)
       if (nextNode) {
         ship.targetNodeId = nextNode.id
         ship.travelStartPosition = { ...ship.worldPosition }
@@ -314,9 +322,6 @@ function transitionAfterDrilling(
         ship.travelTicksRemaining = ship.travelTotalTicks
         ship.status = 'OUTBOUND_TRAVELING'
         ship.ticksInStatus = 0
-        // Use `consumed` for type narrowing so unused-var lint doesn't fire — this set is
-        // also useful documentation for what's already-visited this cycle.
-        void consumed
         return
       }
     }
