@@ -35,6 +35,15 @@ import {
 import { type FactionSplit, performanceMultiplier } from './faction'
 import { type PlanetInventory, addResource, consumeResource, stockOf } from './inventory'
 import {
+  type TechId,
+  TECH_ADVANCED_METALLURGY,
+  TECH_ANTIMATTER,
+  TECH_ASSEMBLY_LINE,
+  TECH_CONSUMER_ELECTRONICS,
+  TECH_METALLURGY,
+  TECH_PETROCHEMISTRY,
+} from './tech'
+import {
   RESOURCE_AMMUNITION,
   RESOURCE_ANTIMATTER,
   RESOURCE_BRICKS,
@@ -55,9 +64,19 @@ import {
 } from './resources'
 import { type WorkforceSliders } from './workforce'
 
+// PHASE 17.L.7.4 — per-output tech walls. Adds an optional `requiredTechs` field to each
+// output entry so multi-output buildings can gate the advanced outputs without blocking the
+// basic ones. A Factory produces components from day 1 but only emits electronics once
+// Consumer Electronics is researched. Empty array = no walls (default).
+export interface BuildingProductionOutput {
+  readonly resource: ResourceId
+  readonly amount: number
+  readonly requiredTechs?: ReadonlyArray<TechId>
+}
+
 export interface BuildingProduction {
   readonly inputs: ReadonlyArray<{ resource: ResourceId; amount: number }>
-  readonly outputs: ReadonlyArray<{ resource: ResourceId; amount: number }>
+  readonly outputs: ReadonlyArray<BuildingProductionOutput>
   readonly biomeHintKey?: string
 }
 
@@ -100,7 +119,13 @@ const BUILDING_PRODUCTION: ReadonlyMap<BuildingDefId, BuildingProduction> = new 
       inputs: [],
       outputs: [
         { resource: RESOURCE_METALS, amount: 3 },
-        { resource: RESOURCE_RARE_METALS, amount: 1 },
+        // PHASE 17.L.7.4 — rare-metal extraction gated on Advanced Metallurgy. Without that
+        // tech the mine still ships baseline metals but rare-metal yield is zero.
+        {
+          resource: RESOURCE_RARE_METALS,
+          amount: 1,
+          requiredTechs: [TECH_ADVANCED_METALLURGY],
+        },
       ],
       biomeHintKey: 'rareMetals',
     },
@@ -123,7 +148,11 @@ const BUILDING_PRODUCTION: ReadonlyMap<BuildingDefId, BuildingProduction> = new 
     BLDG_FOUNDRY,
     {
       inputs: [{ resource: RESOURCE_METALS, amount: 3 }],
-      outputs: [{ resource: RESOURCE_INGOTS, amount: 2 }],
+      outputs: [
+        // PHASE 17.L.7.4 — ingot smelting gated on tier-0 Metallurgy. Without it, foundries
+        // sit idle; players have to research Metallurgy before tier-2 industry kicks in.
+        { resource: RESOURCE_INGOTS, amount: 2, requiredTechs: [TECH_METALLURGY] },
+      ],
     },
   ],
   [
@@ -138,9 +167,16 @@ const BUILDING_PRODUCTION: ReadonlyMap<BuildingDefId, BuildingProduction> = new 
         { resource: RESOURCE_PLANKS, amount: 1 },
       ],
       outputs: [
-        { resource: RESOURCE_COMPONENTS, amount: 2 },
-        { resource: RESOURCE_ELECTRONICS, amount: 1 },
-        { resource: RESOURCE_AMMUNITION, amount: 1 },
+        // PHASE 17.L.7.4 — components are the tier-2 industrial baseline (gated only on
+        // Assembly Line). Electronics gated additionally on Consumer Electronics so the
+        // advanced-circuit chain requires the tier-1 information tech.
+        { resource: RESOURCE_COMPONENTS, amount: 2, requiredTechs: [TECH_ASSEMBLY_LINE] },
+        {
+          resource: RESOURCE_ELECTRONICS,
+          amount: 1,
+          requiredTechs: [TECH_ASSEMBLY_LINE, TECH_CONSUMER_ELECTRONICS],
+        },
+        { resource: RESOURCE_AMMUNITION, amount: 1, requiredTechs: [TECH_ASSEMBLY_LINE] },
       ],
     },
   ],
@@ -230,6 +266,10 @@ const BUILDING_PRODUCTION: ReadonlyMap<BuildingDefId, BuildingProduction> = new 
     BLDG_POWER_PLANT,
     {
       inputs: [{ resource: RESOURCE_OIL, amount: 1 }],
+      // PHASE 17.L.7.4 — power-plant fuel output left unwalled so the early-game energy chain
+      // works from match start. Petrochemistry research bumps yield via
+      // buildingProductionMultiplier rather than gating output entirely (avoids dead-building
+      // states during the tech research window).
       outputs: [{ resource: RESOURCE_FUEL, amount: 2 }],
     },
   ],
@@ -246,8 +286,15 @@ const BUILDING_PRODUCTION: ReadonlyMap<BuildingDefId, BuildingProduction> = new 
     {
       inputs: [{ resource: RESOURCE_FUEL, amount: 1 }],
       outputs: [
+        // PHASE 17.L.7.4 — off-planet bulk metal extraction. Baseline metals flow without
+        // walls (outpost is foundational). Rare-metal yield gated on Advanced Metallurgy AND
+        // Petrochemistry (refining off-planet ore needs both).
         { resource: RESOURCE_METALS, amount: 4 },
-        { resource: RESOURCE_RARE_METALS, amount: 2 },
+        {
+          resource: RESOURCE_RARE_METALS,
+          amount: 2,
+          requiredTechs: [TECH_ADVANCED_METALLURGY, TECH_PETROCHEMISTRY],
+        },
       ],
     },
   ],
@@ -271,8 +318,11 @@ const BUILDING_PRODUCTION: ReadonlyMap<BuildingDefId, BuildingProduction> = new 
     BLDG_REACTOR_ANTIMATTER,
     {
       // PHASE 17.J.8 — antimatter reactor: consumes antimatter. 16× a power plant.
+      // PHASE 17.L.7.4 — defensive tech gate matches the building unlock (TECH_ANTIMATTER).
+      // Belt-and-suspenders so if anyone ever wires this building outside the normal tech
+      // unlock path, the production tick still refuses to emit until antimatter is researched.
       inputs: [{ resource: RESOURCE_ANTIMATTER, amount: 1 }],
-      outputs: [{ resource: RESOURCE_FUEL, amount: 32 }],
+      outputs: [{ resource: RESOURCE_FUEL, amount: 32, requiredTechs: [TECH_ANTIMATTER] }],
     },
   ],
 ])
@@ -374,6 +424,10 @@ export interface ProductionTickInputs {
   // planet uniformly (matches the "set mode on the building type, not per-tile" pattern
   // from UMS UnityInventory). Missing entry = 'auto'.
   readonly buildingModes?: ReadonlyMap<BuildingDefId, BuildingProductionMode>
+  // PHASE 17.L.7.4 — set of techs researched by the civ owning this planet. Per-output
+  // `requiredTechs` walls are checked against this set; gated outputs idle until all their
+  // required techs are researched. Missing / empty = no walls applied (legacy behavior).
+  readonly researchedTechs?: ReadonlySet<TechId>
 }
 
 export interface ProductionTickResult {
@@ -514,6 +568,20 @@ export function tickPlanetProduction(inputs: ProductionTickInputs): ProductionTi
     }
 
     for (const output of production.outputs) {
+      // PHASE 17.L.7.4 — per-output tech gate. If the output declares `requiredTechs`, skip
+      // it unless every listed tech is in the civ's researched set. Allows multi-output
+      // buildings to emit baseline outputs while gating advanced outputs behind techs.
+      if (output.requiredTechs && output.requiredTechs.length > 0) {
+        if (!inputs.researchedTechs) continue
+        let allResearched = true
+        for (const required of output.requiredTechs) {
+          if (!inputs.researchedTechs.has(required)) {
+            allResearched = false
+            break
+          }
+        }
+        if (!allResearched) continue
+      }
       const amount = Math.max(0, Math.round(output.amount * effectiveMult))
       if (amount <= 0) continue
       addResource(inputs.inventory, output.resource, amount)
