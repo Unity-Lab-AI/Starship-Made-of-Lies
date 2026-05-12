@@ -1,0 +1,296 @@
+/* PHASE 17.L.A.7+A.8 — LaunchManifestModal stylesheet. Centered overlay with the same
+   theme-aware glow + panel framing the rest of the in-game panels use. NO truncation per
+   feedback_no_truncation.md — overflow-wrap on labels so resource names wrap instead of
+   ellipsis. */
+
+.launch-manifest-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  isolation: isolate;
+}
+
+.launch-manifest-modal {
+  background: var(--panel-bg, #0e1419);
+  color: var(--panel-fg, #d6e2ec);
+  border: 1px solid var(--accent, #ff9d00);
+  border-radius: 6px;
+  box-shadow:
+    0 0 18px rgba(255, 157, 0, 0.25),
+    0 2px 24px rgba(0, 0, 0, 0.55);
+  width: min(720px, 92vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--theme-font, 'Inter', system-ui, sans-serif);
+}
+
+.launch-manifest-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 157, 0, 0.4);
+  background: linear-gradient(180deg, rgba(255, 157, 0, 0.08), rgba(255, 157, 0, 0));
+}
+
+.launch-manifest-modal__title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.launch-manifest-modal__close {
+  background: transparent;
+  border: 1px solid rgba(214, 226, 236, 0.25);
+  color: var(--panel-fg, #d6e2ec);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.launch-manifest-modal__close:hover {
+  background: rgba(255, 157, 0, 0.15);
+  border-color: var(--accent, #ff9d00);
+}
+
+.launch-manifest-modal__context {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(214, 226, 236, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.88rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.launch-manifest-modal__suicide-warning {
+  color: #ff8d6b;
+  font-size: 0.82rem;
+  background: rgba(255, 140, 90, 0.08);
+  border-left: 3px solid #ff8d6b;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0 4px 4px 0;
+  margin-top: 0.4rem;
+}
+
+.launch-manifest-modal__section {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid rgba(214, 226, 236, 0.08);
+  overflow-y: auto;
+  flex: 0 0 auto;
+}
+
+.launch-manifest-modal__section h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent, #ff9d00);
+}
+
+.launch-manifest-modal__section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.launch-manifest-modal__capacity {
+  font-size: 0.82rem;
+  color: rgba(214, 226, 236, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+.launch-manifest-modal__capacity--over {
+  color: #ff6b6b;
+  font-weight: 600;
+}
+
+.launch-manifest-modal__crew-rows,
+.launch-manifest-modal__cargo-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-height: 26vh;
+  overflow-y: auto;
+}
+
+.launch-manifest-modal__crew-row,
+.launch-manifest-modal__cargo-row {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) auto 1fr 5rem;
+  gap: 0.55rem;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 0.2rem 0;
+}
+
+.launch-manifest-modal__crew-label,
+.launch-manifest-modal__cargo-label {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.launch-manifest-modal__crew-avail,
+.launch-manifest-modal__cargo-avail {
+  font-size: 0.75rem;
+  color: rgba(214, 226, 236, 0.55);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.launch-manifest-modal__slider {
+  width: 100%;
+  accent-color: var(--accent, #ff9d00);
+  min-width: 0;
+}
+
+.launch-manifest-modal__slider:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.launch-manifest-modal__number {
+  width: 4.5rem;
+  padding: 0.2rem 0.35rem;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--panel-fg, #d6e2ec);
+  border: 1px solid rgba(214, 226, 236, 0.18);
+  border-radius: 3px;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
+
+.launch-manifest-modal__number:focus-visible {
+  outline: 2px solid var(--accent, #ff9d00);
+  outline-offset: 1px;
+}
+
+.launch-manifest-modal__cargo-empty {
+  font-size: 0.85rem;
+  color: rgba(214, 226, 236, 0.55);
+  margin: 0.4rem 0 0;
+}
+
+.launch-manifest-modal__gate-warning {
+  margin: 0.6rem 1rem 0;
+  padding: 0.5rem 0.7rem;
+  background: rgba(255, 100, 100, 0.12);
+  border-left: 3px solid #ff6b6b;
+  color: #ff8d6b;
+  font-size: 0.82rem;
+  border-radius: 0 4px 4px 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.launch-manifest-modal__saved-hint {
+  margin: 0.4rem 1rem 0;
+  font-size: 0.82rem;
+  color: #8de08d;
+}
+
+.launch-manifest-modal__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid rgba(255, 157, 0, 0.4);
+  background: rgba(255, 157, 0, 0.04);
+}
+
+.launch-manifest-modal__footer-spacer {
+  flex: 1;
+}
+
+.launch-manifest-modal__btn {
+  padding: 0.4rem 0.85rem;
+  background: rgba(214, 226, 236, 0.08);
+  color: var(--panel-fg, #d6e2ec);
+  border: 1px solid rgba(214, 226, 236, 0.25);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.launch-manifest-modal__btn:hover:not(:disabled) {
+  background: rgba(214, 226, 236, 0.15);
+}
+
+.launch-manifest-modal__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.launch-manifest-modal__btn--primary {
+  background: var(--accent, #ff9d00);
+  color: #000;
+  border-color: var(--accent, #ff9d00);
+  font-weight: 600;
+}
+
+.launch-manifest-modal__btn--primary:hover:not(:disabled) {
+  background: #ffb73a;
+  border-color: #ffb73a;
+}
+
+.launch-manifest-modal__btn--save {
+  background: rgba(141, 224, 141, 0.12);
+  border-color: rgba(141, 224, 141, 0.4);
+  color: #b6f0b6;
+}
+
+.launch-manifest-modal__btn--save:hover:not(:disabled) {
+  background: rgba(141, 224, 141, 0.22);
+}
+
+.launch-manifest-modal__btn--cancel:hover:not(:disabled) {
+  background: rgba(255, 100, 100, 0.12);
+  border-color: rgba(255, 100, 100, 0.4);
+}
+
+@media (max-width: 540px) {
+  .launch-manifest-modal {
+    width: 96vw;
+    max-height: 92vh;
+  }
+  .launch-manifest-modal__crew-row,
+  .launch-manifest-modal__cargo-row {
+    grid-template-columns: 1fr 4.5rem;
+    grid-template-rows: auto auto auto;
+    gap: 0.3rem;
+  }
+  .launch-manifest-modal__crew-avail,
+  .launch-manifest-modal__cargo-avail {
+    grid-column: 1 / 3;
+  }
+  .launch-manifest-modal__slider {
+    grid-column: 1 / 3;
+  }
+  .launch-manifest-modal__number {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+}

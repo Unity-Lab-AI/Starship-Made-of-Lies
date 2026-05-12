@@ -122,10 +122,14 @@ import {
   initiateLastHopeEvac,
   isCampaignActive,
   isLootDropExpired,
+  loadCargoFromInventory,
+  loadCitizensFromTier,
   loadCitizensFromVolunteerPool,
   loadFuel,
   padCitizenMixSatisfiesShip,
   resetPadCitizenLoad,
+  restoreCargoFromPadToInventory,
+  restoreCitizensFromPadToPopulation,
   lootDropId,
   newActiveCampaign,
   newColonyShipFlight,
@@ -2315,6 +2319,10 @@ export interface BuildShipFromBlueprintInputs {
   readonly pieces: ReadonlyArray<string>
   readonly stats: ResolvedShipStats
   readonly totalCost: ReadonlyArray<{ resource: ResourceId; amount: number }>
+  // PHASE 17.L.A.7+A.8 — optional saved-blueprint id so the launch-manifest modal can look up
+  // the player's saved crew/cargo preset for THIS blueprint and pre-fill the sliders. Omitted
+  // when buildShipFromBlueprint is called from non-blueprint flows (e.g. AI or catalog).
+  readonly sourceBlueprintId?: string
 }
 
 export function buildShipFromBlueprintAction(inputs: BuildShipFromBlueprintInputs): boolean {
@@ -2333,6 +2341,8 @@ export function buildShipFromBlueprintAction(inputs: BuildShipFromBlueprintInput
       inputs.stats,
       inputs.totalCost,
       planet.inventory,
+      1,
+      inputs.sourceBlueprintId,
     )
   }
   for (const planet of inputs.state.planets.values()) {
@@ -2347,6 +2357,8 @@ export function buildShipFromBlueprintAction(inputs: BuildShipFromBlueprintInput
       inputs.stats,
       inputs.totalCost,
       planet.inventory,
+      1,
+      inputs.sourceBlueprintId,
     )
   }
   return false
@@ -2360,6 +2372,80 @@ export interface LaunchShipInputs {
   // GPS when omitted (legacy callers / auto-fire mass-action paths). Mode biases the per-
   // flight dispersion radius via TARGETING_MODE_DISPERSION_MULTIPLIER.
   readonly targetingMode?: TargetingMode
+}
+
+// PHASE 17.L.A.7+A.8 — manifest-driven crew + cargo loading. The LaunchManifestModal commits
+// the player's per-tier crew allocation + per-resource cargo allocation through this action
+// just before firing launchShipFromPadAction. Restore-then-load semantics: whatever was on
+// the pad (auto-loaded by tickPadAutomation, or left over from a previous manifest commit) is
+// returned to population.tierCounts / planet.inventory first, then the new manifest applies
+// fresh. That way each manifest commit fully rewrites the pad load — the sliders represent
+// the WHOLE allocation, not deltas.
+//
+// Q3 PHASE 17 LOCKED closure: "what crew and supplies and the loading of ammunition" — the
+// crew side already had tier-aware auto-load (PHASE 17.L.A.6); this is the player-controlled
+// override path PLUS the missing cargo side.
+export interface LoadPadManifestInputs {
+  readonly state: MatchState
+  readonly padId: TileId
+  readonly citizensByTier: Partial<Record<1 | 2 | 3 | 4 | 5, number>>
+  readonly cargoByResource: ReadonlyMap<ResourceId, number>
+}
+
+export interface LoadPadManifestResult {
+  readonly ok: boolean
+  readonly citizensLoaded: number
+  readonly cargoLoaded: number
+  readonly reason?: string
+}
+
+export function loadPadManifestAction(inputs: LoadPadManifestInputs): LoadPadManifestResult {
+  let planet: MatchPlanetState | null = null
+  const indexedPlanetId = inputs.state.padIdToPlanetIdIndex.get(inputs.padId)
+  if (indexedPlanetId) {
+    const found = inputs.state.planets.get(indexedPlanetId)
+    if (found && found.civId === inputs.state.humanCivId) planet = found
+  }
+  if (!planet) {
+    for (const p of inputs.state.planets.values()) {
+      if (p.civId !== inputs.state.humanCivId) continue
+      if (p.launchPads.has(inputs.padId)) {
+        planet = p
+        break
+      }
+    }
+  }
+  if (!planet) return { ok: false, citizensLoaded: 0, cargoLoaded: 0, reason: 'planet-not-found' }
+  const pad = planet.launchPads.get(inputs.padId)
+  if (!pad || !pad.loadedShipVariantId) {
+    return { ok: false, citizensLoaded: 0, cargoLoaded: 0, reason: 'pad-empty' }
+  }
+  // Only let the manifest mutate during the loading window. tickPad's state machine moves the
+  // pad through DOCK → FUEL → AMMO → READY → ARM; modal opens in any of those.
+  if (
+    pad.state !== 'DOCK' &&
+    pad.state !== 'FUEL' &&
+    pad.state !== 'AMMO' &&
+    pad.state !== 'READY' &&
+    pad.state !== 'ARM'
+  ) {
+    return { ok: false, citizensLoaded: 0, cargoLoaded: 0, reason: 'wrong-pad-state' }
+  }
+  // 1) Restore current pad load back to its source so the new manifest is a clean rewrite.
+  restoreCitizensFromPadToPopulation(pad, planet.population)
+  restoreCargoFromPadToInventory(pad, planet.inventory)
+  // 2) Apply new crew manifest per tier.
+  let citizensLoaded = 0
+  for (const tier of [1, 2, 3, 4, 5] as const) {
+    const want = inputs.citizensByTier[tier] ?? 0
+    if (want > 0) citizensLoaded += loadCitizensFromTier(pad, planet.population, tier, want)
+  }
+  // 3) Apply new cargo manifest per resource.
+  let cargoLoaded = 0
+  for (const [resource, amount] of inputs.cargoByResource) {
+    if (amount > 0) cargoLoaded += loadCargoFromInventory(pad, planet.inventory, resource, amount)
+  }
+  return { ok: true, citizensLoaded, cargoLoaded }
 }
 
 export function launchShipFromPadAction(inputs: LaunchShipInputs): boolean {
@@ -2446,6 +2532,10 @@ function launchShipFromPadBody(
   // PHASE 17.J.10 — thread loadedCustomBuild into the flight so flightDef() resolves to the
   // blueprint-derived stats instead of the base variant. baseVariantId is set so downstream
   // code paths (suicide-ship flag, can-intercept flag, render-layer color) still resolve.
+  //
+  // PHASE 17.L.A.7 — thread pad.cargoLoaded into the flight as cargoAboard. Cargo manifest is
+  // snapshotted into a fresh Map by newColonyShipFlight so subsequent pad recycling doesn't
+  // touch the in-flight ship's cargo state.
   const flight = newColonyShipFlight({
     id: colonyShipFlightId(flightIdStr),
     variantId: pad.loadedShipVariantId,
@@ -2458,6 +2548,7 @@ function launchShipFromPadBody(
     citizensAboard: pad.citizensLoaded,
     signalLossSeed: Math.floor(inputs.state.rng() * 0xffffff),
     selfDestructInstalled,
+    cargoAboard: pad.cargoLoaded,
     ...(inputs.targetingMode ? { targetingMode: inputs.targetingMode } : {}),
     ...(pad.loadedCustomBuild
       ? {

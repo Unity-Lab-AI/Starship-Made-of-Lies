@@ -31,6 +31,7 @@ import { CitizensPanel } from '../panels/CitizensPanel'
 import { FlightDetailPanel } from '../panels/FlightDetailPanel'
 import { MiningFleetPanel } from '../panels/MiningFleetPanel'
 import { PlanetEnergyPanel } from '../panels/PlanetEnergyPanel'
+import { LaunchManifestModal, type LaunchManifestSubmission } from '../panels/LaunchManifestModal'
 import { ShipBuilderPanel } from '../panels/ShipBuilderPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
@@ -169,6 +170,16 @@ export function PlayPage() {
   // on completion so the player can "fire and forget" a sustained barrage. Toggle OFF mid-
   // cycle and the current round finishes naturally without queuing another.
   const [autoFireLoopActive, setAutoFireLoopActive] = useState(false)
+
+  // PHASE 17.L.A.7+A.8 — launch-manifest request state. ShipBuildPanel.onLaunch sets this with
+  // the chosen pad + target; LaunchManifestModal renders when non-null. Cleared on cancel or
+  // confirm-then-launch. Per-pad model so multi-pad civs can have one manifest pending without
+  // affecting others (only one modal at a time though — the player picked Launch on a pad).
+  const [launchManifestRequest, setLaunchManifestRequest] = useState<{
+    padId: import('@smol/shared').TileId
+    targetPlanetId: PlanetId
+    targetPlanetLabel: string
+  } | null>(null)
 
   // PHASE 16.23: clicked-flight selection state. Set when player clicks a flight cone in
   // GalaxyView; cleared when FlightDetailPanel close button is pressed or overlay click.
@@ -695,14 +706,65 @@ export function PlayPage() {
     sim.buildShip({ padId: firstPad.id, variantId })
   }
 
+  // PHASE 17.L.A.7+A.8 — Q3 LOCKED closure. Launch flow opens the LaunchManifestModal instead
+  // of firing the launch action directly. The player drag-allocates crew (per tier) + cargo
+  // (per resource), optionally saves the preset to a blueprint, and only THEN does the
+  // confirm button fire sim.loadPadManifest → sim.launchShipFromPad in sequence.
   const handleLaunchShip = (targetPlanetIdStr: string): void => {
     if (!firstPad) return
-    sim.launchShipFromPad({
-      padId: firstPad.id,
-      targetPlanetId: targetPlanetIdStr as unknown as PlanetId,
-      targetingMode: currentTargetingMode,
-    })
+    const targetPlanetId = targetPlanetIdStr as unknown as PlanetId
+    const target = sim.state.planets.get(targetPlanetId)
+    const label = target
+      ? `${target.planet.biome.emoji} ${String(target.planet.id)}`
+      : targetPlanetIdStr
+    setLaunchManifestRequest({ padId: firstPad.id, targetPlanetId, targetPlanetLabel: label })
   }
+
+  const handleManifestCancel = useCallback((): void => {
+    setLaunchManifestRequest(null)
+  }, [])
+
+  const handleManifestConfirm = useCallback(
+    (submission: LaunchManifestSubmission): void => {
+      const req = launchManifestRequest
+      if (!req) return
+      setLaunchManifestRequest(null)
+      const result = sim.loadPadManifest({
+        padId: req.padId,
+        citizensByTier: submission.citizensByTier,
+        cargoByResource: submission.cargoByResource,
+      })
+      if (!result.ok) {
+        setToasts((current) => [
+          ...current,
+          {
+            id: `manifest-fail-${Date.now()}`,
+            kind: 'warning',
+            message: `Manifest refused (${result.reason ?? 'unknown'}). Wait for the pad to reach DOCK / FUEL / AMMO / READY / ARM before launching.`,
+            expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+          },
+        ])
+        return
+      }
+      const ok = sim.launchShipFromPad({
+        padId: req.padId,
+        targetPlanetId: req.targetPlanetId,
+        targetingMode: currentTargetingMode,
+      })
+      if (!ok) {
+        setToasts((current) => [
+          ...current,
+          {
+            id: `launch-fail-${Date.now()}`,
+            kind: 'warning',
+            message: 'Launch refused — check pad state and citizen-tier requirements.',
+            expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+          },
+        ])
+      }
+    },
+    [launchManifestRequest, sim, currentTargetingMode],
+  )
 
   const dismissToast = (id: string): void => {
     setToasts((current) => current.filter((t) => t.id !== id))
@@ -1290,7 +1352,15 @@ export function PlayPage() {
               idlePads={[...activePlanet.launchPads.values()].filter(
                 (p) => p.state === 'IDLE' || p.state === 'GONE',
               )}
-              onPrintBlueprint={(padId, baseVariantId, displayName, pieces, stats, totalCost) =>
+              onPrintBlueprint={(
+                padId,
+                baseVariantId,
+                displayName,
+                pieces,
+                stats,
+                totalCost,
+                sourceBlueprintId,
+              ) =>
                 sim.buildShipFromBlueprint({
                   padId,
                   baseVariantId,
@@ -1298,6 +1368,7 @@ export function PlayPage() {
                   pieces,
                   stats,
                   totalCost,
+                  sourceBlueprintId,
                 })
               }
             />
@@ -1371,6 +1442,36 @@ export function PlayPage() {
             </div>
           </div>
         ) : null}
+
+        {/* PHASE 17.L.A.7+A.8 — Launch Manifest Modal. Opens when player clicks Launch in
+            ShipBuildPanel; closes on cancel or confirm-then-launch. Looks up the pad's planet
+            via padIdToPlanetIdIndex so population + inventory are correctly scoped to whichever
+            planet hosts the launching pad (not necessarily the active planet view). */}
+        {(() => {
+          if (!launchManifestRequest) return null
+          const indexedPlanetId = sim.state.padIdToPlanetIdIndex.get(launchManifestRequest.padId)
+          let manifestPlanet = indexedPlanetId ? sim.state.planets.get(indexedPlanetId) : undefined
+          if (!manifestPlanet) {
+            for (const p of sim.state.planets.values()) {
+              if (p.launchPads.has(launchManifestRequest.padId)) {
+                manifestPlanet = p
+                break
+              }
+            }
+          }
+          const manifestPad = manifestPlanet?.launchPads.get(launchManifestRequest.padId) ?? null
+          return (
+            <LaunchManifestModal
+              open={true}
+              pad={manifestPad}
+              population={manifestPlanet?.population ?? null}
+              inventory={manifestPlanet?.inventory ?? null}
+              targetPlanetLabel={launchManifestRequest.targetPlanetLabel}
+              onCancel={handleManifestCancel}
+              onConfirm={handleManifestConfirm}
+            />
+          )
+        })()}
       </div>
     </PanelLayoutProvider>
   )
