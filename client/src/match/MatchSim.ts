@@ -122,6 +122,8 @@ import {
   initiateLastHopeEvac,
   isCampaignActive,
   isLootDropExpired,
+  type FlightKind,
+  type ShuttleLegTickContext,
   loadCargoFromInventory,
   loadCitizensFromTier,
   loadCitizensFromVolunteerPool,
@@ -130,6 +132,7 @@ import {
   resetPadCitizenLoad,
   restoreCargoFromPadToInventory,
   restoreCitizensFromPadToPopulation,
+  tickShuttleLeg,
   lootDropId,
   newActiveCampaign,
   newColonyShipFlight,
@@ -732,6 +735,73 @@ export function tickMatch(state: MatchState): void {
 
   for (const flight of [...state.flights.values()]) {
     tickFlight(flight)
+    // PHASE 17.L.A.11 — Q5 LOCKED. shuttle-mode mining post-process. No-op for oneway flights.
+    // For shuttle modes, drives the OUTBOUND → EXTRACTING → INBOUND → OUTBOUND cycle. When
+    // tickShuttleLeg returns a fresh flight we swap state.flights[id]; when it returns cargo
+    // we deposit into the home planet's inventory.
+    if (flight.flightKind !== 'oneway') {
+      const homePlanet = state.planets.get(flight.homePlanetId)
+      const homePos = homePlanet?.planet.position ?? flight.arc.start
+      const nextIdx =
+        flight.flightKind === 'shuttle-multi' && flight.assignedTargets.length > 0
+          ? (flight.currentAssignedTargetIdx + 1) % flight.assignedTargets.length
+          : flight.currentAssignedTargetIdx
+      const nextTargetPlanetId = flight.assignedTargets[nextIdx] ?? null
+      const nextTargetPlanet = nextTargetPlanetId ? state.planets.get(nextTargetPlanetId) : null
+      const nextTargetPos = nextTargetPlanet?.planet.position ?? null
+      // Pick the extracted resource from the current target planet's first non-depleted
+      // resourceNode. Fallback chain: first node → first stocked inventory resource → null.
+      const currentTarget = state.planets.get(flight.targetPlanetId)
+      let extractedResource: ResourceId | null = null
+      if (currentTarget) {
+        for (const node of currentTarget.planet.resourceNodes) {
+          if (node.amountRemaining > 0) {
+            extractedResource = node.resourceId
+            break
+          }
+        }
+        if (!extractedResource) {
+          for (const [resource, amount] of currentTarget.inventory.stocks) {
+            if (amount > 0) {
+              extractedResource = resource
+              break
+            }
+          }
+        }
+      }
+      const ctx: ShuttleLegTickContext = {
+        homePlanetPosition: homePos,
+        nextOutboundTargetPosition: nextTargetPos,
+        nextOutboundTargetPlanetId: nextTargetPlanetId,
+        nextLegSignalLossSeed: Math.floor(state.rng() * 0xffffff),
+        extractedCargoResource: extractedResource,
+      }
+      const shuttleResult = tickShuttleLeg(flight, ctx)
+      if (shuttleResult.cargoToDeposit && homePlanet) {
+        for (const [resource, amount] of shuttleResult.cargoToDeposit) {
+          if (amount <= 0) continue
+          const current = homePlanet.inventory.stocks.get(resource) ?? 0
+          homePlanet.inventory.stocks.set(resource, current + amount)
+        }
+        pushEvent(state, {
+          atTick: state.currentTick,
+          civId: flight.launchingCivId,
+          kind: 'launch',
+          message: `🚛 Shuttle cycle ${flight.shuttleCyclesCompleted + 1} delivered cargo to ${String(flight.homePlanetId)}`,
+        })
+      }
+      if (shuttleResult.freshFlight) {
+        state.flights.set(String(flight.id), shuttleResult.freshFlight)
+      }
+      if (shuttleResult.terminated) {
+        pushEvent(state, {
+          atTick: state.currentTick,
+          civId: flight.launchingCivId,
+          kind: 'launch',
+          message: `🛑 Shuttle ${String(flight.id)} terminated — no reachable next target.`,
+        })
+      }
+    }
     const flightDef = resolveFlightDef(flight)
     const flightIdStr = String(flight.id)
     // PHASE 16.29: counter-colony-ship intercept tick. If this flight is a counter chasing
@@ -2372,6 +2442,12 @@ export interface LaunchShipInputs {
   // GPS when omitted (legacy callers / auto-fire mass-action paths). Mode biases the per-
   // flight dispersion radius via TARGETING_MODE_DISPERSION_MULTIPLIER.
   readonly targetingMode?: TargetingMode
+  // PHASE 17.L.A.11 — Q5 PHASE 17 LOCKED. Player-driven mining launches via the Launch Manifest
+  // Modal supply the mining mode + (for multi-target) the list of planets to rotate through.
+  // Defaults to 'oneway' when omitted so every legacy path stays oneway. assignedTargets is
+  // ignored for oneway/shuttle-single; required for shuttle-multi.
+  readonly flightKind?: FlightKind
+  readonly assignedTargets?: ReadonlyArray<PlanetId>
 }
 
 // PHASE 17.L.A.7+A.8 — manifest-driven crew + cargo loading. The LaunchManifestModal commits
@@ -2536,6 +2612,18 @@ function launchShipFromPadBody(
   // PHASE 17.L.A.7 — thread pad.cargoLoaded into the flight as cargoAboard. Cargo manifest is
   // snapshotted into a fresh Map by newColonyShipFlight so subsequent pad recycling doesn't
   // touch the in-flight ship's cargo state.
+  // PHASE 17.L.A.11 — Q5 LOCKED. flightKind threads through from LaunchManifestModal's mining
+  // mode picker. For shuttle modes, assignedTargets carries the planet rotation; for
+  // shuttle-single the array gets a single entry (the chosen target); for oneway it stays empty.
+  // homePlanetId is set to the launching pad's planet so cargo deposits land back here on
+  // every INBOUND home-return cycle.
+  const flightKind: FlightKind = inputs.flightKind ?? 'oneway'
+  const shuttleAssignedTargets: ReadonlyArray<PlanetId> =
+    flightKind === 'shuttle-multi'
+      ? (inputs.assignedTargets ?? [targetPlanet.planet.id])
+      : flightKind === 'shuttle-single'
+        ? [targetPlanet.planet.id]
+        : []
   const flight = newColonyShipFlight({
     id: colonyShipFlightId(flightIdStr),
     variantId: pad.loadedShipVariantId,
@@ -2549,6 +2637,9 @@ function launchShipFromPadBody(
     signalLossSeed: Math.floor(inputs.state.rng() * 0xffffff),
     selfDestructInstalled,
     cargoAboard: pad.cargoLoaded,
+    flightKind,
+    assignedTargets: shuttleAssignedTargets,
+    homePlanetId: planet.planet.id,
     ...(inputs.targetingMode ? { targetingMode: inputs.targetingMode } : {}),
     ...(pad.loadedCustomBuild
       ? {

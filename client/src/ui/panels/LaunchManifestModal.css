@@ -270,6 +270,83 @@
   border-color: rgba(255, 100, 100, 0.4);
 }
 
+/* PHASE 17.L.A.11 — Mining Mode picker rows. Renders only when the loaded variant is
+   SHIP_MINING. Radio-list-with-description pattern; selected row gets the accent border. */
+.launch-manifest-modal__mining-modes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.launch-manifest-modal__mining-mode {
+  border: 1px solid rgba(214, 226, 236, 0.18);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  background: rgba(0, 0, 0, 0.18);
+  transition: border-color 0.12s ease;
+}
+
+.launch-manifest-modal__mining-mode--selected {
+  border-color: var(--accent, #ff9d00);
+  background: rgba(255, 157, 0, 0.06);
+}
+
+.launch-manifest-modal__mining-mode label {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.launch-manifest-modal__mining-mode strong {
+  font-weight: 600;
+  color: var(--accent, #ff9d00);
+  white-space: nowrap;
+}
+
+.launch-manifest-modal__mining-mode-desc {
+  color: rgba(214, 226, 236, 0.7);
+  font-size: 0.78rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.launch-manifest-modal__multi-picker {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0.4rem 0.6rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(214, 226, 236, 0.22);
+  border-radius: 4px;
+  max-height: 14vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.launch-manifest-modal__multi-row label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.launch-manifest-modal__multi-hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  color: rgba(214, 226, 236, 0.55);
+  font-style: italic;
+}
+
 @media (max-width: 540px) {
   .launch-manifest-modal {
     width: 96vw;

@@ -13,11 +13,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   type CitizenTier,
+  type FlightKind,
   type LaunchPad,
+  type PlanetId,
   type PlanetInventory,
   type PlanetPopulation,
   type ResourceId,
   RESOURCES,
+  SHIP_MINING,
   getColonyShipDef,
   stockOf,
 } from '@smol/shared'
@@ -31,6 +34,20 @@ import './LaunchManifestModal.css'
 export interface LaunchManifestSubmission {
   readonly citizensByTier: Record<CitizenTier, number>
   readonly cargoByResource: Map<ResourceId, number>
+  // PHASE 17.L.A.11 — Q5 LOCKED. Mining flight mode picked via the Mining Mode section
+  // (visible only when the loaded variant is SHIP_MINING). For non-mining variants this is
+  // always 'oneway'. For shuttle-multi mode assignedTargets carries the planet rotation.
+  readonly flightKind: FlightKind
+  readonly assignedTargets: ReadonlyArray<PlanetId>
+}
+
+// PHASE 17.L.A.11 — optional planet-list prop. When present, the Mining Mode section's
+// shuttle-multi sub-picker renders a multi-select for the player to pick rotation planets.
+// Each entry = { id, label } so the modal stays decoupled from the full Planet type.
+export interface ManifestTargetPlanet {
+  readonly id: PlanetId
+  readonly label: string
+  readonly isCurrentTarget: boolean
 }
 
 export interface LaunchManifestModalProps {
@@ -43,6 +60,10 @@ export interface LaunchManifestModalProps {
   // PHASE 17.L.A.7 — onConfirm runs the action sequence: load manifest into pad, then fire
   // launchShipFromPad. PlayPage owns both calls so refusal feedback can route back to toast.
   readonly onConfirm: (submission: LaunchManifestSubmission) => void
+  // PHASE 17.L.A.11 — list of candidate planets for shuttle-multi rotation. PlayPage supplies
+  // the player's reachable planets. Empty / omitted = Mining Mode section hides the multi
+  // sub-picker (player can still pick oneway / shuttle-single).
+  readonly miningRotationCandidates?: ReadonlyArray<ManifestTargetPlanet>
 }
 
 const ALL_TIERS: ReadonlyArray<CitizenTier> = [1, 2, 3, 4, 5]
@@ -146,6 +167,7 @@ export function LaunchManifestModal({
   targetPlanetLabel,
   onCancel,
   onConfirm,
+  miningRotationCandidates,
 }: LaunchManifestModalProps) {
   const sourceBlueprintId = pad?.loadedCustomBuild?.sourceBlueprintId
   const sourceBlueprint = useMemo<SavedBlueprint | null>(() => {
@@ -185,6 +207,19 @@ export function LaunchManifestModal({
   const [cargo, setCargo] = useState<Map<ResourceId, number>>(new Map())
   const [savedHint, setSavedHint] = useState<string>('')
   const lastInitKeyRef = useRef<string>('')
+  // PHASE 17.L.A.11 — Q5 LOCKED. Mining mode picker state. Only meaningful when the loaded
+  // variant is SHIP_MINING; for other variants we always submit 'oneway'. Multi-target set
+  // tracks which planet ids the player ticked for shuttle-multi rotation.
+  const [miningMode, setMiningMode] = useState<FlightKind>('oneway')
+  const [multiSelectedPlanets, setMultiSelectedPlanets] = useState<Set<PlanetId>>(new Set())
+
+  // PHASE 17.L.A.11 — is the loaded variant a mining ship? Only mining variants surface the
+  // mode picker; other variants always launch oneway. SHIP_MINING is the canonical mining
+  // colony-ship variant per colony-ship.ts.
+  const isMiningVariant = useMemo(() => {
+    if (!pad?.loadedShipVariantId) return false
+    return pad.loadedShipVariantId === SHIP_MINING
+  }, [pad])
 
   // PHASE 17.L.A.7 — initial fill on open. Priority: (1) saved blueprint preset → (2) pad's
   // current load (from auto-loader) → (3) "Fill Optimally". Re-init when modal transitions
@@ -317,7 +352,27 @@ export function LaunchManifestModal({
   }
 
   const handleConfirm = (): void => {
-    onConfirm({ citizensByTier: { ...crew }, cargoByResource: new Map(cargo) })
+    // PHASE 17.L.A.11 — emit flightKind + assignedTargets. For non-mining variants we force
+    // oneway. For mining + shuttle-multi we materialize the selected planet ids; falls back
+    // to single-target loop when the player picked shuttle-multi but didn't tick any planets.
+    let submittedKind: FlightKind = 'oneway'
+    let submittedTargets: ReadonlyArray<PlanetId> = []
+    if (isMiningVariant) {
+      submittedKind = miningMode
+      if (miningMode === 'shuttle-multi') {
+        const ticked = [...multiSelectedPlanets]
+        submittedTargets = ticked.length > 0 ? ticked : []
+        // If player picked multi but ticked nothing, downgrade to shuttle-single so the launch
+        // still does something useful with the chosen current target.
+        if (ticked.length === 0) submittedKind = 'shuttle-single'
+      }
+    }
+    onConfirm({
+      citizensByTier: { ...crew },
+      cargoByResource: new Map(cargo),
+      flightKind: submittedKind,
+      assignedTargets: submittedTargets,
+    })
   }
 
   // Decorate the suicide-ship gate. If suicide AND any tier-1/2/3 is non-zero, warn the
@@ -476,6 +531,130 @@ export function LaunchManifestModal({
             </ul>
           )}
         </section>
+
+        {/* PHASE 17.L.A.11 — Q5 LOCKED. Mining Mode picker. Only renders when the loaded
+            variant is SHIP_MINING — other variants always launch oneway. Three radio options
+            with descriptive subtitles; shuttle-multi sub-picker (checkbox list of rotation
+            planets) only renders when shuttle-multi is selected AND candidates are supplied. */}
+        {isMiningVariant && (
+          <section className="launch-manifest-modal__section">
+            <div className="launch-manifest-modal__section-head">
+              <h3>⛏️ Mining Mode</h3>
+              <span className="launch-manifest-modal__capacity">
+                {miningMode === 'oneway'
+                  ? 'one-way drop'
+                  : miningMode === 'shuttle-single'
+                    ? 'auto-recall loop'
+                    : `multi-planet rotation (${multiSelectedPlanets.size} picked)`}
+              </span>
+            </div>
+            <ul className="launch-manifest-modal__mining-modes">
+              <li
+                className={
+                  miningMode === 'oneway'
+                    ? 'launch-manifest-modal__mining-mode launch-manifest-modal__mining-mode--selected'
+                    : 'launch-manifest-modal__mining-mode'
+                }
+              >
+                <label>
+                  <input
+                    type="radio"
+                    name="mining-mode"
+                    value="oneway"
+                    checked={miningMode === 'oneway'}
+                    onChange={() => setMiningMode('oneway')}
+                  />
+                  <strong>📦 One-Way Drop</strong>
+                  <span className="launch-manifest-modal__mining-mode-desc">
+                    Fire-and-forget. Ship reaches the target and stays there. Recover cargo later
+                    with a separate retrieval flight.
+                  </span>
+                </label>
+              </li>
+              <li
+                className={
+                  miningMode === 'shuttle-single'
+                    ? 'launch-manifest-modal__mining-mode launch-manifest-modal__mining-mode--selected'
+                    : 'launch-manifest-modal__mining-mode'
+                }
+              >
+                <label>
+                  <input
+                    type="radio"
+                    name="mining-mode"
+                    value="shuttle-single"
+                    checked={miningMode === 'shuttle-single'}
+                    onChange={() => setMiningMode('shuttle-single')}
+                  />
+                  <strong>🔁 Single-Target Loop</strong>
+                  <span className="launch-manifest-modal__mining-mode-desc">
+                    Auto-recall. Ship cycles between the target and home indefinitely, delivering
+                    cargo each return.
+                  </span>
+                </label>
+              </li>
+              <li
+                className={
+                  miningMode === 'shuttle-multi'
+                    ? 'launch-manifest-modal__mining-mode launch-manifest-modal__mining-mode--selected'
+                    : 'launch-manifest-modal__mining-mode'
+                }
+              >
+                <label>
+                  <input
+                    type="radio"
+                    name="mining-mode"
+                    value="shuttle-multi"
+                    checked={miningMode === 'shuttle-multi'}
+                    onChange={() => setMiningMode('shuttle-multi')}
+                  />
+                  <strong>🌐 Multi-Planet Rotation</strong>
+                  <span className="launch-manifest-modal__mining-mode-desc">
+                    Cycles through multiple planets round-robin. Tick the targets below; the ship
+                    visits each in order, then loops.
+                  </span>
+                </label>
+              </li>
+            </ul>
+            {miningMode === 'shuttle-multi' &&
+              miningRotationCandidates &&
+              miningRotationCandidates.length > 0 && (
+                <ul className="launch-manifest-modal__multi-picker">
+                  {miningRotationCandidates.map((cand) => {
+                    const checked = multiSelectedPlanets.has(cand.id)
+                    return (
+                      <li key={String(cand.id)} className="launch-manifest-modal__multi-row">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              setMultiSelectedPlanets((prev) => {
+                                const next = new Set(prev)
+                                if (e.target.checked) next.add(cand.id)
+                                else next.delete(cand.id)
+                                return next
+                              })
+                            }}
+                          />
+                          <span>
+                            {cand.label}
+                            {cand.isCurrentTarget ? ' (current target)' : ''}
+                          </span>
+                        </label>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            {miningMode === 'shuttle-multi' && multiSelectedPlanets.size === 0 && (
+              <p className="launch-manifest-modal__multi-hint">
+                Tick at least 2 planets above to enable multi-planet rotation. With none selected
+                the launch will downgrade to single-target loop on the current target.
+              </p>
+            )}
+          </section>
+        )}
 
         {suicideGateViolated && (
           <p className="launch-manifest-modal__gate-warning">
