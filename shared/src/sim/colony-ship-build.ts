@@ -3,11 +3,20 @@ import { type ColonyShipDef } from './colony-ship'
 import {
   type TechId,
   TECH_AEROSPACE,
+  TECH_ANCIENT_TECH_REVERSE,
   TECH_ANTIMATTER,
+  TECH_ADVANCED_METALLURGY,
+  TECH_BIOENGINEERING,
   TECH_FUSION_POWER,
+  TECH_FUSION_PROPULSION,
   TECH_LASER_OPTICS,
+  TECH_NEURAL_INTERFACE,
   TECH_ORBITAL_MECHANICS,
+  TECH_PLASMA_WEAPONS,
+  TECH_PRECISION_OPTICS,
   TECH_QUANTUM_COMPUTING,
+  TECH_RADIO_BROADCAST,
+  TECH_SELF_DESTRUCT_SYSTEMS,
   TECH_TELECOMMUNICATIONS,
 } from './tech'
 import {
@@ -108,7 +117,7 @@ export const SHIP_PIECES: ReadonlyArray<ShipPieceDef> = [
       { resource: RESOURCE_ALLOYS, amount: 60 },
       { resource: RESOURCE_MACHINERY, amount: 30 },
     ],
-    techWalls: [TECH_ORBITAL_MECHANICS],
+    techWalls: [TECH_ORBITAL_MECHANICS, TECH_ADVANCED_METALLURGY],
     stats: { citizenCapacity: 800, cargoCapacity: 300, evasionDelta: -0.15, massPenalty: 0.4 },
   },
   {
@@ -122,7 +131,7 @@ export const SHIP_PIECES: ReadonlyArray<ShipPieceDef> = [
       { resource: RESOURCE_INGOTS, amount: 400 },
       { resource: RESOURCE_EXOTIC_ALLOYS, amount: 80 },
     ],
-    techWalls: [TECH_ANTIMATTER],
+    techWalls: [TECH_ANTIMATTER, TECH_ANCIENT_TECH_REVERSE],
     stats: { citizenCapacity: 5000, cargoCapacity: 600, evasionDelta: -0.3, massPenalty: 0.7 },
   },
 
@@ -165,7 +174,7 @@ export const SHIP_PIECES: ReadonlyArray<ShipPieceDef> = [
       { resource: RESOURCE_COMPONENTS, amount: 80 },
       { resource: RESOURCE_ANTIMATTER, amount: 10 },
     ],
-    techWalls: [TECH_ANTIMATTER],
+    techWalls: [TECH_ANTIMATTER, TECH_FUSION_PROPULSION],
     stats: { fuelRequirement: 120, speedDelta: 0.8, evasionDelta: 0.2 },
   },
 
@@ -205,7 +214,7 @@ export const SHIP_PIECES: ReadonlyArray<ShipPieceDef> = [
       { resource: RESOURCE_COMPONENTS, amount: 60 },
       { resource: RESOURCE_ELECTRONICS, amount: 30 },
     ],
-    techWalls: [TECH_ORBITAL_MECHANICS],
+    techWalls: [TECH_ORBITAL_MECHANICS, TECH_BIOENGINEERING],
     stats: { lifeSupportTier: 3 },
   },
 
@@ -259,7 +268,7 @@ export const SHIP_PIECES: ReadonlyArray<ShipPieceDef> = [
       { resource: RESOURCE_COMPONENTS, amount: 80 },
       { resource: RESOURCE_ELECTRONICS, amount: 40 },
     ],
-    techWalls: [TECH_LASER_OPTICS, TECH_QUANTUM_COMPUTING],
+    techWalls: [TECH_LASER_OPTICS, TECH_QUANTUM_COMPUTING, TECH_PRECISION_OPTICS],
     stats: { landingGearTier: 3, massPenalty: 0.15 },
   },
 
@@ -293,7 +302,7 @@ export const SHIP_PIECES: ReadonlyArray<ShipPieceDef> = [
     emoji: '💥',
     description: 'High-yield warhead. Suicide-ship payload.',
     costs: [{ resource: RESOURCE_EXPLOSIVES, amount: 100 }],
-    techWalls: [TECH_AEROSPACE],
+    techWalls: [TECH_AEROSPACE, TECH_SELF_DESTRUCT_SYSTEMS],
     stats: { explosiveYield: 400, massPenalty: 0.2 },
   },
   {
@@ -307,7 +316,7 @@ export const SHIP_PIECES: ReadonlyArray<ShipPieceDef> = [
       { resource: RESOURCE_AMMUNITION, amount: 200 },
       { resource: RESOURCE_EXPLOSIVES, amount: 100 },
     ],
-    techWalls: [TECH_ORBITAL_MECHANICS],
+    techWalls: [TECH_ORBITAL_MECHANICS, TECH_PLASMA_WEAPONS],
     stats: { weaponPayload: 200, ammoRequirement: 200, weaponsTier: 3 },
   },
 
@@ -355,7 +364,7 @@ export const SHIP_PIECES: ReadonlyArray<ShipPieceDef> = [
       { resource: RESOURCE_ELECTRONICS, amount: 80 },
       { resource: RESOURCE_COMPONENTS, amount: 40 },
     ],
-    techWalls: [TECH_QUANTUM_COMPUTING],
+    techWalls: [TECH_QUANTUM_COMPUTING, TECH_NEURAL_INTERFACE],
     stats: { sensorTier: 3, evasionDelta: 0.2 },
   },
 
@@ -392,7 +401,7 @@ export const SHIP_PIECES: ReadonlyArray<ShipPieceDef> = [
       { resource: RESOURCE_AMMUNITION, amount: 100 },
       { resource: RESOURCE_EXPLOSIVES, amount: 60 },
     ],
-    techWalls: [TECH_AEROSPACE],
+    techWalls: [TECH_AEROSPACE, TECH_PLASMA_WEAPONS],
     stats: { weaponPayload: 120, weaponsTier: 2, ammoRequirement: 100 },
   },
 
@@ -415,7 +424,7 @@ export const SHIP_PIECES: ReadonlyArray<ShipPieceDef> = [
     emoji: '📻',
     description: 'Radio-band telemetry. Fades at radio-range fog.',
     costs: [{ resource: RESOURCE_ELECTRONICS, amount: 12 }],
-    techWalls: [TECH_TELECOMMUNICATIONS],
+    techWalls: [TECH_TELECOMMUNICATIONS, TECH_RADIO_BROADCAST],
     stats: { commsTier: 1 },
   },
   {

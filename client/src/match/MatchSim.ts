@@ -1089,6 +1089,9 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
       // any planet without configuration runs unthrottled (legacy behavior).
       quotas: planetState.quotas,
       buildingModes: planetState.buildingModes,
+      // PHASE 17.L.7.4 — per-output tech walls. Civ's researched set is the gate; outputs
+      // with requiredTechs not in the set are skipped while baseline outputs still emit.
+      researchedTechs: civState.empire.researchedTechs,
     })
   }
 
