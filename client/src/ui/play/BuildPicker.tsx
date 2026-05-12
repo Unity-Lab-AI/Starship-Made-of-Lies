@@ -5,6 +5,7 @@ import {
   type Empire,
   type PlanetInventory,
   type TechId,
+  type Theme,
   BLDG_AQUEDUCT,
   BLDG_FARM,
   BLDG_HOME,
@@ -15,6 +16,8 @@ import {
   BLDG_SOLAR_ARRAY,
   BUILDINGS,
   aggregateEffects,
+  getThemedBuildingEmoji,
+  getThemedBuildingName,
   stockOf,
 } from '@smol/shared'
 import { PanelFrame } from './PanelFrame'
@@ -37,6 +40,9 @@ interface BuildPickerProps {
   readonly onSelect: (defId: BuildingDefId) => void
   readonly onClose: () => void
   readonly currentBuildMode: BuildingDefId | null
+  // PHASE 17.12.1 — theme drives per-building name + emoji reskins. When omitted (legacy
+  // callers), the raw def.name + def.emoji ship through unchanged.
+  readonly theme?: Theme
 }
 
 export function BuildPicker({
@@ -45,6 +51,7 @@ export function BuildPicker({
   onSelect,
   onClose,
   currentBuildMode,
+  theme,
 }: BuildPickerProps) {
   const unlockedSet = useMemo<ReadonlySet<BuildingDefId>>(() => {
     const set = new Set<BuildingDefId>(BASELINE_UNLOCKED)
@@ -80,6 +87,8 @@ export function BuildPicker({
             inventory={inventory}
             affordable={affordable}
             selected={currentBuildMode === def.id}
+            displayName={(theme && getThemedBuildingName(theme, def.id)) ?? def.name}
+            displayEmoji={(theme && getThemedBuildingEmoji(theme, def.id)) ?? def.emoji}
             onClick={() => onSelect(def.id)}
           />
         ))}
@@ -93,10 +102,22 @@ interface BuildCardProps {
   readonly inventory: PlanetInventory
   readonly affordable: boolean
   readonly selected: boolean
+  // PHASE 17.12.1 — theme-overridden display name + emoji. Falls back to def.name / def.emoji
+  // when the active theme has no override for this building.
+  readonly displayName: string
+  readonly displayEmoji: string
   readonly onClick: () => void
 }
 
-function BuildCard({ def, inventory, affordable, selected, onClick }: BuildCardProps) {
+function BuildCard({
+  def,
+  inventory,
+  affordable,
+  selected,
+  displayName,
+  displayEmoji,
+  onClick,
+}: BuildCardProps) {
   return (
     <button
       type="button"
@@ -105,9 +126,9 @@ function BuildCard({ def, inventory, affordable, selected, onClick }: BuildCardP
       title={def.description}
     >
       <span className="build-card__emoji" aria-hidden>
-        {def.emoji}
+        {displayEmoji}
       </span>
-      <span className="build-card__name">{def.name}</span>
+      <span className="build-card__name">{displayName}</span>
       <ul className="build-card__costs">
         {def.buildCost.map((cost) => {
           const have = stockOf(inventory, cost.resource)

@@ -205,6 +205,14 @@ export function PlayPage() {
   const [summaryPlanetId, setSummaryPlanetId] = useState<PlanetId | null>(null)
   const [inventoryFeedback, setInventoryFeedback] = useState<string | null>(null)
 
+  // PHASE 17.12.9 — camera position presets. Slot N maps to a PlanetId the player saved with
+  // Ctrl+N; Shift+N recalls that planet (fires focus-and-zoom). Slot 0 is always implicit
+  // home-planet so the player can always Shift+0 back to their starting world. Persists for
+  // the lifetime of the match; cleared on resetMatch. The full RTS preset (target + zoom +
+  // yaw + pitch) requires camera-state read/write through GalaxyView's persistedCameraState
+  // WeakMap — v1 ships planet-id presets only; granular yaw/pitch capture deferred.
+  const [cameraPresets, setCameraPresets] = useState<ReadonlyMap<number, PlanetId>>(new Map())
+
   // PHASE 16.23: clicked-flight selection state. Set when player clicks a flight cone in
   // GalaxyView; cleared when FlightDetailPanel close button is pressed or overlay click.
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
@@ -874,6 +882,48 @@ export function PlayPage() {
       else if (k === ' ') {
         e.preventDefault()
         sim.togglePause()
+      }
+      // PHASE 17.12.9 — camera position presets. Ctrl+1..9 save current planet view as a
+      // preset slot; Shift+1..9 recall the stored slot via focus-and-zoom. Plain 1-4 retain
+      // their speed-control role from earlier phases — modifier required for preset ops to
+      // avoid clashing with that muscle memory. Slot 0 (Shift+0) always jumps to the human
+      // civ's home planet.
+      else if (e.ctrlKey && /^[1-9]$/.test(e.key)) {
+        e.preventDefault()
+        const slot = parseInt(e.key, 10)
+        const planetToSave = selectedPlanetId ?? humanCivState.homePlanetId
+        setCameraPresets((prev) => {
+          const next = new Map(prev)
+          next.set(slot, planetToSave)
+          return next
+        })
+        setToasts((current) => [
+          ...current,
+          {
+            id: `cam-save-${slot}-${Date.now()}`,
+            kind: 'success',
+            message: `📷 Camera preset ${slot} saved → ${String(planetToSave)}`,
+            expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+          },
+        ])
+      } else if (e.shiftKey && /^[0-9]$/.test(e.key)) {
+        e.preventDefault()
+        const slot = parseInt(e.key, 10)
+        const targetPlanetId =
+          slot === 0 ? humanCivState.homePlanetId : (cameraPresets.get(slot) ?? null)
+        if (targetPlanetId) {
+          handleSelectPlanet(targetPlanetId)
+        } else {
+          setToasts((current) => [
+            ...current,
+            {
+              id: `cam-recall-empty-${slot}-${Date.now()}`,
+              kind: 'warning',
+              message: `📷 Camera preset ${slot} is empty — Ctrl+${slot} to save the current view.`,
+              expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+            },
+          ])
+        }
       } else if (k === '1') sim.setSpeed(1)
       else if (k === '2') sim.setSpeed(2)
       else if (k === '3') sim.setSpeed(4)
@@ -889,6 +939,10 @@ export function PlayPage() {
     closePanel,
     handleCancelBuildMode,
     showTargetingPanel,
+    selectedPlanetId,
+    humanCivState.homePlanetId,
+    cameraPresets,
+    handleSelectPlanet,
   ])
 
   // PHASE 17.L.C.8 — tooltip-only per-planet rows (no population needed anymore — the toolbar
@@ -1136,6 +1190,7 @@ export function PlayPage() {
             onSelect={handleSelectBuilding}
             onClose={() => closePanel('build')}
             currentBuildMode={buildMode}
+            theme={humanTheme}
           />
         )}
         {openPanels.has('campaigns') && (
@@ -1283,7 +1338,26 @@ export function PlayPage() {
             onClose={() => closePanel('indigenous')}
             variant="docked-left"
           >
-            <IndigenousPanel indig={indigenousOnActivePlanet} />
+            <IndigenousPanel
+              indig={indigenousOnActivePlanet}
+              hostPlanetInventory={activePlanet.inventory}
+              onManualParley={() => {
+                const result = sim.manualIndigenousParley({ planetId: activePlanet.planet.id })
+                setToasts((current) => [
+                  ...current,
+                  {
+                    id: `parley-${Date.now()}`,
+                    kind: result.ok && result.accepted ? 'success' : 'warning',
+                    message: !result.ok
+                      ? `🤝 Parley refused: ${result.reason ?? 'unknown'}.`
+                      : result.accepted
+                        ? `🤝 Parley accepted — ${result.defectingTileCount} tile(s) ceded.`
+                        : '🤝 Indigenous refused the offer. 50 propaganda materials spent.',
+                    expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+                  },
+                ])
+              }}
+            />
           </PanelFrame>
         )}
 
