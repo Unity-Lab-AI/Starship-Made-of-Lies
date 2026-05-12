@@ -32,31 +32,167 @@ export interface Settlement {
   readonly foundedAtTick: number
 }
 
-// PHASE 17.13.10 — settlement naming. V1 uses simple capital-or-region naming; theme
-// overrides (Theocracy = "Holy [Planet] Cathedral", Corporate = "Region [Planet]-A", etc.)
-// wire in via the theme system when 17.13.10's polish pass ships. The default naming below
-// is safe for every theme and matches the user's "Region-N" pattern from the TODO.
+// PHASE 17.13.10 — per-theme settlement naming patterns. Per user verbatim 2026-05-10:
+// "Settlements auto-named per theme: Theocracy = 'Holy [Planet] Sanctuary' → 'Holy [Planet]
+// Cathedral' / Corporate = 'Region [Planet]-A' → 'Region [Planet]-B' / Warlord =
+// '[Khan-Name]-Hold' / etc. Player can rename any settlement."
+//
+// Each theme provides a capital-naming function + a region-naming function. Region functions
+// take the planet id + a 1-based ordinal (1, 2, 3, ...) and return a flavored name. Capital
+// functions just take the planet id. Themes not listed fall through to the safe Capital/Region
+// defaults below — they still work, just without flavor. The keying is by themeId string so
+// this module avoids a circular dep with themes.ts (which imports types from this file's peers).
+//
+// PHASE 17.13.10 also exposes `renameSettlement(settlement, newName)` for the player-rename
+// surface — straight setter that other code paths can call from a useMatchSim mutator.
+
+interface SettlementNamingRule {
+  readonly capital: (planetIdString: string) => string
+  readonly region: (planetIdString: string, ordinal: number) => string
+}
+
+function letterOrdinal(ord: number): string {
+  // 1 → A, 2 → B, ..., 26 → Z, 27+ → AA, AB, ... (corporate / influencer themes).
+  if (ord <= 26) return String.fromCharCode(64 + ord)
+  const first = String.fromCharCode(64 + Math.floor((ord - 1) / 26))
+  const second = String.fromCharCode(64 + ((ord - 1) % 26) + 1)
+  return `${first}${second}`
+}
+
+const SETTLEMENT_NAMING_RULES: Readonly<Record<string, SettlementNamingRule>> = {
+  theocracy: {
+    capital: (p) => `Holy ${p} Sanctuary`,
+    region: (p, n) => `Holy ${p} Cathedral-${n}`,
+  },
+  corporateDictatorship: {
+    capital: (p) => `${p}-HQ`,
+    region: (p, n) => `Region ${p}-${letterOrdinal(n)}`,
+  },
+  militaryJunta: {
+    capital: (p) => `Sector ${p}-PRIME`,
+    region: (p, n) => `Sector ${p}-${n}`,
+  },
+  surveillanceState: {
+    capital: (p) => `Hub-0 ${p}`,
+    region: (p, n) => `Block ${p}-${n}`,
+  },
+  climateRefugeeState: {
+    capital: (p) => `Sanctuary ${p}`,
+    region: (p, n) => `Camp ${p}-${n}`,
+  },
+  eugenicsUtopia: {
+    capital: (p) => `Gene-Pool ${p} Prime`,
+    region: (p, n) => `Strain ${p}-${n}`,
+  },
+  aiOverlord: {
+    capital: (p) => `Node-0x00 ${p}`,
+    region: (p, n) => `Node-0x${n.toString(16).toUpperCase().padStart(2, '0')} ${p}`,
+  },
+  anarchoCapitalist: {
+    capital: (p) => `${p} Free Market`,
+    region: (p, n) => `Auction ${p}-${n}`,
+  },
+  hereditaryMonarchy: {
+    capital: (p) => `${p} Royal Court`,
+    region: (p, n) => `Duchy of ${p}-${n}`,
+  },
+  ecologicalCult: {
+    capital: (p) => `Sacred Grove of ${p}`,
+    region: (p, n) => `Sapling ${p}-${n}`,
+  },
+  psychicHivemind: {
+    capital: (p) => `Hive-Mind ${p}-Alpha`,
+    region: (p, n) => `Hive-Mind ${p}-${n}`,
+  },
+  gameShowReality: {
+    capital: (p) => `Studio ${p}-Live`,
+    region: (p, n) => `Stage ${p}-${n}`,
+  },
+  cyberpunkMegacorp: {
+    capital: (p) => `Tower ${p}-CEO`,
+    region: (p, n) => `Sector ${p}-${n}`,
+  },
+  gerontocracy: {
+    capital: (p) => `Elder Council ${p}`,
+    region: (p, n) => `Council Wing ${p}-${n}`,
+  },
+  memeticCult: {
+    capital: (p) => `Meme-Hub ${p}-Prime`,
+    region: (p, n) => `Meme-Spread ${p}-${n}`,
+  },
+  warlordConfederacy: {
+    capital: (p) => `Khan's Hold ${p}`,
+    region: (p, n) => `${p}-Hold-${n}`,
+  },
+  pharaonicDynasty: {
+    capital: (p) => `Pharaoh's Throne ${p}`,
+    region: (p, n) => `Nome ${p}-${n}`,
+  },
+  bureaucraticHellscape: {
+    capital: (p) => `Form 1A-${p}`,
+    region: (p, n) => `Filing Dept ${p}-${n}`,
+  },
+  influencerRepublic: {
+    capital: (p) => `@${p}-Verified`,
+    region: (p, n) => `@${p}-Branch-${letterOrdinal(n)}`,
+  },
+}
+
+// PHASE 17.13.10 — themed default naming. Falls back to safe Capital/Region pattern when the
+// themeId isn't listed in SETTLEMENT_NAMING_RULES (covers legacy callers + future themes).
 export function defaultSettlementName(
   status: SettlementStatus,
   ordinal: number,
   planetIdString: string,
+  themeId?: string,
 ): string {
-  if (status === 'capital') return `Capital ${planetIdString}`
-  return `Region ${planetIdString}-${ordinal}`
+  const rule = themeId ? SETTLEMENT_NAMING_RULES[themeId] : undefined
+  if (status === 'capital') {
+    return rule ? rule.capital(planetIdString) : `Capital ${planetIdString}`
+  }
+  return rule ? rule.region(planetIdString, ordinal) : `Region ${planetIdString}-${ordinal}`
+}
+
+// PHASE 17.13.10 — player rename mutator. Trims whitespace + clamps to 60 chars to keep panel
+// rows readable; empty fallback re-applies the themed default. Caller surfaces the result via
+// the SettlementPicker rename UI in PlayPage.
+export function renameSettlement(settlement: Settlement, newName: string, themeId?: string): void {
+  const trimmed = newName.trim().slice(0, 60)
+  if (trimmed.length > 0) {
+    settlement.name = trimmed
+    return
+  }
+  // Empty input → restore the themed default. Extract the ordinal from the existing settlement
+  // id (`settlement-{planetIdString}-{ordinal}` for founded, `settlement-{planetIdString}-capital`
+  // for capital). The capital case ignores the parsed-int (NaN) and the status check picks the
+  // capital branch in defaultSettlementName.
+  const idStr = String(settlement.id)
+  const parts = idStr.split('-')
+  const planetIdString = String(settlement.planetId)
+  const ordinalToken = parts[parts.length - 1] ?? '0'
+  const ordinal = Number.parseInt(ordinalToken, 10)
+  settlement.name = defaultSettlementName(
+    settlement.status,
+    Number.isFinite(ordinal) ? ordinal : 0,
+    planetIdString,
+    themeId,
+  )
 }
 
 // Construct the default Capital settlement covering every tile on the planet. Called by
 // makePlanetState during match creation so every owned planet boots with one settlement
-// from tick 0.
+// from tick 0. PHASE 17.13.10 — optional themeId threads the owning civ's theme through to
+// defaultSettlementName for flavored capitals (Theocracy "Holy {planet} Sanctuary" etc.).
 export function newCapitalSettlement(
   planetIdValue: PlanetId,
   allTileIds: ReadonlyArray<TileId>,
   planetIdString: string,
+  themeId?: string,
 ): Settlement {
   return {
     id: settlementId(`settlement-${planetIdString}-capital`),
     planetId: planetIdValue,
-    name: defaultSettlementName('capital', 0, planetIdString),
+    name: defaultSettlementName('capital', 0, planetIdString, themeId),
     civicCenterTileId: null,
     controlledTileIds: new Set(allTileIds),
     status: 'capital',
@@ -74,12 +210,13 @@ export function newFoundedSettlement(
   civicCenterTileIdValue: TileId,
   claimedTileIds: ReadonlyArray<TileId>,
   foundedAtTick: number,
+  themeId?: string,
 ): Settlement {
   const idString = `settlement-${planetIdString}-${ordinal}`
   return {
     id: settlementId(idString),
     planetId: planetIdValue,
-    name: defaultSettlementName('founded', ordinal, planetIdString),
+    name: defaultSettlementName('founded', ordinal, planetIdString, themeId),
     civicCenterTileId: civicCenterTileIdValue,
     controlledTileIds: new Set(claimedTileIds),
     status: 'founded',

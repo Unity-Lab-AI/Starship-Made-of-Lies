@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { type PlanetId, type Settlement, type SettlementId } from '@smol/shared'
 import './SettlementsPanel.css'
 
@@ -7,6 +8,10 @@ import './SettlementsPanel.css'
 // panels lands in PHASE 17.13.6's aggregate-vs-detail toggle once per-settlement state lives
 // in the sim. Until then this panel surfaces the data model in a human-readable form so the
 // player can see where their settlements are + how big each one's territory is.
+//
+// PHASE 17.13.10 — player rename surface. Each settlement row has a small ✏️ button that
+// opens an inline editor; submitting an empty value restores the themed default. The rename
+// is dispatched through the onRenameSettlement callback to the sim's renameSettlementAction.
 
 export interface SettlementGroupSnapshot {
   readonly planetId: PlanetId
@@ -18,13 +23,23 @@ interface SettlementsPanelProps {
   readonly groups: ReadonlyArray<SettlementGroupSnapshot>
   readonly activeSettlementId: SettlementId | null
   readonly onSelectSettlement: (planetId: PlanetId, settlementId: SettlementId) => void
+  // PHASE 17.13.10 — optional rename callback. PlayPage wires this to sim.renameSettlement;
+  // panel falls back to read-only mode if omitted (preserves prior call-sites).
+  readonly onRenameSettlement?: (
+    planetId: PlanetId,
+    settlementId: SettlementId,
+    newName: string,
+  ) => boolean
 }
 
 export function SettlementsPanel({
   groups,
   activeSettlementId,
   onSelectSettlement,
+  onRenameSettlement,
 }: SettlementsPanelProps) {
+  const [renamingId, setRenamingId] = useState<SettlementId | null>(null)
+  const [renameDraft, setRenameDraft] = useState('')
   const totalSettlements = groups.reduce((sum, g) => sum + g.settlements.length, 0)
   return (
     <section className="settlements-panel" aria-label="Settlements">
@@ -46,8 +61,20 @@ export function SettlementsPanel({
               <ul className="settlements-panel__settlement-list">
                 {group.settlements.map((settlement) => {
                   const active = settlement.id === activeSettlementId
+                  const editing = renamingId === settlement.id
+                  const commitRename = (): void => {
+                    if (onRenameSettlement) {
+                      onRenameSettlement(group.planetId, settlement.id, renameDraft)
+                    }
+                    setRenamingId(null)
+                    setRenameDraft('')
+                  }
+                  const cancelRename = (): void => {
+                    setRenamingId(null)
+                    setRenameDraft('')
+                  }
                   return (
-                    <li key={String(settlement.id)}>
+                    <li key={String(settlement.id)} className="settlements-panel__settlement-li">
                       <button
                         type="button"
                         className={`settlements-panel__row settlements-panel__row--${settlement.status}${
@@ -67,6 +94,57 @@ export function SettlementsPanel({
                         </span>
                         {active && <span className="settlements-panel__active-badge">VIEWING</span>}
                       </button>
+                      {onRenameSettlement &&
+                        (editing ? (
+                          <form
+                            className="settlements-panel__rename-form"
+                            onSubmit={(e) => {
+                              e.preventDefault()
+                              commitRename()
+                            }}
+                          >
+                            <input
+                              autoFocus
+                              type="text"
+                              maxLength={60}
+                              value={renameDraft}
+                              onChange={(e) => setRenameDraft(e.target.value)}
+                              placeholder={settlement.name}
+                              aria-label="New settlement name"
+                              className="settlements-panel__rename-input"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Escape') cancelRename()
+                              }}
+                            />
+                            <button
+                              type="submit"
+                              className="settlements-panel__rename-save"
+                              aria-label="Save rename (empty input restores themed default)"
+                            >
+                              💾 Save
+                            </button>
+                            <button
+                              type="button"
+                              className="settlements-panel__rename-cancel"
+                              aria-label="Cancel rename"
+                              onClick={cancelRename}
+                            >
+                              ✕
+                            </button>
+                          </form>
+                        ) : (
+                          <button
+                            type="button"
+                            className="settlements-panel__rename-trigger"
+                            aria-label={`Rename ${settlement.name}`}
+                            onClick={() => {
+                              setRenamingId(settlement.id)
+                              setRenameDraft(settlement.name)
+                            }}
+                          >
+                            ✏️ Rename
+                          </button>
+                        ))}
                     </li>
                   )
                 })}

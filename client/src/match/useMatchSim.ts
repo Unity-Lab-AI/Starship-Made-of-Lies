@@ -52,9 +52,11 @@ import {
   type ManualParleyResult,
   cancelCaravanAction,
   createCaravanAction,
+  renameSettlementAction,
   type CancelCaravanActionInputs,
   type CreateCaravanActionInputs,
   type CreateCaravanActionResult,
+  type RenameSettlementInputs,
   redirectFlightAction,
   refuelReactorFromGodControlAction,
   setBuildingModeAction,
@@ -156,6 +158,10 @@ export interface UseMatchSimResult {
   readonly loadSavedMatch: () => boolean
   readonly clearSavedMatch: () => void
   readonly hasSavedMatch: boolean
+  // PHASE 17.13.10 — player rename mutator. SettlementPickerPanel surfaces a rename button per
+  // settlement; this callback applies the rename through the sim action so the themed default
+  // restores cleanly on blank-input + the change re-renders any panel reading settlement.name.
+  readonly renameSettlement: (input: Omit<RenameSettlementInputs, 'state'>) => boolean
   // PHASE 17.1.6 — tick-driven salvo orchestration. Replaces the setTimeout chain that lived
   // in PlayPage.runSalvoRound (8s/11s/13s real-time delays). startSalvoRound kicks off a
   // BUILDALL on the planet's pads and primes a SalvoCoordinator; tickSalvo (shared) advances
@@ -635,6 +641,18 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     [],
   )
 
+  // PHASE 17.13.10 — settlement rename action. Bumps tickCount on success so any panel reading
+  // settlement.name re-renders immediately. Empty newName restores the themed default via the
+  // shared renameSettlement helper.
+  const renameSettlementCb = useCallback(
+    (input: Omit<RenameSettlementInputs, 'state'>): boolean => {
+      const ok = renameSettlementAction({ ...input, state: stateRef.current })
+      if (ok) setTickCount((n) => n + 1)
+      return ok
+    },
+    [],
+  )
+
   // PHASE 17.L.A.13 — Q12 LOCKED. Save / load callbacks. saveMatchNow returns boolean for
   // toast feedback; loadSavedMatch swaps stateRef + bumps tickCount so every panel re-renders
   // with the restored data.
@@ -726,6 +744,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     manualIndigenousParley,
     createCaravan,
     cancelCaravan: cancelCaravanCb,
+    renameSettlement: renameSettlementCb,
     saveMatchNow,
     loadSavedMatch,
     clearSavedMatch: clearSavedMatchCallback,
