@@ -90,6 +90,8 @@ interface MatchSetupHint {
   // PHASE 17.L.A.13 — Q12 PHASE 17 LOCKED. NewGamePage save-mode dropdown threads through.
   // Defaults to 'auto-5min' when omitted.
   readonly saveMode?: 'off' | 'manual' | 'auto-5min' | 'auto-15min'
+  // PHASE 18.4 — galactic random event intensity from NewGamePage. Defaults to 'medium'.
+  readonly randomEventIntensity?: 'off' | 'low' | 'medium' | 'high'
 }
 
 const DEFAULT_OBJECTIVES: ReadonlyArray<MissionObjectiveConfig> = [
@@ -199,6 +201,7 @@ export function PlayPage() {
       tickCapOverride: null,
       fogOfWarEnabled: hint?.fogOfWarEnabled ?? true,
       saveMode: hint?.saveMode ?? 'auto-5min',
+      randomEventIntensity: hint?.randomEventIntensity ?? 'medium',
     }
     return aiSlots ? { ...base, aiSlots } : base
   }, [location.state])
@@ -728,6 +731,16 @@ export function PlayPage() {
           message: ev.message,
           kind: 'success',
           expiresAtMs: Date.now() + TOAST_LIFETIME_MS * 2.3,
+        })
+      } else if (ev.kind === 'random_event') {
+        // PHASE 18.4 — galactic random event banner. Info-toast with double lifetime so the
+        // player has time to read the event title + description before it dismisses. Kind
+        // filter on EventsLogPanel surfaces full history.
+        newToasts.push({
+          id: `toast-event-${ev.atTick}-${Math.random().toString(36).slice(2, 8)}`,
+          message: ev.message,
+          kind: 'info',
+          expiresAtMs: Date.now() + TOAST_LIFETIME_MS * 2,
         })
       }
     }
@@ -2220,6 +2233,7 @@ const EVENT_KIND_FILTERS: ReadonlyArray<{
   { id: 'loot', label: 'Loot' },
   { id: 'last_hope', label: 'Last hope' },
   { id: 'achievement_unlock', label: 'Achievements' },
+  { id: 'random_event', label: 'Random events' },
   { id: 'system', label: 'System' },
 ]
 

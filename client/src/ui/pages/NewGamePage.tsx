@@ -101,6 +101,12 @@ export function NewGamePage() {
   const [saveMode, setSaveMode] = useState<'off' | 'manual' | 'auto-5min' | 'auto-15min'>(
     'auto-5min',
   )
+  // PHASE 18.4 — host-configurable galactic random-event intensity. Defaults to medium.
+  // 'off' disables the system entirely; low/medium/high scale spawn probability + per-civ
+  // active cap. See shared/src/sim/random-events.ts RANDOM_EVENT_INTENSITY_CONFIG.
+  const [randomEventIntensity, setRandomEventIntensity] = useState<
+    'off' | 'low' | 'medium' | 'high'
+  >('medium')
   const [objectives, setObjectives] = useState<ObjectiveToggleState>(DEFAULT_OBJECTIVES)
   const [aiSlots, setAiSlots] = useState<ReadonlyArray<AISlotConfig>>(() =>
     Array.from({ length: 3 }, (_, i) => defaultAISlot(i)),
@@ -359,6 +365,27 @@ export function NewGamePage() {
             </span>
           </label>
 
+          {/* PHASE 18.4 — galactic random events intensity host toggle. */}
+          <label className="new-game-page__field">
+            <span>Galactic random events</span>
+            <select
+              value={randomEventIntensity}
+              onChange={(e) =>
+                setRandomEventIntensity(e.target.value as 'off' | 'low' | 'medium' | 'high')
+              }
+            >
+              <option value="off">Off — no random events</option>
+              <option value="low">Low — rare (~one event per civ every ~3 minutes)</option>
+              <option value="medium">Medium — moderate (~one per civ per minute)</option>
+              <option value="high">High — frequent (~one per civ every 25 seconds)</option>
+            </select>
+            <span className="new-game-page__field-hint">
+              {randomEventIntensity === 'off'
+                ? 'No galactic events at all — match plays as pure economy + military sim'
+                : `Random Solar Flares / Plague Outbreaks / Refugee Waves / Ancient Tech Discoveries / etc. fire across the galaxy at ${randomEventIntensity} cadence. ${randomEventIntensity === 'high' ? 'Up to 6' : randomEventIntensity === 'medium' ? 'Up to 4' : 'Up to 2'} active per civ at once.`}
+            </span>
+          </label>
+
           <fieldset className="new-game-page__objectives">
             <legend>Win conditions</legend>
             <p className="new-game-page__objectives-hint">
@@ -526,6 +553,7 @@ export function NewGamePage() {
                     aiSlots,
                     fogOfWarEnabled,
                     saveMode,
+                    randomEventIntensity,
                   },
                 })
               }}

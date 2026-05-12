@@ -123,11 +123,15 @@ import {
   type Caravan,
   type Settlement,
   type SettlementId,
+  type ActiveRandomEvent,
+  type RandomEventIntensity,
   ANNEX_PROPAGANDA_COST,
   CARAVAN_FUEL_COST,
   MAX_ACTIVE_CARAVANS_PER_CIV,
   CARAVAN_MAX_AMOUNT_PER_RUN,
   SETTLEMENT_INITIAL_RINGS,
+  getRandomEventDef,
+  tickRandomEvents,
   cancelCaravan,
   canFoundSettlementAt,
   checkMatchEndAchievements,
@@ -334,6 +338,9 @@ export interface MatchEventLog {
     // PHASE 17.12.6 / 17.12.10 — achievement unlock event. PlayPage watches for this kind +
     // surfaces a gold-tinted persistent toast distinct from info/warning/error/success.
     | 'achievement_unlock'
+    // PHASE 18.4 — galactic random event (Solar Flare, Plague Outbreak, etc.). PlayPage
+    // surfaces these via the top-of-screen banner + EventsLogPanel kind filter.
+    | 'random_event'
   readonly message: string
 }
 
@@ -376,6 +383,14 @@ export interface MatchState {
   // Monotonic seed for caravan id generation. Guarantees no id collisions even when multiple
   // caravans launch in the same tick from the same planet pair.
   nextCaravanSerial: number
+  // PHASE 18.4 — per-civ active random events (Solar Flare, Plague Outbreak, etc.). Map keyed
+  // by CivId; value is the active events with countdown timers. tickRandomEvents in shared/
+  // ticks these down each match tick, applies per-tick deltas, prunes finished entries, and
+  // rolls new spawns against the host-configured intensity (config.randomEventIntensity).
+  activeRandomEvents: Map<CivId, ActiveRandomEvent[]>
+  // PHASE 18.4 — locked-in intensity (defaulted from config.randomEventIntensity ?? 'medium').
+  // Stored on state so a save-loaded match keeps the host's original setting.
+  randomEventIntensity: RandomEventIntensity
   events: MatchEventLog[]
   // PHASE 17.12.6 — achievement IDs newly unlocked by THIS match's end resolver. Populated by
   // tickMatch when phase transitions to 'ENDED'. Empty during play. useMatchSim watches this
@@ -426,6 +441,10 @@ export interface MatchConfig {
   // 'off' disables all autosaves; 'manual' requires the 💾 toolbar button to be clicked.
   // Defaults to 'auto-5min' for any caller that omits it.
   readonly saveMode?: 'off' | 'manual' | 'auto-5min' | 'auto-15min'
+  // PHASE 18.4 — host-configurable random-event intensity. 'off' disables the system entirely
+  // (no spawning, no ticking). Low/medium/high scale spawn probability + per-civ active cap.
+  // Defaults to 'medium' for any caller that omits it so existing matches get the feature.
+  readonly randomEventIntensity?: RandomEventIntensity
 }
 
 const HOME_PLANET_STARTING_POP = 1000
@@ -609,6 +628,9 @@ export function createMatch(config: MatchConfig): MatchState {
     padIdToPlanetIdIndex: new Map(),
     caravans: new Map<CivId, Caravan[]>(),
     nextCaravanSerial: 0,
+    // PHASE 18.4 — random events bookkeeping.
+    activeRandomEvents: new Map<CivId, ActiveRandomEvent[]>(),
+    randomEventIntensity: config.randomEventIntensity ?? 'medium',
     humanCivId,
     objectives: config.objectives,
     tickCap: config.tickCapOverride,
@@ -824,6 +846,12 @@ export function tickMatch(state: MatchState): void {
   // GC drains DELIVERED/CANCELLED entries past the retention window so the UI gets one final
   // render of the terminal state before they disappear from the list.
   tickCaravansForAllCivs(state)
+
+  // PHASE 18.4 — galactic random events. Dispatcher rolls per-civ spawns + ticks down active
+  // events. Per-tick resource deltas / population deltas / research-build multipliers applied
+  // separately via applyActiveRandomEventEffects below. Banner + log surface lives in PlayPage.
+  tickRandomEventsForAllCivs(state)
+  applyActiveRandomEventEffects(state)
 
   for (const civState of state.civs.values()) {
     if (!civState.alive) continue
@@ -3566,6 +3594,117 @@ export function tickCaravansForAllCivs(state: MatchState): void {
     })
     state.caravans.set(civId, filtered)
   }
+}
+
+// PHASE 18.4 — galactic random events dispatcher + effect applicator. tickRandomEvents lives
+// in shared/ and handles the spawn rolls + countdown bookkeeping. This wrapper feeds it the
+// live civ list + state.activeRandomEvents map + applies the resulting newlySpawned / justFinished
+// events to the match log. Per-tick effects (resource deltas, population deltas, research /
+// build multipliers) are applied separately in applyActiveRandomEventEffects.
+export function tickRandomEventsForAllCivs(state: MatchState): void {
+  if (state.randomEventIntensity === 'off' && state.activeRandomEvents.size === 0) return
+  const aliveCivIds: CivId[] = []
+  for (const civState of state.civs.values()) {
+    if (civState.alive) aliveCivIds.push(civState.civId)
+  }
+  if (aliveCivIds.length === 0) return
+  const result = tickRandomEvents({
+    currentTick: state.currentTick,
+    intensity: state.randomEventIntensity,
+    rng: state.rng,
+    civIds: aliveCivIds,
+    currentByCiv: state.activeRandomEvents,
+  })
+  for (const fresh of result.newlySpawned) {
+    const def = getRandomEventDef(fresh.defId)
+    if (!def) continue
+    // One-shot effects fire at spawn time.
+    const civState = state.civs.get(fresh.civId)
+    if (!civState) continue
+    const homePlanet = state.planets.get(civState.homePlanetId)
+    if (homePlanet) {
+      if (def.oneShotGrant) {
+        for (const grant of def.oneShotGrant) {
+          const before = stockOf(homePlanet.inventory, grant.resource)
+          homePlanet.inventory.stocks.set(grant.resource, before + grant.amount)
+        }
+      }
+      if (def.oneShotLoss) {
+        for (const loss of def.oneShotLoss) {
+          const before = stockOf(homePlanet.inventory, loss.resource)
+          homePlanet.inventory.stocks.set(loss.resource, Math.max(0, before - loss.amount))
+        }
+      }
+      if (def.populationDelta && def.populationDelta !== 0) {
+        // PHASE 18.4 — population deltas land on tier 1 (workers — bulk of population + the
+        // base of every other tier). Negative clamps at 0; positive grows the worker base.
+        const t1 = homePlanet.population.tierCounts[1]
+        homePlanet.population.tierCounts[1] = Math.max(0, Math.floor(t1 + def.populationDelta))
+      }
+    }
+    pushEvent(state, {
+      atTick: state.currentTick,
+      civId: fresh.civId,
+      kind: 'random_event',
+      message: `${def.emoji} ${def.title} — ${def.description}`,
+    })
+  }
+  for (const finished of result.justFinished) {
+    const def = getRandomEventDef(finished.defId)
+    if (!def) continue
+    if (def.durationTicks === 0) continue // instant events don't get a "concluded" follow-up
+    pushEvent(state, {
+      atTick: state.currentTick,
+      civId: finished.civId,
+      kind: 'random_event',
+      message: `${def.emoji} ${def.title} concluded after ${def.durationTicks} ticks.`,
+    })
+  }
+}
+
+// PHASE 18.4 — apply per-tick effects of every active event. Walks state.activeRandomEvents
+// and applies resourceDeltaPerTick + populationDeltaPerTick to each affected civ's home planet.
+// Research / build multipliers are surfaced via getRandomEventMultipliers helpers below — those
+// are read by tickCivResearch / build paths.
+export function applyActiveRandomEventEffects(state: MatchState): void {
+  for (const [civId, events] of state.activeRandomEvents) {
+    if (events.length === 0) continue
+    const civState = state.civs.get(civId)
+    if (!civState) continue
+    const homePlanet = state.planets.get(civState.homePlanetId)
+    if (!homePlanet) continue
+    for (const evt of events) {
+      const def = getRandomEventDef(evt.defId)
+      if (!def) continue
+      if (def.resourceDeltaPerTick) {
+        for (const d of def.resourceDeltaPerTick) {
+          const before = stockOf(homePlanet.inventory, d.resource)
+          homePlanet.inventory.stocks.set(d.resource, Math.max(0, before + d.delta))
+        }
+      }
+      if (def.populationDeltaPerTick && def.populationDeltaPerTick !== 0) {
+        const t1 = homePlanet.population.tierCounts[1]
+        homePlanet.population.tierCounts[1] = Math.max(
+          0,
+          Math.floor(t1 + def.populationDeltaPerTick),
+        )
+      }
+    }
+  }
+}
+
+// PHASE 18.4 — convenience getter for civ-wide research-speed multiplier from active events.
+// Multiplicative across multiple events (e.g. supernova + breakthrough laboratory stack).
+// Defaults to 1.0 (no change) when no active events on the civ.
+export function getCivResearchSpeedMultiplier(state: MatchState, civId: CivId): number {
+  const events = state.activeRandomEvents.get(civId)
+  if (!events || events.length === 0) return 1
+  let mult = 1
+  for (const evt of events) {
+    const def = getRandomEventDef(evt.defId)
+    if (def?.researchSpeedMultiplier) mult *= def.researchSpeedMultiplier
+  }
+  return mult
 }
 
 // PHASE 16.31 — convenience check exposed to UI so the FlightDetailPanel "Select for Redirect"
