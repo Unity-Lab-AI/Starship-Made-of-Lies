@@ -32,6 +32,7 @@ import { FlightDetailPanel } from '../panels/FlightDetailPanel'
 import { MiningFleetPanel } from '../panels/MiningFleetPanel'
 import { PlanetEnergyPanel } from '../panels/PlanetEnergyPanel'
 import { LaunchManifestModal, type LaunchManifestSubmission } from '../panels/LaunchManifestModal'
+import { ProductionChainsPanel } from '../panels/ProductionChainsPanel'
 import { QuotasPanel } from '../panels/QuotasPanel'
 import { ShipBuilderPanel } from '../panels/ShipBuilderPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
@@ -1452,6 +1453,22 @@ export function PlayPage() {
                 })
               }
             />
+          </PanelFrame>
+        )}
+
+        {/* PHASE 17.L.A.10 — Q14 PHASE 17 LOCKED. Production-chain Sankey diagram showing
+            the full raw → refined → component → product → strategic flow with edge thickness
+            tied to base per-tick yield. Hover to highlight chains. */}
+        {openPanels.has('productionChains') && (
+          <PanelFrame
+            panelId="productionChains"
+            title="Production Chains"
+            emoji="🔗"
+            onClose={() => closePanel('productionChains')}
+            variant="centered"
+            width={1180}
+          >
+            <ProductionChainsPanel />
           </PanelFrame>
         )}
 

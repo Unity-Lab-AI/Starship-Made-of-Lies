@@ -23,6 +23,8 @@ export type PanelId =
   // HOTFIX 17.L.D.14 — Tech detail panel extracted from TechTreePanel into its own movable
   // PanelFrame so it no longer overlays the tech grid (per user verbatim).
   | 'techDetail'
+  // PHASE 17.L.A.10 — Q14 LOCKED. Production-chain Sankey diagram panel.
+  | 'productionChains'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -53,6 +55,7 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'shipBuilder', emoji: '🛠', label: 'Ship Builder', hotkey: 'U' },
   { id: 'quotas', emoji: '📋', label: 'Quotas' },
   { id: 'techDetail', emoji: '🔍', label: 'Tech Detail' },
+  { id: 'productionChains', emoji: '🔗', label: 'Production Chains' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },
