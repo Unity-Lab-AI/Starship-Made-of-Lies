@@ -17,6 +17,7 @@ import {
   loadMatchFromStorage,
   saveMatchToStorage,
 } from './saveLoad'
+import { applyAchievementUnlocks } from './achievementStorage'
 import {
   type BuildShipFromBlueprintInputs,
   type BuildShipInputs,
@@ -173,6 +174,24 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     }, intervalMs)
     return () => clearInterval(handle)
   }, [initialConfig.saveMode, initialConfig.seed])
+
+  // PHASE 17.12.6 — persist achievement unlocks once match ends. Watches phase transition;
+  // when ENDED is observed, writes the achievementUnlocksThisMatch list to localStorage via
+  // applyAchievementUnlocks (which deduplicates so already-unlocked-from-prior-matches don't
+  // re-trigger). The unlocked-event toasts have already fired from the events stream watcher
+  // by this point — this hook only handles persistence.
+  const lastPersistedMatchIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (stateRef.current.phase !== 'ENDED') return
+    if (stateRef.current.achievementUnlocksThisMatch.length === 0) return
+    if (lastPersistedMatchIdRef.current === stateRef.current.matchId) return
+    lastPersistedMatchIdRef.current = stateRef.current.matchId
+    applyAchievementUnlocks(
+      stateRef.current.achievementUnlocksThisMatch,
+      stateRef.current.currentTick,
+      stateRef.current.matchId,
+    )
+  }, [tickCount])
 
   const togglePause = useCallback(() => setRunning((r) => !r), [])
 
