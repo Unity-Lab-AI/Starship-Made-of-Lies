@@ -42,6 +42,7 @@ import { LootDropPanel } from '../panels/LootDropPanel'
 import { ResourcesPanel } from '../panels/ResourcesPanel'
 import { ShipBuildPanel } from '../panels/ShipBuildPanel'
 import { TargetingModePanel } from '../panels/TargetingModePanel'
+import { TechDetailPanel } from '../panels/TechDetailPanel'
 import { TechTreePanel } from '../panels/TechTreePanel'
 import { TilePlacementGrid } from '../panels/TilePlacementGrid'
 import { BootSequencePanel } from '../panels/BootSequencePanel'
@@ -175,6 +176,11 @@ export function PlayPage() {
   // on completion so the player can "fire and forget" a sustained barrage. Toggle OFF mid-
   // cycle and the current round finishes naturally without queuing another.
   const [autoFireLoopActive, setAutoFireLoopActive] = useState(false)
+
+  // HOTFIX 17.L.D.14 — Tech detail selection state. Owned by PlayPage so TechTreePanel +
+  // TechDetailPanel can react to the same selectedTechId independently. Clicking a tech in
+  // the tree auto-opens the detail panel so the player doesn't have to find the toolbar button.
+  const [selectedTechId, setSelectedTechId] = useState<import('@smol/shared').TechId | null>(null)
 
   // PHASE 17.L.A.7+A.8 — launch-manifest request state. ShipBuildPanel.onLaunch sets this with
   // the chosen pad + target; LaunchManifestModal renders when non-null. Cleared on cancel or
@@ -1161,7 +1167,42 @@ export function PlayPage() {
             variant="centered"
             width={920}
           >
-            <TechTreePanel empire={humanCivState.empire} />
+            <TechTreePanel
+              empire={humanCivState.empire}
+              selectedTechId={selectedTechId}
+              onSelectTech={(techId) => {
+                setSelectedTechId(techId)
+                // HOTFIX 17.L.D.14 — auto-open the detail panel on first tech click so the
+                // player doesn't have to dig through the toolbar for the 🔍 button.
+                setOpenPanels((prev) => {
+                  if (prev.has('techDetail')) return prev
+                  const next = new Set(prev)
+                  next.add('techDetail')
+                  return next
+                })
+              }}
+            />
+          </PanelFrame>
+        )}
+
+        {/* HOTFIX 17.L.D.14 — Tech Detail panel. Extracted from the embedded sidebar inside
+            TechTreePanel so it's fully movable / resizable like every other panel (per user
+            verbatim "needs to be its own panel along side pully movable like all panels shall
+            be"). Auto-opens on first tech click from the tree panel. */}
+        {openPanels.has('techDetail') && (
+          <PanelFrame
+            panelId="techDetail"
+            title="Tech Detail"
+            emoji="🔍"
+            onClose={() => closePanel('techDetail')}
+            variant="docked-right"
+            width={360}
+          >
+            <TechDetailPanel
+              empire={humanCivState.empire}
+              selectedTechId={selectedTechId}
+              onSelectTech={(techId) => setSelectedTechId(techId)}
+            />
           </PanelFrame>
         )}
 
