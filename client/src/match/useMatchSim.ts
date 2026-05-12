@@ -50,9 +50,12 @@ import {
   manualIndigenousParleyAction,
   type ManualParleyInputs,
   type ManualParleyResult,
+  annexTileAction,
   cancelCaravanAction,
   createCaravanAction,
   renameSettlementAction,
+  type AnnexTileInputs,
+  type AnnexTileResult,
   type CancelCaravanActionInputs,
   type CreateCaravanActionInputs,
   type CreateCaravanActionResult,
@@ -162,6 +165,9 @@ export interface UseMatchSimResult {
   // settlement; this callback applies the rename through the sim action so the themed default
   // restores cleanly on blank-input + the change re-renders any panel reading settlement.name.
   readonly renameSettlement: (input: Omit<RenameSettlementInputs, 'state'>) => boolean
+  // PHASE 17.13.3 — annex action. Player picks an adjacent unclaimed tile + spends propaganda
+  // to claim it for the active settlement. Returns structured result for UI failure-mode toasts.
+  readonly annexTile: (input: Omit<AnnexTileInputs, 'state'>) => AnnexTileResult
   // PHASE 17.1.6 — tick-driven salvo orchestration. Replaces the setTimeout chain that lived
   // in PlayPage.runSalvoRound (8s/11s/13s real-time delays). startSalvoRound kicks off a
   // BUILDALL on the planet's pads and primes a SalvoCoordinator; tickSalvo (shared) advances
@@ -653,6 +659,14 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     [],
   )
 
+  // PHASE 17.13.3 — annex action. Bumps tickCount on success so settlement.controlledTileIds
+  // change re-renders any panel (Settlements / Stockpile if it later splits per-settlement).
+  const annexTileCb = useCallback((input: Omit<AnnexTileInputs, 'state'>): AnnexTileResult => {
+    const result = annexTileAction({ ...input, state: stateRef.current })
+    if (result.ok) setTickCount((n) => n + 1)
+    return result
+  }, [])
+
   // PHASE 17.L.A.13 — Q12 LOCKED. Save / load callbacks. saveMatchNow returns boolean for
   // toast feedback; loadSavedMatch swaps stateRef + bumps tickCount so every panel re-renders
   // with the restored data.
@@ -745,6 +759,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     createCaravan,
     cancelCaravan: cancelCaravanCb,
     renameSettlement: renameSettlementCb,
+    annexTile: annexTileCb,
     saveMatchNow,
     loadSavedMatch,
     clearSavedMatch: clearSavedMatchCallback,

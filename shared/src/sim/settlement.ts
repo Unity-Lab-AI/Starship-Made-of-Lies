@@ -12,6 +12,19 @@ import { type PlanetId, type SettlementId, type TileId, settlementId } from '../
 // the data model is in place. Until then the planet-level aggregates remain the source of
 // truth and the Capital settlement is the implicit container for all of it.
 
+// PHASE 17.13.3 — initial radius (in hex-edges) of tiles automatically claimed by a freshly-
+// founded settlement. The civic-center tile + every tile within this many edges (BFS over
+// tile.neighbors[]) joins the new settlement, ceded from whatever settlement owned them before
+// (typically the Capital). 3 rings = up to 1 + 6 + 12 + 18 = 37 tiles at full coverage, fewer
+// at the planet edge or with neighbors already claimed by other founded settlements.
+export const SETTLEMENT_INITIAL_RINGS = 3
+
+// PHASE 17.13.3 — annex propaganda cost per tile. Per user verbatim 2026-05-10: "Player can
+// manually expand territory via 'Annex' button on adjacent unclaimed tiles (costs propaganda
+// materials)". Flat per-tile cost for v1; future polish could scale by ring distance or by
+// the active settlement's existing territory size.
+export const ANNEX_PROPAGANDA_COST = 25
+
 export type SettlementStatus = 'capital' | 'founded' | 'colonizing' | 'ruined'
 
 export interface Settlement {

@@ -15,7 +15,9 @@ import {
   type Tile,
   COLONY_SHIPS,
   RESOURCE_FUEL,
+  RESOURCE_PROPAGANDA_MATERIALS,
   THEMES,
+  stockOf,
   accountId as accountIdValue,
   aggregateEffects,
   deriveSignalCapability,
@@ -1098,16 +1100,61 @@ export function PlayPage() {
   // PHASE 17.13.5 — settlement groups for the SettlementsPanel. One group per owned planet
   // with the planet's full settlement list. Memoized on currentTick so the panel reflects
   // freshly-founded settlements after a Civic Center lands.
+  //
+  // PHASE 17.13.3 — also compute per-settlement annex candidates (tiles owned by this civ +
+  // adjacent to settlement territory + not already in the settlement) so the panel can render
+  // per-tile annex buttons. Capped at 20 candidates per settlement to bound the work.
   const settlementGroups = useMemo<ReadonlyArray<SettlementGroupSnapshot>>(
     () =>
-      ownedPlanets.map((p) => ({
-        planetId: p.planet.id,
-        planetLabel: `${p.planet.biome.emoji} ${String(p.planet.id)}`,
-        settlements: [...p.settlements.values()],
-      })),
+      ownedPlanets.map((p) => {
+        const candidatesBySettlementId = new Map<
+          import('@smol/shared').SettlementId,
+          import('../panels/SettlementsPanel').SettlementAnnexCandidate[]
+        >()
+        const settlementsArr = [...p.settlements.values()]
+        for (const settlement of settlementsArr) {
+          if (settlement.status === 'capital') continue // capital owns the rest by default; no annex UI needed
+          const candidates: import('../panels/SettlementsPanel').SettlementAnnexCandidate[] = []
+          const seenTileIds = new Set<import('@smol/shared').TileId>()
+          for (const ownedTileId of settlement.controlledTileIds) {
+            const ownedTile = p.planet.tiles.find((t) => t.id === ownedTileId)
+            if (!ownedTile) continue
+            for (const nIdx of ownedTile.neighbors) {
+              const neighbor = p.planet.tiles[nIdx]
+              if (!neighbor) continue
+              if (neighbor.ownerCivId !== p.civId) continue
+              if (settlement.controlledTileIds.has(neighbor.id)) continue
+              if (seenTileIds.has(neighbor.id)) continue
+              seenTileIds.add(neighbor.id)
+              candidates.push({
+                tileId: neighbor.id,
+                tileLabel: `${neighbor.biomeId} ${String(neighbor.id).slice(-6)}`,
+              })
+              if (candidates.length >= 20) break
+            }
+            if (candidates.length >= 20) break
+          }
+          candidatesBySettlementId.set(settlement.id, candidates)
+        }
+        return {
+          planetId: p.planet.id,
+          planetLabel: `${p.planet.biome.emoji} ${String(p.planet.id)}`,
+          settlements: settlementsArr,
+          annexCandidatesBySettlementId: candidatesBySettlementId,
+        }
+      }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [ownedPlanets, sim.state.currentTick],
   )
+  // PHASE 17.13.3 — per-planet propaganda stock for the annex affordability gate.
+  const propagandaStockByPlanetId = useMemo(() => {
+    const m = new Map<PlanetId, number>()
+    for (const p of ownedPlanets) {
+      m.set(p.planet.id, stockOf(p.inventory, RESOURCE_PROPAGANDA_MATERIALS))
+    }
+    return m
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ownedPlanets, sim.state.currentTick])
 
   const citizensPanelPlanets = useMemo(
     () =>
@@ -2019,6 +2066,25 @@ export function PlayPage() {
                   newName,
                 })
               }
+              onAnnexTile={(planetIdValue, settlementIdValue, tileIdValue) => {
+                const result = sim.annexTile({
+                  planetId: planetIdValue,
+                  settlementId: settlementIdValue,
+                  tileId: tileIdValue,
+                })
+                if (!result.ok && result.reason === 'insufficientPropaganda') {
+                  setToasts((current) => [
+                    ...current,
+                    {
+                      id: `annex-fail-${Date.now()}`,
+                      message: '❌ Not enough propaganda materials to annex tile.',
+                      kind: 'error',
+                      expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+                    },
+                  ])
+                }
+              }}
+              propagandaStockByPlanetId={propagandaStockByPlanetId}
             />
           </PanelFrame>
         )}

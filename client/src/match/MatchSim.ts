@@ -123,9 +123,11 @@ import {
   type Caravan,
   type Settlement,
   type SettlementId,
+  ANNEX_PROPAGANDA_COST,
   CARAVAN_FUEL_COST,
   MAX_ACTIVE_CARAVANS_PER_CIV,
   CARAVAN_MAX_AMOUNT_PER_RUN,
+  SETTLEMENT_INITIAL_RINGS,
   cancelCaravan,
   canFoundSettlementAt,
   checkMatchEndAchievements,
@@ -136,6 +138,7 @@ import {
   newCaravan,
   newFoundedSettlement,
   renameSettlement,
+  tilesWithinHexRings,
   tickCaravan,
   indigenousLootOnDefeat,
   initiateLastHopeEvac,
@@ -2524,25 +2527,21 @@ function placeBuildingCanonical(
     if (eligibility.ok || eligibility.reason === 'civicCenterTileNotEmpty') {
       const ordinal = planet.nextSettlementOrdinal
       planet.nextSettlementOrdinal += 1
-      // 3-ring radius approximation: pick up to 6 nearest owned-empty tiles by world distance.
-      // True hex-ring traversal lives in PHASE 17.13.3's polish pass.
-      const here = tile.centroid
-      const neighbors = planet.planet.tiles
-        .filter(
-          (t) =>
-            t.id !== tile.id && t.ownerCivId === planet.civId && !claimedByOtherFounded.has(t.id),
-        )
-        .map((t) => ({
-          id: t.id,
-          d2:
-            (t.centroid.x - here.x) ** 2 +
-            (t.centroid.y - here.y) ** 2 +
-            (t.centroid.z - here.z) ** 2,
-        }))
-        .sort((a, b) => a.d2 - b.d2)
-        .slice(0, 6)
-        .map((n) => n.id)
-      const claimedIds = [tile.id, ...neighbors]
+      // PHASE 17.13.3 — 3-ring hex-radius BFS replaces the prior 6-nearest-by-euclidean
+      // approximation. Walks tile.neighbors[] (precomputed face-index adjacency) up to 3
+      // edges out from the seed; filters to tiles owned by this civ and not already in
+      // another founded settlement. The seed (civic-center tile) is included by tilesWithinHexRings
+      // so we just gate-filter the rest. Empty adjacency falls through cleanly when the planet
+      // edge is hit before ring 3 — fewer than 19 tiles claimed but founding still succeeds.
+      const ringTiles = tilesWithinHexRings(tile, planet.planet.tiles, SETTLEMENT_INITIAL_RINGS)
+      const claimedIds: TileId[] = []
+      for (const t of ringTiles) {
+        if (t.id !== tile.id) {
+          if (t.ownerCivId !== planet.civId) continue
+          if (claimedByOtherFounded.has(t.id)) continue
+        }
+        claimedIds.push(t.id)
+      }
       const owningCiv = state.civs.get(planet.civId)
       const founded = newFoundedSettlement(
         planet.planet.id,
@@ -2605,6 +2604,73 @@ export function renameSettlementAction(inputs: RenameSettlementInputs): boolean 
   const owningCiv = inputs.state.civs.get(planet.civId)
   renameSettlement(settlement, inputs.newName, owningCiv ? String(owningCiv.themeId) : undefined)
   return true
+}
+
+// PHASE 17.13.3 — annex action. Player picks an unclaimed-by-this-settlement tile adjacent
+// to one of the settlement's existing controlled tiles + spends ANNEX_PROPAGANDA_COST propaganda
+// materials to claim it. The tile must be owned by the same civ (already on the planet) and
+// adjacent (1 hex-edge) to the active settlement's territory. If another founded settlement
+// owned the tile, ownership transfers (the prior settlement loses it). Returns a structured
+// result so the UI can render specific failure modes.
+export interface AnnexTileInputs {
+  readonly state: MatchState
+  readonly planetId: PlanetId
+  readonly settlementId: SettlementId
+  readonly tileId: TileId
+}
+
+export interface AnnexTileResult {
+  readonly ok: boolean
+  readonly reason?:
+    | 'planetNotOwned'
+    | 'settlementNotFound'
+    | 'tileNotFound'
+    | 'tileNotOwnedByCiv'
+    | 'tileAlreadyInSettlement'
+    | 'tileNotAdjacent'
+    | 'insufficientPropaganda'
+}
+
+export function annexTileAction(inputs: AnnexTileInputs): AnnexTileResult {
+  const planet = inputs.state.planets.get(inputs.planetId)
+  if (!planet || planet.civId !== inputs.state.humanCivId)
+    return { ok: false, reason: 'planetNotOwned' }
+  const settlement = planet.settlements.get(inputs.settlementId)
+  if (!settlement) return { ok: false, reason: 'settlementNotFound' }
+  const tile = planet.planet.tiles.find((t) => t.id === inputs.tileId)
+  if (!tile) return { ok: false, reason: 'tileNotFound' }
+  if (tile.ownerCivId !== planet.civId) return { ok: false, reason: 'tileNotOwnedByCiv' }
+  if (settlement.controlledTileIds.has(tile.id))
+    return { ok: false, reason: 'tileAlreadyInSettlement' }
+  // Adjacent = at least one of the tile's geodesic neighbors lives in this settlement.
+  let adjacent = false
+  for (const nIdx of tile.neighbors) {
+    const neighbor = planet.planet.tiles[nIdx]
+    if (neighbor && settlement.controlledTileIds.has(neighbor.id)) {
+      adjacent = true
+      break
+    }
+  }
+  if (!adjacent) return { ok: false, reason: 'tileNotAdjacent' }
+  if (stockOf(planet.inventory, RESOURCE_PROPAGANDA_MATERIALS) < ANNEX_PROPAGANDA_COST) {
+    return { ok: false, reason: 'insufficientPropaganda' }
+  }
+  // Spend the propaganda + transfer ownership: remove from any prior settlement that held it,
+  // add to this settlement. Capital is implicit holder of unclaimed tiles, so removing from
+  // capital is the normal path.
+  consumeResource(planet.inventory, RESOURCE_PROPAGANDA_MATERIALS, ANNEX_PROPAGANDA_COST)
+  for (const other of planet.settlements.values()) {
+    if (other.id === settlement.id) continue
+    other.controlledTileIds.delete(tile.id)
+  }
+  settlement.controlledTileIds.add(tile.id)
+  pushEvent(inputs.state, {
+    atTick: inputs.state.currentTick,
+    civId: planet.civId,
+    kind: 'planet_claimed',
+    message: `🏘 ${settlement.name} annexed tile ${String(tile.id)} (${ANNEX_PROPAGANDA_COST} propaganda spent).`,
+  })
+  return { ok: true }
 }
 
 // AI-path wrapper — silent on failure, picks any empty owned tile.
