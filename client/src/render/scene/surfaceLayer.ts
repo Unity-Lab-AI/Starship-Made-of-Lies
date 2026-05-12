@@ -369,10 +369,17 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
           depthWrite: false,
         }),
       )
-      // Sprite size scales with the building mesh + lifts above so it floats over the tile.
-      const spriteSize = size * 2.5
+      // HOTFIX 17.L.D.16 — sprite sized to fill the hex tile, not the (smaller) building
+      // mesh underneath. Per user verbatim "the emoji building once placesd are micoscopic
+      // and plaent level max zoom they need to be sized to fill the hex without going
+      // outside the hex they are built on". hexScale is the hexagon's outer radius;
+      // flat-to-flat width = 2 × radius × cos(30°) ≈ 1.73 × radius. Sprites are square so
+      // we use 1.55× radius to leave a slim margin and avoid spilling into neighbor hexes.
+      // Lift bumps the sprite slightly above the tile + the small mesh underneath so the
+      // emoji floats clearly without z-fighting against the building mesh.
+      const spriteSize = hexScale * 1.55
       sprite.scale.set(spriteSize, spriteSize, 1)
-      const spriteLift = buildLift + size * 1.2
+      const spriteLift = buildLift + size * 0.4 + 0.2
       sprite.position.set(
         tile.centroid.x + tile.normal.x * spriteLift,
         tile.centroid.y + tile.normal.y * spriteLift,
