@@ -941,6 +941,11 @@ export function PlayPage() {
               padStateGlows={padStateGlows}
               detonations={sim.state.detonations}
               humanDiscoveredPlanetIds={humanCivState.empire.discoveredPlanetIds}
+              buildingsByPlanet={
+                new Map(
+                  [...sim.state.planets.values()].map((p) => [p.planet.id, p.buildingsByTile]),
+                )
+              }
               {...(redirectModeFlightId
                 ? {
                     onContextMenuPlanet: (planetId: PlanetId) => {

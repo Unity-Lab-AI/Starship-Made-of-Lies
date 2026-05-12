@@ -1,5 +1,46 @@
 import * as THREE from 'three'
-import { type CivId, type Planet, type PlanetId, type Tile, type ResourceNode } from '@smol/shared'
+import {
+  type BuildingDefId,
+  type CivId,
+  type Planet,
+  type PlanetId,
+  type Tile,
+  type TileId,
+  type ResourceNode,
+  BUILDINGS,
+} from '@smol/shared'
+
+// PHASE 17.L.D.9 (HOTFIX 2026-05-11) — emoji-sprite cache. Each unique building emoji glyph
+// gets rendered to a small canvas once + reused as a THREE.CanvasTexture so syncBuildings
+// can scale to 100s of placed buildings without re-rasterizing. Per user verbatim *"YEAH THER
+// IS NO CORRECT EMOJI ICON FOR THE BUILDING PLACED APPERARING ON THE PLANETS WHEN PALCING
+// BUILDINGS"* — the v1 syncBuildings rendered generic shapes by tile.occupancy, ignoring the
+// per-building emoji.
+const buildingEmojiTextureCache = new Map<string, THREE.CanvasTexture>()
+
+function getEmojiTexture(emoji: string): THREE.CanvasTexture {
+  const cached = buildingEmojiTextureCache.get(emoji)
+  if (cached) return cached
+  const canvas = document.createElement('canvas')
+  canvas.width = 128
+  canvas.height = 128
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = 'rgba(0,0,0,0)'
+  ctx.fillRect(0, 0, 128, 128)
+  ctx.font = '96px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(emoji, 64, 70)
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.anisotropy = 4
+  buildingEmojiTextureCache.set(emoji, tex)
+  return tex
+}
+
+// Build def → emoji map for O(1) lookup during syncBuildings.
+const BUILDING_EMOJI_BY_DEF_ID: Map<BuildingDefId, string> = new Map(
+  BUILDINGS.map((d) => [d.id, d.emoji]),
+)
 
 const BIOME_COLORS: Readonly<Record<string, number>> = {
   terran: 0x4ea869,
@@ -74,7 +115,10 @@ export interface SurfaceLayerHandle {
   readonly hoverHighlight: THREE.Mesh
   readonly faceIndexByInstance: ReadonlyArray<number>
   syncOwnership(tiles: ReadonlyArray<Tile>, civColorById: ReadonlyMap<CivId, number>): void
-  syncBuildings(tiles: ReadonlyArray<Tile>): void
+  syncBuildings(
+    tiles: ReadonlyArray<Tile>,
+    buildingsByTile?: ReadonlyMap<TileId, BuildingDefId>,
+  ): void
   setHoveredFace(faceIndex: number | null): void
   setVisibleAtDistance(cameraDistance: number, planetSurfaceRadius: number): void
   dispose(): void
@@ -205,13 +249,19 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
     if (tilesMesh.instanceColor) tilesMesh.instanceColor.needsUpdate = true
   }
 
-  function syncBuildings(tiles: ReadonlyArray<Tile>): void {
+  function syncBuildings(
+    tiles: ReadonlyArray<Tile>,
+    buildingsByTile?: ReadonlyMap<TileId, BuildingDefId>,
+  ): void {
     // Naive sync: dispose+rebuild each call. For PHASE 16.5 v1 fine; PHASE 16.9 polish can incrementalize.
     while (buildingsGroup.children.length > 0) {
       const child = buildingsGroup.children[0]!
       buildingsGroup.remove(child)
       if (child instanceof THREE.Mesh) {
         child.geometry.dispose()
+        if (Array.isArray(child.material)) child.material.forEach((m) => m.dispose())
+        else child.material.dispose()
+      } else if (child instanceof THREE.Sprite) {
         if (Array.isArray(child.material)) child.material.forEach((m) => m.dispose())
         else child.material.dispose()
       }
@@ -228,7 +278,7 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
         roughness: 0.5,
         metalness: 0.3,
         emissive: color,
-        emissiveIntensity: 0.25,
+        emissiveIntensity: 0.4,
       })
       const mesh = new THREE.Mesh(geom, mat)
       tmpN.set(tile.normal.x, tile.normal.y, tile.normal.z)
@@ -246,6 +296,39 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
         occupancy: tile.occupancy,
       }
       buildingsGroup.add(mesh)
+
+      // PHASE 17.L.D.9 (HOTFIX 2026-05-11) — emoji sprite billboard per placed building.
+      // Per user verbatim *"YEAH THER IS NO CORRECT EMOJI ICON FOR THE BUILDING PLACED
+      // APPERARING ON THE PLANETS WHEN PALCING BUILDINGS"*. Looks up the building's emoji
+      // from BUILDING_DEFS via buildingsByTile (passed by GalaxyView from
+      // planet.buildingsByTile). Falls back to a generic generic 🏗 if the def lookup
+      // fails or the map isn't supplied (back-compat for callers that haven't been wired).
+      const defId = buildingsByTile?.get(tile.id)
+      const emoji = (defId && BUILDING_EMOJI_BY_DEF_ID.get(defId)) || '🏗️'
+      const tex = getEmojiTexture(emoji)
+      const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: tex,
+          transparent: true,
+          depthTest: true,
+          depthWrite: false,
+        }),
+      )
+      // Sprite size scales with the building mesh + lifts above so it floats over the tile.
+      const spriteSize = size * 2.5
+      sprite.scale.set(spriteSize, spriteSize, 1)
+      const spriteLift = buildLift + size * 1.2
+      sprite.position.set(
+        tile.centroid.x + tile.normal.x * spriteLift,
+        tile.centroid.y + tile.normal.y * spriteLift,
+        tile.centroid.z + tile.normal.z * spriteLift,
+      )
+      sprite.userData = {
+        kind: 'surface-building-emoji',
+        planetId: planet.id,
+        tileFaceIndex: tile.faceIndex,
+      }
+      buildingsGroup.add(sprite)
     }
   }
 

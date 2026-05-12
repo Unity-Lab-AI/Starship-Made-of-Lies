@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import {
+  type BuildingDefId,
   type CivId,
   type ColonyShipFlight,
   type Galaxy,
@@ -9,6 +10,7 @@ import {
   type ShipBeaconBroadcast,
   type Theme,
   type Tile,
+  type TileId,
 } from '@smol/shared'
 import {
   applyCameraTransform,
@@ -117,6 +119,12 @@ interface GalaxyViewProps {
   // Home planet must be in the set at match start. Defender discovery + launch discovery
   // already wired in PHASE 16.38 / 17.PRE — they add to this set as the player explores.
   readonly humanDiscoveredPlanetIds?: ReadonlySet<PlanetId>
+  // PHASE 17.L.D.9 (HOTFIX 2026-05-11) — per-planet buildings-by-tile index for surface
+  // rendering. syncBuildings reads each entry to look up the per-building emoji from
+  // BUILDING_DEFS. Per user verbatim *"YEAH THER IS NO CORRECT EMOJI ICON FOR THE BUILDING
+  // PLACED APPERARING ON THE PLANETS WHEN PALCING BUILDINGS"*. When omitted, falls back to
+  // generic 🏗 placeholder.
+  readonly buildingsByPlanet?: ReadonlyMap<PlanetId, ReadonlyMap<TileId, BuildingDefId>>
 }
 
 // PHASE 17.PRE.4 — persistent camera state across GalaxyView re-mounts. Keyed by Galaxy
@@ -149,6 +157,7 @@ export function GalaxyView({
   detonations,
   onContextMenuPlanet,
   humanDiscoveredPlanetIds,
+  buildingsByPlanet,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -162,6 +171,10 @@ export function GalaxyView({
   const humanDiscoveredPlanetIdsRef = useRef<ReadonlySet<PlanetId> | undefined>(
     humanDiscoveredPlanetIds,
   )
+  // PHASE 17.L.D.9 — live ref so syncBuildings in the RAF loop reads the freshest map.
+  const buildingsByPlanetRef = useRef<
+    ReadonlyMap<PlanetId, ReadonlyMap<TileId, BuildingDefId>> | undefined
+  >(buildingsByPlanet)
   const rangeVisibleRef = useRef(rangeOverlayVisible)
   const onSurfaceTileClickRef = useRef(onSurfaceTileClick)
   const miningBeaconsRef = useRef<ReadonlyArray<ShipBeaconBroadcast>>(miningBeacons ?? [])
@@ -188,6 +201,7 @@ export function GalaxyView({
   rangeVisibleRef.current = rangeOverlayVisible
   onSurfaceTileClickRef.current = onSurfaceTileClick
   humanDiscoveredPlanetIdsRef.current = humanDiscoveredPlanetIds
+  buildingsByPlanetRef.current = buildingsByPlanet
   miningBeaconsRef.current = miningBeacons ?? []
   civsByPlanetRef.current = civsByPlanet
   indigenousByPlanetRef.current = indigenousByPlanet ?? []
@@ -679,6 +693,7 @@ export function GalaxyView({
 
       // Surface layer visibility — show tiles when camera close to each planet
       const camPos = cameraState.camera.position
+      const liveBuildingsByPlanet = buildingsByPlanetRef.current
       for (const planet of galaxy.planets) {
         const mesh = galaxyHandle.planetMeshes.get(planet.id)
         if (!mesh) continue
@@ -689,7 +704,18 @@ export function GalaxyView({
         const visibilityThreshold = planet.surfaceRadius * 6
         if (dist < visibilityThreshold) {
           const handle = ensureSurfaceLayer(planet)
-          if (handle) handle.setVisibleAtDistance(dist, planet.surfaceRadius)
+          if (handle) {
+            handle.setVisibleAtDistance(dist, planet.surfaceRadius)
+            // PHASE 17.L.D.9 (HOTFIX 2026-05-11) — re-sync buildings every visible-frame so
+            // placements update without a full layer rebuild. Threads the per-planet
+            // buildingsByTile map from MatchState so each placed building can resolve its
+            // emoji via BUILDING_DEFS lookup. Per user verbatim *"YEAH THER IS NO CORRECT
+            // EMOJI ICON FOR THE BUILDING PLACED APPERARING ON THE PLANETS WHEN PALCING
+            // BUILDINGS"* — v1 syncBuildings only ran ONCE at mount, so placements never
+            // appeared even with the emoji sprite landed in D.9.
+            const map = liveBuildingsByPlanet?.get(planet.id)
+            handle.syncBuildings(planet.tiles, map)
+          }
         } else {
           const existing = surfaceLayers.get(planet.id)
           if (existing) existing.group.visible = false
