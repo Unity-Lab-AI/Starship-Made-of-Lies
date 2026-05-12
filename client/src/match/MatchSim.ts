@@ -2957,6 +2957,102 @@ export function refuelReactorFromGodControlAction(inputs: RefuelReactorInputs): 
   return true
 }
 
+// PHASE 17.12.3 — manual indigenous parley. Player burns 50 propaganda materials from the
+// host planet's inventory to bypass the 60-tick auto-trigger and force an immediate parley
+// attempt. Same `attemptIndigenousParley` resolver as the auto path, but the player gets a
+// boosted propaganda-power input (representing the concentrated diplomatic effort) so manual
+// parleys land more reliably than the trickle-feed auto-trigger.
+export interface ManualParleyInputs {
+  readonly state: MatchState
+  readonly planetId: PlanetId
+}
+
+export interface ManualParleyResult {
+  readonly ok: boolean
+  readonly accepted: boolean
+  readonly defectingTileCount: number
+  readonly reason?: string
+}
+
+const MANUAL_PARLEY_PROPAGANDA_COST = 50
+const MANUAL_PARLEY_BOOSTED_POWER = 0.7
+
+export function manualIndigenousParleyAction(inputs: ManualParleyInputs): ManualParleyResult {
+  const planet = inputs.state.planets.get(inputs.planetId)
+  if (!planet) return { ok: false, accepted: false, defectingTileCount: 0, reason: 'no planet' }
+  if (planet.civId !== inputs.state.humanCivId) {
+    return { ok: false, accepted: false, defectingTileCount: 0, reason: 'planet not owned' }
+  }
+  if (!planet.indigenousCivId) {
+    return {
+      ok: false,
+      accepted: false,
+      defectingTileCount: 0,
+      reason: 'no indigenous presence',
+    }
+  }
+  const indig = inputs.state.indigenousCivs.get(planet.indigenousCivId)
+  if (!indig || !indig.alive) {
+    return {
+      ok: false,
+      accepted: false,
+      defectingTileCount: 0,
+      reason: 'indigenous already cleared',
+    }
+  }
+  const have = stockOf(planet.inventory, RESOURCE_PROPAGANDA_MATERIALS)
+  if (have < MANUAL_PARLEY_PROPAGANDA_COST) {
+    return {
+      ok: false,
+      accepted: false,
+      defectingTileCount: 0,
+      reason: `need ${MANUAL_PARLEY_PROPAGANDA_COST} propaganda materials (have ${have})`,
+    }
+  }
+  consumeResource(planet.inventory, RESOURCE_PROPAGANDA_MATERIALS, MANUAL_PARLEY_PROPAGANDA_COST)
+  const result = attemptIndigenousParley({
+    indig,
+    currentTick: inputs.state.currentTick,
+    propagandaPower: MANUAL_PARLEY_BOOSTED_POWER,
+  })
+  if (result.accepted && result.defectingTiles.length > 0) {
+    for (const tid of result.defectingTiles) {
+      const tile = planet.planet.tiles.find((t) => t.id === tid)
+      if (tile) tile.ownerCivId = indig.hostHumanCivId
+    }
+    if (!indig.alive) {
+      const loot = indigenousLootOnDefeat(indig)
+      const cur = stockOf(planet.inventory, RESOURCE_INGOTS)
+      planet.inventory.stocks.set(RESOURCE_INGOTS, cur + loot.resourceBonus)
+      pushEvent(inputs.state, {
+        atTick: inputs.state.currentTick,
+        civId: indig.hostHumanCivId,
+        kind: 'indigenous',
+        message: `${indig.emoji} ${indig.displayName} fully assimilated via manual parley. +${loot.resourceBonus} ingots looted.`,
+      })
+    } else {
+      pushEvent(inputs.state, {
+        atTick: inputs.state.currentTick,
+        civId: indig.hostHumanCivId,
+        kind: 'indigenous',
+        message: `${indig.emoji} ${indig.displayName} ceded ${result.defectingTiles.length} tile(s) via manual parley.`,
+      })
+    }
+  } else {
+    pushEvent(inputs.state, {
+      atTick: inputs.state.currentTick,
+      civId: indig.hostHumanCivId,
+      kind: 'indigenous',
+      message: `${indig.emoji} ${indig.displayName} refused the manual parley (50 propaganda spent).`,
+    })
+  }
+  return {
+    ok: true,
+    accepted: result.accepted,
+    defectingTileCount: result.defectingTiles.length,
+  }
+}
+
 // PHASE 16.31 — convenience check exposed to UI so the FlightDetailPanel "Select for Redirect"
 // button + GalaxyView right-click handler can gate visibility without re-computing the check
 // each frame. Returns true when the human civ has god control researched AND installed.

@@ -39,6 +39,9 @@ import {
   launchShipFromPadAction,
   loadPadManifestAction,
   placeBuildingAction,
+  manualIndigenousParleyAction,
+  type ManualParleyInputs,
+  type ManualParleyResult,
   redirectFlightAction,
   refuelReactorFromGodControlAction,
   setBuildingModeAction,
@@ -123,6 +126,10 @@ export interface UseMatchSimResult {
   readonly upgradePlanetCapacity: (
     input: Omit<UpgradePlanetCapacityInputs, 'state'>,
   ) => UpgradePlanetCapacityResult
+  // PHASE 17.12.3 — manual indigenous parley. IndigenousPanel "Negotiate Now" button calls
+  // this. Consumes 50 propaganda materials from the host planet's inventory and fires an
+  // immediate parley attempt with boosted propaganda-power.
+  readonly manualIndigenousParley: (input: Omit<ManualParleyInputs, 'state'>) => ManualParleyResult
   // PHASE 17.L.A.13 — Q12 LOCKED. Manual save + load callbacks. Auto-save runs internally
   // based on config.saveMode. saveMatchNow returns true on successful localStorage write.
   readonly saveMatchNow: () => boolean
@@ -449,6 +456,17 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     [],
   )
 
+  // PHASE 17.12.3 — manual parley. Bump tickCount on success so IndigenousPanel re-renders
+  // with the updated controlledTileIds count + parleysAccepted increment.
+  const manualIndigenousParley = useCallback(
+    (input: Omit<ManualParleyInputs, 'state'>): ManualParleyResult => {
+      const result = manualIndigenousParleyAction({ ...input, state: stateRef.current })
+      if (result.ok) setTickCount((n) => n + 1)
+      return result
+    },
+    [],
+  )
+
   // PHASE 17.L.A.13 — Q12 LOCKED. Save / load callbacks. saveMatchNow returns boolean for
   // toast feedback; loadSavedMatch swaps stateRef + bumps tickCount so every panel re-renders
   // with the restored data.
@@ -500,6 +518,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     setPlanetQuota,
     setBuildingMode,
     upgradePlanetCapacity,
+    manualIndigenousParley,
     saveMatchNow,
     loadSavedMatch,
     clearSavedMatch: clearSavedMatchCallback,
