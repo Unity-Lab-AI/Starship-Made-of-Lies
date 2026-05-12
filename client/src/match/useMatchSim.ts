@@ -12,6 +12,12 @@ import {
   setTargetQueue,
 } from '@smol/shared'
 import {
+  clearSavedMatch,
+  hasSavedMatch,
+  loadMatchFromStorage,
+  saveMatchToStorage,
+} from './saveLoad'
+import {
   type BuildShipFromBlueprintInputs,
   type BuildShipInputs,
   type LaunchCampaignInputs,
@@ -108,6 +114,12 @@ export interface UseMatchSimResult {
   // PHASE 17.L.A.12 — Q11 LOCKED. Per-building-def mode toggle (auto / paused / disassembly).
   // QuotasPanel building rows invoke this when player flips the dropdown.
   readonly setBuildingMode: (input: Omit<SetBuildingModeInputs, 'state'>) => boolean
+  // PHASE 17.L.A.13 — Q12 LOCKED. Manual save + load callbacks. Auto-save runs internally
+  // based on config.saveMode. saveMatchNow returns true on successful localStorage write.
+  readonly saveMatchNow: () => boolean
+  readonly loadSavedMatch: () => boolean
+  readonly clearSavedMatch: () => void
+  readonly hasSavedMatch: boolean
 }
 
 export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
@@ -115,6 +127,9 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
   const [tickCount, setTickCount] = useState(0)
   const [running, setRunning] = useState(true)
   const [speed, setSpeed] = useState<1 | 2 | 4 | 8>(1)
+  // PHASE 17.L.A.13 — Q12 LOCKED. Track whether a saved match exists in localStorage so the
+  // UI can show / hide the 📂 Load button. Refreshed after every save/load/clear call.
+  const [savedMatchPresent, setSavedMatchPresent] = useState<boolean>(() => hasSavedMatch())
 
   useEffect(() => {
     if (!running) return
@@ -126,6 +141,22 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     }, interval)
     return () => clearInterval(handle)
   }, [running, speed])
+
+  // PHASE 17.L.A.13 — Q12 LOCKED. Auto-save interval driven by config.saveMode. 'off' /
+  // 'manual' don't auto-save. 'auto-5min' / 'auto-15min' fire saveMatchToStorage at the
+  // matching real-time interval (independent of in-game speed). The 'savedMatchPresent' flag
+  // updates after each successful save so the UI re-renders the Load button.
+  useEffect(() => {
+    const mode = initialConfig.saveMode ?? 'auto-5min'
+    if (mode === 'off' || mode === 'manual') return
+    const intervalMs = mode === 'auto-5min' ? 5 * 60 * 1000 : 15 * 60 * 1000
+    const handle = setInterval(() => {
+      if (stateRef.current.phase === 'ENDED') return
+      const ok = saveMatchToStorage(stateRef.current, initialConfig.seed)
+      if (ok) setSavedMatchPresent(true)
+    }, intervalMs)
+    return () => clearInterval(handle)
+  }, [initialConfig.saveMode, initialConfig.seed])
 
   const togglePause = useCallback(() => setRunning((r) => !r), [])
 
@@ -398,6 +429,26 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     return ok
   }, [])
 
+  // PHASE 17.L.A.13 — Q12 LOCKED. Save / load callbacks. saveMatchNow returns boolean for
+  // toast feedback; loadSavedMatch swaps stateRef + bumps tickCount so every panel re-renders
+  // with the restored data.
+  const saveMatchNow = useCallback((): boolean => {
+    const ok = saveMatchToStorage(stateRef.current, initialConfig.seed)
+    if (ok) setSavedMatchPresent(true)
+    return ok
+  }, [initialConfig.seed])
+  const loadSavedMatch = useCallback((): boolean => {
+    const restored = loadMatchFromStorage()
+    if (!restored) return false
+    stateRef.current = restored
+    setTickCount((n) => n + 1)
+    return true
+  }, [])
+  const clearSavedMatchCallback = useCallback(() => {
+    clearSavedMatch()
+    setSavedMatchPresent(false)
+  }, [])
+
   return {
     state: stateRef.current,
     tickCount,
@@ -428,5 +479,9 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     setShipDutyPercent,
     setPlanetQuota,
     setBuildingMode,
+    saveMatchNow,
+    loadSavedMatch,
+    clearSavedMatch: clearSavedMatchCallback,
+    hasSavedMatch: savedMatchPresent,
   }
 }
