@@ -1,13 +1,19 @@
 .telemetry-rack {
-  /* PHASE 17.L.D.3 (HOTFIX 2026-05-11) — bottom bumped 5.5rem → 7.5rem because the rack's
-     toggle button "LCD RACK × 11 PANELS" was sitting AT the top edge of the bottom hud-
-     toolbar (panel-toggle bar at bottom:0.8rem + ~3-4rem button height), visually overlapping
-     the toolbar buttons. Per user verbatim *"ther is a 'LCD RACK x ll panels' text over top
-     of the toolbar"*. 7.5rem gives ~2rem clear gap above the hud-toolbar at any reasonable
-     button-row height. */
+  /* PHASE 17.L.D.7 (HOTFIX 2026-05-11) — bottom bumped 7.5rem → 13rem. D.3's 7.5rem only
+     cleared a single-row hud-toolbar (~4rem tall), but hud-toolbar has flex-wrap:wrap. At
+     narrow viewports or with many panel buttons it wraps to 2-3 rows, growing to ~7-11rem
+     tall + 0.8rem bottom offset = top edge at ~8-12rem. With rack at 7.5rem the toggle
+     button (z-30) sat ON TOP of toolbar buttons (z-10) per user verbatim *"THE LCD RACK 11
+     PANELS THAT OPENS THE LCDS NEED TO BE ABOVE THE BUTTON BAR (CURRENTLY ITS ON TOP OF THE
+     BUTTONS AND I CANT READE THE BUTTONS OR USE THEM)"*. 13rem clears worst-case 3-row
+     toolbar + 1rem visual gap. Worst-case math: button height 3rem × 3 rows + 0.35rem × 2
+     gaps + 1rem container padding + 0.8rem bottom offset = 10.5rem; rack at 13rem leaves
+     2.5rem clear breathing room.
+
+     PHASE 17.L.D.3 PRIOR — bumped 5.5rem → 7.5rem (insufficient — see above). */
   position: fixed;
   left: 50%;
-  bottom: 7.5rem;
+  bottom: 13rem;
   transform: translateX(-50%);
   z-index: 30;
   background: rgba(8, 10, 16, 0.92);
