@@ -28,8 +28,10 @@ interface MiningFleetPanelProps {
   ) => boolean
 }
 
-// PHASE 17.L.A.11 — human-readable mode labels + short explanation per mode for the picker
-// tooltip. Order matches the MiningShipMode union for picker rendering.
+// Two-mode picker after user design correction 2026-05-12 — mining ships don't break and
+// resource nodes are endless, so the previous `oneway` (sacrifice-the-ship) mode was retired.
+// What remains is a pure throughput-shape choice between cycling to a single deposit vs.
+// rotating through multiple per cycle.
 const MINING_MODE_OPTIONS: ReadonlyArray<{
   id: MiningShipMode
   label: string
@@ -40,34 +42,15 @@ const MINING_MODE_OPTIONS: ReadonlyArray<{
     id: 'shuttle-single',
     label: 'Shuttle (single)',
     short: 'Single',
-    hint: 'Cycles to the closest non-depleted deposit and returns. Default. Balanced cargo throughput + ship preservation.',
+    hint: 'Cycles to the closest deposit and returns home to offload. Default. Balanced for steady single-resource extraction.',
   },
   {
     id: 'shuttle-multi',
     label: 'Shuttle (multi)',
     short: 'Multi',
-    hint: 'Rotates through the 3 closest non-depleted deposits per cycle. Partial-fills each. Better for clustered small deposits + mixed-resource extraction.',
-  },
-  {
-    id: 'oneway',
-    label: 'One-way (sacrifice)',
-    short: 'One-way',
-    hint: 'Ship parks at the deposit + drills directly into planet inventory (bypasses cargo cap). Retires when deposit depletes. Burst extraction; loses the ship.',
+    hint: 'Rotates through the 3 closest deposits per cycle. Partial-fills each. Better for clustered small deposits + mixed-resource extraction in one round-trip.',
   },
 ]
-
-// Confirm message shown when player switches a ship FROM another mode TO oneway. Skipped
-// when the ship is already oneway (no-op switches) or when switching away from oneway.
-// window.confirm is a minimum-effort blocking dialog — a custom modal is a future polish
-// pass. Returns true if the player confirmed; false to cancel the mode change.
-function confirmOnewayTransition(shipName: string): boolean {
-  return window.confirm(
-    `Switch "${shipName}" to ONE-WAY mode?\n\n` +
-      'The ship will park at the next deposit and drill directly into planet inventory.\n' +
-      'When that deposit depletes, the ship retires permanently (no return trip).\n\n' +
-      'Best for burst extraction (first-ship sprint, tech rush). Loses the ship.',
-  )
-}
 
 function clampPercent(value: number): number {
   if (!Number.isFinite(value)) return 0
@@ -150,11 +133,6 @@ function renderShipRow(
               onChange={(e) => {
                 const nextMode = e.target.value as MiningShipMode
                 if (nextMode === beacon.mode) return
-                // Confirm gate for oneway — the ship is sacrificed when its deposit depletes.
-                // Misclicks should not silently lose an asset.
-                if (nextMode === 'oneway' && !confirmOnewayTransition(beacon.shipName)) {
-                  return
-                }
                 onSetMode(planetId, beacon.shipId, nextMode)
               }}
               aria-label={`Mining mode for ${beacon.shipName}`}

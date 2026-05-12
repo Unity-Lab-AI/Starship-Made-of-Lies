@@ -234,6 +234,7 @@ import {
   SPARKLINE_POPULATION,
   SPARKLINE_RESOURCE_TOTAL,
   SPARKLINE_TECH_POINTS,
+  addStartingPlanetEconomy,
 } from '@smol/shared'
 import { shouldTickPlanetThisFrame, type PlanetTickPriority } from './planetAggregates'
 
@@ -523,6 +524,10 @@ export function createMatch(config: MatchConfig): MatchState {
   }
   let spawnCursor = 0
   const humanHomePlanet = hospitablePlanets[spawnCursor++]!
+  // PHASE 17.L 2026-05-12 — every starting planet must have the resources needed to get to
+  // space. Idempotent enrichment: if the random gen didn't roll stone+rareMetals+gas onto the
+  // home world, plant a 'common'-tier node for each missing resource on an empty tile.
+  addStartingPlanetEconomy(humanHomePlanet, rng)
   civs.set(humanCivId, {
     civId: humanCivId,
     themeId: config.humanThemeId,
@@ -564,6 +569,9 @@ export function createMatch(config: MatchConfig): MatchState {
     // putting AI on hostile-tier rocks.
     const homePlanet = hospitablePlanets[spawnCursor++]
     if (!homePlanet) break
+    // PHASE 17.L 2026-05-12 — AI civs also need the basic-space-tech resource set on their
+    // home world so they're real threats (not harmless if rolled onto a resource-poor planet).
+    addStartingPlanetEconomy(homePlanet, rng)
     const slotCfg = config.aiSlots?.[i]
     const playstyle = slotCfg?.playstyle ?? playstyles[i % playstyles.length]!
     const difficulty = slotCfg?.difficulty ?? difficulties[i % difficulties.length]!

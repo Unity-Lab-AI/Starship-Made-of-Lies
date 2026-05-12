@@ -12,16 +12,20 @@ import { type MiningShipMode, type ShipBeaconBroadcast, type ShipBeaconStatus } 
 
 // MiningShip — UMS UnityBeacon auto-shuttle equivalent. Each ship lives on a home planet and
 // autonomously cycles DOCKED → OUTBOUND → DRILLING → INBOUND → OFFLOADING → DOCKED, drilling
-// the closest non-depleted ResourceNode and depositing cargo into PlanetInventory.stocks.
-// Per `feedback_resource_miners_need_deposits.md` and `feedback_tile_xyz_addressing.md` —
-// targeting is by ResourceNode.worldPosition Vec3 (not q,r/faceIndex). Broadcasts a ShipBeacon
-// every 2 ticks (UMS MINER_BEACON cadence). Spawned at match start by MatchSim.
+// the closest ResourceNode and depositing cargo into PlanetInventory.stocks. Per
+// `feedback_resource_miners_need_deposits.md` and `feedback_tile_xyz_addressing.md` —
+// targeting is by ResourceNode.worldPosition Vec3 (not q,r/faceIndex). Broadcasts a
+// ShipBeacon every 2 ticks (UMS MINER_BEACON cadence). Spawned at match start by MatchSim.
 //
-// PHASE 17.L.A.11 (Q5 PHASE 17 LOCKED: "all three yes") — ships now carry a `mode` field
-// (shuttle-single / shuttle-multi / oneway). The state machine branches on mode so the
-// player can pick the extraction strategy that fits the planet's deposit topology. Without
-// this, early-game economy can't get enough resource off home-planet deposits to build the
-// industry + tech path required for the first colony ships.
+// PHASE 17.L 2026-05-12 design correction: **mining ships don't break** and **resource
+// nodes are endless**. The `oneway` (sacrifice-the-ship) mode was removed because there's
+// nothing to sacrifice for. Ships cycle indefinitely; the mode picker just optimizes
+// throughput shape:
+//   • 'shuttle-single' — closest node, cycle home → deposit → home.
+//   • 'shuttle-multi'  — rotate through up to 3 closest nodes per cycle, partial-fill each.
+// `isDepleted` always returns false now (see resource-node.ts) so the ship never has to
+// abandon a deposit. NO_SIGNAL is retained as a recoverable temporary state — the ship
+// crawls home on solar trickle when battery + signal drop, then resumes cycling.
 
 const SHIP_SPEED_UNITS_PER_TICK = 80
 const MIN_TRAVEL_TICKS = 18
@@ -41,23 +45,10 @@ const BEACON_INTERVAL_TICKS = 2
 const NO_SIGNAL_CRAWL_SPEED_UNITS_PER_TICK = 40
 const NO_SIGNAL_BATTERY_BURN = 0.2
 
-// PHASE 17.L.A.11 — shuttle-multi visits up to N closest non-depleted deposits per cycle.
-// Trade-off vs. shuttle-single: longer cycle time, but better coverage of clustered small
-// deposits + extracts multiple resource types per round-trip.
+// PHASE 17.L 2026-05-12 — shuttle-multi visits up to N closest deposits per cycle. Trade-off
+// vs. shuttle-single: longer cycle time, but better coverage of clustered small deposits +
+// extracts multiple resource types per round-trip.
 const SHUTTLE_MULTI_DEPOSITS_PER_CYCLE = 3
-
-// oneway throughput: when parked at a deposit, ship drills directly into PlanetInventory.
-// Tuned to 4/tick (2.3× shuttle-single's ~1.75/tick) so the "sacrifice the ship" trade-off
-// is a meaningful choice rather than a strictly-dominant default. At 4/tick, oneway extracts
-// a 200-unit deposit in 50 ticks (1× speed = 10s); shuttle-single would extract the same
-// 200 units in ~115 ticks BUT the ship is recovered for further work. Break-even tips toward
-// oneway only when the player needs the burst (first-ship sprint) or when ship build cost
-// is low relative to deposit value. Super-review 2026-05-12 balance fix.
-const ONEWAY_DRILL_PER_TICK = 4
-// Battery burn while parked + drilling in oneway. Lower than normal drill burn because the
-// ship isn't traveling; solar trickle keeps it topped up indefinitely.
-const ONEWAY_BATTERY_BURN_DRILL = 0.1
-const ONEWAY_BATTERY_SOLAR_RECHARGE = 0.15
 
 export type { MiningShipMode } from './ship-beacon'
 
@@ -94,10 +85,10 @@ export interface MiningShip {
   mode: MiningShipMode
   // For shuttle-multi: queue of node ids to visit on the current outbound cycle. Populated
   // when DOCKED→OUTBOUND fires; emptied as nodes are visited; refilled at the start of the
-  // next cycle. Empty for shuttle-single and oneway.
+  // next cycle. Empty for shuttle-single.
   assignedNodeIds: string[]
-  // Telemetry: complete OUTBOUND→DRILL→INBOUND→OFFLOAD round-trips since spawn (shuttle
-  // modes) or 1 when the parked deposit depletes (oneway). 0 until first cycle completes.
+  // Telemetry: complete OUTBOUND→DRILL→INBOUND→OFFLOAD round-trips since spawn. 0 until
+  // first cycle completes.
   cyclesCompleted: number
 }
 
@@ -256,9 +247,6 @@ const NO_SIGNAL_BATTERY_THRESHOLD = 8
 // usually crawl home and re-dock well before that.
 const NO_SIGNAL_SOLAR_TRICKLE = 0.05
 function maybeEnterNoSignal(ship: MiningShip): void {
-  // Oneway ships parked at a deposit never enter NO_SIGNAL — they're stationary and have
-  // solar trickle keeping them alive. The crawl-home logic doesn't apply.
-  if (ship.mode === 'oneway' && ship.status === 'AT_DEPOSIT_DRILLING') return
   if (ship.status === 'NO_SIGNAL') return
   if (ship.status === 'DOCKED' || ship.status === 'IDLE' || ship.status === 'OFFLOADING') return
   if (ship.batteryPercent <= NO_SIGNAL_BATTERY_THRESHOLD) {
@@ -268,10 +256,8 @@ function maybeEnterNoSignal(ship: MiningShip): void {
   }
 }
 
-// PHASE 17.L.A.11 — DOCKED→OUTBOUND transition. Mode-specific target selection:
-//   - shuttle-single: closest non-depleted node
-//   - shuttle-multi:  populate assignedNodeIds with up to N closest; pick first as target
-//   - oneway:         closest non-depleted node (single trip, no queue)
+// DOCKED→OUTBOUND target selection. shuttle-single picks the closest node; shuttle-multi
+// builds a 3-node queue and picks the first.
 function selectInitialTarget(ship: MiningShip, planet: Planet): ResourceNode | null {
   if (ship.mode === 'shuttle-multi') {
     const queue = pickClosestNNodes(ship, planet, SHUTTLE_MULTI_DEPOSITS_PER_CYCLE, new Set())
@@ -279,36 +265,16 @@ function selectInitialTarget(ship: MiningShip, planet: Planet): ResourceNode | n
     ship.assignedNodeIds = queue.map((n) => n.id)
     return queue[0] ?? null
   }
-  // shuttle-single + oneway both pick the single closest non-depleted node.
   return pickClosestNode(ship, planet)
 }
 
-// PHASE 17.L.A.11 — after a deposit visit, decide next state based on mode:
-//   - oneway: stay parked at the deposit until it depletes. When depleted, retire to IDLE.
-//   - shuttle-single: always INBOUND to home for offload.
-//   - shuttle-multi: if cargo not full AND assignedNodeIds has more → OUTBOUND to next;
-//                    else INBOUND to home for offload.
-// Side-effect: mutates ship.travel* / ship.status fields. Returns nothing.
-function transitionAfterDrilling(
-  ship: MiningShip,
-  planet: Planet,
-  currentNodeDepleted: boolean,
-): void {
-  if (ship.mode === 'oneway') {
-    // Oneway ship retires once its assigned deposit is depleted. It never returns home.
-    if (currentNodeDepleted) {
-      ship.status = 'IDLE'
-      ship.ticksInStatus = 0
-      ship.targetNodeId = null
-      ship.cyclesCompleted = 1
-    }
-    // Else stay drilling — handled by the caller continuing to call AT_DEPOSIT_DRILLING.
-    return
-  }
+// After a deposit visit, decide the next leg. shuttle-single always returns home. shuttle-
+// multi advances to the next queued node if cargo isn't full; otherwise returns home for
+// offload. Per user 2026-05-12 — nodes are endless so the "depleted target" path that used
+// to drop nodes from the queue no longer fires in practice; the filter stays as defense-in-
+// depth in case future tuning re-introduces tier-based depletion.
+function transitionAfterDrilling(ship: MiningShip, planet: Planet): void {
   if (ship.mode === 'shuttle-multi' && ship.cargoAmount < ship.cargoCapacity) {
-    // Drop the just-visited node + any newly-depleted entries from the cycle queue. Build
-    // an id→node index in one pass so we don't re-scan planet.resourceNodes (O(n)) for every
-    // queue entry. Important once a planet has many deposits + multiple in-flight ships.
     const nodeIndex = new Map<string, ResourceNode>()
     for (const n of planet.resourceNodes) nodeIndex.set(n.id, n)
     ship.assignedNodeIds = ship.assignedNodeIds.filter((id) => {
@@ -329,8 +295,7 @@ function transitionAfterDrilling(
       }
     }
   }
-  // shuttle-single OR shuttle-multi-with-empty-queue OR oneway-not-depleted (shouldn't reach
-  // here for oneway — guarded above): return home for offload.
+  // shuttle-single OR shuttle-multi-with-empty-queue: return home for offload.
   ship.travelStartPosition = { ...ship.worldPosition }
   ship.travelTotalTicks = computeTravelTicks(ship.worldPosition, ship.homePosition)
   ship.travelTicksRemaining = ship.travelTotalTicks
@@ -348,9 +313,6 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
   switch (ship.status) {
     case 'IDLE':
     case 'DOCKED': {
-      // Oneway retired ships sit in IDLE permanently — no relaunch, no recharge. Player
-      // recycles the ship via scrap action (not implemented yet) or it just stays.
-      if (ship.mode === 'oneway' && ship.status === 'IDLE') break
       ship.fuelPercent = Math.min(100, ship.fuelPercent + FUEL_RECHARGE_DOCKED)
       ship.batteryPercent = Math.min(100, ship.batteryPercent + BATTERY_RECHARGE_DOCKED)
       if (
@@ -404,27 +366,10 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
       const node = ship.targetNodeId
         ? (planet.resourceNodes.find((n) => n.id === ship.targetNodeId) ?? null)
         : null
-      // PHASE 17.L.A.11 — mode branch. Oneway parks here, drilling directly into
-      // PlanetInventory until the deposit depletes. Solar trickle keeps battery up; no fuel
-      // burn (engines idle).
-      if (ship.mode === 'oneway') {
-        ship.batteryPercent = Math.max(0, ship.batteryPercent - ONEWAY_BATTERY_BURN_DRILL)
-        ship.batteryPercent = Math.min(100, ship.batteryPercent + ONEWAY_BATTERY_SOLAR_RECHARGE)
-        if (node) {
-          const amount = drillResourceNode(node, ONEWAY_DRILL_PER_TICK)
-          if (amount > 0) {
-            // Direct-deposit into PlanetInventory — bypass cargo cap entirely.
-            const current = inventory.stocks.get(node.resourceId) ?? 0
-            inventory.stocks.set(node.resourceId, current + amount)
-            drilled = amount
-          }
-        }
-        if (!node || isDepleted(node)) {
-          transitionAfterDrilling(ship, planet, true)
-        }
-        break
-      }
-      // shuttle-single / shuttle-multi: standard drill-into-cargo behavior.
+      // shuttle-single / shuttle-multi: standard drill-into-cargo behavior. With endless
+      // nodes (per user 2026-05-12 design correction) the only exit conditions are cargo-full
+      // or battery-drained; depleted-node never fires in practice but the guard stays as
+      // defense-in-depth.
       ship.batteryPercent = Math.max(0, ship.batteryPercent - BATTERY_BURN_DRILL)
       if (node) {
         const amount = drillResourceNode(node, DRILL_PER_TICK)
@@ -434,9 +379,9 @@ export function tickMiningShip(args: MiningShipTickArgs): MiningShipTickResult {
       }
       const cargoFull = ship.cargoAmount >= ship.cargoCapacity
       const batteryDrained = ship.batteryPercent <= 5
-      const nodeDepleted = !node || isDepleted(node)
-      if (nodeDepleted || cargoFull || batteryDrained) {
-        transitionAfterDrilling(ship, planet, nodeDepleted)
+      const nodeMissing = !node || isDepleted(node)
+      if (nodeMissing || cargoFull || batteryDrained) {
+        transitionAfterDrilling(ship, planet)
       }
       break
     }
