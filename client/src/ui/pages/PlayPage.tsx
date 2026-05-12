@@ -645,10 +645,17 @@ export function PlayPage() {
   useEffect(() => {
     try {
       const audio = getAudioSystem()
-      // Mute the music bus by default so the synth fallback can't drone even if something
-      // triggers setIntensity later. SFX bus stays unmuted so UI clicks + build / launch
-      // accents still play.
+      // PHASE 17.L.D (HOTFIX 2026-05-12) — user playtest re-reported synth drone after the
+      // music-only mute shipped. Previously only the music bus was forced muted at mount,
+      // which still let SFX oscillators (event toasts firing per tick) sound like a drone in
+      // rapid bursts. Now mute master globally on every match-mount — kills ALL synth output
+      // until real .ogg audio ships AND overrides any stale localStorage that had unmuted the
+      // master before this hotfix. The Settings panel can still toggle muting back off if the
+      // player wants UI clicks.
+      audio.setBusMuted('master', true)
       audio.setBusMuted('music', true)
+      audio.setBusMuted('sfx', true)
+      audio.setGlobalMuted(true)
     } catch {
       // Audio singleton creation can fail in SSR / Vitest contexts; swallow.
     }

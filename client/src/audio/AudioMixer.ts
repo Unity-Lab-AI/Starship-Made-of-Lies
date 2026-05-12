@@ -19,11 +19,17 @@ interface PersistedMixer {
 }
 
 function defaultBuses(): AudioBusState[] {
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — user playtest *"and ther is still synth sound in the
+  // game i told you to get rid of that shit"*. Previously music was the only muted-by-default
+  // bus, but rapid event-driven SFX oscillators can drone perceptually. Until real .ogg audio
+  // ships (Layer E #4) every synth bus defaults muted so a fresh install / cleared
+  // localStorage produces silence. The Settings panel can unmute manually if the player wants
+  // UI clicks back.
   return [
-    { id: 'master', volume: 0.8, muted: false },
-    { id: 'music', volume: 0.7, muted: false },
-    { id: 'sfx', volume: 0.85, muted: false },
-    { id: 'voice', volume: 0.9, muted: false },
+    { id: 'master', volume: 0.8, muted: true },
+    { id: 'music', volume: 0.7, muted: true },
+    { id: 'sfx', volume: 0.85, muted: true },
+    { id: 'voice', volume: 0.9, muted: true },
   ]
 }
 
