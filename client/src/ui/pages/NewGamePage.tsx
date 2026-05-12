@@ -96,6 +96,11 @@ export function NewGamePage() {
   const [coopMode, setCoopMode] = useState(false)
   // PHASE 17.K — host-chosen fog-of-war toggle per user verbatim 2026-05-11. Default ON.
   const [fogOfWarEnabled, setFogOfWarEnabled] = useState(true)
+  // PHASE 17.L.A.13 — Q12 PHASE 17 LOCKED. Host picks save mode for the match. Defaults to
+  // auto-5min — the UMS-faithful "match auto-saves every 5 minutes" pattern.
+  const [saveMode, setSaveMode] = useState<'off' | 'manual' | 'auto-5min' | 'auto-15min'>(
+    'auto-5min',
+  )
   const [objectives, setObjectives] = useState<ObjectiveToggleState>(DEFAULT_OBJECTIVES)
   const [aiSlots, setAiSlots] = useState<ReadonlyArray<AISlotConfig>>(() =>
     Array.from({ length: 3 }, (_, i) => defaultAISlot(i)),
@@ -332,6 +337,28 @@ export function NewGamePage() {
             </span>
           </label>
 
+          <label className="new-game-page__field">
+            <span>Save mode</span>
+            <select
+              value={saveMode}
+              onChange={(e) =>
+                setSaveMode(e.target.value as 'off' | 'manual' | 'auto-5min' | 'auto-15min')
+              }
+            >
+              <option value="off">Off — no autosaves</option>
+              <option value="manual">Manual — 💾 button only</option>
+              <option value="auto-5min">Auto-save every 5 minutes</option>
+              <option value="auto-15min">Auto-save every 15 minutes</option>
+            </select>
+            <span className="new-game-page__field-hint">
+              {saveMode === 'off'
+                ? 'No save at all — match state lives only in memory'
+                : saveMode === 'manual'
+                  ? 'Only saves when you click the 💾 toolbar button'
+                  : `Auto-saves to local browser storage every ${saveMode === 'auto-5min' ? '5' : '15'} minutes; manual 💾 button still works`}
+            </span>
+          </label>
+
           <fieldset className="new-game-page__objectives">
             <legend>Win conditions</legend>
             <p className="new-game-page__objectives-hint">
@@ -498,6 +525,7 @@ export function NewGamePage() {
                     objectives: cfgObjectives,
                     aiSlots,
                     fogOfWarEnabled,
+                    saveMode,
                   },
                 })
               }}

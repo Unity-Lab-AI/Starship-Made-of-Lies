@@ -359,6 +359,11 @@ export interface MatchConfig {
   // + all enemy flag billboards visible. Defender-discovery and launch-target-discovery still
   // fire but become no-ops since the planet is already in the set. Default true (UMS-faithful).
   readonly fogOfWarEnabled?: boolean
+  // PHASE 17.L.A.13 — Q12 PHASE 17 LOCKED. Host picks at match start: Off / Manual /
+  // Auto-save (every 5 min or 15 min). Auto modes drive the useMatchSim auto-save interval.
+  // 'off' disables all autosaves; 'manual' requires the 💾 toolbar button to be clicked.
+  // Defaults to 'auto-5min' for any caller that omits it.
+  readonly saveMode?: 'off' | 'manual' | 'auto-5min' | 'auto-15min'
 }
 
 const HOME_PLANET_STARTING_POP = 1000

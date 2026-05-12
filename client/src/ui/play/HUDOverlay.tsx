@@ -16,6 +16,12 @@ interface HUDOverlayProps {
   readonly buildModeBuildingDefId: string | null
   readonly onCancelBuildMode: () => void
   readonly onResetLayout: () => void
+  // PHASE 17.L.A.13 — Q12 PHASE 17 LOCKED. Save / Load callbacks render as toolbar utility
+  // buttons (next to Reset Layout). saveMatchNow returns boolean for toast feedback;
+  // loadSavedMatch swaps state in-place; hasSavedMatch controls the Load button enabled state.
+  readonly onSaveMatch: () => void
+  readonly onLoadSavedMatch: () => void
+  readonly hasSavedMatch: boolean
 }
 
 // PHASE 16.13.9: the 🌌 galaxy toolbar button is suppressed because GalaxyView is now the always-on
@@ -33,6 +39,9 @@ export function HUDOverlay({
   buildModeBuildingDefId,
   onCancelBuildMode,
   onResetLayout,
+  onSaveMatch,
+  onLoadSavedMatch,
+  hasSavedMatch,
 }: HUDOverlayProps) {
   const layout = usePanelLayout()
   const handleResetClick = () => {
@@ -130,6 +139,36 @@ export function HUDOverlay({
             ↺
           </span>
           <span className="hud-toolbar__btn-label">Reset Layout</span>
+        </button>
+        {/* PHASE 17.L.A.13 — Q12 LOCKED. Save / Load utility buttons. Save Now writes to
+            localStorage; Load Saved Match restores in-place. Load is disabled when no save
+            exists yet. */}
+        <button
+          type="button"
+          className="hud-toolbar__btn hud-toolbar__btn--save"
+          onClick={onSaveMatch}
+          title="Save match to local browser storage (also fires automatically based on the save mode picked at match setup)"
+        >
+          <span aria-hidden className="hud-toolbar__btn-emoji">
+            💾
+          </span>
+          <span className="hud-toolbar__btn-label">Save Now</span>
+        </button>
+        <button
+          type="button"
+          className="hud-toolbar__btn hud-toolbar__btn--load"
+          onClick={onLoadSavedMatch}
+          disabled={!hasSavedMatch}
+          title={
+            hasSavedMatch
+              ? 'Restore from last saved match — overwrites current state'
+              : 'No saved match to load'
+          }
+        >
+          <span aria-hidden className="hud-toolbar__btn-emoji">
+            📂
+          </span>
+          <span className="hud-toolbar__btn-label">Load Saved</span>
         </button>
       </footer>
     </>

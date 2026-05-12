@@ -68,6 +68,9 @@ interface MatchSetupHint {
   // PHASE 17.K — host-chosen fog-of-war toggle. Default true (UMS-faithful). When false, the
   // map renders without fog and every enemy planet/flag is visible from match start.
   readonly fogOfWarEnabled?: boolean
+  // PHASE 17.L.A.13 — Q12 PHASE 17 LOCKED. NewGamePage save-mode dropdown threads through.
+  // Defaults to 'auto-5min' when omitted.
+  readonly saveMode?: 'off' | 'manual' | 'auto-5min' | 'auto-15min'
 }
 
 const DEFAULT_OBJECTIVES: ReadonlyArray<MissionObjectiveConfig> = [
@@ -123,6 +126,7 @@ export function PlayPage() {
       objectives,
       tickCapOverride: null,
       fogOfWarEnabled: hint?.fogOfWarEnabled ?? true,
+      saveMode: hint?.saveMode ?? 'auto-5min',
     }
     return aiSlots ? { ...base, aiSlots } : base
   }, [location.state])
@@ -1052,6 +1056,35 @@ export function PlayPage() {
           buildModeBuildingDefId={buildMode}
           onCancelBuildMode={handleCancelBuildMode}
           onResetLayout={() => setOpenPanels(new Set())}
+          onSaveMatch={() => {
+            const ok = sim.saveMatchNow()
+            setToasts((current) => [
+              ...current,
+              {
+                id: `save-${Date.now()}`,
+                kind: ok ? 'success' : 'warning',
+                message: ok
+                  ? `💾 Match saved to local storage at tick ${sim.state.currentTick}`
+                  : '💾 Save failed — localStorage may be full or sandboxed',
+                expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+              },
+            ])
+          }}
+          onLoadSavedMatch={() => {
+            const ok = sim.loadSavedMatch()
+            setToasts((current) => [
+              ...current,
+              {
+                id: `load-${Date.now()}`,
+                kind: ok ? 'success' : 'warning',
+                message: ok
+                  ? `📂 Match restored from saved state at tick ${sim.state.currentTick}`
+                  : '📂 No saved match found',
+                expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+              },
+            ])
+          }}
+          hasSavedMatch={sim.hasSavedMatch}
         />
 
         <Toasts toasts={toasts} onDismiss={dismissToast} />
