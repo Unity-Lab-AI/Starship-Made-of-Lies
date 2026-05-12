@@ -1,0 +1,62 @@
+# PHASE 17.0 + Layer E #7 — Cloudflare Tunnel config template. Copy to your tunnel host
+# (the alpha Windows PC per project_self_host_local_pc.md), fill in the placeholders, and
+# install it as the tunnel's config.yml. The tunnel daemon picks up changes on restart.
+#
+# Setup steps (one-time, per host):
+#   1. Install cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/install-and-setup/installation/
+#   2. Authenticate:    cloudflared tunnel login                (opens browser, picks domain)
+#   3. Create tunnel:   cloudflared tunnel create smol-alpha    (writes credentials JSON to ~/.cloudflared/<uuid>.json)
+#   4. Copy this file:  cp tools/cloudflare-tunnel.template.yml ~/.cloudflared/config.yml
+#   5. Edit + fill placeholders below
+#   6. Route DNS:       cloudflared tunnel route dns smol-alpha smol.unityailab.com
+#                       cloudflared tunnel route dns smol-alpha api.smol.unityailab.com
+#   7. Run:             cloudflared tunnel run smol-alpha
+#                       (or install as service: cloudflared service install)
+#
+# When the tunnel is up, smol.unityailab.com routes to localhost:5173 (the Vite dev or
+# `pnpm preview` server) + api.smol.unityailab.com routes to localhost:2568 (auth HTTP).
+# Multiplayer Colyseus routes to localhost:2567 via the wss subdomain.
+
+# REPLACE WITH YOUR TUNNEL UUID — printed by `cloudflared tunnel create`.
+tunnel: REPLACE_WITH_TUNNEL_UUID
+
+# Path to the credentials JSON file `cloudflared tunnel create` wrote out. Typically:
+#   ~/.cloudflared/REPLACE_WITH_TUNNEL_UUID.json
+credentials-file: REPLACE_WITH_PATH_TO_CREDS_JSON
+
+# Ingress rules — first match wins, last rule MUST be the 404 catch-all.
+ingress:
+  # Frontend (client SPA) — served by Vite dev or `pnpm preview` on localhost:5173
+  - hostname: smol.unityailab.com
+    service: http://localhost:5173
+    originRequest:
+      noTLSVerify: true # localhost http — no cert chain to validate
+      connectTimeout: 30s
+      keepAliveTimeout: 90s
+
+  # Auth HTTP API — OAuth callbacks + matchmaking endpoints (server/src/auth/httpServer.ts)
+  - hostname: api.smol.unityailab.com
+    service: http://localhost:2568
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 30s
+
+  # Multiplayer Colyseus WebSocket — wss:// over the tunnel, ws:// locally
+  - hostname: ws.smol.unityailab.com
+    service: http://localhost:2567
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 30s
+      keepAliveTimeout: 600s # long-lived game-room connections
+
+  # Catch-all — required by cloudflared schema, returns 404 for unmatched hostnames
+  - service: http_status:404
+
+# OPTIONAL — logging level + metrics endpoint for observability
+loglevel: info
+metrics: 127.0.0.1:8090
+
+# OPTIONAL — auto-update the cloudflared binary daily so security patches land without
+# requiring the operator to manually pull. Set to false for fully air-gapped hosts.
+autoupdate-freq: 24h
+no-autoupdate: false
