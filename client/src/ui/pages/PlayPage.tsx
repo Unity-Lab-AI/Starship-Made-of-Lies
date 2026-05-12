@@ -54,6 +54,8 @@ import { TilePlacementGrid } from '../panels/TilePlacementGrid'
 import { BootSequencePanel } from '../panels/BootSequencePanel'
 import { GalaxyView } from '../../render/scene/GalaxyView'
 import { BuildPicker } from '../play/BuildPicker'
+import { getAudioSystem } from '../../audio/AudioSystem'
+import { type SfxEventId } from '../../audio/sfxManifest'
 import { CampaignPicker } from '../play/CampaignPicker'
 import { DockZoneOverlay } from '../play/DockZoneOverlay'
 import { HUDOverlay } from '../play/HUDOverlay'
@@ -89,6 +91,59 @@ const DEFAULT_OBJECTIVES: ReadonlyArray<MissionObjectiveConfig> = [
 const TOAST_LIFETIME_MS = 3500
 const TOAST_PURGE_INTERVAL_MS = 500
 const OPEN_PANELS_STORAGE_KEY = 'smol.open-panels.v1'
+
+// PHASE 17.12.8 — audio cues for game events. Maps each `MatchEventLog.kind` (+ optional
+// message prefix detection for finer-grained cues) onto an `SfxEventId` so the existing
+// AudioSystem's procedural-synth bus fires the right cue. Returns null for kinds with no
+// audio cue (e.g. low-volume system spam). Volume is governed by the existing SFX bus
+// slider in AudioSettingsPanel.
+function eventKindToSfx(kind: string, message: string): SfxEventId | null {
+  switch (kind) {
+    case 'build':
+      return 'build-complete'
+    case 'launch':
+      // Differentiate impact vs launch by message prefix — launches start with "🚀" or the
+      // colony-ship build verb; impacts contain "HIT" / "DETONATED" / "intercepted" etc.
+      if (message.includes('intercept')) return 'colony-ship-intercepted'
+      if (message.includes('HIT') || message.includes('DETONATE')) return 'colony-ship-impact'
+      return 'launch-colony-ship'
+    case 'research':
+      return message.includes('complete') ? 'research-complete' : 'research-progress-tick'
+    case 'campaign':
+      return 'campaign-launch'
+    case 'crash':
+      return 'colony-ship-impact'
+    case 'civ_defeated':
+      return 'civ-defeated'
+    case 'planet_claimed':
+      return 'colony-established'
+    case 'loot':
+      // No dedicated coin-pickup SFX in the manifest; reuse build-complete chime as a
+      // positive-feedback proxy. Future polish pass can add a dedicated 'loot-collected'
+      // cue if the loot UX gets its own polish.
+      return 'build-complete'
+    case 'indigenous':
+      return message.includes('attack') || message.includes('captured')
+        ? 'beacon-alert-impact'
+        : 'click-back'
+    case 'last_hope':
+      return 'beacon-alert-incoming'
+    case 'achievement_unlock':
+      return 'achievement-unlocked'
+    case 'intercept':
+      return 'colony-ship-intercepted'
+    case 'system':
+      // Build-failure events start with ❌. Match-end events have "Match ended". Everything
+      // else stays silent to avoid spamming the SFX bus.
+      if (message.startsWith('❌')) return 'ui-error'
+      if (message.startsWith('Match ended')) {
+        return message.includes('prevailed') ? 'match-victory' : 'match-defeat'
+      }
+      return null
+    default:
+      return null
+  }
+}
 
 function loadOpenPanelsFromStorage(): Set<PanelId> {
   if (typeof window === 'undefined') return new Set()
@@ -566,6 +621,17 @@ export function PlayPage() {
     return out
   }, [techEffects.maxPayloadTier])
 
+  // PHASE 17.12.8 — bind the AudioSystem to the human civ's theme so per-theme synth
+  // accent (build / launch / propaganda jingle) sounds theme-flavored. Runs once on mount +
+  // any time the human civ changes themes (rare — only after resetMatch with a new theme).
+  useEffect(() => {
+    try {
+      getAudioSystem().setTheme(humanTheme.id)
+    } catch {
+      // Audio singleton creation can fail in SSR / Vitest contexts; swallow.
+    }
+  }, [humanTheme.id])
+
   // === Toast lifecycle: auto-purge expired ===
   useEffect(() => {
     const interval = setInterval(() => {
@@ -575,13 +641,27 @@ export function PlayPage() {
     return () => clearInterval(interval)
   }, [])
 
-  // === Surface ❌ build-fail events as toasts ===
+  // === Surface ❌ build-fail events as toasts + fire audio cues per event kind ===
   useEffect(() => {
     const events = sim.state.events
     if (events.length === lastSeenEventIdxRef.current) return
     const newEvents = events.slice(lastSeenEventIdxRef.current)
     lastSeenEventIdxRef.current = events.length
     const newToasts: ToastNotification[] = []
+    // PHASE 17.12.8 — audio cues for new events. Single AudioSystem singleton so SFX bus
+    // volume + mute respects existing AudioSettingsPanel.
+    const audio = getAudioSystem()
+    for (const ev of newEvents) {
+      const sfxId = eventKindToSfx(ev.kind, ev.message)
+      if (sfxId) {
+        try {
+          audio.playSfx(sfxId)
+        } catch {
+          // Audio system may not be initialized yet (autoplay-policy blocks contexts until
+          // first user gesture); swallow + continue. The event still surfaces visually.
+        }
+      }
+    }
     for (const ev of newEvents) {
       if (ev.message.startsWith('❌')) {
         newToasts.push({
