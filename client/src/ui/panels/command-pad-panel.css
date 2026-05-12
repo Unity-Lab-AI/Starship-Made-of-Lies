@@ -6,6 +6,107 @@
   color: var(--fg-primary, #e6e6f0);
 }
 
+.command-pad__pad-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.command-pad__pad-table-title {
+  margin: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.command-pad__pad-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.command-pad__pad-row {
+  display: grid;
+  grid-template-columns: minmax(64px, auto) minmax(110px, 1.4fr) minmax(80px, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.3rem;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.command-pad__pad-row--ready {
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.command-pad__pad-row--arm,
+.command-pad__pad-row--launch {
+  background: rgba(212, 161, 58, 0.14);
+}
+
+.command-pad__pad-row--gone {
+  opacity: 0.55;
+}
+
+.command-pad__pad-name {
+  font-weight: 600;
+}
+
+.command-pad__pad-state {
+  font-size: 0.74rem;
+  color: var(--text-soft, rgba(255, 255, 255, 0.78));
+}
+
+.command-pad__pad-state--ready {
+  color: rgb(74, 222, 128);
+}
+
+.command-pad__pad-state--arm,
+.command-pad__pad-state--launch {
+  color: var(--accent, #d4a13a);
+}
+
+.command-pad__pad-readiness {
+  position: relative;
+  height: 0.85rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.command-pad__pad-readiness-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--accent, #d4a13a);
+  opacity: 0.55;
+  transition: width 200ms ease-out;
+}
+
+.command-pad__pad-readiness-label {
+  position: relative;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0 0.4rem;
+  color: var(--fg-primary, #e6e6f0);
+}
+
+.command-pad__pad-targets {
+  font-size: 0.74rem;
+  opacity: 0.75;
+}
+
 .command-pad__hint {
   margin: 0;
   padding: 0.6rem 0.8rem;
