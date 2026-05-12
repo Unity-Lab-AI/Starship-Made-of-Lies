@@ -1,19 +1,27 @@
 .galaxy-view {
-  /* PHASE 17.L.D.3 (HOTFIX 2026-05-11) — was position:fixed inset:0 z-index:50. Fixed
-     positioning escaped the play-shell__world stacking context AND z-index:50 tied with
-     .top-toolbar (z-index:50), and DOM order put GalaxyView on top — which COMPLETELY HID
-     the TopToolbar / HUDOverlay / TelemetryRack / all panels under the 3D canvas. Per user
-     playtest verbatim *"i also didnt see anyof the UI or HUD to play the game resource
-     banner was missing toolbar and panel toggel bar all missing it was just the 3D
-     universe"*. Now position:absolute inside the .play-shell__world parent + z-index:0
-     so every HUD overlay (z-index:50 on top-toolbar / hud-overlay / etc.) renders ABOVE
-     the 3D canvas. */
+  /* PHASE 17.L.D.6 (HOTFIX 2026-05-11) — D.3 only changed position:fixed → absolute and z-index
+     50 → 0, but user playtest verbatim *"theHUD and UI are not appearing correctly it like they
+     are hidden its still not fixed"* + *"the resource bar the button bare the panel toggles"*
+     + *"all missing"* after hard refresh confirmed the bug persists. Browsers can GPU-promote
+     a 3D canvas to a composite layer that paints over sibling HTML even at lower z-index in
+     some compositing-pipeline edge cases. Adding `isolation: isolate;` forces .galaxy-view into
+     its own stacking context AND its own composite-layer parent, so sibling HUD elements
+     (z-index 100+ via D.6 bumps) can NEVER paint below the canvas regardless of GPU promotion.
+     z-index also dropped to -1 inside the isolated context — bulletproof. */
   position: absolute;
   inset: 0;
   z-index: 0;
+  isolation: isolate;
   background: #05050d;
   display: grid;
   place-items: stretch;
+}
+
+.galaxy-view__canvas,
+.galaxy-view canvas {
+  /* PHASE 17.L.D.6 — explicit z-index on the inner canvas inside the isolated parent so it
+     can't accidentally escape upward via auto-stacking promotion. */
+  z-index: 0;
 }
 
 .galaxy-view__canvas {
