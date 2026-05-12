@@ -1,0 +1,229 @@
+.caravan-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.5rem 0.25rem;
+  min-width: 420px;
+}
+
+.caravan-panel__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+}
+
+.caravan-panel__header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.caravan-panel__count {
+  font-size: 0.78rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-variant-numeric: tabular-nums;
+}
+
+.caravan-panel__count--cap {
+  background: rgba(220, 38, 38, 0.2);
+  color: rgb(252, 165, 165);
+}
+
+.caravan-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.caravan-panel__section-title {
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+.caravan-panel__empty {
+  margin: 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-mute, rgba(255, 255, 255, 0.55));
+}
+
+.caravan-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.caravan-panel__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0.6rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.4rem;
+  border-left: 3px solid var(--accent, #d4a13a);
+}
+
+.caravan-panel__row--delivered {
+  border-left-color: rgb(74, 222, 128);
+  opacity: 0.7;
+}
+
+.caravan-panel__row--cancelled {
+  border-left-color: rgb(220, 38, 38);
+  opacity: 0.6;
+}
+
+.caravan-panel__row-head {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.caravan-panel__row-emoji {
+  font-size: 1.05rem;
+}
+
+.caravan-panel__row-route {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.caravan-panel__row-cargo {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-soft, rgba(255, 255, 255, 0.75));
+}
+
+.caravan-panel__row-progress {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.caravan-panel__bar {
+  height: 0.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.caravan-panel__bar-fill {
+  height: 100%;
+  background: var(--accent, #d4a13a);
+  transition: width 200ms ease-out;
+}
+
+.caravan-panel__row-eta {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.caravan-panel__cancel-btn {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(220, 38, 38, 0.18);
+  color: rgb(252, 165, 165);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.caravan-panel__cancel-btn:hover {
+  background: rgba(220, 38, 38, 0.3);
+}
+
+.caravan-panel__form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.caravan-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.caravan-panel__field--full {
+  grid-column: span 2;
+}
+
+.caravan-panel__field-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-soft, rgba(255, 255, 255, 0.7));
+}
+
+.caravan-panel__field select,
+.caravan-panel__field input[type='range'] {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.12));
+  border-radius: 4px;
+  color: inherit;
+  font: inherit;
+}
+
+.caravan-panel__field input[type='range'] {
+  padding: 0;
+  height: 1.2rem;
+  background: transparent;
+}
+
+.caravan-panel__fuel-cost {
+  grid-column: span 2;
+  margin: 0;
+  font-size: 0.78rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(212, 161, 58, 0.08);
+  border-radius: 0.3rem;
+  border-left: 2px solid var(--accent, #d4a13a);
+}
+
+.caravan-panel__fuel-cost--short {
+  background: rgba(220, 38, 38, 0.12);
+  border-left-color: rgb(220, 38, 38);
+  color: rgb(252, 165, 165);
+}
+
+.caravan-panel__dispatch-btn {
+  grid-column: span 2;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: var(--accent, #d4a13a);
+  color: var(--accent-text, #0c1014);
+  border: none;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition:
+    filter 120ms,
+    opacity 120ms;
+}
+
+.caravan-panel__dispatch-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.caravan-panel__dispatch-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.55);
+}

@@ -120,14 +120,22 @@ import {
   getThemePolish,
   ACHIEVEMENTS,
   type AccountId,
+  type Caravan,
   type Settlement,
   type SettlementId,
+  CARAVAN_FUEL_COST,
+  MAX_ACTIVE_CARAVANS_PER_CIV,
+  CARAVAN_MAX_AMOUNT_PER_RUN,
+  cancelCaravan,
   canFoundSettlementAt,
   checkMatchEndAchievements,
   computeMatchScores,
+  countActiveCaravans,
   hasWonByTech,
   newCapitalSettlement,
+  newCaravan,
   newFoundedSettlement,
+  tickCaravan,
   indigenousLootOnDefeat,
   initiateLastHopeEvac,
   isCampaignActive,
@@ -357,6 +365,13 @@ export interface MatchState {
   // feedback_no_caps_on_empire.md) requires this to keep auto-fire salvo + player launches
   // off the O(planets) hot path.
   readonly padIdToPlanetIdIndex: Map<TileId, PlanetId>
+  // PHASE 17.13.7 — inter-planet caravan trade. Per-civ caravan list with active OUTBOUND
+  // entries + recently-DELIVERED/CANCELLED entries pending UI dismissal. Tick loop progresses
+  // OUTBOUND caravans + drains DELIVERED ones into the destination planet's inventory.
+  caravans: Map<CivId, Caravan[]>
+  // Monotonic seed for caravan id generation. Guarantees no id collisions even when multiple
+  // caravans launch in the same tick from the same planet pair.
+  nextCaravanSerial: number
   events: MatchEventLog[]
   // PHASE 17.12.6 — achievement IDs newly unlocked by THIS match's end resolver. Populated by
   // tickMatch when phase transitions to 'ENDED'. Empty during play. useMatchSim watches this
@@ -585,6 +600,8 @@ export function createMatch(config: MatchConfig): MatchState {
     // PHASE 17.L.C.9 — O(1) padId → planetId index. Populated from existing planet pads
     // after the state object is constructed below (see post-construct backfill).
     padIdToPlanetIdIndex: new Map(),
+    caravans: new Map<CivId, Caravan[]>(),
+    nextCaravanSerial: 0,
     humanCivId,
     objectives: config.objectives,
     tickCap: config.tickCapOverride,
@@ -793,6 +810,12 @@ export function tickMatch(state: MatchState): void {
   }
 
   tickIndigenous(state)
+
+  // PHASE 17.13.7 — per-civ caravan tick. Progresses every OUTBOUND caravan one tick;
+  // arrivals deposit cargo into the destination planet's inventory + fire delivery events;
+  // GC drains DELIVERED/CANCELLED entries past the retention window so the UI gets one final
+  // render of the terminal state before they disappear from the list.
+  tickCaravansForAllCivs(state)
 
   for (const civState of state.civs.values()) {
     if (!civState.alive) continue
@@ -3288,6 +3311,166 @@ export function manualIndigenousParleyAction(inputs: ManualParleyInputs): Manual
     ok: true,
     accepted: result.accepted,
     defectingTileCount: result.defectingTiles.length,
+  }
+}
+
+// PHASE 17.13.7 — inter-planet caravan trade. Validates ownership of both planets, available
+// resource amount on source, fuel cost (CARAVAN_FUEL_COST from source), and the per-civ
+// active-caravan cap. On success creates a new Caravan + appends to the civ's caravan list.
+// Caller (useMatchSim) bumps tickCount so panels re-render.
+export interface CreateCaravanActionInputs {
+  readonly state: MatchState
+  readonly fromPlanetId: PlanetId
+  readonly toPlanetId: PlanetId
+  readonly resource: ResourceId
+  readonly amount: number
+}
+
+export interface CreateCaravanActionResult {
+  readonly ok: boolean
+  readonly caravanId?: string
+  readonly reason?: string
+}
+
+export function createCaravanAction(inputs: CreateCaravanActionInputs): CreateCaravanActionResult {
+  const fromPlanet = inputs.state.planets.get(inputs.fromPlanetId)
+  const toPlanet = inputs.state.planets.get(inputs.toPlanetId)
+  if (!fromPlanet || !toPlanet) {
+    return { ok: false, reason: 'unknown planet' }
+  }
+  if (fromPlanet.civId !== inputs.state.humanCivId) {
+    return { ok: false, reason: 'source planet not owned' }
+  }
+  if (toPlanet.civId !== inputs.state.humanCivId) {
+    return { ok: false, reason: 'destination planet not owned' }
+  }
+  if (inputs.fromPlanetId === inputs.toPlanetId) {
+    return { ok: false, reason: 'source and destination must differ' }
+  }
+  const requestAmount = Math.min(Math.max(1, Math.floor(inputs.amount)), CARAVAN_MAX_AMOUNT_PER_RUN)
+  // Per-civ active-caravan cap check uses the existing civ caravan list.
+  const civCaravans = inputs.state.caravans.get(inputs.state.humanCivId) ?? []
+  if (countActiveCaravans(civCaravans) >= MAX_ACTIVE_CARAVANS_PER_CIV) {
+    return {
+      ok: false,
+      reason: `civ at max active caravan cap (${MAX_ACTIVE_CARAVANS_PER_CIV})`,
+    }
+  }
+  // Resource availability — source planet must have the requested amount AND the fuel cost.
+  const haveResource = stockOf(fromPlanet.inventory, inputs.resource)
+  if (haveResource < requestAmount) {
+    return {
+      ok: false,
+      reason: `source planet has ${haveResource} ${String(inputs.resource)} (need ${requestAmount})`,
+    }
+  }
+  const haveFuel = stockOf(fromPlanet.inventory, RESOURCE_FUEL)
+  if (haveFuel < CARAVAN_FUEL_COST) {
+    return {
+      ok: false,
+      reason: `source planet has ${haveFuel} fuel (need ${CARAVAN_FUEL_COST})`,
+    }
+  }
+  // Pay costs.
+  consumeResource(fromPlanet.inventory, inputs.resource, requestAmount)
+  consumeResource(fromPlanet.inventory, RESOURCE_FUEL, CARAVAN_FUEL_COST)
+  // Build caravan + register.
+  const caravan = newCaravan({
+    civId: inputs.state.humanCivId,
+    fromPlanetId: inputs.fromPlanetId,
+    toPlanetId: inputs.toPlanetId,
+    fromPlanetPos: fromPlanet.planet.position,
+    toPlanetPos: toPlanet.planet.position,
+    resource: inputs.resource,
+    amount: requestAmount,
+    currentTick: inputs.state.currentTick,
+    idSeed: inputs.state.nextCaravanSerial,
+  })
+  inputs.state.nextCaravanSerial += 1
+  if (!inputs.state.caravans.has(inputs.state.humanCivId)) {
+    inputs.state.caravans.set(inputs.state.humanCivId, [])
+  }
+  inputs.state.caravans.get(inputs.state.humanCivId)!.push(caravan)
+  pushEvent(inputs.state, {
+    atTick: inputs.state.currentTick,
+    civId: inputs.state.humanCivId,
+    kind: 'launch',
+    message: `🛒 Caravan dispatched ${String(inputs.fromPlanetId)} → ${String(inputs.toPlanetId)} carrying ${requestAmount} ${String(inputs.resource)} (ETA ${caravan.totalTicks}t).`,
+  })
+  return { ok: true, caravanId: caravan.id }
+}
+
+// PHASE 17.13.7 — cancel an OUTBOUND caravan mid-flight. Cargo is lost on cancel (v1
+// simplification). Returns success when the caravan was actually OUTBOUND + transitioned.
+export interface CancelCaravanActionInputs {
+  readonly state: MatchState
+  readonly caravanId: string
+}
+
+export function cancelCaravanAction(inputs: CancelCaravanActionInputs): boolean {
+  const civCaravans = inputs.state.caravans.get(inputs.state.humanCivId)
+  if (!civCaravans) return false
+  const caravan = civCaravans.find((c) => c.id === inputs.caravanId)
+  if (!caravan) return false
+  const ok = cancelCaravan(caravan)
+  if (ok) {
+    pushEvent(inputs.state, {
+      atTick: inputs.state.currentTick,
+      civId: inputs.state.humanCivId,
+      kind: 'launch',
+      message: `🛒 Caravan ${caravan.id} cancelled mid-route — cargo lost (${caravan.amount} ${String(caravan.resource)}).`,
+    })
+  }
+  return ok
+}
+
+// PHASE 17.13.7 — per-civ caravan tick. Called every match tick from tickMatch's planet loop.
+// Progresses every OUTBOUND caravan one tick; on arrival deposits cargo to the destination
+// planet's inventory + emits a delivery event. Drains DELIVERED + CANCELLED caravans from the
+// active list after a short retention window so the UI can flash their final state once before
+// they disappear.
+const CARAVAN_TERMINAL_RETENTION_TICKS = 30
+
+export function tickCaravansForAllCivs(state: MatchState): void {
+  for (const [civId, civCaravans] of state.caravans) {
+    if (civCaravans.length === 0) continue
+    // Mutate in place — we tick every entry then GC terminal ones via filter.
+    for (const caravan of civCaravans) {
+      const result = tickCaravan(caravan)
+      if (result.arrived) {
+        const destPlanet = state.planets.get(caravan.toPlanetId)
+        if (destPlanet && destPlanet.civId === civId) {
+          // Deposit cargo. Capacity caps apply on the next production tick via
+          // enforceCapacityCaps; v1 doesn't pre-clamp deliveries to spare the UI from
+          // "your shipment overflowed" toasts mid-flight.
+          const before = stockOf(destPlanet.inventory, caravan.resource)
+          destPlanet.inventory.stocks.set(caravan.resource, before + caravan.amount)
+          pushEvent(state, {
+            atTick: state.currentTick,
+            civId,
+            kind: 'launch',
+            message: `🛒 Caravan delivered ${caravan.amount} ${String(caravan.resource)} to ${String(caravan.toPlanetId)}.`,
+          })
+        } else {
+          // Destination lost to another civ mid-route — cargo confiscated. Future polish:
+          // hand cargo to the new owner as a "trade-route ambush" loot drop.
+          pushEvent(state, {
+            atTick: state.currentTick,
+            civId,
+            kind: 'crash',
+            message: `🛒 Caravan to ${String(caravan.toPlanetId)} arrived but the planet changed hands — cargo lost.`,
+          })
+          caravan.status = 'CANCELLED'
+        }
+      }
+    }
+    // GC terminal caravans past the retention window.
+    const filtered = civCaravans.filter((c) => {
+      if (c.status === 'OUTBOUND') return true
+      const ageSinceLaunch = state.currentTick - c.launchedAtTick
+      return ageSinceLaunch < c.totalTicks + CARAVAN_TERMINAL_RETENTION_TICKS
+    })
+    state.caravans.set(civId, filtered)
   }
 }
 

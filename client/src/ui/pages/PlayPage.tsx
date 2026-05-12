@@ -59,6 +59,7 @@ import { type SfxEventId } from '../../audio/sfxManifest'
 import { loadGlobalCategorySnapshots } from '../../match/leaderboardStorage'
 import { HallOfChampionsPanel } from '../panels/HallOfChampionsPanel'
 import { DefensePanel, type DefensePanelIncomingThreat } from '../panels/DefensePanel'
+import { CaravanPanel, type CaravanPanelPlanetSnapshot } from '../panels/CaravanPanel'
 import { CampaignPicker } from '../play/CampaignPicker'
 import { DockZoneOverlay } from '../play/DockZoneOverlay'
 import { HUDOverlay } from '../play/HUDOverlay'
@@ -1793,6 +1794,46 @@ export function PlayPage() {
             </div>
           </div>
         ) : null}
+
+        {/* PHASE 17.13.7 — Inter-planet caravan trade panel. Active caravan list + new-caravan
+            dispatch form. Civ's caravan list scoped via state.caravans[humanCivId]; owned-
+            planet snapshots filtered for the dispatch dropdowns. */}
+        {openPanels.has('caravans') && (
+          <PanelFrame
+            panelId="caravans"
+            title="Caravans"
+            emoji="🛒"
+            onClose={() => closePanel('caravans')}
+            variant="centered"
+            width={520}
+          >
+            <CaravanPanel
+              caravans={sim.state.caravans.get(sim.state.humanCivId) ?? []}
+              ownedPlanets={ownedPlanets.map<CaravanPanelPlanetSnapshot>((p) => ({
+                planetId: p.planet.id,
+                planetLabel: `${p.planet.biome.emoji} ${String(p.planet.id)}`,
+                inventory: p.inventory,
+              }))}
+              onCreateCaravan={(input) => {
+                const result = sim.createCaravan(input)
+                if (!result.ok) {
+                  setToasts((current) => [
+                    ...current,
+                    {
+                      id: `caravan-fail-${Date.now()}`,
+                      kind: 'warning',
+                      message: `🛒 Caravan refused — ${result.reason ?? 'unknown'}.`,
+                      expiresAtMs: Date.now() + TOAST_LIFETIME_MS,
+                    },
+                  ])
+                }
+              }}
+              onCancelCaravan={(caravanId) => {
+                sim.cancelCaravan({ caravanId })
+              }}
+            />
+          </PanelFrame>
+        )}
 
         {/* PHASE 17.12.2 — Defense panel. Per-planet defensive stats + incoming threats +
             counter-missile-pad quick-build. Mines are LAUNCHED ships per user correction

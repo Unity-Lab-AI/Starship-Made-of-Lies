@@ -855,6 +855,14 @@ export function syncFlightArcs(
   flights: ReadonlyArray<ColonyShipFlight>,
   planetMeshes: ReadonlyMap<PlanetId, THREE.Mesh>,
   civColorMap: ReadonlyMap<string, number>,
+  // PHASE 17.12 follow-up (user bug report 2026-05-12 "starships where launching when i havent
+  // even build a launch pad… why were ships launching automatically when i never designed any
+  // or built or launched any") — those flights were AI civs attacking the human, but the new
+  // ship-emoji sprites made them visually indistinguishable from human-owned flights. Threading
+  // humanCivId + humanOwnedPlanetIds so syncFlightArcs can red-tint hostile sprites + neutral-
+  // tint AI-on-AI flights, restoring at-a-glance friend/foe distinction.
+  humanCivId?: string,
+  humanOwnedPlanetIds?: ReadonlySet<PlanetId>,
 ): void {
   const alive = new Set<string>()
   for (const flight of flights) {
@@ -876,6 +884,20 @@ export function syncFlightArcs(
     // emoji on the def (🚀 / 💣 / 🛡️ / 🛰️ / 🔬 / etc); fallback ⚙️ for the unlikely case where
     // a flight predates a def update.
     const variantEmoji = flightDef.emoji ?? '⚙️'
+
+    // PHASE 17.12 friend/foe tint (user bug fix 2026-05-12):
+    // - Friendly (launched by human civ) → white tint, emoji shows its embedded colors.
+    // - Hostile to human (NOT owned by human AND targeting a human-owned planet) → red tint
+    //   so the player instantly sees "this is incoming on me".
+    // - Other (AI-on-AI flight) → soft amber so the player sees it but doesn't think it's
+    //   hostile to them.
+    const launchingCivStr = String(flight.launchingCivId)
+    const isHumanOwned = humanCivId !== undefined && launchingCivStr === humanCivId
+    const isHostileToHuman =
+      !isHumanOwned &&
+      humanOwnedPlanetIds !== undefined &&
+      humanOwnedPlanetIds.has(flight.targetPlanetId)
+    const spriteTint = isHumanOwned ? 0xffffff : isHostileToHuman ? 0xff5050 : 0xffc88a
 
     let entry = handle.entries.get(flightIdStr)
     if (!entry) {
@@ -906,7 +928,10 @@ export function syncFlightArcs(
       const spriteSize = isCounter ? 40 : 64
       const spriteMat = new THREE.SpriteMaterial({
         map: getFlightEmojiTexture(variantEmoji),
-        color: 0xffffff,
+        // PHASE 17.12 friend/foe tint — see spriteTint computation above. Color-emoji glyphs
+        // multiply with this tint; reddish for hostiles, white for human-owned, amber for
+        // AI-on-AI background traffic.
+        color: spriteTint,
         depthTest: false,
         transparent: true,
       })
@@ -927,14 +952,18 @@ export function syncFlightArcs(
       handle.entries.set(flightIdStr, entry)
     } else {
       // Update arc color if civ color changed (rare); swap sprite texture if variant emoji
-      // changed (e.g. a phase transition that re-resolved the def).
+      // changed (e.g. a phase transition that re-resolved the def). Refresh friend/foe tint
+      // every sync since target-planet ownership can change mid-flight (capture).
       const mat = entry.line.material as THREE.LineDashedMaterial
       if (mat.color.getHex() !== civColor) mat.color.setHex(civColor)
+      const spriteMat = entry.progressSprite.material as THREE.SpriteMaterial
       if (entry.emojiKey !== variantEmoji) {
-        const spriteMat = entry.progressSprite.material as THREE.SpriteMaterial
         spriteMat.map = getFlightEmojiTexture(variantEmoji)
         spriteMat.needsUpdate = true
         entry.emojiKey = variantEmoji
+      }
+      if (spriteMat.color.getHex() !== spriteTint) {
+        spriteMat.color.setHex(spriteTint)
       }
     }
     // Place sprite along arc — sprites always face the camera so we don't need tangent
