@@ -12,6 +12,7 @@ import {
   RESOURCE_PROPAGANDA_MATERIALS,
   RESOURCE_RARE_METALS,
   RESOURCE_STONE,
+  RESOURCE_WOOD,
 } from './resources'
 
 export type BuildingCategory =
@@ -148,9 +149,15 @@ export const BUILDINGS: ReadonlyArray<BuildingDef> = [
     name: 'Refinery',
     emoji: '🏭',
     category: 'industry',
+    // PHASE 17.L.D.9 (HOTFIX 2026-05-11) — buildCost was 40 bricks + 30 metals. Per user
+    // verbatim *"WTF I RAN OUT OF BRICKS WITH NO WAY TO PRODUCE BROIOCKS... THERE CANT BE
+    // DEAD ENDS LIKE THIS"* — Refinery IS the brick producer, requiring bricks to build was
+    // a chicken-and-egg economy dead end. Now uses ONLY raw materials (wood + stone +
+    // metals) so the player can bootstrap from starter inventory.
     buildCost: [
-      { resource: RESOURCE_BRICKS, amount: 40 },
-      { resource: RESOURCE_METALS, amount: 30 },
+      { resource: RESOURCE_WOOD, amount: 40 },
+      { resource: RESOURCE_STONE, amount: 30 },
+      { resource: RESOURCE_METALS, amount: 20 },
     ],
     buildTimeTicks: 60,
     citizenSlots: 6,
@@ -161,9 +168,12 @@ export const BUILDINGS: ReadonlyArray<BuildingDef> = [
     name: 'Foundry',
     emoji: '⚒️',
     category: 'industry',
+    // PHASE 17.L.D.9 (HOTFIX 2026-05-11) — buildCost was 50 bricks + 25 ingots. Same
+    // chicken-and-egg as Refinery — Foundry IS the ingot producer. Now uses bricks +
+    // metals (bricks come from Refinery, which is now bootstrap-able from raw materials).
     buildCost: [
-      { resource: RESOURCE_BRICKS, amount: 50 },
-      { resource: RESOURCE_INGOTS, amount: 25 },
+      { resource: RESOURCE_BRICKS, amount: 30 },
+      { resource: RESOURCE_METALS, amount: 40 },
     ],
     buildTimeTicks: 70,
     citizenSlots: 6,

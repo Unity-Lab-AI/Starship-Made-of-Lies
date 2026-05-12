@@ -75,11 +75,19 @@ export function buildGalaxyLayer(galaxy: Galaxy): GalaxyLayerHandle {
     atmosphereMeshes.set(planet.id, halo)
   }
 
-  // Ambient + directional lighting so spheres aren't flat
-  const ambient = new THREE.AmbientLight(0xffffff, 0.42)
-  const directional = new THREE.DirectionalLight(0xffffff, 0.65)
+  // Ambient + directional lighting so spheres aren't flat.
+  // PHASE 17.L.D.9 (HOTFIX 2026-05-11) — bumped ambient 0.42 → 0.85 + directional 0.65 → 1.1.
+  // Per user verbatim *"MY FRIEND IS TESTING ON FIREFOX AND ALL THE PLANETS ARE A REAL DARK
+  // BLACK SURFACE WHEN HE ZOZOMS IN"*. Firefox's WebGL pipeline handles gamma / tonemapping
+  // differently than Chromium-family browsers — bumping baseline light values makes planets
+  // readable on both. Also added a second directional from the opposite side so planets
+  // never have a fully-dark hemisphere.
+  const ambient = new THREE.AmbientLight(0xffffff, 0.85)
+  const directional = new THREE.DirectionalLight(0xffffff, 1.1)
   directional.position.set(1, 1, 0.5)
-  group.add(ambient, directional)
+  const directionalFill = new THREE.DirectionalLight(0xffffff, 0.45)
+  directionalFill.position.set(-1, -0.5, -0.5)
+  group.add(ambient, directional, directionalFill)
 
   // PHASE 17.I — real Stars from solar-system gen. Each star.position becomes a glowing
   // sphere sized to star.radius (4× galaxy-wide largest planet per LAW #0 2026-05-11).
