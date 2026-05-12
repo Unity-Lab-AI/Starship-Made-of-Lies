@@ -47,6 +47,10 @@ export interface GalaxyLayerHandle {
   // planet radius). Replaces the singular decorative origin-sun from PHASE 16.17.
   readonly starMeshes: ReadonlyMap<string, THREE.Mesh>
   readonly galaxyCenter: THREE.Vector3
+  // PHASE 17.F — interstellar-dust particle field driven by a vertex-shader uTime uniform.
+  // Refs the live ShaderMaterial so the RAF loop can advance the time uniform each frame
+  // (GPU-side drift / parallax / twinkle animation — no per-frame CPU iteration).
+  readonly dustMaterial: THREE.ShaderMaterial
   readonly destroy: () => void
 }
 
@@ -63,6 +67,14 @@ export function buildGalaxyLayer(galaxy: Galaxy): GalaxyLayerHandle {
   // is a sphere of lights in the center of the galaxy"*.
   const starfield = makeStarfield(galaxy.seed ?? 12345, galaxy.universeHalfExtent)
   group.add(starfield)
+
+  // PHASE 17.F — GPU-driven interstellar dust. Sits inside the starfield shell, drifts
+  // continuously, and twinkles via per-particle phase offset. Vertex shader does all motion
+  // so the CPU only updates a single uTime uniform per frame; even at 10k particles this
+  // costs effectively nothing. Per the design pivot in `feedback_3d_engine_not_hex_or_card.md`
+  // this is the layer that gives the galaxy its visible volume between solar systems.
+  const dust = makeSpaceDustLayer(galaxy.seed ?? 12345, galaxy.universeHalfExtent ?? 60_000)
+  group.add(dust.points)
 
   // Center the galaxy on its mean position
   const center = computeGalaxyCenter(galaxy.planets)
@@ -113,6 +125,7 @@ export function buildGalaxyLayer(galaxy: Galaxy): GalaxyLayerHandle {
     atmosphereMeshes,
     starMeshes,
     galaxyCenter: center,
+    dustMaterial: dust.material,
     destroy: () => {
       group.traverse((obj) => {
         if (obj instanceof THREE.Mesh) {
@@ -1559,6 +1572,132 @@ function makeStarfield(seed: number, universeHalfExtent?: number): THREE.Points 
     opacity: 0.85,
   })
   return new THREE.Points(geom, mat)
+}
+
+// PHASE 17.F — GPU-driven interstellar dust particle field. Each particle gets a stable
+// seed offset (phaseOffset) at construction; the vertex shader drives drift + twinkle
+// using `uTime` so animation is entirely GPU-side. CPU only updates one uniform per frame.
+// 10k particles × 3 floats = 120 KB position buffer; trivial to upload once + render every
+// frame at 60fps. Per `feedback_true_3d_xyz_universe_no_2d_fallback.md` LAW #0 the galaxy
+// must read as a 3D volume; this layer is what gives empty space its depth cues + parallax.
+interface SpaceDustHandle {
+  readonly points: THREE.Points
+  readonly material: THREE.ShaderMaterial
+}
+
+function makeSpaceDustLayer(seed: number, universeHalfExtent: number): SpaceDustHandle {
+  const count = 10000
+  const positions = new Float32Array(count * 3)
+  const phaseOffsets = new Float32Array(count)
+  const colors = new Float32Array(count * 3)
+  let s = (seed * 13 + 31337) >>> 0
+  const rand = (): number => {
+    s = (s * 1664525 + 1013904223) >>> 0
+    return s / 0xffffffff
+  }
+  const half = Math.max(40_000, universeHalfExtent * 1.2)
+  for (let i = 0; i < count; i++) {
+    // Cubic distribution — fills the galactic volume so particles drift between solar systems.
+    positions[i * 3 + 0] = (rand() * 2 - 1) * half
+    positions[i * 3 + 1] = (rand() * 2 - 1) * half * 0.55 // flattened disc
+    positions[i * 3 + 2] = (rand() * 2 - 1) * half
+    phaseOffsets[i] = rand() * Math.PI * 2
+    // Nebula tint — cool blues + warm magentas mixed across the field for color richness.
+    const warmth = rand()
+    if (warmth < 0.4) {
+      colors[i * 3 + 0] = 0.4 + rand() * 0.2
+      colors[i * 3 + 1] = 0.55 + rand() * 0.25
+      colors[i * 3 + 2] = 0.9 + rand() * 0.1
+    } else if (warmth < 0.75) {
+      colors[i * 3 + 0] = 0.75 + rand() * 0.25
+      colors[i * 3 + 1] = 0.55 + rand() * 0.2
+      colors[i * 3 + 2] = 0.9 + rand() * 0.1
+    } else {
+      colors[i * 3 + 0] = 0.95
+      colors[i * 3 + 1] = 0.92 + rand() * 0.05
+      colors[i * 3 + 2] = 0.78
+    }
+  }
+  const geom = new THREE.BufferGeometry()
+  geom.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  geom.setAttribute('aPhase', new THREE.BufferAttribute(phaseOffsets, 1))
+  geom.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uHalfExtent: { value: half },
+      uPointSize: { value: Math.max(180, half * 0.0006) },
+    },
+    vertexShader: `
+      attribute float aPhase;
+      varying vec3 vColor;
+      varying float vTwinkle;
+      uniform float uTime;
+      uniform float uHalfExtent;
+      uniform float uPointSize;
+      void main() {
+        vec3 p = position;
+        // Slow GPU-side drift — circular orbit around the Y axis, period varies per particle.
+        float orbitPeriod = 60.0 + mod(aPhase * 31.7, 80.0);
+        float t = uTime / orbitPeriod;
+        float c = cos(t);
+        float s = sin(t);
+        vec3 q = vec3(p.x * c - p.z * s, p.y, p.x * s + p.z * c);
+        // Per-particle twinkle (alpha pulse).
+        vTwinkle = 0.55 + 0.45 * sin(uTime * 0.4 + aPhase * 3.0);
+        vColor = color;
+        vec4 mv = modelViewMatrix * vec4(q, 1.0);
+        gl_Position = projectionMatrix * mv;
+        // sizeAttenuation-style scaling so close dust isn't tiny + far dust isn't massive.
+        gl_PointSize = uPointSize * (300.0 / -mv.z);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      varying float vTwinkle;
+      void main() {
+        // Round point with soft falloff.
+        vec2 d = gl_PointCoord - vec2(0.5);
+        float r = length(d);
+        if (r > 0.5) discard;
+        float alpha = (1.0 - smoothstep(0.0, 0.5, r)) * vTwinkle * 0.7;
+        gl_FragColor = vec4(vColor, alpha);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+  })
+  const points = new THREE.Points(geom, material)
+  points.userData = { kind: 'space-dust' }
+  points.frustumCulled = false
+  return { points, material }
+}
+
+// PHASE 17.F — RAF-time uniform advance for the GPU-driven dust drift. Caller passes the
+// elapsed-seconds-since-mount float; the shader reads it as `uTime`.
+export function tickGalaxyDust(handle: GalaxyLayerHandle, elapsedSeconds: number): void {
+  handle.dustMaterial.uniforms.uTime!.value = elapsedSeconds
+}
+
+// PHASE 17.G — volumetric-style nebula fog. THREE.FogExp2 is a depth-cued screen-space
+// approximation but it's effectively free (GPU shader built into Three's standard material
+// chain) and gives the galaxy a true volumetric feel — distant solar systems desaturate +
+// blend into the backdrop, near systems remain crisp. Density tuned to the galaxy's
+// universe-half-extent so Tiny / Small / Medium / Large all read with the same depth cue
+// (denser fog at larger extents so the fall-off lines up with actual planet distances).
+//
+// Logarithmic depth buffer is enabled on the renderer (line 247 of GalaxyView.tsx), so the
+// fog falls off cleanly without Z-fighting against the planet meshes / star halos / dust
+// particles. Color = clear-color background for cohesive blending.
+export function applyVolumetricFog(scene: THREE.Scene, universeHalfExtent: number): void {
+  // FogExp2 density formula: factor = e^(-(density * dist)^2). Higher density = nearer
+  // falloff. At density 1e-6 (default base) + dist 200_000 → factor ≈ 0.96 (nearly clear).
+  // At dist 800_000 + density 1.5e-6 → factor ≈ 0.24 (heavy fog). Scaled per universe so
+  // every preset gets the same perceptual depth signal.
+  const density = Math.max(8e-7, 1.5e-6 * (60_000 / Math.max(20_000, universeHalfExtent)))
+  scene.fog = new THREE.FogExp2(0x05050d, density)
 }
 
 // === MINING SHIP LAYER (PHASE 16.x complete-3D-world-space) ===

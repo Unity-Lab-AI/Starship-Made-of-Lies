@@ -7,6 +7,7 @@ import {
   type Galaxy,
   type Planet,
   type PlanetId,
+  type Settlement,
   type ShipBeaconBroadcast,
   type Theme,
   type Tile,
@@ -45,6 +46,8 @@ import {
   updateOwnerFlagDistanceFade,
   syncPadMeshes,
   syncPadStateGlows,
+  tickGalaxyDust,
+  applyVolumetricFog,
   type MineFieldInput,
 } from './galaxyLayer'
 import { buildSurfaceLayer, type SurfaceLayerHandle } from './surfaceLayer'
@@ -125,6 +128,11 @@ interface GalaxyViewProps {
   // PLACED APPERARING ON THE PLANETS WHEN PALCING BUILDINGS"*. When omitted, falls back to
   // generic 🏗 placeholder.
   readonly buildingsByPlanet?: ReadonlyMap<PlanetId, ReadonlyMap<TileId, BuildingDefId>>
+  // PHASE 17.13.4 — per-planet settlement collections for the boundary-tint overlay. Each
+  // entry's non-capital settlements get a hashed-hue ring drawn around every tile they
+  // control. Capital + unclaimed tiles render without a ring. When omitted, no settlement
+  // overlay renders (back-compat for callers that haven't been wired).
+  readonly settlementsByPlanet?: ReadonlyMap<PlanetId, ReadonlyArray<Settlement>>
   // PHASE 17.L.D.13 (HOTFIX 2026-05-11) — focus-and-zoom request. Per user verbatim *"THE
   // PLANET LIST NEEDS A VIEW SELECTION PER PLANET IE VIEW YOUr STARTING PLANET FOCUSES IT
   // AND ZOOMS TO IT"*. Parent sets `focusPlanetTrigger = { planetId, nonce }` to request a
@@ -165,6 +173,7 @@ export function GalaxyView({
   onContextMenuPlanet,
   humanDiscoveredPlanetIds,
   buildingsByPlanet,
+  settlementsByPlanet,
   focusPlanetTrigger,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
@@ -183,6 +192,12 @@ export function GalaxyView({
   const buildingsByPlanetRef = useRef<
     ReadonlyMap<PlanetId, ReadonlyMap<TileId, BuildingDefId>> | undefined
   >(buildingsByPlanet)
+  // PHASE 17.13.4 — live ref so the per-frame settlement-borders sync reads the freshest
+  // collection. Re-syncs only when the per-planet settlement count or controlled-tile-set
+  // signature changes (see lastSyncedSettlementSig below).
+  const settlementsByPlanetRef = useRef<
+    ReadonlyMap<PlanetId, ReadonlyArray<Settlement>> | undefined
+  >(settlementsByPlanet)
   // PHASE 17.L.D.13 — focus-on-planet request. RAF loop reads the nonce; when it changes
   // from `lastSeenFocusNonceRef`, fire a tween to that planet.
   const focusPlanetTriggerRef = useRef<
@@ -217,6 +232,7 @@ export function GalaxyView({
   onSurfaceTileClickRef.current = onSurfaceTileClick
   humanDiscoveredPlanetIdsRef.current = humanDiscoveredPlanetIds
   buildingsByPlanetRef.current = buildingsByPlanet
+  settlementsByPlanetRef.current = settlementsByPlanet
   focusPlanetTriggerRef.current = focusPlanetTrigger
   miningBeaconsRef.current = miningBeacons ?? []
   civsByPlanetRef.current = civsByPlanet
@@ -275,6 +291,10 @@ export function GalaxyView({
     scene.add(cameraState.camera)
     const galaxyHandle = buildGalaxyLayer(galaxy)
     scene.add(galaxyHandle.group)
+    // PHASE 17.G — depth-cued nebula fog so distant solar systems blend into the backdrop.
+    // Density scales to the galaxy's universe-half-extent so Tiny / Small / Medium / Large
+    // all read with the same perceptual depth.
+    applyVolumetricFog(scene, galaxy.universeHalfExtent)
 
     // PHASE 17.PRE.4 — restore persisted camera state if this Galaxy was previously mounted.
     // Fall back to home-planet framing on first mount of a given galaxy.
@@ -351,6 +371,19 @@ export function GalaxyView({
     // 60fps = 840 dispose/rebuild ops/sec, destabilizing WebGL state. Now sync only fires
     // when the buildings-by-tile size for a planet actually changes (place / remove).
     const lastSyncedBuildingsCount = new Map<PlanetId, number>()
+    // PHASE 17.13.4 — cache the last-synced settlement signature per planet so we don't
+    // re-iterate every settlement set every frame. The signature folds in each non-capital
+    // settlement's id + its controlled-tile-set size; founding / annexing / renaming flips
+    // the signature so the next visible-frame redraws the border rings.
+    const lastSyncedSettlementSig = new Map<PlanetId, string>()
+    function settlementSig(settlements: ReadonlyArray<Settlement>): string {
+      let s = ''
+      for (const settlement of settlements) {
+        if (settlement.status === 'capital') continue
+        s += `${String(settlement.id)}:${settlement.controlledTileIds.size};`
+      }
+      return s
+    }
     const ensureSurfaceLayer = (planet: Planet): SurfaceLayerHandle | null => {
       const existing = surfaceLayers.get(planet.id)
       if (existing) return existing
@@ -368,6 +401,11 @@ export function GalaxyView({
       const initialMap = buildingsByPlanetRef.current?.get(planet.id)
       handle.syncBuildings(planet.tiles, initialMap)
       lastSyncedBuildingsCount.set(planet.id, initialMap?.size ?? 0)
+      // PHASE 17.13.4 — initial settlement border sync so freshly visible planets show
+      // their boundaries on first frame rather than waiting for the next change.
+      const initialSettlements = settlementsByPlanetRef.current?.get(planet.id) ?? []
+      handle.syncSettlementBorders(planet.tiles, initialSettlements)
+      lastSyncedSettlementSig.set(planet.id, settlementSig(initialSettlements))
       return handle
     }
 
@@ -570,11 +608,15 @@ export function GalaxyView({
 
     // RAF loop
     let lastT = performance.now()
+    const mountedAt = performance.now()
     let raf = 0
     const tick = (): void => {
       const now = performance.now()
       const dt = Math.min(0.1, (now - lastT) / 1000)
       lastT = now
+      // PHASE 17.F — advance the GPU-driven dust drift via shader uniform. CPU only writes
+      // one float per frame; the vertex shader does the orbital motion + twinkle.
+      tickGalaxyDust(galaxyHandle, (now - mountedAt) / 1000)
 
       // Tween camera if active
       if (tween) {
@@ -794,6 +836,16 @@ export function GalaxyView({
             if (currentCount !== lastCount) {
               handle.syncBuildings(planet.tiles, map)
               lastSyncedBuildingsCount.set(planet.id, currentCount)
+            }
+            // PHASE 17.13.4 — settlement border tint sync, gated on the signature to avoid
+            // re-iterating settlement sets every frame. Founded settlements get a colored
+            // ring around every controlled tile; the capital + unclaimed tiles stay hidden.
+            const settlementsForPlanet = settlementsByPlanetRef.current?.get(planet.id) ?? []
+            const sig = settlementSig(settlementsForPlanet)
+            const lastSig = lastSyncedSettlementSig.get(planet.id)
+            if (sig !== lastSig) {
+              handle.syncSettlementBorders(planet.tiles, settlementsForPlanet)
+              lastSyncedSettlementSig.set(planet.id, sig)
             }
           }
         } else {

@@ -7,9 +7,33 @@ import {
   isRedirectUriAllowed,
   type GoogleOAuthServerConfig,
 } from './google'
+import {
+  completeGitHubSignIn,
+  getAllowedGitHubRedirectUris,
+  getGitHubOAuthServerConfig,
+  isGitHubRedirectUriAllowed,
+  type GitHubOAuthServerConfig,
+} from './github'
+import {
+  completeDiscordSignIn,
+  getAllowedDiscordRedirectUris,
+  getDiscordOAuthServerConfig,
+  isDiscordRedirectUriAllowed,
+  type DiscordOAuthServerConfig,
+} from './discord'
 import { InMemoryAccountStore, type AccountStore } from '../persistence/AccountStore'
+import { FileAccountStore } from '../persistence/FileAccountStore'
 
-const sharedAccountStore: AccountStore = new InMemoryAccountStore()
+// PHASE 17.0 — File-backed account persistence so OAuth identities + stats survive restarts.
+// Set SMOL_ACCOUNT_STORE_BACKEND=memory to revert to the volatile in-memory store (useful
+// for tests / fresh-state dev runs). Default is file-backed.
+function buildAccountStore(): AccountStore {
+  const backend = (process.env.SMOL_ACCOUNT_STORE_BACKEND ?? 'file').toLowerCase()
+  if (backend === 'memory') return new InMemoryAccountStore()
+  return new FileAccountStore()
+}
+
+const sharedAccountStore: AccountStore = buildAccountStore()
 
 const sessionTokens = new Map<string, { accountId: string; issuedAt: number }>()
 
@@ -115,6 +139,118 @@ async function handleGoogleCallback(
   }
 }
 
+// PHASE 17.0 — GitHub OAuth callback. GitHub does NOT use PKCE (no codeVerifier param),
+// so the body only requires `code` + optional `redirectUri`.
+interface GitHubCallbackBody {
+  readonly code?: string
+  readonly state?: string
+  readonly redirectUri?: string
+}
+
+async function handleGitHubCallback(
+  req: IncomingMessage,
+  res: ServerResponse,
+  config: GitHubOAuthServerConfig,
+): Promise<void> {
+  try {
+    const body = await readJsonBody<GitHubCallbackBody>(req)
+    if (!body.code) {
+      respondJson(res, 400, { error: 'Missing code in request body.' })
+      return
+    }
+    let clientRedirectUri: string | undefined
+    if (body.redirectUri && body.redirectUri.length > 0) {
+      const allowed = getAllowedGitHubRedirectUris()
+      if (!isGitHubRedirectUriAllowed(body.redirectUri, allowed)) {
+        respondJson(res, 403, {
+          error:
+            `Client redirect_uri "${body.redirectUri}" is not in the GitHub allowlist. ` +
+            `Add it to GITHUB_OAUTH_ALLOWED_REDIRECT_URIS (comma-separated) AND register it ` +
+            `in the GitHub OAuth app's Authorization callback URL.`,
+          suppliedRedirectUri: body.redirectUri,
+          allowedRedirectUris: [...allowed],
+        })
+        return
+      }
+      clientRedirectUri = body.redirectUri
+    }
+    const result = await completeGitHubSignIn({
+      code: body.code,
+      config,
+      store: sharedAccountStore,
+      currentTick: 0,
+      issueSessionToken,
+      ...(clientRedirectUri ? { clientRedirectUri } : {}),
+    })
+    respondJson(res, 200, {
+      accountId: String(result.account.profile.accountId),
+      email: result.email,
+      displayName: result.account.profile.displayName,
+      pictureUrl: null,
+      sessionToken: result.sessionToken,
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[smol/auth] GitHub callback handler failed:', message)
+    respondJson(res, 500, { error: message })
+  }
+}
+
+interface DiscordCallbackBody {
+  readonly code?: string
+  readonly state?: string
+  readonly redirectUri?: string
+}
+
+async function handleDiscordCallback(
+  req: IncomingMessage,
+  res: ServerResponse,
+  config: DiscordOAuthServerConfig,
+): Promise<void> {
+  try {
+    const body = await readJsonBody<DiscordCallbackBody>(req)
+    if (!body.code) {
+      respondJson(res, 400, { error: 'Missing code in request body.' })
+      return
+    }
+    let clientRedirectUri: string | undefined
+    if (body.redirectUri && body.redirectUri.length > 0) {
+      const allowed = getAllowedDiscordRedirectUris()
+      if (!isDiscordRedirectUriAllowed(body.redirectUri, allowed)) {
+        respondJson(res, 403, {
+          error:
+            `Client redirect_uri "${body.redirectUri}" is not in the Discord allowlist. ` +
+            `Add it to DISCORD_OAUTH_ALLOWED_REDIRECT_URIS (comma-separated) AND register it ` +
+            `in the Discord Developer Portal's OAuth2 Redirects list.`,
+          suppliedRedirectUri: body.redirectUri,
+          allowedRedirectUris: [...allowed],
+        })
+        return
+      }
+      clientRedirectUri = body.redirectUri
+    }
+    const result = await completeDiscordSignIn({
+      code: body.code,
+      config,
+      store: sharedAccountStore,
+      currentTick: 0,
+      issueSessionToken,
+      ...(clientRedirectUri ? { clientRedirectUri } : {}),
+    })
+    respondJson(res, 200, {
+      accountId: String(result.account.profile.accountId),
+      email: result.email,
+      displayName: result.account.profile.displayName,
+      pictureUrl: null,
+      sessionToken: result.sessionToken,
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[smol/auth] Discord callback handler failed:', message)
+    respondJson(res, 500, { error: message })
+  }
+}
+
 export interface AuthHttpServerHandle {
   readonly port: number
   readonly close: () => void
@@ -130,9 +266,21 @@ export function registerShutdownHook(hook: ShutdownHook): void {
 
 export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
   const config = getGoogleOAuthServerConfig()
+  const githubConfig = getGitHubOAuthServerConfig()
+  const discordConfig = getDiscordOAuthServerConfig()
   if (!config) {
     console.warn(
       '[smol/auth] Google OAuth server config missing — set GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET / GOOGLE_OAUTH_REDIRECT_URI in .env.local. The auth endpoint will return 503 until configured.',
+    )
+  }
+  if (!githubConfig) {
+    console.warn(
+      '[smol/auth] GitHub OAuth server config missing — set GITHUB_OAUTH_CLIENT_ID / GITHUB_OAUTH_CLIENT_SECRET / GITHUB_OAUTH_REDIRECT_URI in .env.local. The GitHub endpoint will return 503 until configured.',
+    )
+  }
+  if (!discordConfig) {
+    console.warn(
+      '[smol/auth] Discord OAuth server config missing — set DISCORD_OAUTH_CLIENT_ID / DISCORD_OAUTH_CLIENT_SECRET / DISCORD_OAUTH_REDIRECT_URI in .env.local. The Discord endpoint will return 503 until configured.',
     )
   }
 
@@ -154,10 +302,34 @@ export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
       await handleGoogleCallback(req, res, config)
       return
     }
+    if (req.method === 'POST' && req.url === '/api/auth/github/callback') {
+      if (!githubConfig) {
+        respondJson(res, 503, {
+          error:
+            'GitHub OAuth not configured on server. Set GITHUB_OAUTH_CLIENT_ID, GITHUB_OAUTH_CLIENT_SECRET, GITHUB_OAUTH_REDIRECT_URI in .env.local and restart the server.',
+        })
+        return
+      }
+      await handleGitHubCallback(req, res, githubConfig)
+      return
+    }
+    if (req.method === 'POST' && req.url === '/api/auth/discord/callback') {
+      if (!discordConfig) {
+        respondJson(res, 503, {
+          error:
+            'Discord OAuth not configured on server. Set DISCORD_OAUTH_CLIENT_ID, DISCORD_OAUTH_CLIENT_SECRET, DISCORD_OAUTH_REDIRECT_URI in .env.local and restart the server.',
+        })
+        return
+      }
+      await handleDiscordCallback(req, res, discordConfig)
+      return
+    }
     if (req.method === 'GET' && req.url === '/api/auth/health') {
       respondJson(res, 200, {
         ok: true,
         googleConfigured: config !== null,
+        githubConfigured: githubConfig !== null,
+        discordConfigured: discordConfig !== null,
         accountsRegistered: sharedAccountStore.list().length,
       })
       return
@@ -192,6 +364,8 @@ export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
   server.listen(port, () => {
     console.info(`[smol/auth] HTTP auth server listening on http://localhost:${port}`)
     console.info(`[smol/auth]   POST /api/auth/google/callback   (Google OAuth exchange)`)
+    console.info(`[smol/auth]   POST /api/auth/github/callback   (GitHub OAuth exchange)`)
+    console.info(`[smol/auth]   POST /api/auth/discord/callback  (Discord OAuth exchange)`)
     console.info(`[smol/auth]   GET  /api/auth/health             (status check)`)
     // PHASE 16.34.1 — log the live redirect_uri allowlist on startup so the operator can see
     // exactly which URIs the server will accept from clients. If you're hitting a 403 mismatch,

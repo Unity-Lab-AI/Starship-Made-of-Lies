@@ -7,7 +7,11 @@ type Brand<T, B> = T & { readonly [__accountBrand]: B }
 export type AccountId = Brand<string, 'AccountId'>
 export const accountId = (s: string): AccountId => s as AccountId
 
-export type AuthMethod = 'anonymous' | 'email' | 'google' | 'discord' | 'apple'
+// PHASE 17.0 — sign-in providers. Per user verbatim "Postgres + OAuth (4 providers)".
+// Google + Discord shipped in earlier scaffolds; GitHub + Apple round out the cross-platform
+// set. Anonymous + email cover the no-OAuth fallback paths. 'github' lets the GitHub OAuth
+// scaffold in server/src/auth/github.ts type-check + persist credentials cleanly.
+export type AuthMethod = 'anonymous' | 'email' | 'google' | 'discord' | 'apple' | 'github'
 
 export interface AccountCredentials {
   readonly method: AuthMethod

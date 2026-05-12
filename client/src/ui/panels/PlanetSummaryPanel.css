@@ -215,3 +215,120 @@
   transform: translateY(0);
   filter: brightness(0.95);
 }
+
+/* PHASE 17.13.6 — view-mode toggle + per-settlement detail list. Toggle pinned to the
+   right side of the panel header; per-settlement rows wrap the tile/building/population
+   share so the player can compare each settlement at a glance. */
+.planet-summary-panel__view-toggle {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.planet-summary-panel__view-toggle-btn {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--panel-text, #d8e0e8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.3rem;
+  cursor: pointer;
+  transition:
+    background 120ms ease-out,
+    border-color 120ms ease-out;
+}
+
+.planet-summary-panel__view-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.planet-summary-panel__view-toggle-btn.is-active {
+  background: var(--accent, #6abf69);
+  color: var(--accent-text, #0c1014);
+  border-color: var(--accent, #6abf69);
+}
+
+.planet-summary-panel__detail-note {
+  font-size: 0.78rem;
+  color: var(--muted-text, #8895a3);
+  font-style: italic;
+  margin: 0 0 0.5rem 0;
+}
+
+.planet-summary-panel__settlement-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.planet-summary-panel__settlement-row {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-left: 3px solid var(--accent, #6abf69);
+  border-radius: 0.3rem;
+  padding: 0.5rem 0.7rem;
+}
+
+.planet-summary-panel__settlement-row[data-status='capital'] {
+  border-left-color: #d4a13a;
+}
+
+.planet-summary-panel__settlement-row[data-status='colonizing'] {
+  border-left-color: #88aaff;
+}
+
+.planet-summary-panel__settlement-row[data-status='ruined'] {
+  border-left-color: #c44a2a;
+  opacity: 0.7;
+}
+
+.planet-summary-panel__settlement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+
+.planet-summary-panel__settlement-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.planet-summary-panel__settlement-status {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-text, #8895a3);
+}
+
+.planet-summary-panel__settlement-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.3rem 0.6rem;
+  margin: 0;
+}
+
+.planet-summary-panel__settlement-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.planet-summary-panel__settlement-stats dt {
+  font-size: 0.7rem;
+  color: var(--muted-text, #8895a3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.planet-summary-panel__settlement-stats dd {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin: 0;
+}
