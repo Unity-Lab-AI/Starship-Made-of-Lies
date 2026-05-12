@@ -8,7 +8,8 @@ import { AccessibilitySettingsPanel } from '../panels/AccessibilitySettingsPanel
 import { AudioSettingsPanel } from '../panels/AudioSettingsPanel'
 import { CameraSettingsPanel } from '../panels/CameraSettingsPanel'
 import { KeybindingsPanel } from '../panels/KeybindingsPanel'
-import { LocalePicker } from '../../i18n/LocalePicker'
+// LocalePicker import removed 2026-05-12 — collapsed to English-only per user. The Language
+// tab keeps an explainer card; locale re-introduction will revive the picker via this import.
 import './SubPage.css'
 import './SettingsPage.css'
 
@@ -65,13 +66,15 @@ export function SettingsPage() {
             <div className="settings-page__language">
               <h2>Language</h2>
               <p className="settings-page__game-help">
-                SMoL ships English-only today. Additional locales (Spanish / French / German /
-                Portuguese / Japanese / Chinese / Korean / Russian / Arabic / Hebrew) are planned
-                post-MVP once translator content is commissioned. The i18n plumbing is already in
-                place under <code>client/src/i18n/i18n.ts</code> — adding a locale will be a content
-                drop, not an engineering refactor.
+                SMoL ships <strong>English-only</strong> today. Additional locales (Spanish / French
+                / German / Portuguese / Japanese / Chinese / Korean / Russian / Arabic / Hebrew) are
+                planned post-MVP once translator content is commissioned. The i18n plumbing is
+                already in place under <code>client/src/i18n/i18n.ts</code> — adding a locale will
+                be a content drop, not an engineering refactor.
               </p>
-              <LocalePicker />
+              <p className="settings-page__game-help">
+                The locale picker will appear here when additional locales ship.
+              </p>
             </div>
           )}
           {tab === 'about' && (
