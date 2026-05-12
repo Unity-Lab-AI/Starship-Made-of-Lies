@@ -179,6 +179,7 @@ import {
   tickMiningShip,
   tickPad,
   getBuildingProduction,
+  type BuildingProductionMode,
   tickPlanetProduction,
   tileWorldPosition,
   tickResearch,
@@ -241,6 +242,14 @@ export interface MatchPlanetState {
   // build progress every tick; when it crosses MINING_OUTPOST_SHIP_INTERVAL_TICKS the outpost
   // tries to spawn one mining ship (gated on resource cost + per-outpost miner cap).
   outpostBuildTicks: Map<TileId, number>
+  // PHASE 17.L.A.12 — Q11 PHASE 17 LOCKED. Per-resource target stockpiles set via the
+  // QuotasPanel sliders. Buildings producing a resource that's at-or-above its quota idle in
+  // auto-mode to save workforce. Empty Map = no quotas set (unthrottled production).
+  quotas: Map<ResourceId, number>
+  // PHASE 17.L.A.12 — Q11 LOCKED. Per-building-def production mode override. Keyed by
+  // BuildingDefId so the toggle applies to every instance of that building type on the
+  // planet uniformly. Missing entry = 'auto'. Values: 'auto' | 'paused' | 'disassembly'.
+  buildingModes: Map<BuildingDefId, BuildingProductionMode>
   // PHASE 17.B.2 — monotonic miner serial per planet so generated ids never collide even when
   // multiple outposts spawn on the same tick.
   nextMinerSerial: number
@@ -596,6 +605,11 @@ function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
     indigenousCivId: null,
     outpostBuildTicks: new Map(),
     nextMinerSerial: 0,
+    // PHASE 17.L.A.12 — Q11 LOCKED. Default empty quotas + auto-mode for every building. Player
+    // sets these via the QuotasPanel; sim starts unthrottled so legacy behavior is unchanged
+    // for any planet whose player hasn't configured anything.
+    quotas: new Map(),
+    buildingModes: new Map(),
     // SR2-9: cache tile-by-id lookup once. Tiles are immutable; this Map persists for the
     // life of the planet state.
     tilesById: new Map(planet.tiles.map((t) => [t.id, t])),
@@ -1053,6 +1067,11 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
       themeProductionMultiplier: themeMult,
       deceptionProductionMultiplier: decep.production,
       brownoutActive,
+      // PHASE 17.L.A.12 — Q11 LOCKED. Thread per-planet quotas + buildingModes so the
+      // production tick respects the player's QuotasPanel settings. Both default-empty so
+      // any planet without configuration runs unthrottled (legacy behavior).
+      quotas: planetState.quotas,
+      buildingModes: planetState.buildingModes,
     })
   }
 
@@ -2473,6 +2492,48 @@ export interface LoadPadManifestResult {
   readonly citizensLoaded: number
   readonly cargoLoaded: number
   readonly reason?: string
+}
+
+// PHASE 17.L.A.12 — Q11 LOCKED. Player-facing actions for quotas + buildingModes. UI surface
+// is the QuotasPanel sliders + per-building dropdown. Both mutate the named planet's state
+// in-place; setTickCount in useMatchSim picks up the change via the standard tickCount bump.
+export interface SetPlanetQuotaInputs {
+  readonly state: MatchState
+  readonly planetId: PlanetId
+  readonly resource: ResourceId
+  // Pass 0 (or any non-positive) to clear the quota for this resource. Otherwise stores the
+  // target stockpile. The production tick reads this map directly.
+  readonly target: number
+}
+
+export function setPlanetQuotaAction(inputs: SetPlanetQuotaInputs): boolean {
+  const planet = inputs.state.planets.get(inputs.planetId)
+  if (!planet || planet.civId !== inputs.state.humanCivId) return false
+  if (inputs.target <= 0) {
+    planet.quotas.delete(inputs.resource)
+  } else {
+    planet.quotas.set(inputs.resource, Math.floor(inputs.target))
+  }
+  return true
+}
+
+export interface SetBuildingModeInputs {
+  readonly state: MatchState
+  readonly planetId: PlanetId
+  readonly buildingDefId: BuildingDefId
+  // 'auto' clears the entry (effective default); 'paused' / 'disassembly' stores it.
+  readonly mode: BuildingProductionMode
+}
+
+export function setBuildingModeAction(inputs: SetBuildingModeInputs): boolean {
+  const planet = inputs.state.planets.get(inputs.planetId)
+  if (!planet || planet.civId !== inputs.state.humanCivId) return false
+  if (inputs.mode === 'auto') {
+    planet.buildingModes.delete(inputs.buildingDefId)
+  } else {
+    planet.buildingModes.set(inputs.buildingDefId, inputs.mode)
+  }
+  return true
 }
 
 export function loadPadManifestAction(inputs: LoadPadManifestInputs): LoadPadManifestResult {

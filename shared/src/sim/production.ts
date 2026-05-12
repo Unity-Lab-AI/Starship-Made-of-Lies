@@ -334,6 +334,21 @@ export function getBuildingProduction(id: BuildingDefId): BuildingProduction | n
   return BUILDING_PRODUCTION.get(id) ?? null
 }
 
+// PHASE 17.L.A.12 — Q11 PHASE 17 LOCKED ("Full UMS parity — per-resource quota system +
+// auto-production tries to hit quotas + auto-recycle disassembles excess back into raw
+// materials"). UMS UnityInventory.QueueMissing + RecycleExcess carryover. Three per-building
+// modes player can pick:
+//
+//   - 'auto'        : default. Building runs normal production. Skipped when output is
+//                     over its quota — prevents stockpile waste.
+//   - 'paused'      : manual halt. Building skips production entirely (workforce idles).
+//   - 'disassembly' : reverse-production. Building consumes its normal OUTPUT and produces
+//                     its normal INPUT — the UnityInventory RecycleExcess pattern.
+//                     Refinery (planks → wood) becomes (planks → wood reversed: takes planks
+//                     out, returns wood). Useful when stockpile blew past quota AND you need
+//                     the raw materials back.
+export type BuildingProductionMode = 'auto' | 'paused' | 'disassembly'
+
 export interface ProductionTickInputs {
   readonly buildings: ReadonlyArray<{ defId: BuildingDefId; def: BuildingDef }>
   readonly biome: BiomeDef
@@ -349,17 +364,64 @@ export interface ProductionTickInputs {
   // input) build up enough reserves for the next tick. Surfaces via idledBuildingCount in
   // the result + the "⚠ disabled — no fuel" indicator in PlanetEnergyPanel breakdown rows.
   readonly brownoutActive?: boolean
+  // PHASE 17.L.A.12 — Q11 LOCKED. Per-resource target stockpiles set via the QuotasPanel
+  // sliders. When a resource has a quota, auto-mode buildings producing it will idle once
+  // stock >= quota — saves workforce + prevents inventory overflow. Resources without a
+  // quota entry run unthrottled (current behavior). null / undefined = no quotas configured.
+  readonly quotas?: ReadonlyMap<ResourceId, number>
+  // PHASE 17.L.A.12 — Q11 LOCKED. Per-building-def production mode override. Keyed by
+  // BuildingDefId so the toggle applies to every instance of that building type on the
+  // planet uniformly (matches the "set mode on the building type, not per-tile" pattern
+  // from UMS UnityInventory). Missing entry = 'auto'.
+  readonly buildingModes?: ReadonlyMap<BuildingDefId, BuildingProductionMode>
 }
 
 export interface ProductionTickResult {
   readonly producedByResource: ReadonlyMap<ResourceId, number>
   readonly consumedByResource: ReadonlyMap<ResourceId, number>
   readonly idledBuildingCount: number
+  // PHASE 17.L.A.12 — Q11 LOCKED. Per-resource recycled-back-to-raw amounts so the
+  // ProductionGraphPanel / ResourcesPanel can show "X recycled this tick" for disassembly-
+  // mode buildings.
+  readonly recycledByResource: ReadonlyMap<ResourceId, number>
+}
+
+// PHASE 17.L.A.12 — Q11 LOCKED. Refineries / Foundries / Factories are the only buildings
+// that support disassembly mode (the UMS UnityInventory RecycleExcess set). Other building
+// types — extractors, food, propaganda, etc. — only have one direction. When the player
+// sets disassembly on a non-recyclable building, it falls back to 'paused' behavior so the
+// building still idles cleanly.
+const DISASSEMBLY_CAPABLE_BUILDINGS: ReadonlySet<BuildingDefId> = new Set([
+  BLDG_REFINERY,
+  BLDG_FOUNDRY,
+  BLDG_FACTORY,
+])
+
+// PHASE 17.L.A.12 — Q11 LOCKED. Quota-aware skip predicate. Returns true when the building
+// should idle this tick because all its OUTPUTS are at-or-above their configured quotas.
+// Resources without a quota entry don't count as "over-quota" — they're unlimited. A building
+// with mixed outputs (some over-quota, some under) keeps running so the under-quota outputs
+// keep flowing.
+function buildingExceedsAllOutputQuotas(
+  production: BuildingProduction,
+  inventory: PlanetInventory,
+  quotas: ReadonlyMap<ResourceId, number> | undefined,
+): boolean {
+  if (!quotas || quotas.size === 0) return false
+  if (production.outputs.length === 0) return false
+  for (const output of production.outputs) {
+    const quota = quotas.get(output.resource)
+    if (quota === undefined) return false
+    const stock = stockOf(inventory, output.resource)
+    if (stock < quota) return false
+  }
+  return true
 }
 
 export function tickPlanetProduction(inputs: ProductionTickInputs): ProductionTickResult {
   const produced = new Map<ResourceId, number>()
   const consumed = new Map<ResourceId, number>()
+  const recycled = new Map<ResourceId, number>()
   let idledBuildingCount = 0
 
   const factionMult = performanceMultiplier(inputs.faction)
@@ -373,6 +435,17 @@ export function tickPlanetProduction(inputs: ProductionTickInputs): ProductionTi
   for (const { defId, def } of inputs.buildings) {
     const production = BUILDING_PRODUCTION.get(defId)
     if (!production) continue
+
+    // PHASE 17.L.A.12 — Q11 LOCKED. Resolve per-building-def mode. Missing entry = 'auto'.
+    // Disassembly on a non-recyclable building downgrades to 'paused'.
+    const rawMode = inputs.buildingModes?.get(defId) ?? 'auto'
+    const mode: BuildingProductionMode =
+      rawMode === 'disassembly' && !DISASSEMBLY_CAPABLE_BUILDINGS.has(defId) ? 'paused' : rawMode
+
+    if (mode === 'paused') {
+      idledBuildingCount += 1
+      continue
+    }
 
     // PHASE 17.L.A.3 — brownout gate. Buildings that consume fuel as input idle for this
     // tick when the planet is in brownout (insufficient capacity + empty reserves). Lets the
@@ -388,6 +461,44 @@ export function tickPlanetProduction(inputs: ProductionTickInputs): ProductionTi
       : 1
     const categoryWeight = categoryWorkforceWeight(def.category, inputs.workforce)
     const effectiveMult = baseMult * biomeMultiplier * categoryWeight * (0.5 + 0.5 * industryWeight)
+
+    // PHASE 17.L.A.12 — Q11 LOCKED. DISASSEMBLY MODE — reverse the building. Consume normal
+    // OUTPUT, produce normal INPUT. The "auto-recycle disassembles excess back into raw
+    // materials" half of the locked answer. Uses the same effectiveMult on the recovered
+    // raw-input yield (so an efficient factory recovers more raw materials per tick than an
+    // inefficient one). Skipped when output stocks are empty (nothing to disassemble).
+    if (mode === 'disassembly') {
+      const allOutputsStocked = production.outputs.every(
+        (output) => stockOf(inputs.inventory, output.resource) >= output.amount,
+      )
+      if (!allOutputsStocked) {
+        idledBuildingCount += 1
+        continue
+      }
+      for (const output of production.outputs) {
+        consumeResource(inputs.inventory, output.resource, output.amount)
+        consumed.set(output.resource, (consumed.get(output.resource) ?? 0) + output.amount)
+      }
+      // Recover inputs proportional to effectiveMult. Disassembly is slightly inefficient —
+      // recoveryRate < 1 reflects friction (the UnityInventory RecycleExcess returns ~85% of
+      // raw materials on disassembly).
+      const recoveryRate = 0.85
+      for (const input of production.inputs) {
+        const amount = Math.max(0, Math.round(input.amount * effectiveMult * recoveryRate))
+        if (amount <= 0) continue
+        addResource(inputs.inventory, input.resource, amount)
+        recycled.set(input.resource, (recycled.get(input.resource) ?? 0) + amount)
+      }
+      continue
+    }
+
+    // AUTO MODE — normal forward production. PHASE 17.L.A.12 — Q11 LOCKED. Quota-aware
+    // throttle: skip when all outputs are at-or-above their configured quotas. Buildings
+    // with only some-over-quota outputs still run (the under-quota ones get filled).
+    if (buildingExceedsAllOutputQuotas(production, inputs.inventory, inputs.quotas)) {
+      idledBuildingCount += 1
+      continue
+    }
 
     const allConsumed = production.inputs.every(
       (input) => stockOf(inputs.inventory, input.resource) >= input.amount,
@@ -410,7 +521,12 @@ export function tickPlanetProduction(inputs: ProductionTickInputs): ProductionTi
     }
   }
 
-  return { producedByResource: produced, consumedByResource: consumed, idledBuildingCount }
+  return {
+    producedByResource: produced,
+    consumedByResource: consumed,
+    idledBuildingCount,
+    recycledByResource: recycled,
+  }
 }
 
 function clamp01(v: number): number {
