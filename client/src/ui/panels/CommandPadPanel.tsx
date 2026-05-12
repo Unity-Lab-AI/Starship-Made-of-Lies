@@ -172,7 +172,13 @@ export function CommandPadPanel({
         <div className="command-pad__controller">
           <span className="command-pad__controller-label">Controller pad</span>
           <span className="command-pad__controller-value">
-            {String(controllerPad.id)} · {controllerPad.state}
+            {/* PHASE 17.12.4 — display human-readable "Pad #N" derived from padOrdinal (UMS
+                SETUPMOD wizard equivalent). Falls back to the raw TileId when ordinal is 0
+                (legacy pads created before the field landed). */}
+            {controllerPad.padOrdinal > 0
+              ? `Pad #${controllerPad.padOrdinal}`
+              : String(controllerPad.id)}{' '}
+            · {controllerPad.state}
           </span>
           {controllerPad.targetQueue.length > 0 && (
             <span className="command-pad__controller-target">

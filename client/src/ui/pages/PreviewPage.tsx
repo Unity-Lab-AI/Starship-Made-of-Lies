@@ -147,6 +147,9 @@ export function PreviewPage() {
       civId('preview-civ'),
       startingPlanet.id,
       true,
+      // PHASE 17.12.4 — explicit pad-ordinal #1 for the preview pad. Real placement path
+      // auto-assigns via placeBuildingCanonical; preview-only callsites pass it inline.
+      1,
     )
     pad.state = 'READY'
     pad.loadedShipVariantId = SHIP_STANDARD
