@@ -83,14 +83,10 @@ export function recordReplaySnapshot(
   return singletonBuffer.push(state, rngSeed)
 }
 
-// Force-capture regardless of tick — useful at key game events (match-start, civ defeated,
-// last-hope triggered) so the player can rewind to a specific moment.
-export function recordReplaySnapshotForced(
-  state: MatchState,
-  rngSeed: number,
-): ReplaySnapshotEntry {
-  return singletonBuffer.push(state, rngSeed)
-}
+// recordReplaySnapshotForced was a force-on-event capture helper. Retired 2026-05-12 alongside
+// the rest of the mid-match replay UI per user "no replay until the game is over". If
+// post-match review ever ships, force-capture at match-end events is the right entry point —
+// resurrect this helper there.
 
 export function listReplaySnapshots(): ReadonlyArray<ReplaySnapshotEntry> {
   return singletonBuffer.list()

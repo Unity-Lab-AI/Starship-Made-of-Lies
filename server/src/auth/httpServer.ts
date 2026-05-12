@@ -213,11 +213,38 @@ function respond429(res: ServerResponse, retryAfterMs: number, message: string):
   res.end(JSON.stringify({ error: message, retryAfterSeconds: Math.ceil(retryAfterMs / 1000) }))
 }
 
+// Body-size cap defends against memory-exhaustion DoS — a malicious client can POST
+// gigabytes of JSON to any of our endpoints; Node's http.IncomingMessage will happily buffer
+// it all in memory until end. Cap matches what OAuth callbacks + matchmaking prefs need
+// (well under 16 KB in practice). Anything larger gets rejected with HTTP 413.
+const MAX_REQUEST_BODY_BYTES = 32 * 1024 // 32 KB — generous for any current endpoint
+
+class BodyTooLargeError extends Error {
+  readonly statusCode = 413
+  constructor() {
+    super(`Request body exceeds ${MAX_REQUEST_BODY_BYTES} bytes`)
+    this.name = 'BodyTooLargeError'
+  }
+}
+
 function readJsonBody<T>(req: IncomingMessage): Promise<T> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = []
-    req.on('data', (chunk: Buffer) => chunks.push(chunk))
+    let totalBytes = 0
+    let aborted = false
+    req.on('data', (chunk: Buffer) => {
+      if (aborted) return
+      totalBytes += chunk.length
+      if (totalBytes > MAX_REQUEST_BODY_BYTES) {
+        aborted = true
+        req.destroy()
+        reject(new BodyTooLargeError())
+        return
+      }
+      chunks.push(chunk)
+    })
     req.on('end', () => {
+      if (aborted) return
       try {
         const body = Buffer.concat(chunks).toString('utf-8')
         resolve(body.length === 0 ? ({} as T) : (JSON.parse(body) as T))

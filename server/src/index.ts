@@ -3,7 +3,11 @@ import { WebSocketTransport } from '@colyseus/ws-transport'
 import { matchMaker } from '@colyseus/core'
 import { validateBuildingProductionCatalog } from '@smol/shared'
 import { GameRoom } from './rooms/GameRoom'
-import { registerShutdownHook, startAuthHttpServer } from './auth/httpServer'
+import {
+  registerShutdownHook,
+  startAuthHttpServer,
+  stopAuthBackgroundSweep,
+} from './auth/httpServer'
 import { getSharedFileSnapshotStore } from './persistence/FileSnapshotStore'
 
 const PORT = Number(process.env.PORT ?? 2567)
@@ -53,6 +57,13 @@ async function gracefulShutdown(server: Server): Promise<void> {
     console.info('[smol/server] Colyseus shutdown complete.')
   } catch (err) {
     console.error('[smol/server] Colyseus gracefullyShutdown failed:', err)
+  }
+
+  // 3. Stop the auth-server background sweep so the Node event loop can settle.
+  try {
+    stopAuthBackgroundSweep()
+  } catch (err) {
+    console.error('[smol/server] stopAuthBackgroundSweep failed:', err)
   }
 
   console.info('[smol/server] === Shutdown sequence complete ===')
