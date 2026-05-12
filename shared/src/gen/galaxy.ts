@@ -7,6 +7,7 @@ import {
   SOLAR_SYSTEM_BOUNDING_PAD,
   STAR_RADIUS_PLANET_MULTIPLIER,
   UNIVERSE_HALF_EXTENT,
+  computeUniverseHalfExtent,
 } from '../sim/balance-constants'
 import { BIOMES, biomesByTier } from './biome'
 import {
@@ -27,6 +28,12 @@ export interface Galaxy {
   readonly seed: number
   readonly stars: ReadonlyArray<Star>
   readonly planets: ReadonlyArray<Planet>
+  // PHASE 17.L.D.1 (HOTFIX 2026-05-11) — per-galaxy universe half-extent, scaled by star
+  // count via computeUniverseHalfExtent. Consumers (camera controller, hulk-wrap math) read
+  // this instead of the global UNIVERSE_HALF_EXTENT cap so smaller galaxies have proportionally
+  // smaller arenas. Per user verbatim *"the stars need to be appropriate distances from each
+  // other... astronically there is still plunty of space for planets"*.
+  readonly universeHalfExtent: number
 }
 
 // Super-review SR2-15 fix: floor dropped 100 → 20 so future "small galaxy" presets (per
@@ -140,11 +147,19 @@ function planStarPlanetCounts(
 //       independent of placement retry count — required for save/load + replay)
 //   (b) each retry uses a different but deterministic substream so it actually explores new
 //       positions instead of repeating the same failed attempts.
+interface PlaceSystemsResult {
+  readonly positions: Vec3[]
+  // PHASE 17.L.D.1 — actual half-extent used by placement (may be > input halfExtent if
+  // growth was needed to fit all systems collision-free). Returned so Galaxy can store the
+  // authoritative wrap boundary instead of the per-galaxy starting bound.
+  readonly actualHalfExtent: number
+}
+
 function placeSystems(
   placementSeed: number,
   systems: ReadonlyArray<PreRolledSystem>,
   halfExtent: number,
-): Vec3[] {
+): PlaceSystemsResult {
   let currentHalf = halfExtent
   for (let growth = 0; growth < MAX_PLACEMENT_GROWTH_ITERATIONS; growth++) {
     const placementRng = mulberry32((placementSeed ^ (growth * 0x9e3779b1)) >>> 0)
@@ -177,7 +192,7 @@ function placeSystems(
       }
       positions.push(placed)
     }
-    if (!failed) return positions
+    if (!failed) return { positions, actualHalfExtent: currentHalf }
     // Grow the ball and retry on the NEXT growth seed iteration. 1.5× doubling spreads the
     // universe gracefully without exploding wrap distances.
     currentHalf = Math.min(UNIVERSE_HALF_EXTENT, Math.floor(currentHalf * 1.5))
@@ -191,7 +206,7 @@ function placeSystems(
       rollPointInBall(finalRng, Math.max(0, UNIVERSE_HALF_EXTENT - system.boundingRadius)),
     )
   }
-  return positions
+  return { positions, actualHalfExtent: UNIVERSE_HALF_EXTENT }
 }
 
 export function generateGalaxy(config: GalaxyConfig): Galaxy {
@@ -271,8 +286,15 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
   // 4. Place stars with collision-free, wrap-aware rejection sampling. Placement uses a
   //    FORKED rng substream so retries can't perturb the main galaxy rng state — same seed
   //    → same galaxy, guaranteed, regardless of how many collision retries happened.
+  //
+  // PHASE 17.L.D.1 (HOTFIX 2026-05-11) — universe half-extent scales with star count so
+  // Tiny galaxies (2 systems) don't share the same 60k cube as Large galaxies (143 systems).
+  // computeUniverseHalfExtent floors at 80k and adds 5k per star up to the 500k global cap.
+  // Per user verbatim *"astronically there is still plunty of space for planets"*.
+  const galaxyHalfExtent = computeUniverseHalfExtent(starCount)
   const placementSeed = (config.seed ^ 0x70_15_45_e1) >>> 0
-  const starPositions = placeSystems(placementSeed, systems, UNIVERSE_HALF_EXTENT)
+  const placement = placeSystems(placementSeed, systems, galaxyHalfExtent)
+  const starPositions = placement.positions
 
   // 5. Build Star + Planet entities. Planet world position = star.position + localOffset.
   //    Note: localOffset isn't toroidally wrapped here — if a star sits within bound of the
@@ -325,6 +347,7 @@ export function generateGalaxy(config: GalaxyConfig): Galaxy {
     seed: config.seed,
     stars,
     planets,
+    universeHalfExtent: placement.actualHalfExtent,
   }
 }
 

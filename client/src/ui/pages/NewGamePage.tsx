@@ -21,12 +21,19 @@ import {
 import './SubPage.css'
 import './NewGamePage.css'
 
-type GalaxyPreset = 'small' | 'medium' | 'large'
+type GalaxyPreset = 'tiny' | 'small' | 'medium' | 'large'
 
+// PHASE 17.L.D.1 (HOTFIX 2026-05-11) — added Tiny preset per user playtest report. The
+// smallest valid generated galaxy at MIN_PLANET_COUNT=20 / AVG_PLANETS_PER_STAR=7 lands at
+// ~3 stars (home + 2 enemies + maybe 1 indigenous), comfortably small for early playtests.
+// Tiny is the new default so /play out-of-the-box doesn't drop the player into a 15-star
+// crowd. Per user verbatim *"1 star per system each player starts in a system of planets
+// with one star(Sun) per system"* — Tiny respects the spec at the smallest comfortable scale.
 const GALAXY_PRESETS: Record<GalaxyPreset, { label: string; planetCount: number }> = {
-  small: { label: 'Small (100 planets)', planetCount: 100 },
-  medium: { label: 'Medium (300 planets)', planetCount: 300 },
-  large: { label: 'Large (1000 planets)', planetCount: 1000 },
+  tiny: { label: 'Tiny (20 planets / about 3 systems)', planetCount: 20 },
+  small: { label: 'Small (100 planets / about 15 systems)', planetCount: 100 },
+  medium: { label: 'Medium (300 planets / about 43 systems)', planetCount: 300 },
+  large: { label: 'Large (1000 planets / about 143 systems)', planetCount: 1000 },
 }
 
 interface ObjectiveToggleState {
@@ -77,7 +84,7 @@ function randomAISlot(rng: () => number): AISlotConfig {
 
 export function NewGamePage() {
   const navigate = useNavigate()
-  const [galaxySize, setGalaxySize] = useState<GalaxyPreset>('small')
+  const [galaxySize, setGalaxySize] = useState<GalaxyPreset>('tiny')
   const [aiCount, setAiCount] = useState(3)
   const [coopMode, setCoopMode] = useState(false)
   // PHASE 17.K — host-chosen fog-of-war toggle per user verbatim 2026-05-11. Default ON.

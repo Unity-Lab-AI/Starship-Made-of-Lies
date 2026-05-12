@@ -7,6 +7,11 @@ export interface CameraState {
   yaw: number
   pitch: number
   zoomT: number
+  // PHASE 17.L.D.1 (HOTFIX 2026-05-11) — per-galaxy max camera distance. Used to be a static
+  // const at 140000 sized for the old fixed UNIVERSE_HALF_EXTENT=60000. Now scales with the
+  // actual galaxy size so Tiny (~85k half-extent) galaxies don't open zoomed-out beyond the
+  // cluster and Large (~800k half-extent) galaxies can still frame the whole cluster.
+  maxDistance: number
 }
 
 export interface CameraInputState {
@@ -21,10 +26,13 @@ export interface CameraInputState {
 // (which renders as nothing due to backface culling). Super planet radius = 1600 → 1800 keeps
 // camera just outside even the biggest planet at max zoom.
 const MIN_DISTANCE = 1800
-// PHASE 17.I — galaxy is now solar-system-clustered inside the ±UNIVERSE_HALF_EXTENT (60000)
-// wrap. Max camera distance bumped 60000 → 140000 so a fully-zoomed-out view frames the whole
-// galaxy from outside the cluster. Camera far-plane in newCamera() bumped to match.
-const MAX_DISTANCE = 140000
+// PHASE 17.L.D.1 (HOTFIX 2026-05-11) — DEFAULT_MAX_DISTANCE is the fallback when newCamera is
+// called without a maxDistance argument (legacy callers / preview routes). Sized for the old
+// fixed UNIVERSE_HALF_EXTENT=60000. Actual game galaxies now thread their universeHalfExtent
+// through newCamera and CameraState.maxDistance so zoom-out frames the cluster correctly at
+// any galaxy size.
+const DEFAULT_MAX_DISTANCE = 140000
+const MAX_DISTANCE_HEADROOM = 2.5
 const PAN_SPEED = 4
 const ROTATE_SPEED = 0.012
 const ZOOM_TICK = 0.06
@@ -42,26 +50,34 @@ const ZOOM_DEPTH_CUE_MAX_FRACTION = 0.2
 const ZOOM_DEPTH_CUE_LATERAL_WEIGHT = 0.6
 const ZOOM_DEPTH_CUE_VERTICAL_WEIGHT = 0.4
 
-export function newCamera(aspect: number): CameraState {
-  // PHASE 17.I — far-plane bumped 50000 → 250000 so distant solar systems at the opposite
-  // edge of the wrap stay visible at full zoom-out. Near stays 0.1 for surface detail.
-  const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 250000)
+export function newCamera(aspect: number, universeHalfExtent?: number): CameraState {
+  // PHASE 17.L.D.1 (HOTFIX 2026-05-11) — camera framing scales with the actual galaxy size.
+  // maxDistance = universeHalfExtent × MAX_DISTANCE_HEADROOM so the camera at zoomT=1 sits
+  // far enough OUTSIDE the cluster to frame the whole galaxy. Far-plane = maxDistance × 4 so
+  // distant systems on the opposite side of the wrap stay visible even when camera is at
+  // the closest zoom on the near side.
+  const maxDistance = universeHalfExtent
+    ? universeHalfExtent * MAX_DISTANCE_HEADROOM
+    : DEFAULT_MAX_DISTANCE
+  const farPlane = Math.max(250000, maxDistance * 4)
+  const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, farPlane)
   return {
     camera,
     target: new THREE.Vector3(0, 0, 0),
     yaw: 0,
     pitch: -Math.PI / 3,
     zoomT: 1,
+    maxDistance,
   }
 }
 
-export function distanceFromZoomT(zoomT: number): number {
+export function distanceFromZoomT(zoomT: number, maxDistance = DEFAULT_MAX_DISTANCE): number {
   const t = Math.max(0, Math.min(1, zoomT))
-  return MIN_DISTANCE * Math.pow(MAX_DISTANCE / MIN_DISTANCE, t)
+  return MIN_DISTANCE * Math.pow(maxDistance / MIN_DISTANCE, t)
 }
 
 export function applyCameraTransform(state: CameraState): void {
-  const distance = distanceFromZoomT(state.zoomT)
+  const distance = distanceFromZoomT(state.zoomT, state.maxDistance)
   const cosP = Math.cos(state.pitch)
   const offset = new THREE.Vector3(
     Math.sin(state.yaw) * cosP,
@@ -221,7 +237,7 @@ function panCameraInScreenSpace(
   screenDY: number,
   sensitivity: number,
 ): void {
-  const distance = distanceFromZoomT(state.zoomT)
+  const distance = distanceFromZoomT(state.zoomT, state.maxDistance)
   const right = new THREE.Vector3()
   const up = new THREE.Vector3()
   state.camera.matrixWorld.extractBasis(right, up, new THREE.Vector3())
@@ -257,7 +273,7 @@ export function tickCameraFromInput(state: CameraState, dtSec: number): void {
     if (edge.down) dy += 1
   }
   if (dx !== 0 || dy !== 0) {
-    const distance = distanceFromZoomT(state.zoomT)
+    const distance = distanceFromZoomT(state.zoomT, state.maxDistance)
     const speed = PAN_SPEED * prefs.panSensitivity * distance * dtSec
     const right = new THREE.Vector3()
     const up = new THREE.Vector3()

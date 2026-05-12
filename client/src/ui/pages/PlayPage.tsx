@@ -98,7 +98,10 @@ export function PlayPage() {
     const hint = location.state ?? null
     const seed = hint?.seed ?? Math.floor(Math.random() * 0xffffff)
     const aiCount = hint?.aiCount ?? 3
-    const planetCount = hint?.planetCount ?? 30
+    // PHASE 17.L.D.1 (HOTFIX 2026-05-11) — fallback planetCount aligned with new "Tiny"
+    // preset (20 planets / ~3 systems) per user verbatim playtest report. Was 30 — adjusted
+    // down so /play without a NewGamePage hint defaults to a comfortably-sized galaxy.
+    const planetCount = hint?.planetCount ?? 20
     const humanThemeId = hint?.humanThemeId ?? THEMES[Math.floor(Math.random() * THEMES.length)]!.id
     const objectives = hint?.objectives ?? DEFAULT_OBJECTIVES
     const aiSlots = hint?.aiSlots
