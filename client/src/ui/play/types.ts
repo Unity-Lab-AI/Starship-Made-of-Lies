@@ -48,6 +48,9 @@ export type PanelId =
   | 'defense'
   // PHASE 17.13.7 — inter-planet caravan trade. Active caravan list + new-caravan dispatch form.
   | 'caravans'
+  // 17.2.1 — Signal hub control panel. Detection range + early warning + incoming-flight roster
+  // + own-flight link status (radio / laser-align / lost). Driven by `shared/sim/signal.ts`.
+  | 'signalHub'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -86,6 +89,7 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'hallOfChampions', emoji: '🏛️', label: 'Hall of Champions' },
   { id: 'defense', emoji: '🛡', label: 'Defense' },
   { id: 'caravans', emoji: '🛒', label: 'Caravans' },
+  { id: 'signalHub', emoji: '📡', label: 'Signal Hub' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },

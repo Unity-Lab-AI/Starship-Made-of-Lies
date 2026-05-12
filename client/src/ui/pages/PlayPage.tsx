@@ -18,6 +18,7 @@ import {
   THEMES,
   accountId as accountIdValue,
   aggregateEffects,
+  deriveSignalCapability,
   getActiveShipBeacons,
   newAnonymousAccount,
   themeAsCSSVars,
@@ -60,6 +61,7 @@ import { loadGlobalCategorySnapshots } from '../../match/leaderboardStorage'
 import { HallOfChampionsPanel } from '../panels/HallOfChampionsPanel'
 import { DefensePanel, type DefensePanelIncomingThreat } from '../panels/DefensePanel'
 import { CaravanPanel, type CaravanPanelPlanetSnapshot } from '../panels/CaravanPanel'
+import { SignalHubPanel } from '../panels/SignalHubPanel'
 import { CampaignPicker } from '../play/CampaignPicker'
 import { DockZoneOverlay } from '../play/DockZoneOverlay'
 import { HUDOverlay } from '../play/HUDOverlay'
@@ -1834,6 +1836,38 @@ export function PlayPage() {
             />
           </PanelFrame>
         )}
+
+        {/* 17.2.1 — Signal hub panel. Detection range + early-warning + incoming-flight roster +
+            own-flight link status (radio / laser-align / lost). Capability derived from the
+            human civ's researched-tech set; flights split into own vs hostile by launchingCivId. */}
+        {openPanels.has('signalHub') &&
+          (() => {
+            const capability = deriveSignalCapability(
+              sim.state.humanCivId,
+              humanCivState.empire.researchedTechs,
+            )
+            const allFlights = [...sim.state.flights.values()]
+            const ownFlights = allFlights.filter((f) => f.launchingCivId === sim.state.humanCivId)
+            const enemyFlights = allFlights.filter((f) => f.launchingCivId !== sim.state.humanCivId)
+            return (
+              <PanelFrame
+                panelId="signalHub"
+                title="Signal Hub"
+                emoji="📡"
+                onClose={() => closePanel('signalHub')}
+                variant="centered"
+                width={480}
+              >
+                <SignalHubPanel
+                  capability={capability}
+                  ownFlights={ownFlights}
+                  enemyFlights={enemyFlights}
+                  currentTick={sim.state.currentTick}
+                  ownShipCommsTier={1}
+                />
+              </PanelFrame>
+            )
+          })()}
 
         {/* PHASE 17.12.2 — Defense panel. Per-planet defensive stats + incoming threats +
             counter-missile-pad quick-build. Mines are LAUNCHED ships per user correction
