@@ -46,6 +46,8 @@ export type PanelId =
   // incoming-threat list + quick-build shortcuts. Cover-arc on sphere surface deferred to
   // a follow-on polish pass.
   | 'defense'
+  // PHASE 17.13.7 — inter-planet caravan trade. Active caravan list + new-caravan dispatch form.
+  | 'caravans'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -83,6 +85,7 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'settlements', emoji: '🏘', label: 'Settlements' },
   { id: 'hallOfChampions', emoji: '🏛️', label: 'Hall of Champions' },
   { id: 'defense', emoji: '🛡', label: 'Defense' },
+  { id: 'caravans', emoji: '🛒', label: 'Caravans' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },

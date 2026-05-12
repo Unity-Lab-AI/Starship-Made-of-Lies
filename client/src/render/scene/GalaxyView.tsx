@@ -206,6 +206,7 @@ export function GalaxyView({
   const onSelectFlightRef = useRef(onSelectFlight)
   const detonationsRef = useRef<ReadonlyArray<DetonationFlashInput>>(detonations ?? [])
   const onContextMenuPlanetRef = useRef(onContextMenuPlanet)
+  const humanCivIdRef = useRef(humanCivId)
   activeFlightsRef.current = activeFlights
   alertedPlanetIdsRef.current = alertedPlanetIds
   ownerByPlanetRef.current = ownerByPlanet
@@ -226,7 +227,7 @@ export function GalaxyView({
   onSelectFlightRef.current = onSelectFlight
   detonationsRef.current = detonations ?? []
   onContextMenuPlanetRef.current = onContextMenuPlanet
-  void humanCivId
+  humanCivIdRef.current = humanCivId
 
   useEffect(() => {
     const mount = mountRef.current
@@ -675,6 +676,13 @@ export function GalaxyView({
         activeFlightsRef.current,
         galaxyHandle.planetMeshes,
         civColorMap,
+        // PHASE 17.12 friend/foe tint (user bug fix 2026-05-12) — thread the human civ id +
+        // owned-planet set so syncFlightArcs can red-tint hostile sprites + amber-tint
+        // AI-on-AI flights, restoring at-a-glance friend/foe distinction now that ALL
+        // flights render as emoji sprites instead of civ-colored cones. Ref pattern keeps
+        // the useEffect deps stable (PHASE 17.PRE.1 remount-per-tick fix).
+        humanCivIdRef.current,
+        ownedPlanetIdsRef.current,
       )
 
       // Sync beacon alerts

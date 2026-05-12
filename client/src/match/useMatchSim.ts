@@ -44,6 +44,11 @@ import {
   manualIndigenousParleyAction,
   type ManualParleyInputs,
   type ManualParleyResult,
+  cancelCaravanAction,
+  createCaravanAction,
+  type CancelCaravanActionInputs,
+  type CreateCaravanActionInputs,
+  type CreateCaravanActionResult,
   redirectFlightAction,
   refuelReactorFromGodControlAction,
   setBuildingModeAction,
@@ -132,6 +137,13 @@ export interface UseMatchSimResult {
   // this. Consumes 50 propaganda materials from the host planet's inventory and fires an
   // immediate parley attempt with boosted propaganda-power.
   readonly manualIndigenousParley: (input: Omit<ManualParleyInputs, 'state'>) => ManualParleyResult
+  // PHASE 17.13.7 — inter-planet caravan trade. createCaravan validates ownership + fuel
+  // cost + amount cap + per-civ active-caravan cap; cancelCaravan flips an OUTBOUND caravan
+  // to CANCELLED (cargo lost). UI surface is CaravanPanel.
+  readonly createCaravan: (
+    input: Omit<CreateCaravanActionInputs, 'state'>,
+  ) => CreateCaravanActionResult
+  readonly cancelCaravan: (input: Omit<CancelCaravanActionInputs, 'state'>) => boolean
   // PHASE 17.L.A.13 — Q12 LOCKED. Manual save + load callbacks. Auto-save runs internally
   // based on config.saveMode. saveMatchNow returns true on successful localStorage write.
   readonly saveMatchNow: () => boolean
@@ -494,6 +506,25 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     [],
   )
 
+  // PHASE 17.13.7 — caravan create + cancel actions. Both bump tickCount on success so the
+  // CaravanPanel re-renders with the new caravan list state.
+  const createCaravan = useCallback(
+    (input: Omit<CreateCaravanActionInputs, 'state'>): CreateCaravanActionResult => {
+      const result = createCaravanAction({ ...input, state: stateRef.current })
+      if (result.ok) setTickCount((n) => n + 1)
+      return result
+    },
+    [],
+  )
+  const cancelCaravanCb = useCallback(
+    (input: Omit<CancelCaravanActionInputs, 'state'>): boolean => {
+      const ok = cancelCaravanAction({ ...input, state: stateRef.current })
+      if (ok) setTickCount((n) => n + 1)
+      return ok
+    },
+    [],
+  )
+
   // PHASE 17.L.A.13 — Q12 LOCKED. Save / load callbacks. saveMatchNow returns boolean for
   // toast feedback; loadSavedMatch swaps stateRef + bumps tickCount so every panel re-renders
   // with the restored data.
@@ -546,6 +577,8 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     setBuildingMode,
     upgradePlanetCapacity,
     manualIndigenousParley,
+    createCaravan,
+    cancelCaravan: cancelCaravanCb,
     saveMatchNow,
     loadSavedMatch,
     clearSavedMatch: clearSavedMatchCallback,
