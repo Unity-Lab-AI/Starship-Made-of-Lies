@@ -1,0 +1,161 @@
+/* PHASE 17.L.A.12 — Q11 PHASE 17 LOCKED. QuotasPanel stylesheet. Matches the existing
+   panel-frame conventions (theme-aware colors, mobile-safe row reflow). NO truncation per
+   feedback_no_truncation.md — overflow-wrap on labels. */
+
+.quotas-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  font-family: var(--theme-font, 'Inter', system-ui, sans-serif);
+  color: var(--panel-fg, #d6e2ec);
+}
+
+.quotas-panel__intro {
+  font-size: 0.82rem;
+  color: rgba(214, 226, 236, 0.75);
+  margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.quotas-panel__section {
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(214, 226, 236, 0.12);
+  border-radius: 4px;
+  padding: 0.6rem 0.7rem;
+}
+
+.quotas-panel__section-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--accent, #ff9d00);
+}
+
+.quotas-panel__section-meta {
+  font-size: 0.78rem;
+  color: rgba(214, 226, 236, 0.55);
+  font-weight: 400;
+}
+
+.quotas-panel__empty {
+  font-size: 0.82rem;
+  color: rgba(214, 226, 236, 0.55);
+  margin: 0;
+}
+
+.quotas-panel__quota-rows,
+.quotas-panel__building-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 36vh;
+  overflow-y: auto;
+}
+
+.quotas-panel__quota-row {
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) auto 1fr 5rem;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.quotas-panel__quota-label {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.quotas-panel__quota-stock {
+  font-size: 0.75rem;
+  color: rgba(214, 226, 236, 0.55);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.quotas-panel__quota-stock--over {
+  color: #8de08d;
+  font-weight: 600;
+}
+
+.quotas-panel__quota-slider {
+  width: 100%;
+  accent-color: var(--accent, #ff9d00);
+  min-width: 0;
+}
+
+.quotas-panel__quota-input {
+  width: 4.5rem;
+  padding: 0.18rem 0.35rem;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--panel-fg, #d6e2ec);
+  border: 1px solid rgba(214, 226, 236, 0.18);
+  border-radius: 3px;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+}
+
+.quotas-panel__building-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 2fr) auto auto auto;
+  gap: 0.45rem;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 0.22rem 0.35rem;
+  border: 1px solid rgba(214, 226, 236, 0.08);
+  border-radius: 3px;
+}
+
+.quotas-panel__building-label {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.quotas-panel__building-label em {
+  color: rgba(214, 226, 236, 0.6);
+  font-style: normal;
+  font-size: 0.75rem;
+}
+
+.quotas-panel__mode-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.quotas-panel__mode-radio--disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 540px) {
+  .quotas-panel__quota-row {
+    grid-template-columns: 1fr 4.5rem;
+    grid-template-rows: auto auto auto;
+  }
+  .quotas-panel__quota-stock {
+    grid-column: 1 / 3;
+  }
+  .quotas-panel__quota-slider {
+    grid-column: 1 / 3;
+  }
+  .quotas-panel__quota-input {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .quotas-panel__building-row {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+}

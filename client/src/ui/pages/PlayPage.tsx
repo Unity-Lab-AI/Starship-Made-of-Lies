@@ -32,6 +32,7 @@ import { FlightDetailPanel } from '../panels/FlightDetailPanel'
 import { MiningFleetPanel } from '../panels/MiningFleetPanel'
 import { PlanetEnergyPanel } from '../panels/PlanetEnergyPanel'
 import { LaunchManifestModal, type LaunchManifestSubmission } from '../panels/LaunchManifestModal'
+import { QuotasPanel } from '../panels/QuotasPanel'
 import { ShipBuilderPanel } from '../panels/ShipBuilderPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
 import { DeceptionPanel } from '../panels/DeceptionPanel'
@@ -1374,6 +1375,37 @@ export function PlayPage() {
                   stats,
                   totalCost,
                   sourceBlueprintId,
+                })
+              }
+            />
+          </PanelFrame>
+        )}
+
+        {/* PHASE 17.L.A.12 — Q11 PHASE 17 LOCKED. Per-planet quotas + building production
+            mode picker. Reads/writes via sim.setPlanetQuota + sim.setBuildingMode actions. */}
+        {openPanels.has('quotas') && (
+          <PanelFrame
+            panelId="quotas"
+            title="Quotas + Recycling"
+            emoji="📋"
+            onClose={() => closePanel('quotas')}
+            variant="docked-right"
+          >
+            <QuotasPanel
+              planetId={activePlanet.planet.id}
+              planetLabel={`${activePlanet.planet.biome.emoji} ${String(activePlanet.planet.id)}`}
+              inventory={activePlanet.inventory}
+              quotas={activePlanet.quotas}
+              buildingsByDef={activePlanet.buildingsByDef}
+              buildingModes={activePlanet.buildingModes}
+              onSetQuota={(resource, target) =>
+                sim.setPlanetQuota({ planetId: activePlanet.planet.id, resource, target })
+              }
+              onSetBuildingMode={(defId, mode) =>
+                sim.setBuildingMode({
+                  planetId: activePlanet.planet.id,
+                  buildingDefId: defId,
+                  mode,
                 })
               }
             />

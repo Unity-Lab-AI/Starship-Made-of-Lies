@@ -21,6 +21,8 @@ import {
   type MatchConfig,
   type MatchState,
   type PlaceBuildingInputs,
+  type SetBuildingModeInputs,
+  type SetPlanetQuotaInputs,
   type StartResearchInputs,
   buildShipAction,
   buildShipFromBlueprintAction,
@@ -33,6 +35,8 @@ import {
   placeBuildingAction,
   redirectFlightAction,
   refuelReactorFromGodControlAction,
+  setBuildingModeAction,
+  setPlanetQuotaAction,
   startResearchAction,
   tickMatch,
   triggerLastHopeManually,
@@ -98,6 +102,12 @@ export interface UseMatchSimResult {
     tier: 1 | 2 | 3 | 4 | 5,
     percent: number,
   ) => void
+  // PHASE 17.L.A.12 — Q11 PHASE 17 LOCKED. QuotasPanel slider invokes this — sets the target
+  // stockpile for `resource` on `planetId`. Pass 0 to clear the quota.
+  readonly setPlanetQuota: (input: Omit<SetPlanetQuotaInputs, 'state'>) => boolean
+  // PHASE 17.L.A.12 — Q11 LOCKED. Per-building-def mode toggle (auto / paused / disassembly).
+  // QuotasPanel building rows invoke this when player flips the dropdown.
+  readonly setBuildingMode: (input: Omit<SetBuildingModeInputs, 'state'>) => boolean
 }
 
 export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
@@ -375,6 +385,19 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     [],
   )
 
+  // PHASE 17.L.A.12 — Q11 LOCKED. Quota + building-mode mutators. Both bump tickCount so any
+  // open panels re-render with the new quota/mode in their readouts.
+  const setPlanetQuota = useCallback((input: Omit<SetPlanetQuotaInputs, 'state'>) => {
+    const ok = setPlanetQuotaAction({ ...input, state: stateRef.current })
+    if (ok) setTickCount((n) => n + 1)
+    return ok
+  }, [])
+  const setBuildingMode = useCallback((input: Omit<SetBuildingModeInputs, 'state'>) => {
+    const ok = setBuildingModeAction({ ...input, state: stateRef.current })
+    if (ok) setTickCount((n) => n + 1)
+    return ok
+  }, [])
+
   return {
     state: stateRef.current,
     tickCount,
@@ -403,5 +426,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     godControlReady,
     refuelReactor,
     setShipDutyPercent,
+    setPlanetQuota,
+    setBuildingMode,
   }
 }
