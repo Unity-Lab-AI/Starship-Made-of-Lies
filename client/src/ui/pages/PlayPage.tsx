@@ -33,6 +33,7 @@ import { MiningFleetPanel } from '../panels/MiningFleetPanel'
 import { PlanetEnergyPanel } from '../panels/PlanetEnergyPanel'
 import { LaunchManifestModal, type LaunchManifestSubmission } from '../panels/LaunchManifestModal'
 import { ProductionChainsPanel } from '../panels/ProductionChainsPanel'
+import { TrackingCameraPanel } from '../panels/TrackingCameraPanel'
 import { QuotasPanel } from '../panels/QuotasPanel'
 import { ShipBuilderPanel } from '../panels/ShipBuilderPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
@@ -1453,6 +1454,22 @@ export function PlayPage() {
                 })
               }
             />
+          </PanelFrame>
+        )}
+
+        {/* PHASE 17.L.A.9 — Q13 PHASE 17 LOCKED. Top-down tracking camera following ONE
+            in-flight rocket at a time (player picks via dropdown). SVG minimap + live
+            telemetry readouts. NOT remote planet feeds; NOT nose-cam. */}
+        {openPanels.has('trackingCamera') && (
+          <PanelFrame
+            panelId="trackingCamera"
+            title="Tracking Camera"
+            emoji="📹"
+            onClose={() => closePanel('trackingCamera')}
+            variant="docked-right"
+            width={380}
+          >
+            <TrackingCameraPanel activeFlights={[...sim.state.flights.values()]} />
           </PanelFrame>
         )}
 
