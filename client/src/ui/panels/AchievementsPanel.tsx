@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import {
   type AchievementDef,
   type AchievementProgress,
@@ -8,6 +9,8 @@ import {
 } from '@smol/shared'
 import { LCDFrame } from './LCDFrame'
 import './AchievementsPanel.css'
+
+type AchievementFilterMode = 'all' | 'unlocked' | 'locked'
 
 interface AchievementsPanelProps {
   readonly progressList: ReadonlyArray<AchievementProgress>
@@ -23,19 +26,55 @@ const RARITY_GLYPH: Readonly<Record<AchievementRarity, string>> = {
   apex: '✶',
 }
 
+const FILTER_LABELS: Readonly<Record<AchievementFilterMode, string>> = {
+  all: 'All',
+  unlocked: 'Unlocked',
+  locked: 'Locked',
+}
+
 export function AchievementsPanel({
   progressList,
   currentTick,
   showHidden = false,
 }: AchievementsPanelProps) {
-  const progressIndex = new Map(progressList.map((p) => [p.achievementId, p]))
-  const visible = ACHIEVEMENTS.filter((a) => {
-    if (!a.hidden) return true
-    if (showHidden) return true
-    const progress = progressIndex.get(a.id)
-    return progress ? isAchievementUnlocked(progress) : false
-  })
-  const unlockedCount = progressList.filter(isAchievementUnlocked).length
+  const [filterMode, setFilterMode] = useState<AchievementFilterMode>('all')
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const progressIndex = useMemo(
+    () => new Map(progressList.map((p) => [p.achievementId, p])),
+    [progressList],
+  )
+  const baseVisible = useMemo(
+    () =>
+      ACHIEVEMENTS.filter((a) => {
+        if (!a.hidden) return true
+        if (showHidden) return true
+        const progress = progressIndex.get(a.id)
+        return progress ? isAchievementUnlocked(progress) : false
+      }),
+    [progressIndex, showHidden],
+  )
+  const filtered = useMemo(() => {
+    const needle = searchTerm.trim().toLowerCase()
+    return baseVisible.filter((def) => {
+      if (filterMode !== 'all') {
+        const progress = progressIndex.get(def.id)
+        const unlocked = progress ? isAchievementUnlocked(progress) : false
+        if (filterMode === 'unlocked' && !unlocked) return false
+        if (filterMode === 'locked' && unlocked) return false
+      }
+      if (needle) {
+        const hay = `${def.name} ${def.description}`.toLowerCase()
+        if (!hay.includes(needle)) return false
+      }
+      return true
+    })
+  }, [baseVisible, filterMode, searchTerm, progressIndex])
+
+  const unlockedCount = useMemo(
+    () => progressList.filter(isAchievementUnlocked).length,
+    [progressList],
+  )
   const progressPct =
     ACHIEVEMENTS.length > 0 ? Math.round((unlockedCount / ACHIEVEMENTS.length) * 100) : 0
   return (
@@ -53,16 +92,47 @@ export function AchievementsPanel({
         >
           <div className="achievements-panel__progress-fill" style={{ width: `${progressPct}%` }} />
         </div>
-        <ul className="achievements-panel__list">
-          {visible.map((def) => (
-            <AchievementRow
-              key={def.id}
-              def={def}
-              progress={progressIndex.get(def.id) ?? null}
-              currentTick={currentTick}
-            />
-          ))}
-        </ul>
+        <div className="achievements-panel__filters">
+          <div className="achievements-panel__filter-modes" role="tablist">
+            {(['all', 'unlocked', 'locked'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="tab"
+                aria-selected={filterMode === m}
+                className={`achievements-panel__filter-mode${filterMode === m ? ' achievements-panel__filter-mode--active' : ''}`}
+                onClick={() => setFilterMode(m)}
+              >
+                {FILTER_LABELS[m]}
+              </button>
+            ))}
+          </div>
+          <input
+            type="search"
+            className="achievements-panel__search"
+            placeholder="Search achievements…"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search achievements by name or description"
+          />
+          <span className="achievements-panel__filter-count">
+            {filtered.length}/{baseVisible.length}
+          </span>
+        </div>
+        {filtered.length === 0 ? (
+          <p className="achievements-panel__empty">No achievements match the current filter.</p>
+        ) : (
+          <ul className="achievements-panel__list">
+            {filtered.map((def) => (
+              <AchievementRow
+                key={def.id}
+                def={def}
+                progress={progressIndex.get(def.id) ?? null}
+                currentTick={currentTick}
+              />
+            ))}
+          </ul>
+        )}
       </div>
     </LCDFrame>
   )
