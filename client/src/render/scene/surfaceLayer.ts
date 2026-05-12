@@ -8,7 +8,16 @@ import {
   type TileId,
   type ResourceNode,
   BUILDINGS,
+  RESOURCES,
 } from '@smol/shared'
+
+// PHASE 17.L.D.11 (HOTFIX 2026-05-11) — resource emoji map for the resource-node sprite
+// billboards. Same pattern as the building emoji cache. Per user verbatim *"AND IM NOT
+// SEEING ASNY RESOURCE NODE FOR THE MINING SHIPS TO MINE ON THE PLANET FOR HIGHER TEIR
+// RESOURCES THAT DONT JUST COME FROM BUILDINGS"* — deposits at depositSize 1.6-4 were
+// sub-pixel relative to 400-1600 unit planets. Bumped sizes + added emoji label so
+// mining nodes are clearly visible as 🪨 / 💍 / etc. at any zoom.
+const RESOURCE_EMOJI_BY_ID = new Map(RESOURCES.map((r) => [String(r.id), r.emoji]))
 
 // PHASE 17.L.D.9 (HOTFIX 2026-05-11) — emoji-sprite cache. Each unique building emoji glyph
 // gets rendered to a small canvas once + reused as a THREE.CanvasTexture so syncBuildings
@@ -93,16 +102,21 @@ function depositColorHex(resourceId: string): number {
   return DEPOSIT_COLORS[resourceId] ?? 0xffffff
 }
 
+// PHASE 17.L.D.11 (HOTFIX 2026-05-11) — bumped ~20× from prior 1.6-4 values. The old sizes
+// rendered as sub-pixel dots at every camera zoom on the new 400-1600 unit planet radii
+// (planet got bigger in D.5 but deposit sizes never followed). New values size deposits to
+// ~5-10% of planet radius — visible AT galaxy zoom as colored dots, distinguishable at
+// surface zoom as named resource nodes via the new emoji sprite billboard.
 function depositSize(tier: ResourceNode['tier']): number {
   switch (tier) {
     case 'common':
-      return 1.6
+      return 30
     case 'rich':
-      return 2.6
+      return 50
     case 'motherlode':
-      return 4
+      return 80
     default:
-      return 1.6
+      return 30
   }
 }
 
@@ -215,6 +229,38 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
     mesh.position.set(localX + nx * liftAmt, localY + ny * liftAmt, localZ + nz * liftAmt)
     mesh.userData = { kind: 'surface-deposit', planetId: planet.id, nodeId: node.id }
     depositsGroup.add(mesh)
+
+    // PHASE 17.L.D.11 (HOTFIX 2026-05-11) — emoji sprite billboard per resource node.
+    // Looks up the resource's emoji from RESOURCES catalog so mining nodes are visually
+    // identifiable (🪨 stone, 💍 rare metals, 🔩 metals, etc.). Same caching pattern as
+    // building emoji sprites in D.9. Per user verbatim *"AND IM NOT SEEING ASNY RESOURCE
+    // NODE FOR THE MINING SHIPS TO MINE ON THE PLANET FOR HIGHER TEIR RESOURCES THAT DONT
+    // JUST COME FROM BUILDINGS"*.
+    const emoji = RESOURCE_EMOJI_BY_ID.get(String(node.resourceId)) ?? '⛏️'
+    const tex = getEmojiTexture(emoji)
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        depthTest: true,
+        depthWrite: false,
+      }),
+    )
+    const spriteSize = depositSize(node.tier) * 2.5
+    sprite.scale.set(spriteSize, spriteSize, 1)
+    const spriteLift = liftAmt + depositSize(node.tier) * 1.4
+    sprite.position.set(
+      localX + nx * spriteLift,
+      localY + ny * spriteLift,
+      localZ + nz * spriteLift,
+    )
+    sprite.userData = {
+      kind: 'surface-deposit-emoji',
+      planetId: planet.id,
+      nodeId: node.id,
+      resourceId: String(node.resourceId),
+    }
+    depositsGroup.add(sprite)
   }
   group.add(depositsGroup)
 
