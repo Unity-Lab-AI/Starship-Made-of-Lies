@@ -33,6 +33,13 @@ export interface LaunchPad {
   readonly id: TileId
   readonly civId: CivId
   readonly planetId: PlanetId
+  // PHASE 17.12.4 (SETUPMOD wizard equivalent) — monotonic per-planet ordinal assigned at
+  // placement time. The first pad on a planet gets ordinal 1, second 2, etc. UI renders pads
+  // as "Pad #N" instead of raw TileId so the player has a stable human-readable identifier.
+  // UMS UnityPad SETUPMOD renamed BLOCK NAMES to [PAD2] / [PAD3]; SMoL renames the DISPLAY
+  // LABEL since the underlying ID is the TileId. Defaults to 0 (legacy pads created before
+  // this field landed); UI falls back to "Pad" without number when ordinal is 0.
+  readonly padOrdinal: number
   state: PadState
   isController: boolean
   loadedShipVariantId: ColonyShipVariantId | null
@@ -84,11 +91,16 @@ export function newLaunchPad(
   civId: CivId,
   planetId: PlanetId,
   isController = false,
+  // PHASE 17.12.4 — caller passes the auto-assigned ordinal (1, 2, 3, ...) from the placement
+  // path (placeBuildingCanonical computes it as currentPadCount + 1). Defaults to 0 for
+  // legacy callers that haven't been updated; UI degrades gracefully when ordinal is 0.
+  padOrdinal = 0,
 ): LaunchPad {
   return {
     id,
     civId,
     planetId,
+    padOrdinal,
     state: 'INIT',
     isController,
     loadedShipVariantId: null,

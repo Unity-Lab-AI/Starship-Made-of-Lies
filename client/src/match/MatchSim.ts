@@ -2444,7 +2444,12 @@ function placeBuildingCanonical(
   planet.buildingsByDef.set(defId, (planet.buildingsByDef.get(defId) ?? 0) + 1)
   planet.buildingsByTile.set(tile.id, defId)
   if (defId === BLDG_LAUNCH_PAD) {
-    const pad = newLaunchPad(tile.id, planet.civId, planet.planet.id, false)
+    // PHASE 17.12.4 — auto-assign per-planet pad ordinal (UMS SETUPMOD wizard equivalent).
+    // First pad on the planet gets #1, second #2, etc. UI renders pads as "Pad #N" via the
+    // padOrdinal field so the player has a stable human-readable identifier instead of the
+    // raw TileId.
+    const padOrdinal = planet.launchPads.size + 1
+    const pad = newLaunchPad(tile.id, planet.civId, planet.planet.id, false, padOrdinal)
     planet.launchPads.set(tile.id, pad)
     // PHASE 17.L.C.9 — maintain the O(1) padId → planetId index on every pad add.
     state.padIdToPlanetIdIndex.set(tile.id, planet.planet.id)
