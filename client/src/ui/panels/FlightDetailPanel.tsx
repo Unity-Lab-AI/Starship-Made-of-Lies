@@ -41,6 +41,10 @@ export interface FlightDetailPanelProps {
   // refill reactorFuelRemaining back to reactorFuelAtLaunch. Per user 2026-05-11: "god control
   // refuel sound like endgaem tech" — gated identically to god-control redirect.
   readonly onRefuelReactor?: (flightId: string) => void
+  // Track-in-Camera bridge: when supplied, the "📹 Track" button opens TrackingCameraPanel
+  // pre-selected on this flight. Closes the detail panel after wiring so the camera takes
+  // focus.
+  readonly onTrackInCamera?: (flightId: string) => void
 }
 
 function ticksToEtaLabel(ticks: number): string {
@@ -88,6 +92,7 @@ export function FlightDetailPanel({
   godControlReady,
   onSelectForRedirect,
   onRefuelReactor,
+  onTrackInCamera,
 }: FlightDetailPanelProps) {
   const def = getColonyShipDef(flight.variantId)
   const tel = flightTelemetrySnapshot(flight)
@@ -271,9 +276,23 @@ export function FlightDetailPanel({
 
         {inFlight &&
         (onAbort ||
+          onTrackInCamera ||
           (godControlReady && onSelectForRedirect) ||
           (godControlReady && onRefuelReactor && flight.reactorFuelAtLaunch > 0)) ? (
           <section className="flight-detail-panel__actions">
+            {onTrackInCamera ? (
+              <button
+                type="button"
+                className="flight-detail-panel__btn flight-detail-panel__btn--redirect"
+                onClick={() => {
+                  onTrackInCamera(String(flight.id))
+                  onClose()
+                }}
+                title="Open the Tracking Camera panel pre-selected on this flight."
+              >
+                📹 Track in Camera
+              </button>
+            ) : null}
             {godControlReady && onSelectForRedirect && !isCounter ? (
               <button
                 type="button"
