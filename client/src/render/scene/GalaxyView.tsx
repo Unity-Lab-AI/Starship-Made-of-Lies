@@ -212,7 +212,10 @@ export function GalaxyView({
     mount.appendChild(renderer.domElement)
 
     const scene = new THREE.Scene()
-    const cameraState = newCamera(mount.clientWidth / mount.clientHeight)
+    // PHASE 17.L.D.1 (HOTFIX 2026-05-11) — thread galaxy.universeHalfExtent so camera max
+    // distance + far-plane scale with the actual galaxy size. Tiny galaxies don't open
+    // zoomed-out beyond the cluster; Large galaxies can still frame the whole thing.
+    const cameraState = newCamera(mount.clientWidth / mount.clientHeight, galaxy.universeHalfExtent)
     cameraState.zoomT = 0.78
     scene.add(cameraState.camera)
     const galaxyHandle = buildGalaxyLayer(galaxy)

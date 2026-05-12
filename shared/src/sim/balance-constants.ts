@@ -49,10 +49,31 @@ export const WIN_THRESHOLD_MAP_CONTROL_FRACTION = 0.6 // need 60% of planets vs.
 // --- universe spatial layout ---------------------------------------------------------
 
 // PHASE 17.I — toroidal universe wrap half-extent. Positions wrap modulo 2 × this on each
-// axis. Previously a private const in colony-ship-flight (8000), now centralized so galaxy
-// generation + flight wrap + collision math all agree. Sized large enough to contain the
-// solar-system clustered galaxy with collision-free placement at 100+ planets.
-export const UNIVERSE_HALF_EXTENT = 60000
+// axis. Previously a private const in colony-ship-flight (8000), then centralized at 60000.
+//
+// PHASE 17.L.D.1 (HOTFIX 2026-05-11) — bumped to 500000 and made the GLOBAL CAP. Actual
+// per-galaxy half-extent is now computed via computeUniverseHalfExtent(starCount) below so
+// 2-system "Tiny" galaxies don't sit in the same 60k cube as 143-system "Large" galaxies.
+// Per user verbatim playtest report: *"the stars need to be appropriate distances from each
+// other so that theri owen planets have enough space as not to bump into other systems and
+// their planets... astronically there is still plunty of space for planets and you took
+// cluster way too literally"*. The OLD 60000 packed 15-system Small galaxies at theoretical
+// maximum sphere-packing density. NEW 500000 cap accommodates the largest preset with
+// astronomical breathing room. Hulk-wrap continues using the cap (worst-case wrap; harmless).
+export const UNIVERSE_HALF_EXTENT = 500000
+
+// PHASE 17.L.D.1 — per-galaxy half-extent scaling. Solar-system count drives the universe
+// size linearly so density stays constant regardless of preset. Floor + slope tuned so a
+// 2-system Tiny galaxy still has 160k+ cube width (systems comfortably 60-120k apart) while
+// a 143-system Large galaxy reaches ~800k half-extent (~30k average system spacing). Cap at
+// UNIVERSE_HALF_EXTENT above so absurd presets don't blow up wrap math.
+export const UNIVERSE_HALF_EXTENT_FLOOR = 80000
+export const UNIVERSE_HALF_EXTENT_PER_STAR = 5000
+
+export function computeUniverseHalfExtent(starCount: number): number {
+  const scaled = UNIVERSE_HALF_EXTENT_FLOOR + Math.max(0, starCount) * UNIVERSE_HALF_EXTENT_PER_STAR
+  return Math.min(UNIVERSE_HALF_EXTENT, Math.max(UNIVERSE_HALF_EXTENT_FLOOR, scaled))
+}
 
 // PHASE 17.I — star scale rule (LAW #0 2026-05-11):
 // > "stars need to be 4x bigger thasn planets in scal of the largest planet"
@@ -70,7 +91,12 @@ export const PLANET_ORBIT_MIN_OFFSET = 8000
 export const PLANET_ORBIT_MAX_OFFSET = 16000
 // Padding added to each solar system's bounding sphere so adjacent systems have visual
 // breathing room (no two planets ALMOST touching across system boundaries).
-export const SOLAR_SYSTEM_BOUNDING_PAD = 4000
+//
+// PHASE 17.L.D.1 (HOTFIX 2026-05-11) — bumped 4000 → 25000 to force loose-cluster spacing
+// even at high system densities. Combined with computeUniverseHalfExtent's per-system
+// scaling above, this guarantees adjacent system centers are at least ~80-90k apart
+// (orbit_max 16k + pad 25k) × 2 — astronomical breathing room.
+export const SOLAR_SYSTEM_BOUNDING_PAD = 25000
 
 // --- mining-outpost economy (mirrored here so designers can tune in one place) -------
 
