@@ -35,8 +35,20 @@ export function WikiPage() {
   const [section, setSection] = useState<WikiSection>('themes')
   const [selectedThemeId, setSelectedThemeId] = useState<ThemeId>(THEMES[0]!.id)
   const [selectedTechId, setSelectedTechId] = useState<TechId | null>(null)
+  const [themeSearch, setThemeSearch] = useState('')
   const theme = getTheme(selectedThemeId)
   const styleVars = useMemo(() => themeAsCSSVars(theme), [theme])
+
+  const filteredThemes = useMemo(() => {
+    const needle = themeSearch.trim().toLowerCase()
+    if (!needle) return THEMES
+    return THEMES.filter(
+      (t) =>
+        t.name.toLowerCase().includes(needle) ||
+        t.tagline.toLowerCase().includes(needle) ||
+        t.description.toLowerCase().includes(needle),
+    )
+  }, [themeSearch])
 
   const empire = useMemo(() => {
     const e = newEmpire(civId('wiki-civ'), planetIdValue('wiki-planet'))
@@ -82,24 +94,43 @@ export function WikiPage() {
                 propaganda copy, citizen tier names, building names, faction labels, and AI
                 personality. Click a theme to preview its palette + tagline.
               </p>
+              <div className="wiki-page__theme-search">
+                <input
+                  type="search"
+                  className="wiki-page__theme-search-input"
+                  placeholder="Search themes by name, tagline, or description…"
+                  value={themeSearch}
+                  onChange={(e) => setThemeSearch(e.target.value)}
+                  aria-label="Filter themes by search"
+                />
+                <span className="wiki-page__theme-search-count">
+                  {filteredThemes.length}/{THEMES.length}
+                </span>
+              </div>
               <div className="wiki-page__theme-grid">
-                {THEMES.map((t) => {
-                  const isSelected = t.id === selectedThemeId
-                  return (
-                    <button
-                      key={t.id}
-                      type="button"
-                      className={`wiki-page__theme-card ${isSelected ? 'wiki-page__theme-card--active' : ''}`}
-                      onClick={() => setSelectedThemeId(t.id)}
-                    >
-                      <span className="wiki-page__theme-emoji" aria-hidden>
-                        {t.emoji}
-                      </span>
-                      <span className="wiki-page__theme-name">{t.name}</span>
-                      <span className="wiki-page__theme-tagline">{t.tagline}</span>
-                    </button>
-                  )
-                })}
+                {filteredThemes.length === 0 ? (
+                  <p className="wiki-page__theme-empty">
+                    No themes match "{themeSearch}". Try shorter or different keywords.
+                  </p>
+                ) : (
+                  filteredThemes.map((t) => {
+                    const isSelected = t.id === selectedThemeId
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        className={`wiki-page__theme-card ${isSelected ? 'wiki-page__theme-card--active' : ''}`}
+                        onClick={() => setSelectedThemeId(t.id)}
+                      >
+                        <span className="wiki-page__theme-emoji" aria-hidden>
+                          {t.emoji}
+                        </span>
+                        <span className="wiki-page__theme-name">{t.name}</span>
+                        <span className="wiki-page__theme-tagline">{t.tagline}</span>
+                      </button>
+                    )
+                  })
+                )}
               </div>
               <article className="wiki-page__theme-detail">
                 <h3>
