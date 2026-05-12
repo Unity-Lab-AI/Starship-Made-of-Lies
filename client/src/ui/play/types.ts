@@ -42,6 +42,10 @@ export type PanelId =
   // (NEVER mock per the no-mock-player-data LAW). Match-end scores persist + the panel
   // surfaces top-10 per global category.
   | 'hallOfChampions'
+  // PHASE 17.12.2 — Defense panel. Per-planet mine-field count + counter-pad count +
+  // incoming-threat list + quick-build shortcuts. Cover-arc on sphere surface deferred to
+  // a follow-on polish pass.
+  | 'defense'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -78,6 +82,7 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'planetInventory', emoji: '🗄', label: 'Planet Inventory' },
   { id: 'settlements', emoji: '🏘', label: 'Settlements' },
   { id: 'hallOfChampions', emoji: '🏛️', label: 'Hall of Champions' },
+  { id: 'defense', emoji: '🛡', label: 'Defense' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },

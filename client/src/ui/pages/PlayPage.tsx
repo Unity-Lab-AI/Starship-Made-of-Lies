@@ -58,6 +58,7 @@ import { getAudioSystem } from '../../audio/AudioSystem'
 import { type SfxEventId } from '../../audio/sfxManifest'
 import { loadGlobalCategorySnapshots } from '../../match/leaderboardStorage'
 import { HallOfChampionsPanel } from '../panels/HallOfChampionsPanel'
+import { DefensePanel, type DefensePanelIncomingThreat } from '../panels/DefensePanel'
 import { CampaignPicker } from '../play/CampaignPicker'
 import { DockZoneOverlay } from '../play/DockZoneOverlay'
 import { HUDOverlay } from '../play/HUDOverlay'
@@ -1792,6 +1793,67 @@ export function PlayPage() {
             </div>
           </div>
         ) : null}
+
+        {/* PHASE 17.12.2 — Defense panel. Per-planet defensive stats + incoming threats +
+            counter-missile-pad quick-build. Mines are LAUNCHED ships per user correction
+            2026-05-12; panel surfaces the right workflow pointer instead of a tile-build
+            shortcut. */}
+        {openPanels.has('defense') &&
+          (() => {
+            const counterPadCount =
+              activePlanet.buildingsByDef.get(
+                // BLDG_COUNTER_MISSILE — import lives in DefensePanel via shared barrel.
+                'counterMissilePad' as unknown as BuildingDefId,
+              ) ?? 0
+            const incomingThreats: DefensePanelIncomingThreat[] = []
+            for (const flight of sim.state.flights.values()) {
+              if (flight.targetPlanetId !== activePlanet.planet.id) continue
+              if (flight.launchingCivId === sim.state.humanCivId) continue
+              if (
+                flight.phase === 'DETONATE' ||
+                flight.phase === 'INTERCEPTED' ||
+                flight.phase === 'ABORTED' ||
+                flight.phase === 'CRASH_LANDED' ||
+                flight.phase === 'EMPTY_HULK'
+              ) {
+                continue
+              }
+              const def = COLONY_SHIPS.find((d) => d.id === flight.variantId)
+              const fromPlanet = sim.state.planets.get(flight.fromPlanetId)
+              incomingThreats.push({
+                flightId: String(flight.id),
+                fromPlanetLabel: fromPlanet
+                  ? `${fromPlanet.planet.biome.emoji} ${String(fromPlanet.planet.id)}`
+                  : String(flight.fromPlanetId),
+                variantEmoji: def?.emoji ?? '⚙️',
+                variantName: def?.name ?? String(flight.variantId),
+                phaseLabel: flight.phase,
+                etaTicks: Math.max(0, flight.totalTicks - flight.ticksFlown),
+              })
+            }
+            return (
+              <PanelFrame
+                panelId="defense"
+                title="Defense"
+                emoji="🛡"
+                onClose={() => closePanel('defense')}
+                variant="docked-right"
+                width={420}
+              >
+                <DefensePanel
+                  planetId={activePlanet.planet.id}
+                  planetLabel={`${activePlanet.planet.biome.emoji} ${String(activePlanet.planet.id)}`}
+                  mineFields={activePlanet.mineFields}
+                  counterPadCount={counterPadCount}
+                  incomingThreats={incomingThreats}
+                  onQuickBuild={(defId) => {
+                    setBuildMode(defId)
+                    closePanel('defense')
+                  }}
+                />
+              </PanelFrame>
+            )
+          })()}
 
         {/* PHASE 17.12.7 — Hall of Champions in-game panel. localStorage-backed leaderboards
             (NEVER mock per the no-mock-player-data LAW). Match-end scores persist + the panel
