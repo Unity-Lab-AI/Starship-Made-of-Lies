@@ -313,7 +313,17 @@ export interface ColonyShipFlight {
   // per tick. When it hits 0, cargo is loaded onto cargoAboard + the leg flips to INBOUND.
   // Constant duration regardless of variant for v1; tuned by EXTRACTING_TICKS.
   extractingTicksRemaining: number
+  // PHASE 17.2.4 — telemetry ring buffer on the flight itself (replaces TelemetryGraphPanel's
+  // client-side useRef ring). Sim-owned so the data survives panel mount/unmount cycles and
+  // becomes serializable for PHASE 18.3 match-replay playback. Capped at TELEMETRY_LOG_RING_SIZE
+  // samples — at default DEFAULT_TICK_MS=200ms / 1x speed that's ~60 seconds of history.
+  // Push happens at the end of tickFlight for non-terminal phases; terminal phases retain the
+  // last in-flight history for post-mortem inspection in FlightDetailPanel.
+  telemetryLog: FlightTelemetrySnapshot[]
 }
+
+// PHASE 17.2.4 — ring buffer size for flight.telemetryLog. 300 samples = ~60s @ 1x speed.
+export const TELEMETRY_LOG_RING_SIZE = 300
 
 export interface FlightCreateOptions {
   readonly id: ColonyShipFlightId
@@ -488,6 +498,8 @@ export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight
     shuttleCyclesCompleted: 0,
     extractingTicksRemaining: 0,
     homePlanetId: opts.homePlanetId ?? opts.fromPlanetId,
+    // PHASE 17.2.4 — telemetry ring starts empty; samples push at end of tickFlight.
+    telemetryLog: [],
   }
 }
 
@@ -747,6 +759,18 @@ export function tickFlight(flight: ColonyShipFlight): FlightTickResult {
   // signal layer (laser handoff in UMS UnitySignal — SMoL roadmap).
   const signalLost =
     progress >= SIGNAL_RANGE_PROGRESS_THRESHOLD && progress < 0.9 && flight.phase !== 'TARGET'
+
+  // PHASE 17.2.4 — push a deterministic snapshot into the ring buffer on every non-terminal
+  // tick. Terminal phases (DETONATE/INTERCEPTED/ABORTED/CRASH_LANDED) take the early return
+  // path above and skip this push, so the ring captures only in-flight history. The push uses
+  // flightTelemetrySnapshot() which already mirrors every UMS UNITY_MSL field plus the SMoL
+  // additions (fuel/power/life-support/crew/signal), so panels can render against this log
+  // without duplicating the derivation logic. PHASE 18.3 match-replay system will read this
+  // log directly for cinematic playback.
+  flight.telemetryLog.push(flightTelemetrySnapshot(flight))
+  if (flight.telemetryLog.length > TELEMETRY_LOG_RING_SIZE) {
+    flight.telemetryLog.splice(0, flight.telemetryLog.length - TELEMETRY_LOG_RING_SIZE)
+  }
 
   return {
     phaseChanged: flight.phase !== prevPhase,
