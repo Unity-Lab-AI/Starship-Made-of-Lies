@@ -157,10 +157,13 @@ export function attachCameraController(
       const dy = e.clientY - lastMouseY
       state.yaw += dx * ROTATE_SPEED * prefs.rotateSensitivity
       const dyEffective = prefs.invertYRotate ? -dy : dy
-      state.pitch = Math.max(
-        -Math.PI / 2 + 0.05,
-        Math.min(-0.05, state.pitch - dyEffective * ROTATE_SPEED * prefs.rotateSensitivity),
-      )
+      // PHASE 17.L.D.13 (HOTFIX 2026-05-11) — pitch clamp removed. Per user verbatim *"NEED
+      // THE TO GET RID OF THE GIMBLE LOCK ON THE CAMERS FOR FULL ROTATION AND PITCH AND
+      // YAW"*. Old clamp was [-π/2+0.05, -0.05] — camera could ONLY look down at 3° to 89°
+      // below horizontal. Now pitch is unbounded (matches yaw's existing freedom). The
+      // sin/cos terms in applyCameraTransform handle any pitch value gracefully — at
+      // pitch=π/2 camera looks straight up, pitch=π wraps to looking down from behind, etc.
+      state.pitch -= dyEffective * ROTATE_SPEED * prefs.rotateSensitivity
     }
     lastMouseX = e.clientX
     lastMouseY = e.clientY

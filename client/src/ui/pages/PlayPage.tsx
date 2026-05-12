@@ -137,6 +137,14 @@ export function PlayPage() {
   const [bootReady, setBootReady] = useState(false)
   const [buildMode, setBuildMode] = useState<BuildingDefId | null>(null)
   const [selectedPlanetId, setSelectedPlanetId] = useState<PlanetId | null>(null)
+  // PHASE 17.L.D.13 (HOTFIX 2026-05-11) — focus-and-zoom request for GalaxyView. Set when
+  // the player clicks a row in PlanetPicker; GalaxyView watches the nonce and fires its
+  // tween-to-planet animation. Re-clicking the same planet generates a fresh nonce so the
+  // tween re-fires even when the planet id is the same.
+  const [focusPlanetTrigger, setFocusPlanetTrigger] = useState<{
+    readonly planetId: PlanetId
+    readonly nonce: number
+  } | null>(null)
   const [toasts, setToasts] = useState<ToastNotification[]>([])
   const lastSeenEventIdxRef = useRef(0)
 
@@ -659,6 +667,11 @@ export function PlayPage() {
 
   const handleSelectPlanet = useCallback((id: PlanetId): void => {
     setSelectedPlanetId(id)
+    // PHASE 17.L.D.13 (HOTFIX 2026-05-11) — also fire a focus-and-zoom request to GalaxyView.
+    // Per user verbatim *"THE PLANET LIST NEEDS A VIEW SELECTION PER PLANET IE VIEW YOUr
+    // STARTING PLANET FOCUSES IT AND ZOOMS TO IT"*. The nonce changes on every selection so
+    // re-clicking the same planet always re-fires the tween.
+    setFocusPlanetTrigger({ planetId: id, nonce: Date.now() })
   }, [])
 
   const handleResetTo = (themeId: ThemeId): void => {
@@ -946,6 +959,7 @@ export function PlayPage() {
                   [...sim.state.planets.values()].map((p) => [p.planet.id, p.buildingsByTile]),
                 )
               }
+              focusPlanetTrigger={focusPlanetTrigger}
               {...(redirectModeFlightId
                 ? {
                     onContextMenuPlanet: (planetId: PlanetId) => {

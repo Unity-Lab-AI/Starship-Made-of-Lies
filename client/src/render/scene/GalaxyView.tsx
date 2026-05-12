@@ -125,6 +125,13 @@ interface GalaxyViewProps {
   // PLACED APPERARING ON THE PLANETS WHEN PALCING BUILDINGS"*. When omitted, falls back to
   // generic 🏗 placeholder.
   readonly buildingsByPlanet?: ReadonlyMap<PlanetId, ReadonlyMap<TileId, BuildingDefId>>
+  // PHASE 17.L.D.13 (HOTFIX 2026-05-11) — focus-and-zoom request. Per user verbatim *"THE
+  // PLANET LIST NEEDS A VIEW SELECTION PER PLANET IE VIEW YOUr STARTING PLANET FOCUSES IT
+  // AND ZOOMS TO IT"*. Parent sets `focusPlanetTrigger = { planetId, nonce }` to request a
+  // tween to that planet. The nonce changes (e.g. Date.now()) so the same planet can be
+  // re-focused after the user has navigated away. RAF loop watches for nonce changes and
+  // fires the tween-to-planet using the same animation as click-on-3D-planet.
+  readonly focusPlanetTrigger?: { readonly planetId: PlanetId; readonly nonce: number } | null
 }
 
 // PHASE 17.PRE.4 — persistent camera state across GalaxyView re-mounts. Keyed by Galaxy
@@ -158,6 +165,7 @@ export function GalaxyView({
   onContextMenuPlanet,
   humanDiscoveredPlanetIds,
   buildingsByPlanet,
+  focusPlanetTrigger,
 }: GalaxyViewProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [hoveredPlanetId, setHoveredPlanetId] = useState<PlanetId | null>(null)
@@ -175,6 +183,12 @@ export function GalaxyView({
   const buildingsByPlanetRef = useRef<
     ReadonlyMap<PlanetId, ReadonlyMap<TileId, BuildingDefId>> | undefined
   >(buildingsByPlanet)
+  // PHASE 17.L.D.13 — focus-on-planet request. RAF loop reads the nonce; when it changes
+  // from `lastSeenFocusNonceRef`, fire a tween to that planet.
+  const focusPlanetTriggerRef = useRef<
+    { readonly planetId: PlanetId; readonly nonce: number } | null | undefined
+  >(focusPlanetTrigger)
+  const lastSeenFocusNonceRef = useRef<number | null>(null)
   const rangeVisibleRef = useRef(rangeOverlayVisible)
   const onSurfaceTileClickRef = useRef(onSurfaceTileClick)
   const miningBeaconsRef = useRef<ReadonlyArray<ShipBeaconBroadcast>>(miningBeacons ?? [])
@@ -202,6 +216,7 @@ export function GalaxyView({
   onSurfaceTileClickRef.current = onSurfaceTileClick
   humanDiscoveredPlanetIdsRef.current = humanDiscoveredPlanetIds
   buildingsByPlanetRef.current = buildingsByPlanet
+  focusPlanetTriggerRef.current = focusPlanetTrigger
   miningBeaconsRef.current = miningBeacons ?? []
   civsByPlanetRef.current = civsByPlanet
   indigenousByPlanetRef.current = indigenousByPlanet ?? []
@@ -696,6 +711,29 @@ export function GalaxyView({
 
       // Range overlay visibility
       rangeOverlayHandle.setVisible(rangeVisibleRef.current)
+
+      // PHASE 17.L.D.13 (HOTFIX 2026-05-11) — focus-on-planet trigger watch. Per user
+      // verbatim *"THE PLANET LIST NEEDS A VIEW SELECTION PER PLANET IE VIEW YOUr STARTING
+      // PLANET FOCUSES IT AND ZOOMS TO IT"*. When parent (PlayPage) updates the
+      // focusPlanetTrigger prop's nonce (e.g. via PlanetPicker row click), fire a tween
+      // identical to the click-on-3D-planet flow — camera target moves to planet center,
+      // zoomT eases to 0.32 (close enough to see surface but not crashed into atmosphere).
+      const focusReq = focusPlanetTriggerRef.current
+      if (focusReq && focusReq.nonce !== lastSeenFocusNonceRef.current) {
+        const target = galaxyHandle.planetMeshes.get(focusReq.planetId)
+        if (target) {
+          tween = {
+            startPos: cameraState.target.clone(),
+            targetPos: target.position.clone(),
+            startZoomT: cameraState.zoomT,
+            targetZoomT: 0.32,
+            startedAt: performance.now(),
+            durationMs: 1200,
+            onComplete: () => onSelectPlanetRef.current(focusReq.planetId),
+          }
+        }
+        lastSeenFocusNonceRef.current = focusReq.nonce
+      }
 
       // Surface layer visibility — show tiles when camera close to each planet
       const camPos = cameraState.camera.position
