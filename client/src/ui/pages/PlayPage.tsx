@@ -648,8 +648,12 @@ export function PlayPage() {
   // plays before the onboarding hint so the player sees the dystopian framing first, then
   // the gameplay nudge.
   useEffect(() => {
-    playCinematic('match_start_intro', { playOnce: true })
-    // Intentional one-shot per mount.
+    // Pass the player's theme so the intro's themed narration substitutes (Theocracy /
+    // Corporate / Surveillance / AI-Overlord / Military Junta get unique copy; rest fall
+    // back to the neutral base).
+    playCinematic('match_start_intro', { playOnce: true, playerThemeId: humanTheme.id })
+    // Intentional one-shot per mount; humanTheme.id is stable across the match's lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // 17.A.7 — onboarding hint moment. Once per browser, on the player's first /play mount,
@@ -722,16 +726,16 @@ export function PlayPage() {
       // VICTORY/DEFEAT cinematic when the affected civ is the human civ (defeat) or when
       // the message reads as a global match-end signal (victory).
       if (ev.kind === 'last_hope') {
-        playCinematic('last_hope_evac_triggered', { playOnce: true })
+        playCinematic('last_hope_evac_triggered', { playOnce: true, playerThemeId: humanTheme.id })
       }
       if (ev.kind === 'crash' && ev.civId === sim.state.humanCivId) {
-        playCinematic('crash_landing', { playOnce: true })
+        playCinematic('crash_landing', { playOnce: true, playerThemeId: humanTheme.id })
       }
       if (ev.kind === 'civ_defeated' && ev.civId === sim.state.humanCivId) {
-        playCinematic('match_end_defeat', { playOnce: true })
+        playCinematic('match_end_defeat', { playOnce: true, playerThemeId: humanTheme.id })
       }
       if (ev.kind === 'system' && ev.message.toLowerCase().includes('prevailed')) {
-        playCinematic('match_end_victory', { playOnce: true })
+        playCinematic('match_end_victory', { playOnce: true, playerThemeId: humanTheme.id })
       }
       if (ev.message.startsWith('❌')) {
         newToasts.push({

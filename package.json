@@ -22,6 +22,7 @@
     "format:write": "prettier --write .",
     "prepare": "husky",
     "dev": "pnpm --filter @smol/client dev",
+    "dev:server": "pnpm --filter @smol/server dev",
     "dev:tauri": "tauri dev",
     "dev:android": "cap run android",
     "dev:ios": "cap run ios",

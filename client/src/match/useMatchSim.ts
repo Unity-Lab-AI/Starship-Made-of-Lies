@@ -23,7 +23,7 @@ import {
   loadMatchFromStorage,
   saveMatchToStorage,
 } from './saveLoad'
-import { loadReplaySnapshot, recordReplaySnapshot } from './replay'
+import { clearReplayBuffer, loadReplaySnapshot, recordReplaySnapshot } from './replay'
 import { applyAchievementUnlocks } from './achievementStorage'
 import { applyMatchScores } from './leaderboardStorage'
 import {
@@ -189,6 +189,14 @@ export interface UseMatchSimResult {
 }
 
 export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
+  // Clear the replay ring buffer on every match boundary (mount + resetMatch). The buffer is
+  // module-state singleton — without this, ~10MB worth of snapshots survives across matches
+  // and grows monotonically until the browser tab OOMs (super-review 2026-05-12 Critical #4).
+  const replayCleanupOnMount = useRef(false)
+  if (!replayCleanupOnMount.current) {
+    clearReplayBuffer()
+    replayCleanupOnMount.current = true
+  }
   const stateRef = useRef<MatchState>(createMatch(initialConfig))
   const [tickCount, setTickCount] = useState(0)
   const [running, setRunning] = useState(true)
@@ -403,6 +411,8 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
   }, [])
   const resetMatch = useCallback(
     (newConfig?: MatchConfig) => {
+      // Clear replay buffer on match boundary — see Critical #4 fix at hook init for rationale.
+      clearReplayBuffer()
       stateRef.current = createMatch(newConfig ?? initialConfig)
       setTickCount(0)
       setRunning(true)
