@@ -425,7 +425,7 @@ export function GalaxyView({
       targetZoomT: number
       startedAt: number
       durationMs: number
-      onComplete: () => void
+      onComplete?: () => void
     } | null = null
 
     // Surface raycast takes priority when any planet's surface layer is visible (camera close to
@@ -627,7 +627,7 @@ export function GalaxyView({
         if (t >= 1) {
           const onDone = tween.onComplete
           tween = null
-          onDone()
+          onDone?.()
         }
       } else {
         tickCameraFromInput(cameraState, dt)
@@ -795,6 +795,13 @@ export function GalaxyView({
       if (focusReq && focusReq.nonce !== lastSeenFocusNonceRef.current) {
         const target = galaxyHandle.planetMeshes.get(focusReq.planetId)
         if (target) {
+          // No onComplete here: the parent that bumped this nonce already ran its selection
+          // logic (handleSelectPlanet → setSelectedPlanetId + open PlanetSummary). Re-firing
+          // onSelectPlanet at tween end re-invoked handleSelectPlanet, which set a NEW focus
+          // trigger nonce, which created another tween, which fired onSelectPlanet again —
+          // infinite loop that reopened PlanetSummary every 1200ms even after the player
+          // closed it. The tween here is purely cosmetic camera motion; selection is already
+          // committed before this fires.
           tween = {
             startPos: cameraState.target.clone(),
             targetPos: target.position.clone(),
@@ -802,7 +809,6 @@ export function GalaxyView({
             targetZoomT: 0.32,
             startedAt: performance.now(),
             durationMs: 1200,
-            onComplete: () => onSelectPlanetRef.current(focusReq.planetId),
           }
         }
         lastSeenFocusNonceRef.current = focusReq.nonce
