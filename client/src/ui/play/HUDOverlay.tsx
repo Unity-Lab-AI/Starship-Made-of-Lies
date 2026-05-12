@@ -83,7 +83,11 @@ export function HUDOverlay({
         <div className="hud-build-mode" role="status">
           <span className="hud-build-mode__icon">🏗</span>
           <span className="hud-build-mode__msg">
-            Build mode: click an empty owned tile to place. ESC to cancel.
+            {/* PHASE 17.L.D.8 — surface tile-click semantics. Default click = place +
+               exit build mode (one-shot). Shift-click = place + stay in build mode
+               (chain placement). ESC = cancel without placing. */}
+            Build mode — click an empty owned tile to place. Hold <strong>Shift</strong> to
+            chain-place. <strong>ESC</strong> cancels.
           </span>
           <button
             type="button"
