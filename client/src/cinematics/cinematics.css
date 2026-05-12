@@ -1,0 +1,119 @@
+/* PHASE 18.6 — cinematic overlay. Full-viewport backdrop with mood-tinted gradient,
+   centered title + subtitle, fade-in animation, click-to-skip hint at the bottom. */
+
+.cinematic-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: cinematic-fade-in 280ms ease-out;
+}
+
+@keyframes cinematic-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.cinematic-overlay--cold {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(20, 40, 70, 0.85), rgba(2, 4, 10, 0.98)), #02040a;
+}
+
+.cinematic-overlay--tense {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(80, 30, 30, 0.9), rgba(8, 4, 4, 0.98)), #080404;
+}
+
+.cinematic-overlay--triumphant {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(120, 90, 30, 0.9), rgba(10, 6, 2, 0.98)), #0a0602;
+}
+
+.cinematic-overlay--tragic {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(60, 20, 60, 0.92), rgba(4, 2, 8, 0.98)), #040208;
+}
+
+.cinematic-overlay--mystery {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(40, 80, 120, 0.85), rgba(2, 6, 12, 0.98)), #02060c;
+}
+
+.cinematic-overlay__panel {
+  max-width: min(800px, 80vw);
+  padding: 2rem 3rem;
+  text-align: center;
+  color: #f0eee0;
+  animation: cinematic-beat-in 380ms ease-out;
+}
+
+@keyframes cinematic-beat-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cinematic-overlay__emoji {
+  font-size: clamp(2.6rem, 8vw, 5rem);
+  margin-bottom: 1rem;
+}
+
+.cinematic-overlay__title {
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.8rem 0;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.8);
+}
+
+.cinematic-overlay--triumphant .cinematic-overlay__title {
+  color: #f4cf6c;
+  text-shadow:
+    0 2px 24px rgba(0, 0, 0, 0.8),
+    0 0 32px rgba(244, 207, 108, 0.45);
+}
+
+.cinematic-overlay--tragic .cinematic-overlay__title {
+  color: #b86fc8;
+  text-shadow:
+    0 2px 24px rgba(0, 0, 0, 0.8),
+    0 0 32px rgba(184, 111, 200, 0.4);
+}
+
+.cinematic-overlay--tense .cinematic-overlay__title {
+  color: #ff7a5c;
+  text-shadow:
+    0 2px 24px rgba(0, 0, 0, 0.8),
+    0 0 32px rgba(255, 122, 92, 0.45);
+}
+
+.cinematic-overlay__subtitle {
+  font-size: clamp(1rem, 1.8vw, 1.4rem);
+  font-style: italic;
+  color: #cfd0d8;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.cinematic-overlay__skip-hint {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(220, 220, 230, 0.55);
+}

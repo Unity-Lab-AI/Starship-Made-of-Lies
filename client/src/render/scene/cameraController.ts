@@ -205,12 +205,100 @@ export function attachCameraController(
     if (document.visibilityState !== 'visible') clearAllKeys()
   }
 
+  // PHASE 18.2 — touch input adapter. One-finger drag = rotate (mirrors right-click drag).
+  // Two-finger pinch = zoom (mirrors wheel). Two-finger pan = translate (mirrors middle-click
+  // drag). Touch events override their mouse equivalents only while a finger is down; releasing
+  // every finger snaps back to mouse/keyboard input.
+  let touchSession: {
+    mode: 'one-finger' | 'two-finger' | null
+    lastX: number
+    lastY: number
+    lastDist: number
+  } = { mode: null, lastX: 0, lastY: 0, lastDist: 0 }
+  function touchDistance(t1: Touch, t2: Touch): number {
+    const dx = t1.clientX - t2.clientX
+    const dy = t1.clientY - t2.clientY
+    return Math.hypot(dx, dy)
+  }
+  function touchMidpoint(t1: Touch, t2: Touch): { x: number; y: number } {
+    return { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 }
+  }
+  const onTouchStart = (e: TouchEvent): void => {
+    e.preventDefault()
+    if (e.touches.length === 1) {
+      touchSession = {
+        mode: 'one-finger',
+        lastX: e.touches[0]!.clientX,
+        lastY: e.touches[0]!.clientY,
+        lastDist: 0,
+      }
+    } else if (e.touches.length >= 2) {
+      const mid = touchMidpoint(e.touches[0]!, e.touches[1]!)
+      touchSession = {
+        mode: 'two-finger',
+        lastX: mid.x,
+        lastY: mid.y,
+        lastDist: touchDistance(e.touches[0]!, e.touches[1]!),
+      }
+    }
+  }
+  const onTouchMove = (e: TouchEvent): void => {
+    e.preventDefault()
+    const prefs = getCameraPrefs()
+    if (touchSession.mode === 'one-finger' && e.touches.length === 1) {
+      const dx = e.touches[0]!.clientX - touchSession.lastX
+      const dy = e.touches[0]!.clientY - touchSession.lastY
+      state.yaw += dx * ROTATE_SPEED * prefs.rotateSensitivity
+      const dyEffective = prefs.invertYRotate ? -dy : dy
+      state.pitch -= dyEffective * ROTATE_SPEED * prefs.rotateSensitivity
+      touchSession.lastX = e.touches[0]!.clientX
+      touchSession.lastY = e.touches[0]!.clientY
+    } else if (touchSession.mode === 'two-finger' && e.touches.length >= 2) {
+      const mid = touchMidpoint(e.touches[0]!, e.touches[1]!)
+      const dist = touchDistance(e.touches[0]!, e.touches[1]!)
+      // Pinch → zoom delta. Compare current distance vs last to compute zoomT change.
+      const pinchDelta = touchSession.lastDist - dist
+      if (Math.abs(pinchDelta) > 1) {
+        state.zoomT = Math.max(
+          0,
+          Math.min(1, state.zoomT + Math.sign(pinchDelta) * ZOOM_TICK * prefs.zoomSensitivity),
+        )
+      }
+      // Midpoint movement → pan
+      const dx = mid.x - touchSession.lastX
+      const dy = mid.y - touchSession.lastY
+      if (Math.hypot(dx, dy) > 0.5) {
+        panCameraInScreenSpace(state, -dx, -dy, prefs.panSensitivity)
+      }
+      touchSession.lastX = mid.x
+      touchSession.lastY = mid.y
+      touchSession.lastDist = dist
+    }
+  }
+  const onTouchEnd = (e: TouchEvent): void => {
+    if (e.touches.length === 0) {
+      touchSession = { mode: null, lastX: 0, lastY: 0, lastDist: 0 }
+    } else if (e.touches.length === 1 && touchSession.mode === 'two-finger') {
+      // Pinch ended but one finger still on screen — switch to one-finger rotate session.
+      touchSession = {
+        mode: 'one-finger',
+        lastX: e.touches[0]!.clientX,
+        lastY: e.touches[0]!.clientY,
+        lastDist: 0,
+      }
+    }
+  }
+
   canvasEl.addEventListener('wheel', onWheel, { passive: false })
   canvasEl.addEventListener('mousemove', onMouseMove)
   canvasEl.addEventListener('mousedown', onMouseDown)
   canvasEl.addEventListener('mouseup', onMouseUp)
   canvasEl.addEventListener('mouseleave', onMouseLeave)
   canvasEl.addEventListener('contextmenu', onContextMenu)
+  canvasEl.addEventListener('touchstart', onTouchStart, { passive: false })
+  canvasEl.addEventListener('touchmove', onTouchMove, { passive: false })
+  canvasEl.addEventListener('touchend', onTouchEnd)
+  canvasEl.addEventListener('touchcancel', onTouchEnd)
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
   window.addEventListener('blur', onWindowBlur)
@@ -224,6 +312,10 @@ export function attachCameraController(
       canvasEl.removeEventListener('mouseup', onMouseUp)
       canvasEl.removeEventListener('mouseleave', onMouseLeave)
       canvasEl.removeEventListener('contextmenu', onContextMenu)
+      canvasEl.removeEventListener('touchstart', onTouchStart)
+      canvasEl.removeEventListener('touchmove', onTouchMove)
+      canvasEl.removeEventListener('touchend', onTouchEnd)
+      canvasEl.removeEventListener('touchcancel', onTouchEnd)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
       window.removeEventListener('blur', onWindowBlur)

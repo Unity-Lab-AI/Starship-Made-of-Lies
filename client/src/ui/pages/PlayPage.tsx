@@ -68,6 +68,8 @@ import { TelemetryGraphPanel } from '../panels/TelemetryGraphPanel'
 import { CampaignPicker } from '../play/CampaignPicker'
 import { DockZoneOverlay } from '../play/DockZoneOverlay'
 import { HUDOverlay } from '../play/HUDOverlay'
+import { CinematicsOverlay } from '../../cinematics/CinematicsOverlay'
+import { playCinematic } from '../../cinematics/CinematicsManager'
 import { PanelFrame } from '../play/PanelFrame'
 import { PanelLayoutProvider } from '../play/PanelLayoutContext'
 import { TopToolbar } from '../play/TopToolbar'
@@ -638,6 +640,16 @@ export function PlayPage() {
     }
   }, [humanTheme.id])
 
+  // PHASE 18.6 — match-start cinematic on every fresh match mount. The CinematicsManager's
+  // playOnce flag scopes "once" to the in-session set; loading a save / starting a new game
+  // counts as a fresh session because the module state resets on PlayPage remount. The intro
+  // plays before the onboarding hint so the player sees the dystopian framing first, then
+  // the gameplay nudge.
+  useEffect(() => {
+    playCinematic('match_start_intro', { playOnce: true })
+    // Intentional one-shot per mount.
+  }, [])
+
   // 17.A.7 — onboarding hint moment. Once per browser, on the player's first /play mount,
   // fire a theme-flavored toast: "this is your home planet, click to zoom in, build a launch
   // pad, send a colony ship to explore". localStorage flag keeps it one-shot. With the
@@ -701,6 +713,24 @@ export function PlayPage() {
       }
     }
     for (const ev of newEvents) {
+      // PHASE 18.6 — cinematic triggers wired from game events. LAST_HOPE_EVAC events fire
+      // the LAST_HOPE cinematic exactly once per session (playOnce). Crash events fire the
+      // CRASH cinematic the FIRST time the player's own colony ship crashes (no replay on
+      // every subsequent crash to avoid spam). Civ-defeated events fire the MATCH_END
+      // VICTORY/DEFEAT cinematic when the affected civ is the human civ (defeat) or when
+      // the message reads as a global match-end signal (victory).
+      if (ev.kind === 'last_hope') {
+        playCinematic('last_hope_evac_triggered', { playOnce: true })
+      }
+      if (ev.kind === 'crash' && ev.civId === sim.state.humanCivId) {
+        playCinematic('crash_landing', { playOnce: true })
+      }
+      if (ev.kind === 'civ_defeated' && ev.civId === sim.state.humanCivId) {
+        playCinematic('match_end_defeat', { playOnce: true })
+      }
+      if (ev.kind === 'system' && ev.message.toLowerCase().includes('prevailed')) {
+        playCinematic('match_end_victory', { playOnce: true })
+      }
       if (ev.message.startsWith('❌')) {
         newToasts.push({
           id: `toast-${ev.atTick}-${Math.random().toString(36).slice(2, 8)}`,
@@ -747,6 +777,9 @@ export function PlayPage() {
     if (newToasts.length > 0) {
       setToasts((current) => [...current, ...newToasts].slice(-5))
     }
+    // sim.state.humanCivId is captured from a stable sim ref; only events + tickCount
+    // drive this effect re-runs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sim.state.events, sim.tickCount])
 
   // === Panel toggle ===
@@ -1324,6 +1357,9 @@ export function PlayPage() {
             />
           )}
         </div>
+
+        {/* PHASE 18.6 — full-screen cinematic overlay. Idle when no cinematic is active. */}
+        <CinematicsOverlay />
 
         <HUDOverlay
           theme={humanTheme}
