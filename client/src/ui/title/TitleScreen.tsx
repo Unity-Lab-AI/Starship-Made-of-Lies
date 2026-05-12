@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { DISCORD_INVITE_URL, GITHUB_REPO_URL } from '../../services/community'
 import { MainMenu } from './MainMenu'
 import './TitleScreen.css'
 
@@ -33,14 +34,10 @@ export function TitleScreen() {
 
       <footer className="utility-bar utility-bar--bottom">
         <nav className="utility-links" aria-label="Bottom utility">
-          <a href="https://discord.gg/YWYk4CBr" target="_blank" rel="noreferrer noopener">
+          <a href={DISCORD_INVITE_URL} target="_blank" rel="noreferrer noopener">
             Discord
           </a>
-          <a
-            href="https://github.com/Unity-Lab-AI/Starship-Made-of-Lies"
-            target="_blank"
-            rel="noreferrer noopener"
-          >
+          <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer noopener">
             GitHub
           </a>
         </nav>

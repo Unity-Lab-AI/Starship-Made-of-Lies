@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAudioSystem } from '../../audio/AudioSystem'
+import { DISCORD_INVITE_URL } from '../../services/community'
 import { loadAccessibilitySettings } from '../../settings/accessibility'
 import { loadKeybindMap } from '../../settings/keybindings'
 import { AccessibilitySettingsPanel } from '../panels/AccessibilitySettingsPanel'
@@ -80,8 +81,8 @@ export function SettingsPage() {
                 </dd>
                 <dt>Feedback</dt>
                 <dd>
-                  <a href="https://discord.gg/YWYk4CBr" target="_blank" rel="noreferrer">
-                    Discord — discord.gg/YWYk4CBr
+                  <a href={DISCORD_INVITE_URL} target="_blank" rel="noreferrer">
+                    Discord — discord.gg/JyF2bY4BC6
                   </a>
                 </dd>
               </dl>

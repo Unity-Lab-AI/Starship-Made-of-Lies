@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useAuthSession } from '../../auth/useAuthSession'
+import { DISCORD_INVITE_URL } from '../../services/community'
 import './MainMenu.css'
 
 interface MenuItem {
   icon: string
   label: string
   to?: string
+  href?: string
   onClick?: () => void
 }
 
@@ -40,6 +42,7 @@ export function MainMenu() {
     { icon: '🏆', label: 'Achievements', to: '/achievements' },
     { icon: '📖', label: 'Wiki', to: '/wiki' },
     { icon: 'ℹ', label: 'About', to: '/about' },
+    { icon: '💬', label: 'Open Discord', href: DISCORD_INVITE_URL },
     { icon: '⏻', label: 'Quit', onClick: handleQuit },
   ]
 
@@ -59,23 +62,42 @@ export function MainMenu() {
         </div>
       ) : null}
       <nav className="main-menu" aria-label="Main menu">
-        {items.map((item) =>
-          item.to ? (
-            <Link key={item.label} to={item.to} className="menu-button">
-              <span className="menu-icon" aria-hidden="true">
-                {item.icon}
-              </span>
-              <span className="menu-label">{item.label}</span>
-            </Link>
-          ) : (
+        {items.map((item) => {
+          if (item.to) {
+            return (
+              <Link key={item.label} to={item.to} className="menu-button">
+                <span className="menu-icon" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <span className="menu-label">{item.label}</span>
+              </Link>
+            )
+          }
+          if (item.href) {
+            return (
+              <a
+                key={item.label}
+                href={item.href}
+                className="menu-button"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <span className="menu-icon" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <span className="menu-label">{item.label}</span>
+              </a>
+            )
+          }
+          return (
             <button key={item.label} type="button" className="menu-button" onClick={item.onClick}>
               <span className="menu-icon" aria-hidden="true">
                 {item.icon}
               </span>
               <span className="menu-label">{item.label}</span>
             </button>
-          ),
-        )}
+          )
+        })}
       </nav>
     </>
   )

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { DISCORD_INVITE_URL } from '../../services/community'
 import './SubPage.css'
 
 export function TermsPage() {
@@ -83,8 +84,8 @@ export function TermsPage() {
         <h2>Contact</h2>
         <p>
           Questions:{' '}
-          <a href="https://discord.gg/YWYk4CBr" target="_blank" rel="noreferrer">
-            Discord — discord.gg/YWYk4CBr
+          <a href={DISCORD_INVITE_URL} target="_blank" rel="noreferrer">
+            Discord — discord.gg/JyF2bY4BC6
           </a>
         </p>
 
