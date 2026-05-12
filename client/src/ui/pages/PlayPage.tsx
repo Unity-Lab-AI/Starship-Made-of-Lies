@@ -639,6 +639,38 @@ export function PlayPage() {
     }
   }, [humanTheme.id])
 
+  // 17.A.7 — onboarding hint moment. Once per browser, on the player's first /play mount,
+  // fire a theme-flavored toast: "this is your home planet, click to zoom in, build a launch
+  // pad, send a colony ship to explore". localStorage flag keeps it one-shot. With the
+  // fog-of-war hiding everything but home, the player needs a nudge so the empty galaxy
+  // isn't bewildering. Re-shows if user clears localStorage.
+  useEffect(() => {
+    const ONBOARDING_KEY = 'smol.onboarding.firstPlay.v1'
+    try {
+      if (window.localStorage.getItem(ONBOARDING_KEY) === '1') return
+    } catch {
+      return
+    }
+    const themeName = humanTheme.name
+    const message = `🪐 Welcome to ${themeName}. Click your home planet to zoom in, build a Launch Pad, then send a colony ship to discover the galaxy.`
+    setToasts((current) => [
+      ...current,
+      {
+        id: `onboarding-${Date.now()}`,
+        kind: 'info',
+        message,
+        expiresAtMs: Date.now() + TOAST_LIFETIME_MS * 3,
+      },
+    ])
+    try {
+      window.localStorage.setItem(ONBOARDING_KEY, '1')
+    } catch {
+      // localStorage unavailable — hint will re-show next mount; acceptable degradation.
+    }
+    // Intentional one-shot: fire on first humanTheme load, never again. Re-fires if a fresh
+    // session opens with no localStorage flag (mobile private browsing, new device, cleared).
+  }, [humanTheme.name])
+
   // === Toast lifecycle: auto-purge expired ===
   useEffect(() => {
     const interval = setInterval(() => {
