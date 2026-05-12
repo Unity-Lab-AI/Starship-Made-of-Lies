@@ -28,6 +28,20 @@ interface TopToolbarProps {
   // light prop with just inventory.stocks + label, no population needed here anymore.
   readonly ownedPlanetTooltips: ReadonlyArray<OwnedPlanetTooltipRow>
   readonly currentTick: number
+  // PHASE 17.L 2026-05-12 user feedback — pause/speed migrate from the (now-nuked) hud-header
+  // into this bar, anchored to the far right (opposite the resources block). Always-visible
+  // so the player can pause / scrub speed without opening any popover.
+  readonly running: boolean
+  readonly speed: 1 | 2 | 4 | 8
+  readonly togglePause: () => void
+  readonly setSpeed: (s: 1 | 2 | 4 | 8) => void
+  // PHASE 17.L 2026-05-12 user feedback — "in mulitplayer games the speed is only set in the
+  // host menu pregame setup canyt have people all changing games peeds on a hosts computer".
+  // When true, speed buttons render disabled (display current speed but don't accept input).
+  // Pause stays interactive — pause is a host-pad command, but a co-op observer could still
+  // pause their LOCAL render only? For v1, pause is also disabled in MP — the authoritative
+  // server tick rate is the only legitimate driver.
+  readonly multiplayerMode: boolean
 }
 
 const DISPLAYED_RESOURCES: ReadonlyArray<ResourceId> = RESOURCES.map((r) => r.id)
@@ -38,6 +52,11 @@ export function TopToolbar({
   empire,
   ownedPlanetTooltips,
   currentTick,
+  running,
+  speed,
+  togglePause,
+  setSpeed,
+  multiplayerMode,
 }: TopToolbarProps) {
   const aggregateStocks = empire.stocksByResource
   const aggregateTiers = empire.tierCounts
@@ -140,6 +159,58 @@ export function TopToolbar({
             </div>
           )
         })}
+      </div>
+
+      {/* PHASE 17.L 2026-05-12 — pause + speed controls anchored to the right edge of the
+          top toolbar (opposite side from the resource list). Always visible so the player
+          can scrub time without opening any popover. Pause hotkey: Space. Speed hotkeys:
+          1 / 2 / 3 / 4 (where each maps to 1× / 2× / 4× / 8×).
+          In multiplayer the host sets speed at pre-game setup; both controls render
+          disabled here so co-op players can't reach onto the host's computer and change
+          tick rate mid-match. The current speed still SHOWS (so everyone sees what the
+          host picked) — it just can't be changed. */}
+      <div className="top-toolbar__controls" role="group" aria-label="Time controls">
+        {multiplayerMode && (
+          <span
+            className="top-toolbar__controls-lock-note"
+            title="Speed is set by the match host in the pre-game New Game menu."
+          >
+            🔒 host-set
+          </span>
+        )}
+        <button
+          type="button"
+          className="top-toolbar__control-btn"
+          onClick={togglePause}
+          disabled={multiplayerMode}
+          title={
+            multiplayerMode
+              ? 'Pause is disabled in multiplayer — the server tick is authoritative.'
+              : running
+                ? 'Pause (Space)'
+                : 'Resume (Space)'
+          }
+          aria-pressed={!running}
+        >
+          {running ? '⏸' : '▶'}
+        </button>
+        {([1, 2, 4, 8] as const).map((s) => (
+          <button
+            key={s}
+            type="button"
+            className={`top-toolbar__control-btn ${speed === s ? 'top-toolbar__control-btn--on' : ''}`}
+            onClick={() => setSpeed(s)}
+            disabled={multiplayerMode}
+            title={
+              multiplayerMode
+                ? `Speed ${s}× — host-set in multiplayer (read-only).`
+                : `Speed ${s}× (key ${Math.log2(s) + 1})`
+            }
+            aria-pressed={speed === s}
+          >
+            {s}×
+          </button>
+        ))}
       </div>
     </header>
   )

@@ -459,6 +459,13 @@ export interface MatchConfig {
   // 'off' disables all autosaves; 'manual' requires the 💾 toolbar button to be clicked.
   // Defaults to 'auto-5min' for any caller that omits it.
   readonly saveMode?: 'off' | 'manual' | 'auto-5min' | 'auto-15min'
+  // PHASE 17.L 2026-05-12 user feedback — "in mulitplayer games the speed is only set in the
+  // host menu pregame setup canyt have people all changing games peeds on a hosts computer".
+  // True when the local PlayPage is running in a multiplayer Colyseus room (the server tick
+  // is authoritative). TopToolbar reads this to disable pause + speed buttons. Speed is set
+  // by the host in NewGamePage pre-match setup; mid-match changes are forbidden. Defaults
+  // false (single-player) for any caller that omits it.
+  readonly multiplayer?: boolean
   // PHASE 18.4 — host-configurable random-event intensity. 'off' disables the system entirely
   // (no spawning, no ticking). Low/medium/high scale spawn probability + per-civ active cap.
   // Defaults to 'medium' for any caller that omits it so existing matches get the feature.

@@ -1280,6 +1280,13 @@ export function PlayPage() {
           empire={empireAggregate}
           ownedPlanetTooltips={topToolbarTooltips}
           currentTick={sim.state.currentTick}
+          running={sim.running}
+          speed={sim.speed}
+          togglePause={sim.togglePause}
+          setSpeed={sim.setSpeed}
+          multiplayerMode={
+            false /* PHASE 17.L wire-up point: flip true when this PlayPage instance is hosted inside a Colyseus room. Single-player path always false. */
+          }
         />
         {/* PHASE 16.13.9: 3D GalaxyView is the always-on /play canvas. Legacy 2D TilePlacementGrid
           remains only as a `?dev=hexgrid` URL-flag fallback for dev debugging. */}
@@ -1363,12 +1370,6 @@ export function PlayPage() {
         </div>
 
         <HUDOverlay
-          theme={humanTheme}
-          currentTick={sim.state.currentTick}
-          running={sim.running}
-          speed={sim.speed}
-          togglePause={sim.togglePause}
-          setSpeed={sim.setSpeed}
           openPanels={openPanels}
           togglePanel={togglePanel}
           buildModeBuildingDefId={buildMode}
