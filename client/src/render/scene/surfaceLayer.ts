@@ -28,12 +28,20 @@ const DEPOSIT_COLORS: Readonly<Record<string, number>> = {
   components: 0xb0c0d0,
 }
 
+// PHASE 17.L.D.8 (HOTFIX 2026-05-11) — bumped ~20× from prior 4.5-6.5 values. Per user
+// verbatim playtest *"AND PLACING BUILDINGS IS NOT WORKING I CLICK DIRECTLY ON THE VERY
+// VERY SMALL HEXS ON THE PLANET AND NOTHING HAPPENS... ALSDO THE HEX LOCATIONS ON THE
+// PLANETS ARE VERY VERY SMALL I CAN BARLY CLICK THEM"*. The old values were ~1% of planet
+// radius — visually dots, and the raycaster intersects only the CircleGeometry, not the
+// geodesic face it represents, so click targets were tiny. New values size each hex disk
+// to ~10% of planet radius — visible + clickable without overlapping neighbors at typical
+// geodesic-subdivision tile counts (icosphere with ~32-122 faces per planet).
 const TILE_HEX_SCALE_BY_TIER: Record<Planet['sizeTier'], number> = {
-  moon: 4.5,
-  small: 5,
-  standard: 5.5,
-  large: 6,
-  super: 6.5,
+  moon: 40,
+  small: 60,
+  standard: 90,
+  large: 120,
+  super: 160,
 }
 
 function biomeColorHex(biomeId: string): number {

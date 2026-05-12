@@ -627,15 +627,24 @@ export function PlayPage() {
   // we DO NOT force activePlanetId switch here — user is looking at planetId, place on planetId.
   // If they wanted a different planet, they'd zoom there. Build-mode + empty-tile gate identical
   // to the 2D path so behavior is unified.
+  //
+  // PHASE 17.L.D.8 (HOTFIX 2026-05-11) — shift-click chain semantics. Default click places
+  // one building and EXITS build mode (one-shot, RTS convention). Shift-click places and
+  // KEEPS build mode set for chain placement of the same building. Per user verbatim *"IT
+  // WHOULD ALOW SHIFT CLICK TO BUILD MULTIPLE WITHOUT HAVING TO RECLICK BUILD THENM THE
+  // BUILDING WISHED TO BE PLACED"*.
   const handleSurfaceTileClick = useCallback(
-    (planetId: PlanetId, tile: Tile): void => {
+    (planetId: PlanetId, tile: Tile, shiftHeld: boolean): void => {
       if (!buildMode) return
       if (tile.occupancy !== 'empty') return
-      sim.placeBuilding({
+      const ok = sim.placeBuilding({
         planetId,
         tileId: tile.id,
         defId: buildMode,
       })
+      if (ok && !shiftHeld) {
+        setBuildMode(null)
+      }
     },
     [buildMode, sim],
   )

@@ -70,7 +70,12 @@ interface GalaxyViewProps {
   // PHASE 16.5.6 + 16.13.10: when zoomed close enough that a planet's surface InstancedMesh is
   // visible, clicking a tile fires this with the tile's parent planet + the picked Tile object.
   // The parent decides what to do (place a building when buildMode active, inspect otherwise).
-  readonly onSurfaceTileClick?: (planetId: PlanetId, tile: Tile) => void
+  //
+  // PHASE 17.L.D.8 (HOTFIX 2026-05-11) — added `shiftHeld` modifier. When true, the parent
+  // keeps buildMode set after placement so the player can chain-place multiple of the same
+  // building without re-opening the picker. Per user verbatim *"IT WHOULD ALOW SHIFT CLICK
+  // TO BUILD MULTIPLE WITHOUT HAVING TO RECLICK BUILD THENM THE BUILDING WISHED TO BE PLACED"*.
+  readonly onSurfaceTileClick?: (planetId: PlanetId, tile: Tile, shiftHeld: boolean) => void
   // PHASE 16.x complete-3D-world-space: ship-beacon broadcasts (mining + future ship types)
   // for live in-scene rendering. Each beacon spawns / updates a 3D ship mesh at its
   // worldPosition. Pass empty array to disable.
@@ -381,7 +386,9 @@ export function GalaxyView({
           if (match) {
             const tile = match.planet.tiles[sHit.instanceId]
             if (tile && onSurfaceTileClickRef.current) {
-              onSurfaceTileClickRef.current(match.planet.id, tile)
+              // PHASE 17.L.D.8 — pass shift-modifier so PlayPage can decide whether to keep
+              // buildMode set for chain placement or clear it after a single place.
+              onSurfaceTileClickRef.current(match.planet.id, tile, e.shiftKey)
               return
             }
           }
