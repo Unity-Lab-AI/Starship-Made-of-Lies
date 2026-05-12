@@ -127,3 +127,72 @@
   padding-top: 0.5rem;
   border-top: 1px solid var(--ui-border, rgba(255, 255, 255, 0.08));
 }
+
+/* PHASE 17.13.10 — settlement rename UI */
+.settlements-panel__settlement-li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.settlements-panel__rename-trigger {
+  align-self: flex-end;
+  background: transparent;
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.12));
+  color: var(--text-mute, rgba(255, 255, 255, 0.7));
+  font-size: 0.72rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.settlements-panel__rename-trigger:hover {
+  border-color: var(--accent, #d4a13a);
+  color: var(--accent, #d4a13a);
+}
+
+.settlements-panel__rename-form {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.25rem 0.4rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  align-items: center;
+}
+
+.settlements-panel__rename-input {
+  flex: 1;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.4rem;
+  background: rgba(0, 0, 0, 0.4);
+  color: inherit;
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.15));
+  border-radius: 3px;
+}
+
+.settlements-panel__rename-input:focus {
+  outline: none;
+  border-color: var(--accent, #d4a13a);
+}
+
+.settlements-panel__rename-save,
+.settlements-panel__rename-cancel {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.15));
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+}
+
+.settlements-panel__rename-save:hover {
+  border-color: var(--accent, #d4a13a);
+  color: var(--accent, #d4a13a);
+}
+
+.settlements-panel__rename-cancel:hover {
+  border-color: #d44a4a;
+  color: #d44a4a;
+}

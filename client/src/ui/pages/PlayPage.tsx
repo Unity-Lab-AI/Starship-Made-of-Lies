@@ -2012,6 +2012,13 @@ export function PlayPage() {
                 setSelectedPlanetId(planetIdValue)
                 setFocusPlanetTrigger({ planetId: planetIdValue, nonce: Date.now() })
               }}
+              onRenameSettlement={(planetIdValue, settlementIdValue, newName) =>
+                sim.renameSettlement({
+                  planetId: planetIdValue,
+                  settlementId: settlementIdValue,
+                  newName,
+                })
+              }
             />
           </PanelFrame>
         )}

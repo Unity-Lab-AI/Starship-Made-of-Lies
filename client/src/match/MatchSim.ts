@@ -135,6 +135,7 @@ import {
   newCapitalSettlement,
   newCaravan,
   newFoundedSettlement,
+  renameSettlement,
   tickCaravan,
   indigenousLootOnDefeat,
   initiateLastHopeEvac,
@@ -499,7 +500,10 @@ export function createMatch(config: MatchConfig): MatchState {
     lastHopeEvac: null,
     lastHopeTriggered: false,
   })
-  planets.set(humanHomePlanet.id, makePlanetState(humanHomePlanet, humanCivId))
+  planets.set(
+    humanHomePlanet.id,
+    makePlanetState(humanHomePlanet, humanCivId, String(humanTheme.id)),
+  )
 
   const playstyles: ReadonlyArray<PlaystyleArchetype> = [
     'builder',
@@ -541,7 +545,7 @@ export function createMatch(config: MatchConfig): MatchState {
       lastHopeEvac: null,
       lastHopeTriggered: false,
     })
-    planets.set(homePlanet.id, makePlanetState(homePlanet, aiId))
+    planets.set(homePlanet.id, makePlanetState(homePlanet, aiId, String(aiTheme.id)))
 
     aiRegistry.register(
       new AIControllerCtor({
@@ -637,7 +641,7 @@ export function createMatch(config: MatchConfig): MatchState {
   return state
 }
 
-function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
+function makePlanetState(planet: Planet, ownerId: CivId, ownerThemeId?: string): MatchPlanetState {
   const inv = newPlanetInventory(planet.id)
   inv.stocks.set(RESOURCE_FOOD, STARTING_FOOD)
   inv.stocks.set(RESOURCE_WOOD, STARTING_WOOD)
@@ -690,6 +694,7 @@ function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
         planet.id,
         planet.tiles.map((t) => t.id),
         String(planet.id),
+        ownerThemeId,
       )
       m.set(capital.id, capital)
       return m
@@ -2538,6 +2543,7 @@ function placeBuildingCanonical(
         .slice(0, 6)
         .map((n) => n.id)
       const claimedIds = [tile.id, ...neighbors]
+      const owningCiv = state.civs.get(planet.civId)
       const founded = newFoundedSettlement(
         planet.planet.id,
         String(planet.planet.id),
@@ -2545,6 +2551,7 @@ function placeBuildingCanonical(
         tile.id,
         claimedIds,
         state.currentTick,
+        owningCiv ? String(owningCiv.themeId) : undefined,
       )
       planet.settlements.set(founded.id, founded)
       // Capital cedes the claimed tiles so the founded settlement owns them exclusively.
@@ -2576,6 +2583,27 @@ function placeBuildingCanonical(
       message: `Built ${def.name} on ${String(planet.planet.id)}`,
     })
   }
+  return true
+}
+
+// PHASE 17.13.10 — player rename mutator. SettlementPickerPanel surfaces a rename button per
+// settlement; this action looks up the settlement on the named planet and applies the rename
+// using the owning civ's themeId so a blank rename restores the themed default. Returns false
+// if the planet / settlement is missing or the planet isn't human-owned.
+export interface RenameSettlementInputs {
+  readonly state: MatchState
+  readonly planetId: PlanetId
+  readonly settlementId: SettlementId
+  readonly newName: string
+}
+
+export function renameSettlementAction(inputs: RenameSettlementInputs): boolean {
+  const planet = inputs.state.planets.get(inputs.planetId)
+  if (!planet || planet.civId !== inputs.state.humanCivId) return false
+  const settlement = planet.settlements.get(inputs.settlementId)
+  if (!settlement) return false
+  const owningCiv = inputs.state.civs.get(planet.civId)
+  renameSettlement(settlement, inputs.newName, owningCiv ? String(owningCiv.themeId) : undefined)
   return true
 }
 
