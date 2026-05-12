@@ -2,13 +2,50 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/assets/keyart.png" />
+    <link rel="icon" type="image/jpeg" href="/assets/keyart.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
       content="Starship Made of Lies — SMoL. Top-down emoji civilization-builder. Trick your own citizens into boarding colony ships aimed at other civilizations. Conquer the galaxy. Unity AI Lab."
     />
     <title>Starship Made of Lies</title>
+
+    <!--
+      Social preview image (Open Graph + Twitter Card). The game's key art renders as the URL
+      preview thumbnail when smol.unityailab.com is posted on Discord / Slack / X / Facebook /
+      iMessage / LinkedIn / etc. og:image MUST be an absolute URL — social crawlers won't follow
+      relative paths. og:type=website matches a game landing page (NOT product / article).
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://smol.unityailab.com/" />
+    <meta property="og:site_name" content="Starship Made of Lies" />
+    <meta property="og:title" content="Starship Made of Lies" />
+    <meta
+      property="og:description"
+      content="Top-down emoji civilization-builder. Trick your own citizens into boarding colony ships aimed at other civilizations. Conquer the galaxy. Unity AI Lab."
+    />
+    <meta property="og:image" content="https://smol.unityailab.com/assets/keyart.jpg" />
+    <meta property="og:image:secure_url" content="https://smol.unityailab.com/assets/keyart.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1376" />
+    <meta property="og:image:height" content="752" />
+    <meta property="og:image:alt" content="Starship Made of Lies key art — Unity AI Lab" />
+    <meta property="og:locale" content="en_US" />
+
+    <!--
+      Twitter Card. summary_large_image is the wider format (1200x630 ideal) that shows the
+      image as the main hero; summary is the smaller square thumb. Most modern social platforms
+      now read OG tags, but Twitter still honors the twitter:* prefix when present.
+    -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://smol.unityailab.com/" />
+    <meta name="twitter:title" content="Starship Made of Lies" />
+    <meta
+      name="twitter:description"
+      content="Top-down emoji civilization-builder. Trick your own citizens into boarding colony ships aimed at other civilizations. Conquer the galaxy. Unity AI Lab."
+    />
+    <meta name="twitter:image" content="https://smol.unityailab.com/assets/keyart.jpg" />
+    <meta name="twitter:image:alt" content="Starship Made of Lies key art — Unity AI Lab" />
   </head>
   <body>
     <div id="root"></div>
