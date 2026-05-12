@@ -23,13 +23,34 @@ import {
 } from './discord'
 import { InMemoryAccountStore, type AccountStore } from '../persistence/AccountStore'
 import { FileAccountStore } from '../persistence/FileAccountStore'
+import { PostgresAccountStore } from '../persistence/PostgresAccountStore'
 
-// PHASE 17.0 — File-backed account persistence so OAuth identities + stats survive restarts.
-// Set SMOL_ACCOUNT_STORE_BACKEND=memory to revert to the volatile in-memory store (useful
-// for tests / fresh-state dev runs). Default is file-backed.
+// PHASE 17.0 + Layer E #3 — pluggable account persistence backend. Default is file-backed
+// (JSON on disk, survives restarts). Set SMOL_ACCOUNT_STORE_BACKEND=memory for ephemeral
+// in-memory mode (tests / fresh-state dev). Set SMOL_ACCOUNT_STORE_BACKEND=postgres to use
+// the Postgres adapter (requires `pg` package + DATABASE_URL env var). Postgres mode warms
+// its cache asynchronously — the first /api/auth/* call after server boot may hit an empty
+// cache; the operator should call warmCache() before binding the HTTP server in production.
 function buildAccountStore(): AccountStore {
   const backend = (process.env.SMOL_ACCOUNT_STORE_BACKEND ?? 'file').toLowerCase()
   if (backend === 'memory') return new InMemoryAccountStore()
+  if (backend === 'postgres') {
+    try {
+      const store = new PostgresAccountStore()
+      // Fire-and-forget cache warm. Errors print + the server stays up with an empty cache;
+      // operator can re-warm via `kill -USR1` (TODO: signal handler) or restart.
+      store.warmCache().catch((err) => {
+        console.error('[smol/auth] PostgresAccountStore.warmCache failed:', err)
+      })
+      return store
+    } catch (err) {
+      console.error(
+        '[smol/auth] PostgresAccountStore construction failed; falling back to FileAccountStore:',
+        err,
+      )
+      return new FileAccountStore()
+    }
+  }
   return new FileAccountStore()
 }
 
