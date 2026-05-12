@@ -25,6 +25,7 @@ import {
   themeIdValue,
 } from '@smol/shared'
 import { AIController, AIControllerRegistry } from '../ai/AIController'
+import { lookupSessionToken } from '../auth/httpServer'
 import { dispatchClientMessage, type HandlerContext } from '../match/handlers'
 import {
   type CivAssignment,
@@ -111,6 +112,34 @@ export class GameRoom extends Room {
     })
     const intervalMs = options.tickIntervalMs ?? DEFAULT_TICK_INTERVAL_MS
     this.tickHandle = setInterval(() => this.tickGame(), intervalMs)
+  }
+
+  // PHASE 18.1 — session-token validation. Colyseus calls onAuth before onJoin; throwing here
+  // rejects the connection with the thrown error message. Anonymous players (no OAuth session)
+  // pass through with a guest-XXXX token the client minted; signed-in players have a UUID
+  // token issued by /api/auth/*/callback that we look up against the in-memory session map.
+  // SMOL_MULTIPLAYER_AUTH=strict requires a real session — reject guests. Default is
+  // permissive so single-host alpha playtests can join without a sign-in step.
+  override onAuth(_client: Client, options: unknown): boolean {
+    const opts = (options ?? {}) as { token?: string }
+    const token = opts.token ?? ''
+    const isGuest = token.startsWith('guest-')
+    if (isGuest) {
+      if (process.env.SMOL_MULTIPLAYER_AUTH === 'strict') {
+        throw new Error('Guest tokens rejected — server in strict-auth mode. Sign in to play.')
+      }
+      return true
+    }
+    if (token.length === 0) {
+      throw new Error('Missing session token. Reconnect via /api/matchmaking/join first.')
+    }
+    const session = lookupSessionToken(token)
+    if (!session) {
+      throw new Error(
+        'Unknown session token. The auth server may have restarted (in-memory sessions clear). Sign in again.',
+      )
+    }
+    return true
   }
 
   override onJoin(client: Client, options: unknown): void {

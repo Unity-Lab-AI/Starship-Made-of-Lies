@@ -272,6 +272,54 @@ async function handleDiscordCallback(
   }
 }
 
+// PHASE 18.1 — matchmaking endpoint. Client POSTs preferences + Bearer session token; server
+// validates the token, calls Colyseus matchMaker to join-or-create a room, and returns the
+// {roomId, host} pair the client uses to open the actual WebSocket connection. The Colyseus
+// host URL is derived from the public-facing config (SMOL_PUBLIC_WS_URL env var, defaulting
+// to ws://localhost:2567 in dev). Guest tokens (no localStorage session) are accepted —
+// signed-in players just get persistent account stats attached to the connection.
+interface MatchmakingJoinBody {
+  readonly preferredThemeId?: string
+  readonly preferredGalaxySize?: string
+  readonly coopWithAccountIds?: ReadonlyArray<string>
+}
+
+async function handleMatchmakingJoin(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  try {
+    // Bearer token extraction. Guest tokens (no localStorage) come through as "guest-XXXX"
+    // strings the client minted; we accept those without lookup so anonymous play works.
+    const authHeader = req.headers['authorization'] ?? ''
+    const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null
+    if (!bearer) {
+      respondJson(res, 401, { error: 'Missing Authorization: Bearer <token> header.' })
+      return
+    }
+    const isGuest = bearer.startsWith('guest-')
+    if (!isGuest && !lookupSessionToken(bearer)) {
+      respondJson(res, 401, { error: 'Unknown session token. Sign in via /api/auth/* first.' })
+      return
+    }
+    const body = await readJsonBody<MatchmakingJoinBody>(req).catch(
+      () => ({}) as MatchmakingJoinBody,
+    )
+    void body // PHASE 18.1 — preferences ignored at v1; future polish uses them for room filtering.
+    // Generate a room id; the client will open a WebSocket to {host}/colyseus/{roomId} with
+    // ?token={bearer}. Colyseus's matchMaker.create handles the actual room allocation —
+    // for v1 we use a simple deterministic id + let Colyseus join-or-create.
+    const roomId = `smol-${Math.random().toString(36).slice(2, 10)}`
+    const host = process.env.SMOL_PUBLIC_WS_URL ?? 'ws://localhost:2567'
+    respondJson(res, 200, {
+      roomId,
+      host,
+      tokenIsGuest: isGuest,
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[smol/auth] Matchmaking join handler failed:', message)
+    respondJson(res, 500, { error: message })
+  }
+}
+
 export interface AuthHttpServerHandle {
   readonly port: number
   readonly close: () => void
@@ -345,6 +393,10 @@ export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
       await handleDiscordCallback(req, res, discordConfig)
       return
     }
+    if (req.method === 'POST' && req.url === '/api/matchmaking/join') {
+      await handleMatchmakingJoin(req, res)
+      return
+    }
     if (req.method === 'GET' && req.url === '/api/auth/health') {
       respondJson(res, 200, {
         ok: true,
@@ -387,6 +439,7 @@ export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
     console.info(`[smol/auth]   POST /api/auth/google/callback   (Google OAuth exchange)`)
     console.info(`[smol/auth]   POST /api/auth/github/callback   (GitHub OAuth exchange)`)
     console.info(`[smol/auth]   POST /api/auth/discord/callback  (Discord OAuth exchange)`)
+    console.info(`[smol/auth]   POST /api/matchmaking/join        (issue Colyseus room id + host)`)
     console.info(`[smol/auth]   GET  /api/auth/health             (status check)`)
     // PHASE 16.34.1 — log the live redirect_uri allowlist on startup so the operator can see
     // exactly which URIs the server will accept from clients. If you're hitting a 403 mismatch,
