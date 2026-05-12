@@ -1,6 +1,6 @@
 # STARSHIP MADE OF LIES — Skill Tree
 
-*Last Updated: 2026-05-11 (PHASE 17.J 10/11 sub-tasks shipped)*
+*Last Updated: 2026-05-12 (post-Layer-D 2026-05-12 cascade — colyseus.js wire-up + guest-mint endpoint + 17.L.A.1-17 verified shipped + audio drop-in scaffold + super-review × 3)*
 *Project: SMoL (Starship Made of Lies) — formerly Unity Missile System*
 *Unity AI Lab*
 
@@ -25,17 +25,16 @@
    │   Spectral-class star variety (O/B/A/F/G/K/M) ✅ Shipped    │
    │   Universe wrap (toroidal ±60k)               ✅ Shipped    │
    │   Hex/pentagon tiles on planet spheres        ✅ Shipped    │
-   │   Building catalog (24 buildings)             ✅ Shipped    │
+   │   Building catalog (29 buildings)             ✅ Shipped    │
    │   Production system (BUILDING_PRODUCTION,     ✅ Shipped    │
    │     audited 2026-05-11, drift gate active)                  │
    │   Outpost-driven mining-ship economy          ✅ Shipped    │
    │   NO_SIGNAL crawl-home + solar recharge       ✅ Shipped    │
    │   Workforce sliders (5 categories)            ✅ Shipped    │
    │   Citizen tier system (5-tier)                ✅ Shipped    │
-   │   Tech tree (38 nodes)                        ✅ Shipped    │
-   │     ├─ Full expansion to 60+ nodes            🚧 17.C.7     │
-   │   Government themes (15+)                     ✅ Shipped    │
-   │   18 colony ship variants                     ✅ Shipped    │
+   │   Tech tree (62 nodes)                        ✅ Shipped    │
+   │   Government themes (20)                      ✅ Shipped    │
+   │   20 colony ship variants                     ✅ Shipped    │
    │   Pad state machine + salvo stagger           ✅ Shipped    │
    │   6 targeting modes (GPS/ANT/SEN/LID/MAN/SAT) ✅ Shipped    │
    │   Counter-colony-ship interception            ✅ Shipped    │
@@ -84,36 +83,53 @@
    │   Drag-bounds ghost outline while dragging    ✅ 17.L.C.7   │
    │   Mid-flight reactor refuel (endgame god-ctrl) ✅ 17.L.C.1   │
    ├─────────────────────────────────────────────────────────────┤
-   │   ACTIVE — PHASE 17.L tail (super-review additions)         │
+   │   SHIPPED — PHASE 17.L tail (super-review additions)        │
    ├─────────────────────────────────────────────────────────────┤
-   │   Reactor mid-flight fuel drain → STRANDED    🚧 17.L.A.1   │
-   │   Battery-bank fuel stockpile cap             🚧 17.L.A.2   │
-   │   Brownout building auto-disable              🚧 17.L.A.3   │
-   │   Workforce reserved-pool enforcement         🚧 17.L.A.4   │
+   │   Reactor mid-flight fuel drain → STRANDED    ✅ 17.L.A.1   │
+   │   Battery-bank fuel stockpile cap (500/bank)  ✅ 17.L.A.2   │
+   │   Brownout building auto-disable              ✅ 17.L.A.3   │
+   │   Workforce reserved-pool enforcement         ✅ 17.L.A.4   │
    │   Player-pickable base variant in builder     ✅ 17.L.A.5   │
    │   Waypoint queue editor in CommandPadPanel    ✅ 17.L.B.9   │
-   │   Drag-allocate crew + cargo manifest UI      🚧 17.L.A.7   │
-   │   Crew + cargo preset persistence             🚧 17.L.A.8   │
-   │   Tracking camera panel (single-flight RTT)   🚧 17.L.A.9   │
-   │   Production-chain Sankey panel               🚧 17.L.A.10  │
-   │   Three-mode mining (oneway/single/multi)     🚧 17.L.A.11  │
-   │   UMS quotas + auto-recycle                   🚧 17.L.A.12  │
-   │   Save/Load host-configurable                 🚧 17.L.A.13  │
+   │   Drag-allocate crew + cargo manifest UI      ✅ 17.L.A.7   │
+   │   Crew + cargo preset persistence             ✅ 17.L.A.8   │
+   │   Tracking camera panel (single-flight RTT)   ✅ 17.L.A.9   │
+   │   Production-chain Sankey panel               ✅ 17.L.A.10  │
+   │   UMS quotas + auto-recycle                   ✅ 17.L.A.12  │
+   │   Save/Load host-configurable                 ✅ 17.L.A.13  │
    │   Boot-ceremony /play fullscreen gate         ✅ 17.L.A.14  │
-   │   Multi-settlement-per-planet revival         🚧 17.L.A.15  │
+   │   Settlements V1 (founding + boundary tints)  ✅ 17.L.A.15  │
    ├─────────────────────────────────────────────────────────────┤
-   │   AWAITING BUSINESS DECISIONS — PHASE 17.D/E + EXTERNAL    │
+   │   SHIPPED — Layer D 2026-05-12 (multiplayer + polish)       │
    ├─────────────────────────────────────────────────────────────┤
-   │   OAuth tail (Discord/Apple/email-passwordless) 🟡 17.D     │
-   │   Real Postgres-backed multiplayer at scale     🟡 17.E     │
-   │   Tauri desktop builds (Win/Mac/Linux)          🟡 17.E     │
-   │   Capacitor mobile builds (iOS/Android)         🟡 17.E     │
-   │   Replay archive                                🟡 17.E     │
-   │   Diplomacy + treaty system                     🟡 17.E     │
-   │   Cinematics + events                           🟡 17.E     │
-   │   Localization (i18n)                           🟡 17.E     │
-   │   GDPR / data-deletion compliance               🟡 EXTERNAL │
-   │   Payment integration / monetization            🟡 EXTERNAL │
+   │   Real colyseus.js wire-up (Client.joinOrCreate) ✅ 18.1    │
+   │   Server matchmaking endpoint (lookup-based)  ✅ 18.1       │
+   │   POST /api/auth/guest guest-token mint        ✅ 18.1       │
+   │   Cinematic text overlay (5 mood states)      ✅ 18.6       │
+   │   Replay snapshot ring buffer (rewind only)   ✅ 18.3       │
+   │   Diplomacy resolver helpers                  ✅ 18.5       │
+   │   i18n catalog (11 locales, English content)  ✅ 18.7       │
+   │   Touch gestures (rotate / pinch / pan)       ✅ 18.2       │
+   │   GPU dust + volumetric fog                   ✅ 17.F+17.G  │
+   │   Audio drop-in scaffold (100 SPEC.md folders) ✅ 18.A       │
+   ├─────────────────────────────────────────────────────────────┤
+   │   STILL OPEN — verified 2026-05-12                          │
+   ├─────────────────────────────────────────────────────────────┤
+   │   Three-mode mining (oneway/single/multi)     🚧 17.L.A.11  │
+   │   Per-settlement data-model bifurcation       🚧 17.13.6    │
+   │   Forward replay (re-tick from snapshot)      🚧 18.3.fwd   │
+   │   Per-government themed cinematic narration   🚧 18.6.govt  │
+   ├─────────────────────────────────────────────────────────────┤
+   │   AWAITING USER-SIDE ACTIVATION GATES                       │
+   ├─────────────────────────────────────────────────────────────┤
+   │   OAuth credentials (Google/GitHub/Discord/Apple) 🟡 user   │
+   │   Postgres install + DATABASE_URL + migration     🟡 user   │
+   │   Tauri keypair + Apple cert + Android keystore   🟡 user   │
+   │   80 real .ogg audio files (drop-in folders ready) 🟡 user  │
+   │   Cloudflare Tunnel + DNS routes                  🟡 user   │
+   │   1024-px hero icon source (generator ready)      🟡 user   │
+   │   GDPR / data-deletion compliance                 🟡 EXTERNAL │
+   │   Payment integration / monetization              🟡 EXTERNAL │
    └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -370,7 +386,7 @@
 #### 14. Audio System (`client/audio/`)
 | Skill | Phase | Status | Complexity | Priority |
 |-------|-------|--------|------------|----------|
-| Per-theme soundtrack (4 tracks × 15+ themes = 60+ tracks) | 12 | ⬜ planned | Intermediate | P1 |
+| Per-theme soundtrack (4 tracks × 20 themes = 80 tracks; drop-in folders + SPEC.md scaffolded 2026-05-12, synth fallback live) | 12 | ⬜ asset-blocked | Intermediate | P1 |
 | Adaptive music (intensity scales with match state) | 12 | ⬜ planned | Advanced | P2 |
 | Cross-fade between zones / events | 12 | ⬜ planned | Intermediate | P2 |
 | Universal SFX (UI clicks, building complete, missile launch, missile impact, colony established) | 12 | ⬜ planned | Basic | P1 |

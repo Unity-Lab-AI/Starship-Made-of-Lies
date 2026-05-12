@@ -33,19 +33,33 @@ Install Node + pnpm first — everything else is **per-platform-target opt-in**.
 ## ⚡ Quickstart
 
 ```bash
-# Install dependencies
+# Install dependencies (workspace; pulls colyseus.js + pg + every other dep)
 pnpm install
 
 # Dev server (web)
 pnpm dev                    # → http://localhost:5173/preview
 
-# Dev server (multiplayer backend)
-pnpm dev:server             # → ws://localhost:2567
+# Dev server (multiplayer backend — Colyseus on 2567 + auth HTTP on 2568)
+pnpm dev:server             # → ws://localhost:2567 + http://localhost:2568
 
 # Static validation
 pnpm typecheck
 pnpm lint
 ```
+
+### Auth server endpoints (port 2568)
+
+| Method | Path                         | Purpose                                                      |
+| ------ | ---------------------------- | ------------------------------------------------------------ |
+| `POST` | `/api/auth/google/callback`  | Google OAuth code exchange (PKCE)                            |
+| `POST` | `/api/auth/github/callback`  | GitHub OAuth code exchange                                   |
+| `POST` | `/api/auth/discord/callback` | Discord OAuth code exchange                                  |
+| `POST` | `/api/auth/guest`            | Mint a `guest-<UUIDv4>` session token (no creds required)    |
+| `POST` | `/api/matchmaking/join`      | Validate Bearer token + return Colyseus host hint            |
+| `GET`  | `/api/auth/health`           | Status check (configured providers, account count)           |
+| `POST` | `/api/admin/shutdown`        | Graceful shutdown (snapshots all rooms, disconnects clients) |
+
+The Colyseus game server runs on `ws://localhost:2567` and exposes one room type: `smol_match`. The client uses `Client.joinOrCreate('smol_match', {token})` from `colyseus.js` — no roomId is invented client-side; Colyseus's own matchmaker allocates rooms.
 
 ```
    ┌───────────────────────────────────────────────────────────┐
