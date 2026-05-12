@@ -758,6 +758,22 @@ export function PlayPage() {
     })
   }, [])
 
+  // Track-in-Camera bridge: clicking the FlightDetailPanel's 📹 Track button stashes the
+  // flight id here and opens the trackingCamera panel pre-selected on it. TrackingCameraPanel
+  // accepts a `defaultFlightId` so the user lands on the right flight without re-picking.
+  const [trackedFlightIdInitial, setTrackedFlightIdInitial] = useState<string | null>(null)
+  const handleTrackFlightInCamera = useCallback(
+    (flightId: string) => {
+      setTrackedFlightIdInitial(flightId)
+      setOpenPanels((current) => {
+        const next = new Set(current)
+        next.add('trackingCamera')
+        return next
+      })
+    },
+    [setOpenPanels],
+  )
+
   // === Action handlers ===
   const handleSelectBuilding = (defId: BuildingDefId): void => {
     setBuildMode(defId)
@@ -1711,7 +1727,10 @@ export function PlayPage() {
             variant="docked-right"
             width={380}
           >
-            <TrackingCameraPanel activeFlights={[...sim.state.flights.values()]} />
+            <TrackingCameraPanel
+              activeFlights={[...sim.state.flights.values()]}
+              defaultFlightId={trackedFlightIdInitial}
+            />
           </PanelFrame>
         )}
 
@@ -1795,6 +1814,10 @@ export function PlayPage() {
                   godControlReady={sim.godControlReady}
                   onSelectForRedirect={(fid) => setRedirectModeFlightId(fid)}
                   onRefuelReactor={(fid) => sim.refuelReactor(fid)}
+                  onTrackInCamera={(fid) => {
+                    handleTrackFlightInCamera(fid)
+                    setSelectedFlightId(null)
+                  }}
                 />
               )
             })()
