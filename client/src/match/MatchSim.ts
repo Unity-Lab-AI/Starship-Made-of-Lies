@@ -171,7 +171,11 @@ import {
   startResearch,
   clampResourceToCap,
   consumeResource,
+  enforceCapacityCaps,
+  getInventoryCapacityUpgradeCost,
+  MAX_INVENTORY_CAPACITY_TIER,
   stockOf,
+  tryConsumeAll,
   tickActiveCampaign,
   tickFlight,
   tickIndigenousAttacks,
@@ -250,6 +254,10 @@ export interface MatchPlanetState {
   // BuildingDefId so the toggle applies to every instance of that building type on the
   // planet uniformly. Missing entry = 'auto'. Values: 'auto' | 'paused' | 'disassembly'.
   buildingModes: Map<BuildingDefId, BuildingProductionMode>
+  // PHASE 17.L.C.4 — per-planet inventory capacity tier. Drives the per-resource storage cap
+  // shown in PlanetInventoryPanel + enforced by enforceCapacityCaps every production tick.
+  // Player upgrades via the panel button (cost scales with current tier). Defaults to 1.
+  inventoryCapacityTier: number
   // PHASE 17.B.2 — monotonic miner serial per planet so generated ids never collide even when
   // multiple outposts spawn on the same tick.
   nextMinerSerial: number
@@ -615,6 +623,10 @@ function makePlanetState(planet: Planet, ownerId: CivId): MatchPlanetState {
     // for any planet whose player hasn't configured anything.
     quotas: new Map(),
     buildingModes: new Map(),
+    // PHASE 17.L.C.4 — every planet starts at capacity tier 1. Upgrade button in
+    // PlanetInventoryPanel consumes resources + bumps the tier; production tick clamps each
+    // stock to the per-resource tier-derived cap.
+    inventoryCapacityTier: 1,
     // SR2-9: cache tile-by-id lookup once. Tiles are immutable; this Map persists for the
     // life of the planet state.
     tilesById: new Map(planet.tiles.map((t) => [t.id, t])),
@@ -1089,6 +1101,12 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
   const batteryCount = planetState.buildingsByDef.get(BLDG_BATTERY_BANK) ?? 0
   const fuelCap = batteryCount * BATTERY_BANK_CAPACITY + FUEL_RAW_STOCKPILE_BASELINE
   clampResourceToCap(planetState.inventory, RESOURCE_FUEL, fuelCap)
+
+  // PHASE 17.L.C.4 — enforce per-resource storage caps from the planet's inventoryCapacityTier.
+  // Runs AFTER production tick + AFTER fuel-specific battery cap so production overflow gets
+  // dropped + battery cap can override the generic fuel cap when stricter. UI surfaces the
+  // cap visually in PlanetInventoryPanel so the player sees what they're losing.
+  enforceCapacityCaps(planetState.inventory, planetState.inventoryCapacityTier)
 
   applyDeceptionFactionTick(planetState.faction, {
     buildingCounts: planetState.buildingsByDef,
@@ -2539,6 +2557,40 @@ export function setBuildingModeAction(inputs: SetBuildingModeInputs): boolean {
     planet.buildingModes.set(inputs.buildingDefId, inputs.mode)
   }
   return true
+}
+
+// PHASE 17.L.C.4 — per-planet inventory capacity upgrade. Validates planet ownership + the
+// player's current tier headroom + can-afford on cost. Costs scale exponentially per tier so
+// each successive upgrade is a real strategic commitment. Returns { ok, reason } so the UI can
+// surface why an upgrade failed (already maxed / insufficient resources).
+export interface UpgradePlanetCapacityInputs {
+  readonly state: MatchState
+  readonly planetId: PlanetId
+}
+
+export interface UpgradePlanetCapacityResult {
+  readonly ok: boolean
+  readonly newTier?: number
+  readonly reason?: string
+}
+
+export function upgradePlanetCapacityAction(
+  inputs: UpgradePlanetCapacityInputs,
+): UpgradePlanetCapacityResult {
+  const planet = inputs.state.planets.get(inputs.planetId)
+  if (!planet || planet.civId !== inputs.state.humanCivId) {
+    return { ok: false, reason: 'planet not owned' }
+  }
+  if (planet.inventoryCapacityTier >= MAX_INVENTORY_CAPACITY_TIER) {
+    return { ok: false, reason: 'already at max capacity tier' }
+  }
+  const cost = getInventoryCapacityUpgradeCost(planet.inventoryCapacityTier)
+  const paid = tryConsumeAll(planet.inventory, cost)
+  if (!paid) {
+    return { ok: false, reason: 'insufficient resources' }
+  }
+  planet.inventoryCapacityTier += 1
+  return { ok: true, newTier: planet.inventoryCapacityTier }
 }
 
 export function loadPadManifestAction(inputs: LoadPadManifestInputs): LoadPadManifestResult {
