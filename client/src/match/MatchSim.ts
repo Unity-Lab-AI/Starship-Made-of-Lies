@@ -84,11 +84,13 @@ import {
   RESOURCE_PLANKS,
   RESOURCE_PROPAGANDA_MATERIALS,
   RESOURCE_STONE,
+  RESOURCE_WATER,
   RESOURCE_WOOD,
   SHIP_COUNTER_COLONY,
   SHIP_SCOUT,
   SHIP_STANDARD,
   TECH_GOD_CONTROL,
+  TECH_INDUSTRIAL_LOGISTICS,
   TECH_SELF_DESTRUCT_SYSTEMS,
   THEMES,
   aggregateActiveCampaignBonus,
@@ -474,6 +476,15 @@ export interface MatchConfig {
 
 const HOME_PLANET_STARTING_POP = 1000
 const STARTING_FOOD = 1500
+// PHASE 17.L.D (HOTFIX 2026-05-12) — user playtest: "i built farms and water but citizens are
+// dying supper supper fast i have zero citens in like 60 seconds WTF is this shit!!!!!! and
+// why dont i have food and water to start". Root cause: makePlanetState seeded food but ZERO
+// water. Citizens dehydrate at 2.5%/tick when water/citizen < 0.5 (citizen-lifecycle.ts).
+// With 1000 starting pop and 0 water → mass death in ~60 sim ticks = ~12s wall-clock.
+// Compounds: Farm requires water input → without water, farms can't produce food either.
+// Fix: seed 1500 water on the home planet (same scale as food) so the player has runway to
+// build the first Aqueduct without insta-dying.
+const STARTING_WATER = 1500
 const STARTING_WOOD = 80
 const STARTING_STONE = 80
 const STARTING_PLANKS = 200
@@ -535,6 +546,18 @@ export function createMatch(config: MatchConfig): MatchState {
   // space. Idempotent enrichment: if the random gen didn't roll stone+rareMetals+gas onto the
   // home world, plant a 'common'-tier node for each missing resource on an empty tile.
   addStartingPlanetEconomy(humanHomePlanet, rng)
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — user playtest: *"the starting builds shoulkd be all
+  // producing enough of what u need to eventually be able to unlock other buioildings and
+  // tech"*. Previously `activeResearchTechId` initialized to null, so the human civ generated
+  // ZERO research per tick until the player manually opened the Tech panel and picked one.
+  // Combined with the 7-baseline-buildings + 22 tech-gated buildings reality, "everything
+  // else is locked and you don't even know you have to pick a tech" was a dead end. Now
+  // auto-pick TECH_INDUSTRIAL_LOGISTICS (tier-0, no prereqs, unlocks Mine + Refinery + the
+  // intermediate-goods chain) as the human civ's starting research so the first tech unlock
+  // happens automatically within the first ~10s of play. AI civs get their own auto-pick
+  // below in the AI-civ-creation loop.
+  const humanEmpire = newEmpire(humanCivId, humanHomePlanet.id)
+  humanEmpire.activeResearchTechId = TECH_INDUSTRIAL_LOGISTICS
   civs.set(humanCivId, {
     civId: humanCivId,
     themeId: config.humanThemeId,
@@ -543,7 +566,7 @@ export function createMatch(config: MatchConfig): MatchState {
     isHuman: true,
     playstyle: null,
     difficulty: null,
-    empire: newEmpire(humanCivId, humanHomePlanet.id),
+    empire: humanEmpire,
     deceptionLedger: newDeceptionLedger(),
     deathLedger: newDeathLedger(humanCivId),
     homePlanetId: humanHomePlanet.id,
@@ -583,6 +606,12 @@ export function createMatch(config: MatchConfig): MatchState {
     const playstyle = slotCfg?.playstyle ?? playstyles[i % playstyles.length]!
     const difficulty = slotCfg?.difficulty ?? difficulties[i % difficulties.length]!
     const empire = newEmpire(aiId, homePlanet.id)
+    // PHASE 17.L.D (HOTFIX 2026-05-12) — mirror human civ auto-pick. Without an active
+    // research tech the AI civs also generate ZERO research per tick. Pre-seed each with
+    // TECH_INDUSTRIAL_LOGISTICS so they start climbing the tech tree at match start; the
+    // AI controller's own decision pass can switch to a different tech later based on
+    // playstyle (warmonger → weapons branch, researcher → information branch, etc.).
+    empire.activeResearchTechId = TECH_INDUSTRIAL_LOGISTICS
     civs.set(aiId, {
       civId: aiId,
       themeId: aiTheme.id,
@@ -704,6 +733,7 @@ export function createMatch(config: MatchConfig): MatchState {
 function makePlanetState(planet: Planet, ownerId: CivId, ownerThemeId?: string): MatchPlanetState {
   const inv = newPlanetInventory(planet.id)
   inv.stocks.set(RESOURCE_FOOD, STARTING_FOOD)
+  inv.stocks.set(RESOURCE_WATER, STARTING_WATER)
   inv.stocks.set(RESOURCE_WOOD, STARTING_WOOD)
   inv.stocks.set(RESOURCE_STONE, STARTING_STONE)
   inv.stocks.set(RESOURCE_PLANKS, STARTING_PLANKS)
