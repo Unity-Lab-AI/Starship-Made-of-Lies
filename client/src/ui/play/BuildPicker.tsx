@@ -10,7 +10,6 @@ import {
   BLDG_FARM,
   BLDG_HOME,
   BLDG_LUMBER_CAMP,
-  BLDG_MINE_FIELD,
   BLDG_QUARRY,
   BLDG_SCHOOL,
   BLDG_SOLAR_ARRAY,
@@ -23,6 +22,13 @@ import {
 import { PanelFrame } from './PanelFrame'
 import './play-shell.css'
 
+// PHASE 17.12.2 (user correction 2026-05-12) — BLDG_MINE_FIELD removed from baseline-unlocked.
+// Mines are LAUNCHED ships in the SMoL model, not tile-buildable defenses. The BLDG_MINE_FIELD
+// def + MatchPlanetState.mineFields[] data model stays alive (deployed mines still render +
+// intercept), but the player surface for "create a mine" routes through the Ship Builder →
+// design a mine-laying variant → launch from a pad workflow. Per user verbatim *"mine fields
+// are emjoi spaceships launched one at a time after printing and design work of what type of
+// starship u are using for the mine fireld options"*.
 const BASELINE_UNLOCKED: ReadonlySet<BuildingDefId> = new Set([
   BLDG_FARM,
   BLDG_AQUEDUCT,
@@ -31,7 +37,6 @@ const BASELINE_UNLOCKED: ReadonlySet<BuildingDefId> = new Set([
   BLDG_HOME,
   BLDG_SCHOOL,
   BLDG_SOLAR_ARRAY,
-  BLDG_MINE_FIELD,
 ])
 
 interface BuildPickerProps {
