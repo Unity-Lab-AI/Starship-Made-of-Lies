@@ -24,6 +24,8 @@ import {
 import { InMemoryAccountStore, type AccountStore } from '../persistence/AccountStore'
 import { FileAccountStore } from '../persistence/FileAccountStore'
 import { PostgresAccountStore } from '../persistence/PostgresAccountStore'
+import { InMemorySessionStore, type SessionStore } from '../persistence/SessionStore'
+import { PostgresSessionStore } from '../persistence/PostgresSessionStore'
 
 // PHASE 17.0 + Layer E #3 — pluggable account persistence backend. Default is file-backed
 // (JSON on disk, survives restarts). Set SMOL_ACCOUNT_STORE_BACKEND=memory for ephemeral
@@ -36,13 +38,7 @@ function buildAccountStore(): AccountStore {
   if (backend === 'memory') return new InMemoryAccountStore()
   if (backend === 'postgres') {
     try {
-      const store = new PostgresAccountStore()
-      // Fire-and-forget cache warm. Errors print + the server stays up with an empty cache;
-      // operator can re-warm via `kill -USR1` (TODO: signal handler) or restart.
-      store.warmCache().catch((err) => {
-        console.error('[smol/auth] PostgresAccountStore.warmCache failed:', err)
-      })
-      return store
+      return new PostgresAccountStore()
     } catch (err) {
       console.error(
         '[smol/auth] PostgresAccountStore construction failed; falling back to FileAccountStore:',
@@ -56,10 +52,71 @@ function buildAccountStore(): AccountStore {
 
 const sharedAccountStore: AccountStore = buildAccountStore()
 
+// Eager warm-up promise. Construction returns immediately (the AccountStore methods are sync
+// reads off the in-memory cache). For PostgresAccountStore the cache starts EMPTY; warmCache
+// populates it from the `accounts` table. Without awaiting this before binding listen(), the
+// first /api/auth/* call after boot could read an empty cache and miss a returning user (race
+// flagged in super-review 2026-05-12). `startAuthHttpServer` awaits this before bind.
+async function warmAccountStore(): Promise<void> {
+  if ('warmCache' in sharedAccountStore && typeof sharedAccountStore.warmCache === 'function') {
+    await (sharedAccountStore as { warmCache: () => Promise<void> }).warmCache()
+  }
+}
+
+// PHASE 17.L super-review 2026-05-12 — persistent session storage. Default in-memory (no
+// durability across restart); SMOL_ACCOUNT_STORE_BACKEND=postgres opts into PostgresSessionStore
+// which mirrors writes to a `sessions` table. On boot, `rehydrateSessions()` populates the
+// in-memory `sessionTokens` Map from active rows so reconnecting players don't need to re-auth.
+function buildSessionStore(): SessionStore {
+  const backend = (process.env.SMOL_ACCOUNT_STORE_BACKEND ?? 'file').toLowerCase()
+  if (backend === 'postgres') {
+    try {
+      return new PostgresSessionStore()
+    } catch (err) {
+      console.error(
+        '[smol/auth] PostgresSessionStore construction failed; falling back to InMemorySessionStore (sessions will NOT survive restart):',
+        err,
+      )
+      return new InMemorySessionStore()
+    }
+  }
+  return new InMemorySessionStore()
+}
+
+const sharedSessionStore: SessionStore = buildSessionStore()
+
+// Fire-and-forget wrapper for session persistence writes. The in-memory map is authoritative
+// for the current process; the Postgres mirror is the durability layer. If the mirror fails
+// we log + the session keeps working in-process — the only loss is restart-survivability for
+// that one token.
+function fireAndForgetSessionWrite(promise: Promise<unknown>): void {
+  promise.catch((err) => {
+    console.error('[smol/auth] SessionStore write failed:', err)
+  })
+}
+
 // Public Colyseus WS URL the matchmaking endpoint returns to clients. Cached at module init
 // so /api/matchmaking/join doesn't re-read process.env on every request. Override at deploy
 // time via SMOL_PUBLIC_WS_URL (e.g. `wss://smol.unityailab.com` behind Cloudflare Tunnel).
 const PUBLIC_WS_URL = process.env.SMOL_PUBLIC_WS_URL ?? 'ws://localhost:2567'
+
+// CORS allowlist. Production should lock to the public web origin(s); dev defaults '*'
+// (everything) for ergonomics. Parse SMOL_PUBLIC_WEB_URL once at module init; comma-separated
+// supports multi-origin (e.g. `https://smol.unityailab.com,https://www.unityailab.com`).
+const CORS_ALLOWED_ORIGINS: ReadonlyArray<string> = (() => {
+  const raw = process.env.SMOL_PUBLIC_WEB_URL
+  if (!raw || raw.trim().length === 0) return ['*']
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+})()
+
+function resolveCorsOrigin(requestOrigin: string | undefined): string | null {
+  if (CORS_ALLOWED_ORIGINS.includes('*')) return '*'
+  if (!requestOrigin) return null
+  return CORS_ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : null
+}
 
 // Session tokens cover BOTH signed-in users (real accountId) AND guests (accountId === 'guest').
 // Guests use the `guest-<UUIDv4>` shape so log scrubbers can distinguish them at a glance.
@@ -80,13 +137,21 @@ function isTokenExpired(session: { accountId: string; issuedAt: number }, nowMs:
 
 function issueSessionToken(accountId: string): string {
   const token = randomUUID()
-  sessionTokens.set(token, { accountId, issuedAt: Date.now() })
+  const issuedAt = Date.now()
+  sessionTokens.set(token, { accountId, issuedAt })
+  fireAndForgetSessionWrite(
+    sharedSessionStore.upsert({ token, accountId, kind: 'oauth', issuedAtMs: issuedAt }),
+  )
   return token
 }
 
 function issueGuestSessionToken(): string {
   const token = `guest-${randomUUID()}`
-  sessionTokens.set(token, { accountId: 'guest', issuedAt: Date.now() })
+  const issuedAt = Date.now()
+  sessionTokens.set(token, { accountId: 'guest', issuedAt })
+  fireAndForgetSessionWrite(
+    sharedSessionStore.upsert({ token, accountId: 'guest', kind: 'guest', issuedAtMs: issuedAt }),
+  )
   return token
 }
 
@@ -95,10 +160,24 @@ export function isGuestToken(token: string): boolean {
   return session !== undefined && session.accountId === 'guest'
 }
 
-function setCors(res: ServerResponse): void {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+// Echo the request's Origin if it's in the allowlist (or '*' in permissive dev mode).
+// Skipping the Access-Control-Allow-Origin header entirely for disallowed origins makes the
+// browser reject the response — better than silently allowing every origin via '*' in prod.
+// The `req` param is optional for back-compat with handlers that called setCors(res) without
+// the request; those default to permissive ('*') behavior in dev and effectively-fail in
+// prod (no header echoed). All real call sites pass req.
+function setCors(res: ServerResponse, req?: IncomingMessage): void {
+  const requestOrigin = req?.headers['origin']
+  const origin = resolveCorsOrigin(typeof requestOrigin === 'string' ? requestOrigin : undefined)
+  if (origin !== null) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    if (origin !== '*') {
+      // Vary on Origin so caches don't conflate responses across origins.
+      res.setHeader('Vary', 'Origin')
+    }
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 }
 
 // ─── Rate limiting (in-memory, IP-keyed, sliding window) ────────────────────
@@ -164,8 +243,20 @@ function sweepExpiredEntries(nowMs: number): {
     if (isTokenExpired(session, nowMs)) {
       sessionTokens.delete(token)
       tokensPurged += 1
+      // Mirror the revocation to the persistent store. Fire-and-forget — the in-memory map
+      // is already updated; this just keeps the durable copy in sync.
+      fireAndForgetSessionWrite(sharedSessionStore.revoke(token))
     }
   }
+  // Per-tick bulk purge on the persistent side. Catches any rows that were written by an
+  // earlier server instance whose in-memory map already evaporated — those don't appear in
+  // our local Map so the per-entry loop above misses them.
+  fireAndForgetSessionWrite(
+    sharedSessionStore.purgeExpired(nowMs, {
+      guest: GUEST_TOKEN_TTL_MS,
+      oauth: SIGNED_IN_TOKEN_TTL_MS,
+    }),
+  )
   let bucketsPurged = 0
   for (const [, buckets] of rateLimitBuckets) {
     for (const [ip, b] of buckets) {
@@ -532,7 +623,40 @@ export function registerShutdownHook(hook: ShutdownHook): void {
   registeredShutdownHook = hook
 }
 
-export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
+export async function startAuthHttpServer(port = 2568): Promise<AuthHttpServerHandle> {
+  // Warm the AccountStore cache before binding so the first /api/auth/* call after boot reads
+  // a populated cache instead of missing returning users. PostgresAccountStore.warmCache
+  // costs 50-500ms over a populated `accounts` table; FileAccountStore + InMemoryAccountStore
+  // are no-ops. Fail-fast on error — operator should see the boot-time failure rather than
+  // silent empty-cache behavior at first request.
+  try {
+    await warmAccountStore()
+  } catch (err) {
+    console.error('[smol/auth] AccountStore.warmCache failed at boot:', err)
+  }
+
+  // PHASE 17.L super-review 2026-05-12 — rehydrate the in-memory session token map from the
+  // persistent store. After server restart, players whose tokens survived the bounce keep
+  // their session (no forced re-mint / re-sign-in). Sessions outside the TTL window aren't
+  // returned by loadActive — defense-in-depth, the in-memory TTL check catches stragglers.
+  try {
+    const now = Date.now()
+    const rehydrated = await sharedSessionStore.loadActive(now, {
+      guest: GUEST_TOKEN_TTL_MS,
+      oauth: SIGNED_IN_TOKEN_TTL_MS,
+    })
+    for (const s of rehydrated) {
+      sessionTokens.set(s.token, { accountId: s.accountId, issuedAt: s.issuedAtMs })
+    }
+    if (rehydrated.length > 0) {
+      console.info(
+        `[smol/auth] Rehydrated ${rehydrated.length} session token(s) from persistent store.`,
+      )
+    }
+  } catch (err) {
+    console.error('[smol/auth] SessionStore.loadActive failed at boot — sessions start empty:', err)
+  }
+
   const config = getGoogleOAuthServerConfig()
   const githubConfig = getGitHubOAuthServerConfig()
   const discordConfig = getDiscordOAuthServerConfig()
@@ -553,8 +677,12 @@ export function startAuthHttpServer(port = 2568): AuthHttpServerHandle {
   }
 
   const server = createServer(async (req, res) => {
+    // Set the CORS Access-Control-Allow-Origin header once at the top of every request based
+    // on the request's Origin. Internal `setCors(res)` calls in handlers / respondJson /
+    // respond429 only set static headers (Allow-Methods / Allow-Headers) — origin is set
+    // here so the production allowlist behavior is consistent across every response.
+    setCors(res, req)
     if (req.method === 'OPTIONS') {
-      setCors(res)
       res.statusCode = 204
       res.end()
       return
@@ -675,11 +803,14 @@ export function getSharedAccountStore(): AccountStore {
 
 // Lookup with inline TTL check. Even if the background sweep hasn't fired yet, an expired
 // token can't auth. Defense-in-depth — the sweep purges entries, this check refuses them.
+// Mirror the revoke to the persistent store so the durable copy doesn't outlive the in-memory
+// entry.
 export function lookupSessionToken(token: string): { accountId: string; issuedAt: number } | null {
   const session = sessionTokens.get(token)
   if (!session) return null
   if (isTokenExpired(session, Date.now())) {
     sessionTokens.delete(token)
+    fireAndForgetSessionWrite(sharedSessionStore.revoke(token))
     return null
   }
   return session

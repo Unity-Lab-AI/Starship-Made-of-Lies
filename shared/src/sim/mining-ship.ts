@@ -47,10 +47,13 @@ const NO_SIGNAL_BATTERY_BURN = 0.2
 const SHUTTLE_MULTI_DEPOSITS_PER_CYCLE = 3
 
 // oneway throughput: when parked at a deposit, ship drills directly into PlanetInventory.
-// This is THE FASTEST per-tick extraction (3.4× shuttle-single's ~1.75/tick) BUT the ship is
-// permanently committed — no return trip, no other deposit, ship retires to IDLE when the
-// deposit depletes. Trade-off: lose the ship, gain sustained extraction.
-const ONEWAY_DRILL_PER_TICK = 6
+// Tuned to 4/tick (2.3× shuttle-single's ~1.75/tick) so the "sacrifice the ship" trade-off
+// is a meaningful choice rather than a strictly-dominant default. At 4/tick, oneway extracts
+// a 200-unit deposit in 50 ticks (1× speed = 10s); shuttle-single would extract the same
+// 200 units in ~115 ticks BUT the ship is recovered for further work. Break-even tips toward
+// oneway only when the player needs the burst (first-ship sprint) or when ship build cost
+// is low relative to deposit value. Super-review 2026-05-12 balance fix.
+const ONEWAY_DRILL_PER_TICK = 4
 // Battery burn while parked + drilling in oneway. Lower than normal drill burn because the
 // ship isn't traveling; solar trickle keeps it topped up indefinitely.
 const ONEWAY_BATTERY_BURN_DRILL = 0.1

@@ -114,16 +114,18 @@ export interface MatchmakingPreferences {
   readonly coopWithAccountIds?: ReadonlyArray<string>
 }
 
-export interface MatchmakingPreCheckResult {
-  readonly host: string
-  readonly tokenIsGuest: boolean
-}
+// Discriminated result type so callers can distinguish auth failure (401 — retryable by
+// re-minting a guest token) from network failure (retry won't help). Status 0 = network /
+// fetch threw before getting a response; status >= 200 = HTTP response received.
+export type MatchmakingPreCheckResult =
+  | { readonly ok: true; readonly host: string; readonly tokenIsGuest: boolean }
+  | { readonly ok: false; readonly status: number; readonly message: string }
 
 export async function requestMatchmaking(input: {
   readonly authServerUrl: string
   readonly sessionToken: string
   readonly preferences: MatchmakingPreferences
-}): Promise<MatchmakingPreCheckResult | null> {
+}): Promise<MatchmakingPreCheckResult> {
   try {
     const response = await fetch(`${input.authServerUrl.replace(/\/$/, '')}/api/matchmaking/join`, {
       method: 'POST',
@@ -133,16 +135,28 @@ export async function requestMatchmaking(input: {
       },
       body: JSON.stringify(input.preferences),
     })
-    if (!response.ok) return null
+    if (!response.ok) {
+      let message = `Matchmaking failed with HTTP ${response.status}`
+      try {
+        const body = (await response.json()) as { error?: string }
+        if (body.error) message = body.error
+      } catch {
+        // Response wasn't JSON — keep the default message.
+      }
+      return { ok: false, status: response.status, message }
+    }
     const body = (await response.json()) as {
       host?: string
       tokenIsGuest?: boolean
     }
-    if (!body.host) return null
-    return { host: body.host, tokenIsGuest: body.tokenIsGuest ?? false }
+    if (!body.host) {
+      return { ok: false, status: 502, message: 'Matchmaking response missing host hint.' }
+    }
+    return { ok: true, host: body.host, tokenIsGuest: body.tokenIsGuest ?? false }
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
     console.warn('[smol/multiplayer] Matchmaking pre-check failed:', err)
-    return null
+    return { ok: false, status: 0, message }
   }
 }
 
