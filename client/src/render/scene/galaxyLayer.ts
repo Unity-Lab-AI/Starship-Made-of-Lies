@@ -376,73 +376,21 @@ export function syncOwnerFlags(
   civsByPlanet?: ReadonlyMap<PlanetId, ReadonlyArray<PlanetCivPresence>>,
   indigenousByPlanet?: ReadonlyArray<IndigenousMarkerInput>,
 ): void {
+  // HOTFIX 17.L.D.20 — civ government-name text billboards NUKED per user verbatim 2026-05-11
+  // (LAW #0): "there is a text header floating inside the planet nameing the government type
+  // (this needs to be nuked i never told you to add a text title of the governemnt on the
+  // planet (it looks like it was jerry rigged and not properly linked to the civilications
+  // location cenetering on the mean of the area the civ inhabitance in space". The
+  // theme.emoji + theme.name + tileCount sprite-per-civ-per-planet layer is gone. Civ
+  // ownership is still surfaced via the planet tile coloring (surfaceLayer per-instance
+  // colors) and the planet-picker / 📍 Planets panel rows.
+  //
+  // liveKeys stays empty, so the cleanup loop below tears down any civ-flag sprites that
+  // remained from before this nuke. The function intentionally keeps the indigenous-marker
+  // section (further down) running — those are a separate feature.
   const liveKeys = new Set<string>()
-  for (const planet of galaxy.planets) {
-    const mesh = planetMeshes.get(planet.id)
-    if (!mesh) continue
-    const radius = mesh.geometry.boundingSphere?.radius ?? 100
-    const flagWidth = radius * 1.4
-    const flagHeight = flagWidth * 0.25
-    const stackSpacing = flagHeight * 1.1
-
-    // Pick the civ list: civsByPlanet if provided & non-empty, else single-owner fallback
-    const civList = civsByPlanet?.get(planet.id) ?? []
-    const fallbackCiv = civList.length === 0 ? ownerByPlanet.get(planet.id) : null
-    const civsForThisPlanet: ReadonlyArray<PlanetCivPresence> =
-      civList.length > 0 ? civList : fallbackCiv ? [{ civId: fallbackCiv, tileCount: 0 }] : []
-
-    for (let i = 0; i < civsForThisPlanet.length; i++) {
-      const civPresence = civsForThisPlanet[i]!
-      const theme = themeByCiv.get(civPresence.civId)
-      if (!theme) continue
-      const key = `${String(planet.id)}:${String(civPresence.civId)}`
-      liveKeys.add(key)
-      const label =
-        civPresence.tileCount > 0
-          ? `${theme.emoji} ${theme.name} · ${civPresence.tileCount}`
-          : `${theme.emoji} ${theme.name}`
-      let entry = handle.entries.get(key)
-      if (!entry) {
-        const canvas = document.createElement('canvas')
-        canvas.width = 256
-        canvas.height = 64
-        const tex = new THREE.CanvasTexture(canvas)
-        tex.minFilter = THREE.LinearFilter
-        tex.needsUpdate = true
-        const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: true })
-        const sprite = new THREE.Sprite(mat)
-        sprite.scale.set(flagWidth, flagHeight, 1)
-        handle.group.add(sprite)
-        entry = {
-          key,
-          planetId: planet.id,
-          civId: civPresence.civId,
-          sprite,
-          texture: tex,
-          canvas,
-        }
-        handle.entries.set(key, entry)
-      }
-      paintFlagCanvas(entry.canvas, label)
-      entry.texture.needsUpdate = true
-      // PHASE 16.20: when the caller provides a world-space cluster centroid (per civ),
-      // float the flag above that centroid in 3D — flags now sit OVER each civ's actual
-      // territory instead of stacking above the planet's north pole. Fallback (no
-      // centroid provided) keeps the original vertical stack so the panel still works
-      // for single-owner planets / cases where centroid computation isn't wired.
-      if (civPresence.centroidWorld) {
-        entry.sprite.position.set(
-          civPresence.centroidWorld.x,
-          civPresence.centroidWorld.y,
-          civPresence.centroidWorld.z,
-        )
-      } else {
-        const yOffset = radius * 1.5 + i * stackSpacing
-        entry.sprite.position.set(mesh.position.x, mesh.position.y + yOffset, mesh.position.z)
-      }
-    }
-  }
-  // Remove flag entries no longer present (civ lost all tiles on that planet, or planet gone)
+  // Cleanup loop — runs against handle.entries with empty liveKeys, removing every civ-flag
+  // sprite created by prior frames. Sprite materials + textures get disposed cleanly.
   for (const [key, entry] of handle.entries) {
     if (liveKeys.has(key)) continue
     handle.group.remove(entry.sprite)
@@ -450,6 +398,13 @@ export function syncOwnerFlags(
     ;(entry.sprite.material as THREE.SpriteMaterial).dispose()
     handle.entries.delete(key)
   }
+  // Silence unused-parameter warnings for civsByPlanet + themeByCiv + ownerByPlanet now that
+  // the civ-flag path is gone. These params stay in the signature so callers don't need to
+  // change wiring; a future feature may rebuild civ-territory markers using them differently.
+  void civsByPlanet
+  void themeByCiv
+  void ownerByPlanet
+  void galaxy
 
   // === Indigenous markers ===
   const liveIndigIds = new Set<PlanetId>()
@@ -557,23 +512,10 @@ export function updateOwnerFlagDistanceFade(
   }
 }
 
-function paintFlagCanvas(canvas: HTMLCanvasElement, label: string): void {
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-  // Banner background
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.strokeStyle = '#d4a13a'
-  ctx.lineWidth = 2
-  ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2)
-  // Label
-  ctx.fillStyle = '#ffffff'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.font = 'bold 28px system-ui, sans-serif'
-  ctx.fillText(label, canvas.width / 2, canvas.height / 2)
-}
+// HOTFIX 17.L.D.20 — paintFlagCanvas removed. The civ government-name billboard layer was
+// nuked per user verbatim "this needs to be nuked i never told you to add a text title of
+// the governemnt on the planet". Civ ownership is still surfaced via tile coloring +
+// PlanetPicker rows.
 
 function paintIndigenousCanvas(canvas: HTMLCanvasElement, label: string): void {
   const ctx = canvas.getContext('2d')
