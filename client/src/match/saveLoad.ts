@@ -82,6 +82,14 @@ export function deserializeMatch(json: string): MatchState | null {
     // Rebuild rng closure from the saved seed. v1 compromise: doesn't capture mid-stream rng
     // state — calls after resume diverge from a continuous play.
     ;(parsed as { rng: () => number }).rng = mulberry32(payload.rngSeed ^ 0xa5a5a5)
+    // PHASE 17.2.4 — backfill telemetryLog on flights restored from pre-17.2.4 saves. Without
+    // this guard tickFlight would crash on the next tick trying to push into undefined.
+    if (parsed.flights instanceof Map) {
+      for (const flight of parsed.flights.values()) {
+        const f = flight as { telemetryLog?: unknown[] }
+        if (!Array.isArray(f.telemetryLog)) f.telemetryLog = []
+      }
+    }
     return parsed
   } catch {
     return null

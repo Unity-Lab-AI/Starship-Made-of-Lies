@@ -1,24 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  type ColonyShipFlight,
-  type FlightTelemetrySnapshot,
-  flightTelemetrySnapshot,
-} from '@smol/shared'
+import { useMemo, useState } from 'react'
+import { type ColonyShipFlight, TELEMETRY_LOG_RING_SIZE } from '@smol/shared'
 import './TelemetryGraphPanel.css'
 
 // 17.2.3 — Per-flight telemetry SVG line charts. Distance-to-target / altitude / fuel% /
-// life-support% over the last RING_SIZE ticks. Uses a client-side ring buffer keyed by
-// flight.id stored in a ref — keeps the panel sim-state-independent so the buffer survives
-// re-renders but no sim mutation is required (per the simpler-is-safer rule for v1; full
-// sim-side telemetryLog persistence ships when 17.2.4 lands).
-
-const RING_SIZE = 300
-const SAMPLE_EVERY_MS = 250
-
-interface RingEntry {
-  readonly tick: number
-  readonly snap: FlightTelemetrySnapshot
-}
+// life-support% over the last TELEMETRY_LOG_RING_SIZE ticks.
+//
+// 17.2.4 — Reads from flight.telemetryLog (sim-owned ring) instead of the prior client-side
+// useRef ring buffer. Sim-owned data survives panel mount/unmount cycles, round-trips through
+// save/load, and becomes available to the PHASE 18.3 match-replay system.
 
 interface TelemetryGraphPanelProps {
   readonly flights: ReadonlyArray<ColonyShipFlight>
@@ -27,45 +16,20 @@ interface TelemetryGraphPanelProps {
 
 export function TelemetryGraphPanel({ flights, currentTick }: TelemetryGraphPanelProps) {
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
-  const buffersRef = useRef<Map<string, RingEntry[]>>(new Map())
-  const [, force] = useState(0)
-
-  useEffect(() => {
-    if (flights.length === 0) return
-    const handle = window.setInterval(() => {
-      const buffers = buffersRef.current
-      for (const flight of flights) {
-        const id = String(flight.id)
-        const ring = buffers.get(id) ?? []
-        ring.push({ tick: currentTick, snap: flightTelemetrySnapshot(flight) })
-        while (ring.length > RING_SIZE) ring.shift()
-        buffers.set(id, ring)
-      }
-      // Garbage-collect rings for flights no longer present.
-      const liveIds = new Set(flights.map((f) => String(f.id)))
-      for (const id of Array.from(buffers.keys())) {
-        if (!liveIds.has(id)) buffers.delete(id)
-      }
-      force((n) => (n + 1) % 1_000_000)
-    }, SAMPLE_EVERY_MS)
-    return () => window.clearInterval(handle)
-  }, [flights, currentTick])
-
   const effectiveId = selectedFlightId ?? (flights[0] ? String(flights[0].id) : null)
-  // Snapshot the ring through useMemo so the chartData hook below has a stable dep target.
-  // The ref churns every interval tick; this isolates the read to the current effectiveId +
-  // current tick so a missing-deps lint stays clean.
-  const ring = useMemo<ReadonlyArray<RingEntry>>(() => {
-    return effectiveId ? (buffersRef.current.get(effectiveId) ?? []) : []
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveId, currentTick])
+  const selectedFlight = useMemo<ColonyShipFlight | null>(() => {
+    if (!effectiveId) return null
+    return flights.find((f) => String(f.id) === effectiveId) ?? null
+  }, [effectiveId, flights])
 
   const chartData = useMemo(() => {
-    if (ring.length < 2) return null
-    const dists = ring.map((e) => e.snap.distToTarget)
-    const alts = ring.map((e) => e.snap.altitude)
-    const fuelPct = ring.map((e) => e.snap.fuelPct)
-    const lsPct = ring.map((e) => e.snap.lifeSupportPct)
+    if (!selectedFlight) return null
+    const log = selectedFlight.telemetryLog
+    if (log.length < 2) return null
+    const dists = log.map((s) => s.distToTarget)
+    const alts = log.map((s) => s.altitude)
+    const fuelPct = log.map((s) => s.fuelPct)
+    const lsPct = log.map((s) => s.lifeSupportPct)
     return {
       dists,
       alts,
@@ -73,10 +37,13 @@ export function TelemetryGraphPanel({ flights, currentTick }: TelemetryGraphPane
       lsPct,
       distMax: Math.max(...dists),
       altMax: Math.max(...alts),
-      tickFirst: ring[0]!.tick,
-      tickLast: ring[ring.length - 1]!.tick,
+      // Telemetry log is sim-owned and untimestamped — the window endpoint is the current
+      // tick and the start is currentTick minus log length.
+      tickFirst: Math.max(0, currentTick - log.length + 1),
+      tickLast: currentTick,
+      sampleCount: log.length,
     }
-  }, [ring])
+  }, [selectedFlight, currentTick])
 
   return (
     <section className="telemetry-graph-panel" aria-label="Telemetry graphs">
@@ -139,8 +106,8 @@ export function TelemetryGraphPanel({ flights, currentTick }: TelemetryGraphPane
             invertGoodAxis={false}
           />
           <p className="telemetry-graph-panel__footer">
-            Window ticks {chartData.tickFirst} → {chartData.tickLast} · samples {ring.length}/
-            {RING_SIZE}
+            Window ticks {chartData.tickFirst} → {chartData.tickLast} · samples{' '}
+            {chartData.sampleCount}/{TELEMETRY_LOG_RING_SIZE}
           </p>
         </>
       )}
