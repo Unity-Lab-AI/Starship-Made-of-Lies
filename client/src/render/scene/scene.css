@@ -1,7 +1,16 @@
 .galaxy-view {
-  position: fixed;
+  /* PHASE 17.L.D.3 (HOTFIX 2026-05-11) — was position:fixed inset:0 z-index:50. Fixed
+     positioning escaped the play-shell__world stacking context AND z-index:50 tied with
+     .top-toolbar (z-index:50), and DOM order put GalaxyView on top — which COMPLETELY HID
+     the TopToolbar / HUDOverlay / TelemetryRack / all panels under the 3D canvas. Per user
+     playtest verbatim *"i also didnt see anyof the UI or HUD to play the game resource
+     banner was missing toolbar and panel toggel bar all missing it was just the 3D
+     universe"*. Now position:absolute inside the .play-shell__world parent + z-index:0
+     so every HUD overlay (z-index:50 on top-toolbar / hud-overlay / etc.) renders ABOVE
+     the 3D canvas. */
+  position: absolute;
   inset: 0;
-  z-index: 50;
+  z-index: 0;
   background: #05050d;
   display: grid;
   place-items: stretch;
@@ -59,11 +68,18 @@
   border-color: var(--accent, #d4a13a);
 }
 
+/* PHASE 17.L.D.3 (HOTFIX 2026-05-11) — `.galaxy-view__hint` rule retained as orphan-CSS only
+   because no consumer renders it anymore. Movement-controls overlay was removed from
+   GalaxyView.tsx per user verbatim "the only thing i see is the movement controls
+   instructions that i told you yesterday to remove when u built thew ui hud". Keeping the
+   rule body harmless-by-no-consumer rather than ripple-renaming. Future cleanup can drop
+   this block when sweeping dead CSS. */
 .galaxy-view__hint {
   position: absolute;
   bottom: 1rem;
   left: 1rem;
   z-index: 2;
+  display: none;
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);

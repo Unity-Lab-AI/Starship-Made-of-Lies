@@ -1,7 +1,13 @@
 .telemetry-rack {
+  /* PHASE 17.L.D.3 (HOTFIX 2026-05-11) — bottom bumped 5.5rem → 7.5rem because the rack's
+     toggle button "LCD RACK × 11 PANELS" was sitting AT the top edge of the bottom hud-
+     toolbar (panel-toggle bar at bottom:0.8rem + ~3-4rem button height), visually overlapping
+     the toolbar buttons. Per user verbatim *"ther is a 'LCD RACK x ll panels' text over top
+     of the toolbar"*. 7.5rem gives ~2rem clear gap above the hud-toolbar at any reasonable
+     button-row height. */
   position: fixed;
   left: 50%;
-  bottom: 5.5rem;
+  bottom: 7.5rem;
   transform: translateX(-50%);
   z-index: 30;
   background: rgba(8, 10, 16, 0.92);
