@@ -124,6 +124,7 @@ import {
   type SettlementId,
   canFoundSettlementAt,
   checkMatchEndAchievements,
+  computeMatchScores,
   hasWonByTech,
   newCapitalSettlement,
   newFoundedSettlement,
@@ -362,6 +363,14 @@ export interface MatchState {
   // list + persists to localStorage via applyAchievementUnlocks (which deduplicates against
   // any pre-existing unlocks from prior matches so the toast only fires for true transitions).
   achievementUnlocksThisMatch: string[]
+  // PHASE 17.12.7 — match-end leaderboard scores. Populated when phase transitions to ENDED
+  // using shared computeMatchScores. useMatchSim watches this list + persists to the
+  // localStorage Hall of Champions store via applyMatchScores so the in-game HoC panel +
+  // AchievementsPage HoC view both surface real ranking entries.
+  matchEndScoresPending: Array<{
+    readonly key: import('@smol/shared').LeaderboardKey
+    readonly entry: import('@smol/shared').ScoreEntry
+  }>
   currentTick: number
   startedAtTick: number
   phase: MatchPhase
@@ -591,6 +600,7 @@ export function createMatch(config: MatchConfig): MatchState {
       },
     ],
     achievementUnlocksThisMatch: [],
+    matchEndScoresPending: [],
     currentTick: 0,
     startedAtTick: 0,
     phase: 'IN_PROGRESS',
@@ -2312,6 +2322,30 @@ function resolveMatch(state: MatchState): void {
           kind: 'achievement_unlock',
           message: def ? `🏆 ${def.emoji} ${def.name} — ${def.description}` : `🏆 ${achId}`,
         })
+      }
+      // PHASE 17.12.7 — Hall of Champions match-end scoring. Reuses the same inputs as the
+      // achievement check (peakControlledPlanets / apexReachedAtTick / enemiesEliminated)
+      // plus a v1 themeSpecialistScore = peakControlledPlanets × 100 + 1000-on-win bonus.
+      // useMatchSim persists matchEndScoresPending into the localStorage HoC store.
+      const matchScores = computeMatchScores({
+        civId: state.humanCivId,
+        themeId: humanCivAtEnd.themeId,
+        accountId: state.humanCivId as unknown as AccountId,
+        displayName: humanCivAtEnd.displayName,
+        handle: humanCivAtEnd.displayName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'player',
+        matchId: state.matchId,
+        recordedAtTick: state.currentTick,
+        peakControlledPlanets: humanCivAtEnd.empire.controlledPlanetIds.size,
+        apexReachedAtTick: hasWonByTech(humanCivAtEnd.empire)
+          ? state.currentTick - state.startedAtTick
+          : null,
+        averageDissidentRatio: 0,
+        enemyCivsEliminated: enemiesEliminated,
+        themeSpecialistScore:
+          humanCivAtEnd.empire.controlledPlanetIds.size * 100 + (humanWon ? 1000 : 0),
+      })
+      for (const scored of matchScores) {
+        state.matchEndScoresPending.push(scored)
       }
     }
   }
