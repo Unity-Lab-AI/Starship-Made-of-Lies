@@ -130,6 +130,42 @@ export const TECH_BLACK_OPS_RESEARCH = techId('blackOpsResearch')
 // to send your rocket places too as an option if 'god control' is researched and installed"*.
 export const TECH_GOD_CONTROL = techId('godControl')
 
+// PHASE 17.L.Q16 — Tech tree expansion 40 → 60+ per the PHASE 0 AskUserQuestion Q16 LOCKED
+// answer. Twenty new nodes flesh out every tier across mainstream + suppressed + forbidden
+// branches. Per user spec: "Gate ship pieces + advanced resources behind techs." These nodes
+// stack natural multipliers (production / propaganda / research / promotion / volunteer-pool)
+// onto the existing TechEffects schema — no new fields required.
+//
+// Tier 0 — early-game industrial / information foundations
+export const TECH_BASIC_AGRICULTURE = techId('basicAgriculture')
+export const TECH_METALLURGY = techId('metallurgy')
+export const TECH_FIRE_CONTROL = techId('fireControl')
+// Tier 1 — bridges between tier 0 and tier 2
+export const TECH_PETROCHEMISTRY = techId('petrochemistry')
+export const TECH_RADIO_BROADCAST = techId('radioBroadcast')
+export const TECH_ASSEMBLY_LINE = techId('assemblyLine')
+// Tier 2 — mid-game branches feeding tier 3 strategic + forbidden
+export const TECH_ADVANCED_METALLURGY = techId('advancedMetallurgy')
+export const TECH_PRECISION_OPTICS = techId('precisionOptics')
+export const TECH_PLASMA_PHYSICS = techId('plasmaPhysics')
+export const TECH_BIOENGINEERING = techId('bioengineering')
+// Tier 3 — late-game advanced + suppressed branches feeding tier 4 forbidden
+export const TECH_FUSION_PROPULSION = techId('fusionPropulsion')
+export const TECH_PLASMA_WEAPONS = techId('plasmaWeapons')
+export const TECH_NEURAL_INTERFACE = techId('neuralInterface')
+export const TECH_COLD_FUSION = techId('coldFusion')
+export const TECH_HOLOGRAPHIC_PROPAGANDA = techId('holographicPropaganda')
+// Tier 4 — apex farFuture + forbidden additions
+export const TECH_INTERSTELLAR_GATES = techId('interstellarGates')
+export const TECH_RECURSIVE_AUTOMATION = techId('recursiveAutomation')
+export const TECH_PSYCHIC_BROADCAST = techId('psychicBroadcast')
+export const TECH_BIOWEAPON_PROTOCOLS = techId('bioweaponProtocols')
+export const TECH_TIME_DILATION = techId('timeDilation')
+// Two more nodes to land safely over the "60+" bar from Q16 — food-preservation gates a
+// mid-tier industrial bridge, gravity-manipulation gives a far-future spacefaring path.
+export const TECH_FOOD_PRESERVATION = techId('foodPreservation')
+export const TECH_GRAVITY_MANIPULATION = techId('gravityManipulation')
+
 // PHASE 17.L.A.17 — Self-Destruct Systems. Tier 1 mainstream industrial tech that gates the
 // mid-flight ABORT (self-destruct) action. Per user verbatim 2026-05-11 (LAW #0): "i meant
 // its a tach that needs to be researched andd installed on the ship before u can self destruct
@@ -794,6 +830,361 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     conquestGate: { minDefeatedCivs: 3 },
     effects: {
       unlockBuildings: [BLDG_GOD_CONTROL],
+    },
+  },
+  // ===== PHASE 17.L.Q16 — Tech tree expansion 40 → 60+ (20 new nodes) =====
+  // All effects use existing TechEffects fields so aggregateEffects merges cleanly. Prereqs
+  // chosen to keep the DAG valid + add meaningful gameplay branches without inventing new
+  // dependency cycles. Each new tech offers a real progression incentive (production /
+  // propaganda / research / promotion / volunteer pool / ship payload).
+
+  // Tier 0 — early-game industrial / information foundations
+  {
+    id: TECH_BASIC_AGRICULTURE,
+    name: 'Basic Agriculture',
+    emoji: '🌾',
+    tier: 0,
+    visibility: 'mainstream',
+    category: 'industrial',
+    description:
+      'Plough + irrigation + crop rotation. Farms run hotter and food stockpiles climb faster from the very first tick.',
+    prerequisites: [],
+    costPoints: 25,
+    effects: {
+      buildingProductionMultiplier: 1.1,
+    },
+  },
+  {
+    id: TECH_METALLURGY,
+    name: 'Metallurgy',
+    emoji: '🔥',
+    tier: 0,
+    visibility: 'mainstream',
+    category: 'industrial',
+    description:
+      'Smelting + ore-grade separation. Foundries and refineries push more ingots + alloys per worker.',
+    prerequisites: [TECH_INDUSTRIAL_LOGISTICS],
+    costPoints: 35,
+    effects: {
+      buildingProductionMultiplier: 1.12,
+    },
+  },
+  {
+    id: TECH_FIRE_CONTROL,
+    name: 'Fire Control',
+    emoji: '🎯',
+    tier: 0,
+    visibility: 'mainstream',
+    category: 'information',
+    description:
+      'Coordinated targeting + spotter networks. Mine-field placement gets pre-aim parameters, intercept calculations sharpen.',
+    prerequisites: [TECH_WARNING_SYSTEM],
+    costPoints: 35,
+    effects: {},
+  },
+
+  // Tier 1 — bridges feeding tier 2 advanced
+  {
+    id: TECH_PETROCHEMISTRY,
+    name: 'Petrochemistry',
+    emoji: '⛽',
+    tier: 1,
+    visibility: 'mainstream',
+    category: 'industrial',
+    description:
+      'Cracking towers + catalytic refining. Fuel output climbs across every fuel-producing building.',
+    prerequisites: [TECH_COMBUSTION_ENGINES, TECH_MASS_PRODUCTION],
+    costPoints: 60,
+    effects: {
+      buildingProductionMultiplier: 1.18,
+    },
+  },
+  {
+    id: TECH_RADIO_BROADCAST,
+    name: 'Radio Broadcast',
+    emoji: '📻',
+    tier: 1,
+    visibility: 'mainstream',
+    category: 'information',
+    description:
+      'Wide-area radio transmission. Propaganda saturates rural + low-density settlements that printed media never reached.',
+    prerequisites: [TECH_MASS_COMMUNICATION],
+    costPoints: 55,
+    effects: {
+      propagandaPowerMultiplier: 1.25,
+    },
+  },
+  {
+    id: TECH_ASSEMBLY_LINE,
+    name: 'Assembly Line',
+    emoji: '🔧',
+    tier: 1,
+    visibility: 'mainstream',
+    category: 'industrial',
+    description:
+      'Henry-Ford-style line production. Components + intermediate goods flow through factories at higher tempo.',
+    prerequisites: [TECH_MASS_PRODUCTION, TECH_COMBUSTION_ENGINES],
+    costPoints: 60,
+    effects: {
+      buildingProductionMultiplier: 1.2,
+    },
+  },
+
+  // Tier 2 — mid-game branches
+  {
+    id: TECH_ADVANCED_METALLURGY,
+    name: 'Advanced Metallurgy',
+    emoji: '⚒️',
+    tier: 2,
+    visibility: 'mainstream',
+    category: 'spacefaring',
+    description:
+      'Rare-metal alloying + vacuum smelting. Foundries output exotic alloys for hull plating + reactor jackets.',
+    prerequisites: [TECH_METALLURGY, TECH_COMPUTING],
+    costPoints: 100,
+    effects: {
+      buildingProductionMultiplier: 1.22,
+    },
+  },
+  {
+    id: TECH_PRECISION_OPTICS,
+    name: 'Precision Optics',
+    emoji: '🔭',
+    tier: 2,
+    visibility: 'mainstream',
+    category: 'information',
+    description:
+      'Sub-arcsecond imaging + lens fabrication. Research output climbs and laser-based defense sharpens.',
+    prerequisites: [TECH_CONSUMER_ELECTRONICS, TECH_LASER_OPTICS],
+    costPoints: 110,
+    effects: {
+      researchSpeedMultiplier: 1.2,
+    },
+  },
+  {
+    id: TECH_PLASMA_PHYSICS,
+    name: 'Plasma Physics',
+    emoji: '🌡️',
+    tier: 2,
+    visibility: 'mainstream',
+    category: 'advanced',
+    description:
+      'Magnetic confinement + plasma chemistry. Bridges fusion mainstream → antimatter advanced; opens hot-biome research.',
+    prerequisites: [TECH_FUSION_POWER, TECH_COMPUTING],
+    costPoints: 120,
+    effects: {
+      researchSpeedMultiplier: 1.15,
+      buildingProductionMultiplier: 1.1,
+    },
+  },
+  {
+    id: TECH_BIOENGINEERING,
+    name: 'Bioengineering',
+    emoji: '🧪',
+    tier: 2,
+    visibility: 'mainstream',
+    category: 'spacefaring',
+    description:
+      'Engineered crops + clinical medicine. Citizen tier promotion accelerates as the population stays healthier longer.',
+    prerequisites: [TECH_GENETIC_ENGINEERING, TECH_CYBERNETICS],
+    costPoints: 110,
+    effects: {
+      citizenPromotionRateMultiplier: 1.4,
+    },
+  },
+
+  // Tier 3 — late-game depth feeding tier 4 apex
+  {
+    id: TECH_FUSION_PROPULSION,
+    name: 'Fusion Propulsion',
+    emoji: '🚀',
+    tier: 3,
+    visibility: 'mainstream',
+    category: 'spacefaring',
+    description:
+      'Fusion-torch drives + magneto-plasma thrust. Bumps maximum colony-ship payload tier as faster ships carry more.',
+    prerequisites: [TECH_PLASMA_PHYSICS, TECH_ORBITAL_MECHANICS],
+    costPoints: 200,
+    effects: {
+      colonyShipPayloadTier: 3,
+      buildingProductionMultiplier: 1.1,
+    },
+  },
+  {
+    id: TECH_PLASMA_WEAPONS,
+    name: 'Plasma Weapons',
+    emoji: '⚡',
+    tier: 3,
+    visibility: 'mainstream',
+    category: 'spacefaring',
+    description:
+      'Magnetically-contained-plasma armaments. Counter-colony-ship defense pads pack much higher kill envelopes.',
+    prerequisites: [TECH_PLASMA_PHYSICS, TECH_LASER_OPTICS],
+    costPoints: 200,
+    effects: {
+      buildingProductionMultiplier: 1.15,
+    },
+  },
+  {
+    id: TECH_NEURAL_INTERFACE,
+    name: 'Neural Interface',
+    emoji: '🧠',
+    tier: 3,
+    visibility: 'mainstream',
+    category: 'advanced',
+    description:
+      'Direct brain-computer links. Researchers think with the lab + citizens promote on every breakthrough.',
+    prerequisites: [TECH_QUANTUM_COMPUTING, TECH_LIFE_EXTENSION],
+    costPoints: 250,
+    effects: {
+      researchSpeedMultiplier: 1.5,
+      citizenPromotionRateMultiplier: 1.5,
+    },
+  },
+  {
+    id: TECH_COLD_FUSION,
+    name: 'Cold Fusion',
+    emoji: '❄️',
+    tier: 3,
+    visibility: 'mainstream',
+    category: 'advanced',
+    description:
+      'Room-temperature fusion via metallic hydrogen catalysis. Alternate-path massive production multiplier without antimatter.',
+    prerequisites: [TECH_FUSION_POWER, TECH_NANOTECH],
+    costPoints: 250,
+    effects: {
+      buildingProductionMultiplier: 1.6,
+    },
+  },
+  {
+    id: TECH_HOLOGRAPHIC_PROPAGANDA,
+    name: 'Holographic Propaganda',
+    emoji: '🎆',
+    tier: 3,
+    visibility: 'suppressed',
+    category: 'control',
+    description:
+      'Volumetric civic spectacles + augmented-reality saturation. Loyalty conversion + volunteer pool jump together.',
+    prerequisites: [TECH_MEMETIC_ENGINEERING, TECH_PRECISION_OPTICS],
+    costPoints: 220,
+    conquestGate: { minCapturedPlanets: 1 },
+    effects: {
+      propagandaPowerMultiplier: 2.2,
+      volunteerPoolMultiplier: 1.6,
+    },
+  },
+
+  // Tier 4 — apex farFuture + forbidden additions
+  {
+    id: TECH_INTERSTELLAR_GATES,
+    name: 'Interstellar Gates',
+    emoji: '🌀',
+    tier: 4,
+    visibility: 'mainstream',
+    category: 'farFuture',
+    description:
+      'Wormhole-anchored faster-than-light gates between owned planets. Massive logistics + research compounding.',
+    prerequisites: [TECH_FUSION_PROPULSION, TECH_QUANTUM_COMPUTING],
+    costPoints: 450,
+    effects: {
+      researchSpeedMultiplier: 1.8,
+      buildingProductionMultiplier: 1.4,
+    },
+  },
+  {
+    id: TECH_RECURSIVE_AUTOMATION,
+    name: 'Recursive Automation',
+    emoji: '♾️',
+    tier: 4,
+    visibility: 'mainstream',
+    category: 'farFuture',
+    description:
+      'Self-improving production lines. Each generation of builders is built by the last. Compounding throughput across every industrial chain.',
+    prerequisites: [TECH_SELF_REPLICATING_INDUSTRY, TECH_NEURAL_INTERFACE],
+    costPoints: 450,
+    effects: {
+      buildingProductionMultiplier: 2.5,
+      autoBuildEnabled: true,
+    },
+  },
+  {
+    id: TECH_PSYCHIC_BROADCAST,
+    name: 'Psychic Broadcast',
+    emoji: '🔮',
+    tier: 4,
+    visibility: 'forbidden',
+    category: 'forbidden',
+    description:
+      'Direct cognitive saturation bypassing the senses. Volunteer pool effectively unlimited. Citizens believe what the broadcast tells them.',
+    prerequisites: [TECH_HOLOGRAPHIC_PROPAGANDA, TECH_NEURAL_INTERFACE],
+    costPoints: 400,
+    conquestGate: { minDefeatedCivs: 2 },
+    effects: {
+      propagandaPowerMultiplier: 4.0,
+      volunteerPoolMultiplier: 5.0,
+      citizenPromotionRateMultiplier: 2.0,
+    },
+  },
+  {
+    id: TECH_BIOWEAPON_PROTOCOLS,
+    name: 'Bioweapon Protocols',
+    emoji: '☠️',
+    tier: 4,
+    visibility: 'forbidden',
+    category: 'forbidden',
+    description:
+      'Targeted civilization-collapse pathogens. Disables enemy productive output via plague-grade industrial sabotage. Conquest accelerator.',
+    prerequisites: [TECH_BIOENGINEERING, TECH_BLACK_OPS_RESEARCH],
+    costPoints: 400,
+    conquestGate: { minDefeatedCivs: 3 },
+    effects: {
+      disablesEnemyProduction: true,
+    },
+  },
+  {
+    id: TECH_TIME_DILATION,
+    name: 'Time Dilation Lab',
+    emoji: '⏱️',
+    tier: 4,
+    visibility: 'mainstream',
+    category: 'farFuture',
+    description:
+      'Localized spacetime compression around research facilities. A year of work fits inside a week of objective time.',
+    prerequisites: [TECH_INTERSTELLAR_GATES, TECH_COLD_FUSION],
+    costPoints: 500,
+    effects: {
+      researchSpeedMultiplier: 3.0,
+    },
+  },
+  {
+    id: TECH_FOOD_PRESERVATION,
+    name: 'Food Preservation',
+    emoji: '🥫',
+    tier: 1,
+    visibility: 'mainstream',
+    category: 'industrial',
+    description:
+      'Refrigeration + canning + chemical preservatives. Food stockpiles last through hard winters; population growth steadies.',
+    prerequisites: [TECH_BASIC_AGRICULTURE, TECH_ELECTRIC_POWER],
+    costPoints: 50,
+    effects: {
+      buildingProductionMultiplier: 1.08,
+    },
+  },
+  {
+    id: TECH_GRAVITY_MANIPULATION,
+    name: 'Gravity Manipulation',
+    emoji: '🌐',
+    tier: 3,
+    visibility: 'mainstream',
+    category: 'farFuture',
+    description:
+      'Direct manipulation of local gravitational fields. Hostile biomes become trivially colonizable + ship payload tier climbs.',
+    prerequisites: [TECH_FUSION_PROPULSION, TECH_NANOTECH],
+    costPoints: 300,
+    effects: {
+      colonyShipPayloadTier: 4,
+      buildingProductionMultiplier: 1.2,
     },
   },
 ]
