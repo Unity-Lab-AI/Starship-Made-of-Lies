@@ -37,6 +37,30 @@ export interface EmpireAggregate {
 
 const PERSONAL_EQUIP_KEYS = new Set(['tools', 'weapons', 'ammunition', 'gas'])
 
+// PHASE 17.13.13 — late-game empire scale memoization. selectEmpireAggregate iterates
+// every owned planet × every resource on every render; at 100 planets × 20 resources × 60
+// renders/sec that's 120k iterations per second just for the toolbar. The cache keys the
+// computed bundle by sim-tick + owned-planet-count so multiple panels rendering on the same
+// tick share one walk. Cache invalidates as soon as currentTick advances or ownership shifts.
+// WeakMap stays bounded because MatchState replacement is rare (only on new-match / load).
+const empireAggregateCache: WeakMap<
+  MatchState,
+  { readonly cacheKey: string; readonly bundle: EmpireAggregate }
+> = new WeakMap()
+
+export function selectEmpireAggregateCached(state: MatchState): EmpireAggregate {
+  let ownedCount = 0
+  for (const planetState of state.planets.values()) {
+    if (planetState.civId === state.humanCivId) ownedCount += 1
+  }
+  const cacheKey = `${state.currentTick}|${ownedCount}`
+  const existing = empireAggregateCache.get(state)
+  if (existing && existing.cacheKey === cacheKey) return existing.bundle
+  const bundle = selectEmpireAggregate(state)
+  empireAggregateCache.set(state, { cacheKey, bundle })
+  return bundle
+}
+
 export function selectEmpireAggregate(state: MatchState): EmpireAggregate {
   const stocksByResource = new Map<ResourceId, number>()
   const tierCounts: Record<CitizenTier, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }

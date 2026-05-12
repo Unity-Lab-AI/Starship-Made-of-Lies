@@ -4,6 +4,8 @@ import {
   type CivId,
   type Planet,
   type PlanetId,
+  type Settlement,
+  type SettlementId,
   type Tile,
   type TileId,
   type ResourceNode,
@@ -117,6 +119,24 @@ function depositColorHex(resourceId: string): number {
   return DEPOSIT_COLORS[resourceId] ?? 0xffffff
 }
 
+// PHASE 17.13.4 — deterministic settlement boundary tint. Each non-capital settlement gets
+// a distinct hue derived from a hash of its id string. Capital settlements cover every tile
+// on the planet by default so they don't need a border ring — only founded settlements
+// (carved out of the capital) get tinted boundaries so the player can see which tiles each
+// civic center controls. Hash is FNV-ish over the id chars, mapped to HSL(h, 78%, 58%) for
+// vivid, readable hues that stand off the biome ground colors. Output is a 0xRRGGBB int.
+function settlementBorderColorHex(idString: string): number {
+  let hash = 2166136261
+  for (let i = 0; i < idString.length; i++) {
+    hash ^= idString.charCodeAt(i)
+    hash = (hash * 16777619) >>> 0
+  }
+  const hue = (hash % 360) / 360
+  const tmp = new THREE.Color()
+  tmp.setHSL(hue, 0.78, 0.58)
+  return tmp.getHex()
+}
+
 // PHASE 17.L.D.11 (HOTFIX 2026-05-11) — bumped ~20× from prior 1.6-4 values. The old sizes
 // rendered as sub-pixel dots at every camera zoom on the new 400-1600 unit planet radii
 // (planet got bigger in D.5 but deposit sizes never followed). New values size deposits to
@@ -139,6 +159,7 @@ export interface SurfaceLayerHandle {
   readonly planetId: PlanetId
   readonly group: THREE.Group
   readonly tilesMesh: THREE.InstancedMesh
+  readonly settlementBordersMesh: THREE.InstancedMesh
   readonly buildingsGroup: THREE.Group
   readonly depositsGroup: THREE.Group
   readonly hoverHighlight: THREE.Mesh
@@ -148,6 +169,11 @@ export interface SurfaceLayerHandle {
     tiles: ReadonlyArray<Tile>,
     buildingsByTile?: ReadonlyMap<TileId, BuildingDefId>,
   ): void
+  // PHASE 17.13.4 — per-tile colored ring overlay for non-capital settlements. Caller passes
+  // the planet's full settlement collection; each tile in a founded settlement's controlled
+  // set gets a settlement-keyed hue. Capital tiles + tiles in no settlement get the ring
+  // hidden (scale=0). Re-call whenever the settlement set or tile membership changes.
+  syncSettlementBorders(tiles: ReadonlyArray<Tile>, settlements: ReadonlyArray<Settlement>): void
   setHoveredFace(faceIndex: number | null): void
   setVisibleAtDistance(cameraDistance: number, planetSurfaceRadius: number): void
   dispose(): void
@@ -207,6 +233,41 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
   tilesMesh.instanceMatrix.needsUpdate = true
   if (tilesMesh.instanceColor) tilesMesh.instanceColor.needsUpdate = true
   group.add(tilesMesh)
+
+  // PHASE 17.13.4 — settlement boundary tint. Per user verbatim 2026-05-10: "multi-settlement
+  // per planet — players can have unlimited settlements per planet, each with its own
+  // population/inventory/workforce/buildings". Each tile in a founded (non-capital) settlement
+  // gets a colored ring overlay sized just inside its hex; capital tiles + unclaimed tiles
+  // have their per-instance scale zeroed so the ring is invisible. Settlement color is a
+  // deterministic hash of the settlement's id so the same settlement always renders the same
+  // hue across saves / sessions. The mesh sits at lift+0.5 above the surface — above the
+  // (transparent) tile material but below the hover ring + building emojis so the player can
+  // still hover a tile and see what they're picking.
+  const borderGeom = new THREE.RingGeometry(hexScale * 0.7, hexScale * 0.92, 24)
+  const borderMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.6,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  })
+  const settlementBordersMesh = new THREE.InstancedMesh(borderGeom, borderMat, planet.tiles.length)
+  settlementBordersMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+  settlementBordersMesh.userData = { kind: 'surface-settlement-borders', planetId: planet.id }
+  // Initialize all hidden (scale = 0) — sync turns them on as needed.
+  const initialHidden = new THREE.Object3D()
+  initialHidden.scale.setScalar(0)
+  initialHidden.updateMatrix()
+  const initialBorderColor = new THREE.Color(0xffffff)
+  for (let i = 0; i < planet.tiles.length; i++) {
+    settlementBordersMesh.setMatrixAt(i, initialHidden.matrix)
+    settlementBordersMesh.setColorAt(i, initialBorderColor)
+  }
+  settlementBordersMesh.instanceMatrix.needsUpdate = true
+  if (settlementBordersMesh.instanceColor) settlementBordersMesh.instanceColor.needsUpdate = true
+  settlementBordersMesh.renderOrder = 4
+  group.add(settlementBordersMesh)
 
   // Hover highlight (single ring mesh, repositioned per hover)
   const hoverGeom = new THREE.RingGeometry(hexScale * 1.05, hexScale * 1.25, 24)
@@ -323,6 +384,53 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
       tilesMesh.setColorAt(i, tmpColor)
     }
     if (tilesMesh.instanceColor) tilesMesh.instanceColor.needsUpdate = true
+  }
+
+  function syncSettlementBorders(
+    tiles: ReadonlyArray<Tile>,
+    settlements: ReadonlyArray<Settlement>,
+  ): void {
+    // Index tile → settlement (non-capital only). Founded settlements own a proper subset
+    // of the planet; the capital implicitly owns the rest and doesn't need a border ring.
+    const settlementByTileId = new Map<TileId, Settlement>()
+    for (const settlement of settlements) {
+      if (settlement.status === 'capital') continue
+      for (const tileId of settlement.controlledTileIds) {
+        settlementByTileId.set(tileId, settlement)
+      }
+    }
+    const settlementColorBySettlementId = new Map<SettlementId, number>()
+    const borderLift = lift + 0.5
+    for (let i = 0; i < tiles.length; i++) {
+      const tile = tiles[i]!
+      const settlement = settlementByTileId.get(tile.id)
+      if (settlement) {
+        tmpNormal.set(tile.normal.x, tile.normal.y, tile.normal.z)
+        dummy.position.set(
+          tile.centroid.x + tile.normal.x * borderLift,
+          tile.centroid.y + tile.normal.y * borderLift,
+          tile.centroid.z + tile.normal.z * borderLift,
+        )
+        dummy.quaternion.setFromUnitVectors(circleNormal, tmpNormal)
+        dummy.scale.setScalar(1)
+        dummy.updateMatrix()
+        settlementBordersMesh.setMatrixAt(i, dummy.matrix)
+        let hex = settlementColorBySettlementId.get(settlement.id)
+        if (hex === undefined) {
+          hex = settlementBorderColorHex(String(settlement.id))
+          settlementColorBySettlementId.set(settlement.id, hex)
+        }
+        tmpColor.setHex(hex)
+        settlementBordersMesh.setColorAt(i, tmpColor)
+      } else {
+        dummy.position.set(0, 0, 0)
+        dummy.scale.setScalar(0)
+        dummy.updateMatrix()
+        settlementBordersMesh.setMatrixAt(i, dummy.matrix)
+      }
+    }
+    settlementBordersMesh.instanceMatrix.needsUpdate = true
+    if (settlementBordersMesh.instanceColor) settlementBordersMesh.instanceColor.needsUpdate = true
   }
 
   function syncBuildings(
@@ -471,12 +579,14 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
     planetId: planet.id,
     group,
     tilesMesh,
+    settlementBordersMesh,
     buildingsGroup,
     depositsGroup,
     hoverHighlight,
     faceIndexByInstance,
     syncOwnership,
     syncBuildings,
+    syncSettlementBorders,
     setHoveredFace,
     setVisibleAtDistance,
     dispose,

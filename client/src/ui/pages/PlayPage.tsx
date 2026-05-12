@@ -26,7 +26,7 @@ import {
   themeAsCSSVars,
 } from '@smol/shared'
 import { type MatchAISlotConfig, type MatchConfig, type MatchEventLog } from '../../match/MatchSim'
-import { selectEmpireAggregate } from '../../match/empireSelectors'
+import { selectEmpireAggregateCached } from '../../match/empireSelectors'
 import { useMatchSim } from '../../match/useMatchSim'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
@@ -606,7 +606,7 @@ export function PlayPage() {
   // into the shared selectEmpireAggregate helper in client/src/match/empireSelectors.ts.
   // sim.state is a stable ref via useRef; currentTick is the primitive re-memo trigger.
   const empireAggregate = useMemo(
-    () => selectEmpireAggregate(sim.state),
+    () => selectEmpireAggregateCached(sim.state),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [sim.state, sim.state.currentTick],
   )
@@ -1303,6 +1303,13 @@ export function PlayPage() {
               buildingsByPlanet={
                 new Map(
                   [...sim.state.planets.values()].map((p) => [p.planet.id, p.buildingsByTile]),
+                )
+              }
+              settlementsByPlanet={
+                new Map(
+                  [...sim.state.planets.values()].map(
+                    (p) => [p.planet.id, [...p.settlements.values()]] as const,
+                  ),
                 )
               }
               focusPlanetTrigger={focusPlanetTrigger}
@@ -2136,6 +2143,9 @@ export function PlayPage() {
                   tilesTotal={summaryPlanet.planet.tiles.length}
                   tilesUsed={tilesUsed}
                   onOpenInventory={handleOpenPlanetInventory}
+                  settlements={[...summaryPlanet.settlements.values()]}
+                  tiles={summaryPlanet.planet.tiles}
+                  buildingsByTile={summaryPlanet.buildingsByTile}
                 />
               </PanelFrame>
             )
