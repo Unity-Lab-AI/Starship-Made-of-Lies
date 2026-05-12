@@ -1,7 +1,9 @@
 import type { ReactElement } from 'react'
 import {
   type CivId,
+  type MiningShipMode,
   type Planet,
+  type PlanetId,
   type ShipBeaconBroadcast,
   type Theme,
   describeShipStatus,
@@ -17,7 +19,42 @@ interface MiningFleetPanelProps {
   readonly themeByCiv: ReadonlyMap<CivId, Theme>
   readonly beaconsByPlanet: ReadonlyMap<string, ReadonlyArray<ShipBeaconBroadcast>>
   readonly humanCivId: CivId
+  // PHASE 17.L.A.11 — per-ship mode setter. null when the player doesn't own this planet
+  // (foreign mining ships are read-only). Returns true if the mode actually changed.
+  readonly onSetMiningShipMode: (
+    planetId: PlanetId,
+    shipId: string,
+    mode: MiningShipMode,
+  ) => boolean
 }
+
+// PHASE 17.L.A.11 — human-readable mode labels + short explanation per mode for the picker
+// tooltip. Order matches the MiningShipMode union for picker rendering.
+const MINING_MODE_OPTIONS: ReadonlyArray<{
+  id: MiningShipMode
+  label: string
+  short: string
+  hint: string
+}> = [
+  {
+    id: 'shuttle-single',
+    label: 'Shuttle (single)',
+    short: 'Single',
+    hint: 'Cycles to the closest non-depleted deposit and returns. Default. Balanced cargo throughput + ship preservation.',
+  },
+  {
+    id: 'shuttle-multi',
+    label: 'Shuttle (multi)',
+    short: 'Multi',
+    hint: 'Rotates through the 3 closest non-depleted deposits per cycle. Partial-fills each. Better for clustered small deposits + mixed-resource extraction.',
+  },
+  {
+    id: 'oneway',
+    label: 'One-way (sacrifice)',
+    short: 'One-way',
+    hint: 'Ship parks at the deposit + drills directly into planet inventory (bypasses cargo cap). Retires when deposit depletes. Highest sustained extraction; loses the ship.',
+  },
+]
 
 function clampPercent(value: number): number {
   if (!Number.isFinite(value)) return 0
@@ -29,6 +66,9 @@ function clampPercent(value: number): number {
 function renderShipRow(
   beacon: ShipBeaconBroadcast,
   themeByCiv: ReadonlyMap<CivId, Theme>,
+  planetId: PlanetId,
+  ownerIsHuman: boolean,
+  onSetMode: (planetId: PlanetId, shipId: string, mode: MiningShipMode) => boolean,
 ): ReactElement {
   const theme = themeByCiv.get(beacon.civId)
   const civEmoji = theme?.emoji ?? '🏳️'
@@ -88,6 +128,28 @@ function renderShipRow(
         <span className="mining-row__eta">
           Estimated arrival: {beacon.etaTicks > 0 ? `${beacon.etaTicks} ticks` : '—'}
         </span>
+        <span className="mining-row__cycles">Cycles completed: {beacon.cyclesCompleted}</span>
+        {ownerIsHuman ? (
+          <label className="mining-row__mode">
+            <span className="mining-row__mode-label">Mode:</span>
+            <select
+              value={beacon.mode}
+              onChange={(e) => onSetMode(planetId, beacon.shipId, e.target.value as MiningShipMode)}
+              aria-label={`Mining mode for ${beacon.shipName}`}
+              title={MINING_MODE_OPTIONS.find((m) => m.id === beacon.mode)?.hint}
+            >
+              {MINING_MODE_OPTIONS.map((opt) => (
+                <option key={opt.id} value={opt.id} title={opt.hint}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <span className="mining-row__mode-readonly">
+            Mode: {MINING_MODE_OPTIONS.find((m) => m.id === beacon.mode)?.short ?? beacon.mode}
+          </span>
+        )}
       </footer>
     </article>
   )
@@ -110,6 +172,7 @@ export function MiningFleetPanel({
   themeByCiv,
   beaconsByPlanet,
   humanCivId,
+  onSetMiningShipMode,
 }: MiningFleetPanelProps) {
   const entries: PerPlanetDropdownEntry[] = planets.map((planet) => {
     const planetIdStr = String(planet.id)
@@ -120,7 +183,11 @@ export function MiningFleetPanel({
       beacons.length === 0 ? (
         renderEmptyMiningBody(planet)
       ) : (
-        <div className="mining-list">{beacons.map((b) => renderShipRow(b, themeByCiv))}</div>
+        <div className="mining-list">
+          {beacons.map((b) =>
+            renderShipRow(b, themeByCiv, planet.id, isHumanOwned, onSetMiningShipMode),
+          )}
+        </div>
       )
     return {
       planet,

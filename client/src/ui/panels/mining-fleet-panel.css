@@ -108,9 +108,47 @@
 
 .mining-row__foot {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
   justify-content: space-between;
   font-size: 0.85rem;
   color: rgba(190, 220, 210, 0.85);
+  align-items: center;
+}
+
+.mining-row__cycles {
+  color: rgba(190, 220, 210, 0.85);
+}
+
+.mining-row__mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: rgba(190, 220, 210, 0.85);
+}
+
+.mining-row__mode-label {
+  color: rgba(170, 200, 180, 0.85);
+}
+
+.mining-row__mode select {
+  background: rgba(28, 50, 42, 0.85);
+  color: rgba(220, 240, 230, 0.95);
+  border: 1px solid rgba(140, 200, 170, 0.4);
+  border-radius: 4px;
+  padding: 0.15rem 0.35rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.mining-row__mode select:hover {
+  border-color: rgba(140, 200, 170, 0.7);
+}
+
+.mining-row__mode-readonly {
+  color: rgba(170, 200, 180, 0.7);
+  font-style: italic;
 }
 
 .mining-empty {

@@ -23,6 +23,7 @@ import {
   type LootDropId,
   type MineField,
   type MiningShip,
+  type MiningShipMode,
   type MissionObjectiveConfig,
   type MissionObjectiveId,
   type ObservedEnemyPlanet,
@@ -170,6 +171,7 @@ import {
   newFactionSplit,
   newLaunchPad,
   newMiningShip,
+  setMiningShipMode,
   newPlanetBeacon,
   newPlanetInventory,
   abortFlight,
@@ -2971,6 +2973,25 @@ export function setBuildingModeAction(inputs: SetBuildingModeInputs): boolean {
     planet.buildingModes.set(inputs.buildingDefId, inputs.mode)
   }
   return true
+}
+
+// PHASE 17.L.A.11 — Q5 PHASE 17 LOCKED "all three yes" — switch a mining ship's mode at
+// runtime. Active flights snap to the new mode on the next DOCKED→OUTBOUND boundary so the
+// current cycle doesn't get interrupted. Returns true if the mode actually changed; false
+// when the ship is foreign-owned or already in that mode.
+export interface SetMiningShipModeInputs {
+  readonly state: MatchState
+  readonly planetId: PlanetId
+  readonly shipId: string
+  readonly mode: MiningShipMode
+}
+
+export function setMiningShipModeAction(inputs: SetMiningShipModeInputs): boolean {
+  const planet = inputs.state.planets.get(inputs.planetId)
+  if (!planet || planet.civId !== inputs.state.humanCivId) return false
+  const ship = planet.miningShips.get(inputs.shipId)
+  if (!ship) return false
+  return setMiningShipMode(ship, inputs.mode)
 }
 
 // PHASE 17.L.C.4 — per-planet inventory capacity upgrade. Validates planet ownership + the

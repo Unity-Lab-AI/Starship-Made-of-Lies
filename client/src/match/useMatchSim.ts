@@ -64,7 +64,9 @@ import {
   redirectFlightAction,
   refuelReactorFromGodControlAction,
   setBuildingModeAction,
+  setMiningShipModeAction,
   setPlanetQuotaAction,
+  type SetMiningShipModeInputs,
   startResearchAction,
   tickMatch,
   triggerLastHopeManually,
@@ -139,6 +141,10 @@ export interface UseMatchSimResult {
   // PHASE 17.L.A.12 — Q11 LOCKED. Per-building-def mode toggle (auto / paused / disassembly).
   // QuotasPanel building rows invoke this when player flips the dropdown.
   readonly setBuildingMode: (input: Omit<SetBuildingModeInputs, 'state'>) => boolean
+  // PHASE 17.L.A.11 — Q5 PHASE 17 LOCKED "all three yes". Switch a mining ship's mode
+  // (shuttle-single / shuttle-multi / oneway) at runtime. Active flights snap to the new
+  // mode on the next DOCKED→OUTBOUND boundary so the current cycle isn't interrupted.
+  readonly setMiningShipMode: (input: Omit<SetMiningShipModeInputs, 'state'>) => boolean
   // PHASE 17.L.C.4 — planet inventory capacity tier upgrade. PlanetInventoryPanel upgrade
   // button invokes this. Returns the action result (ok + newTier + optional reason for
   // failure) so the UI can render the right toast / disabled-state.
@@ -628,6 +634,11 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     if (ok) setTickCount((n) => n + 1)
     return ok
   }, [])
+  const setMiningShipModeMutator = useCallback((input: Omit<SetMiningShipModeInputs, 'state'>) => {
+    const ok = setMiningShipModeAction({ ...input, state: stateRef.current })
+    if (ok) setTickCount((n) => n + 1)
+    return ok
+  }, [])
 
   // PHASE 17.L.C.4 — planet capacity tier upgrade. Bump tickCount on success so panel
   // re-renders with the new cap + cost-for-next-tier.
@@ -787,6 +798,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     setShipDutyPercent,
     setPlanetQuota,
     setBuildingMode,
+    setMiningShipMode: setMiningShipModeMutator,
     upgradePlanetCapacity,
     manualIndigenousParley,
     createCaravan,

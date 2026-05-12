@@ -41,8 +41,10 @@ import { TrackingCameraPanel } from '../panels/TrackingCameraPanel'
 import { PlanetSummaryPanel } from '../panels/PlanetSummaryPanel'
 import { PlanetInventoryPanel } from '../panels/PlanetInventoryPanel'
 import { SettlementsPanel, type SettlementGroupSnapshot } from '../panels/SettlementsPanel'
-import { ReplayPanel } from '../panels/ReplayPanel'
-import '../panels/ReplayPanel.css'
+// Per user 2026-05-12: no mid-match replay — replay (if it ships at all) is post-match
+// only. ReplayPanel + ReplayPanel.css remain on disk as future scaffolding; the snapshot
+// ring buffer in `client/src/match/replay.ts` continues to capture silently in case
+// post-match review lands. Just no /play toolbar entry / panel mount.
 import { QuotasPanel } from '../panels/QuotasPanel'
 import { ShipBuilderPanel } from '../panels/ShipBuilderPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
@@ -1670,6 +1672,9 @@ export function PlayPage() {
               }
               beaconsByPlanet={beaconsByPlanet}
               humanCivId={sim.state.humanCivId}
+              onSetMiningShipMode={(planetId, shipId, mode) =>
+                sim.setMiningShipMode({ planetId, shipId, mode })
+              }
             />
           </PanelFrame>
         )}
@@ -2016,25 +2021,6 @@ export function PlayPage() {
                 (f) => f.launchingCivId === sim.state.humanCivId,
               )}
               currentTick={sim.state.currentTick}
-            />
-          </PanelFrame>
-        )}
-
-        {/* PHASE 18.3 — Replay buffer viewer. Lists every snapshot the ring buffer has
-            captured this session + a Load button per row that swaps the live MatchState to
-            that past tick via the existing saveLoad pipeline. */}
-        {openPanels.has('replay') && (
-          <PanelFrame
-            panelId="replay"
-            title="Replay Buffer"
-            emoji="📼"
-            onClose={() => closePanel('replay')}
-            variant="centered"
-            width={460}
-          >
-            <ReplayPanel
-              currentTick={sim.state.currentTick}
-              onLoadSnapshot={(index) => sim.loadReplaySnapshotAt(index)}
             />
           </PanelFrame>
         )}
