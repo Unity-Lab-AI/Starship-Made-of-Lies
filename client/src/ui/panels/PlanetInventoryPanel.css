@@ -1,0 +1,204 @@
+/* PHASE 17.L.C.4 — Planet inventory panel CSS. Wider than the summary popup since this lists
+   every resource by category. Cap bars + last-action feedback + upgrade CTA at the bottom. */
+
+.planet-inventory-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 0.5rem 0.25rem;
+  min-width: 520px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.planet-inventory-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+}
+
+.planet-inventory-panel__header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.planet-inventory-panel__tier-line {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.planet-inventory-panel__category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.planet-inventory-panel__category-title {
+  margin: 0;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+.planet-inventory-panel__row-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.planet-inventory-panel__row {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr 6rem;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    'emoji name amount'
+    '. bar bar';
+  align-items: center;
+  gap: 0.15rem 0.5rem;
+  padding: 0.3rem 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.3rem;
+  font-size: 0.83rem;
+}
+
+.planet-inventory-panel__row--full {
+  background: rgba(255, 196, 0, 0.08);
+}
+
+.planet-inventory-panel__emoji {
+  grid-area: emoji;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.planet-inventory-panel__name {
+  grid-area: name;
+  font-weight: 500;
+}
+
+.planet-inventory-panel__amount {
+  grid-area: amount;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+.planet-inventory-panel__bar {
+  grid-area: bar;
+  height: 0.28rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.planet-inventory-panel__bar-fill {
+  height: 100%;
+  background: var(--accent, #6abf69);
+  transition:
+    width 200ms ease-out,
+    background 120ms;
+}
+
+.planet-inventory-panel__row--full .planet-inventory-panel__bar-fill {
+  background: #ffb84d;
+}
+
+.planet-inventory-panel__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+}
+
+.planet-inventory-panel__feedback {
+  margin: 0;
+  font-size: 0.83rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.3rem;
+  background: rgba(106, 191, 105, 0.12);
+  border-left: 3px solid var(--accent, #6abf69);
+}
+
+.planet-inventory-panel__upgrade-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.planet-inventory-panel__upgrade-cost-label {
+  margin: 0;
+  font-size: 0.82rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.planet-inventory-panel__cost-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.3rem;
+}
+
+.planet-inventory-panel__cost-row {
+  display: grid;
+  grid-template-columns: 1.3rem 1fr auto;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.3rem 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.3rem;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.planet-inventory-panel__cost-row--short {
+  background: rgba(255, 80, 80, 0.12);
+  color: #ffb6b6;
+}
+
+.planet-inventory-panel__upgrade-btn {
+  margin-top: 0.2rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: var(--accent, #6abf69);
+  color: var(--accent-text, #0c1014);
+  border: none;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition:
+    background 120ms ease-out,
+    transform 80ms ease-out,
+    opacity 120ms ease-out;
+}
+
+.planet-inventory-panel__upgrade-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.planet-inventory-panel__upgrade-btn:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+.planet-inventory-panel__upgrade-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.55);
+}

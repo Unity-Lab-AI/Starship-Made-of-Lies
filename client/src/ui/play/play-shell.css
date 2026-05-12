@@ -389,6 +389,73 @@
   flex: 1;
 }
 
+/* === PHASE 17.L.B.5 — Panel resize handles === */
+/* Three grips per panel: E-edge (width), S-edge (height), SE-corner (both). The SE corner
+   shows a visible chevron at rest so the player knows the panel can resize; the edges stay
+   invisible until hovered to avoid visual noise. */
+
+.panel-frame__resize {
+  position: absolute;
+  background: transparent;
+  touch-action: none;
+  z-index: 2;
+}
+
+.panel-frame__resize--e {
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: calc(100% - 12px);
+  cursor: ew-resize;
+}
+
+.panel-frame__resize--s {
+  bottom: 0;
+  left: 0;
+  width: calc(100% - 12px);
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.panel-frame__resize--se {
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(212, 161, 58, 0.45) 35%,
+    rgba(212, 161, 58, 0.45) 50%,
+    transparent 50%,
+    transparent 70%,
+    rgba(212, 161, 58, 0.65) 70%,
+    rgba(212, 161, 58, 0.65) 85%,
+    transparent 85%
+  );
+  border-bottom-right-radius: 8px;
+  transition: background 120ms;
+}
+
+.panel-frame__resize--e:hover,
+.panel-frame__resize--s:hover {
+  background: rgba(212, 161, 58, 0.18);
+}
+
+.panel-frame__resize--se:hover {
+  filter: brightness(1.4);
+}
+
+.panel-frame--resizing {
+  user-select: none;
+}
+
+.panel-frame--resizing .panel-frame__body {
+  pointer-events: none;
+}
+
 /* === BUILD PICKER === */
 
 .build-picker__hint,

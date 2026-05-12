@@ -23,6 +23,7 @@ import {
   themeAsCSSVars,
 } from '@smol/shared'
 import { type MatchAISlotConfig, type MatchConfig } from '../../match/MatchSim'
+import { selectEmpireAggregate } from '../../match/empireSelectors'
 import { useMatchSim } from '../../match/useMatchSim'
 import { AIPlayerPanel, type AIPlayerSnapshot } from '../panels/AIPlayerPanel'
 import { BeaconPanel } from '../panels/BeaconPanel'
@@ -34,6 +35,8 @@ import { PlanetEnergyPanel } from '../panels/PlanetEnergyPanel'
 import { LaunchManifestModal, type LaunchManifestSubmission } from '../panels/LaunchManifestModal'
 import { ProductionChainsPanel } from '../panels/ProductionChainsPanel'
 import { TrackingCameraPanel } from '../panels/TrackingCameraPanel'
+import { PlanetSummaryPanel } from '../panels/PlanetSummaryPanel'
+import { PlanetInventoryPanel } from '../panels/PlanetInventoryPanel'
 import { QuotasPanel } from '../panels/QuotasPanel'
 import { ShipBuilderPanel } from '../panels/ShipBuilderPanel'
 import { ColonyShipFlightPanel } from '../panels/ColonyShipFlightPanel'
@@ -51,6 +54,7 @@ import { BootSequencePanel } from '../panels/BootSequencePanel'
 import { GalaxyView } from '../../render/scene/GalaxyView'
 import { BuildPicker } from '../play/BuildPicker'
 import { CampaignPicker } from '../play/CampaignPicker'
+import { DockZoneOverlay } from '../play/DockZoneOverlay'
 import { HUDOverlay } from '../play/HUDOverlay'
 import { PanelFrame } from '../play/PanelFrame'
 import { PanelLayoutProvider } from '../play/PanelLayoutContext'
@@ -193,6 +197,13 @@ export function PlayPage() {
     targetPlanetId: PlanetId
     targetPlanetLabel: string
   } | null>(null)
+
+  // PHASE 17.L.C.4 — planet summary / inventory popup state. summaryPlanetId tracks which
+  // planet the player is inspecting (independent of selectedPlanetId so the build canvas stays
+  // on whatever planet they were on). inventoryFeedback surfaces upgrade-action results into
+  // the PlanetInventoryPanel as a one-line acknowledgement.
+  const [summaryPlanetId, setSummaryPlanetId] = useState<PlanetId | null>(null)
+  const [inventoryFeedback, setInventoryFeedback] = useState<string | null>(null)
 
   // PHASE 16.23: clicked-flight selection state. Set when player clicks a flight cone in
   // GalaxyView; cleared when FlightDetailPanel close button is pressed or overlay click.
@@ -511,47 +522,13 @@ export function PlayPage() {
     return out
   }, [beaconsByPlanet])
 
-  // Empire-wide totals for the telemetry rack POWER slot. sim.state is a stable ref via
-  // useRef; currentTick is the primitive that increments each tick, so it's the re-memo
-  // trigger. eslint-disable below since the dep IS intentional re-memo signal.
-  const empireTotals = useMemo(
-    () => {
-      let resources = 0
-      let pop = 0
-      for (const planetState of sim.state.planets.values()) {
-        if (planetState.civId !== sim.state.humanCivId) continue
-        for (const amount of planetState.inventory.stocks.values()) resources += amount
-        for (const count of Object.values(planetState.population.tierCounts)) {
-          pop += count as number
-        }
-      }
-      return { resources, pop }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sim.state, sim.state.currentTick],
-  )
-
-  // PHASE 16.37 — empire-wide personal-equipment aggregate for LCD slot 11. Sums tools /
-  // weapons / ammo / gas-bottles across every owned planet. Maps UMS UnityInventory
-  // [TOOLS_WEAPONS] + [PERSONAL_AMMO] + [BOTTLES] sections onto SMoL resource ids.
-  const empirePersonalEquip = useMemo(
-    () => {
-      let tools = 0
-      let weapons = 0
-      let ammo = 0
-      let gas = 0
-      for (const planetState of sim.state.planets.values()) {
-        if (planetState.civId !== sim.state.humanCivId) continue
-        for (const [resId, amt] of planetState.inventory.stocks) {
-          const id = String(resId)
-          if (id === 'tools') tools += amt
-          else if (id === 'weapons') weapons += amt
-          else if (id === 'ammunition') ammo += amt
-          else if (id === 'gas') gas += amt
-        }
-      }
-      return { tools, weapons, ammo, gas }
-    },
+  // PHASE 17.L.C.8 — single source of truth for every empire-wide aggregate. TopToolbar +
+  // TelemetryRack + PlanetSummary all consume this so the numbers never disagree. Was two
+  // separate inline aggregator loops + a duplicate aggregator inside TopToolbar — refactored
+  // into the shared selectEmpireAggregate helper in client/src/match/empireSelectors.ts.
+  // sim.state is a stable ref via useRef; currentTick is the primitive re-memo trigger.
+  const empireAggregate = useMemo(
+    () => selectEmpireAggregate(sim.state),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [sim.state, sim.state.currentTick],
   )
@@ -696,6 +673,38 @@ export function PlayPage() {
     // STARTING PLANET FOCUSES IT AND ZOOMS TO IT"*. The nonce changes on every selection so
     // re-clicking the same planet always re-fires the tween.
     setFocusPlanetTrigger({ planetId: id, nonce: Date.now() })
+    // PHASE 17.L.C.4 — also open the Planet Summary popup so the player sees per-tier pop +
+    // main resources at top + the 🗄 Open Inventory button. Inventory feedback is cleared so
+    // a stale "insufficient resources" warning from another planet doesn't carry across.
+    setSummaryPlanetId(id)
+    setInventoryFeedback(null)
+    setOpenPanels((prev) => {
+      const next = new Set(prev)
+      next.add('planetSummary')
+      return next
+    })
+  }, [])
+
+  const handleUpgradePlanetCapacity = useCallback((): void => {
+    if (!summaryPlanetId) return
+    const result = sim.upgradePlanetCapacity({ planetId: summaryPlanetId })
+    if (result.ok) {
+      setInventoryFeedback(
+        `🔧 Storage upgraded to Tier T${result.newTier}. Every per-resource cap multiplied by 1.6×.`,
+      )
+    } else {
+      setInventoryFeedback(
+        `⛔ Upgrade refused — ${result.reason ?? 'unknown'}. Stockpile more resources or you're already at max tier.`,
+      )
+    }
+  }, [sim, summaryPlanetId])
+
+  const handleOpenPlanetInventory = useCallback((): void => {
+    setOpenPanels((prev) => {
+      const next = new Set(prev)
+      next.add('planetInventory')
+      return next
+    })
   }, [])
 
   const handleResetTo = (themeId: ThemeId): void => {
@@ -882,13 +891,15 @@ export function PlayPage() {
     showTargetingPanel,
   ])
 
-  const topToolbarPlanets = useMemo(
+  // PHASE 17.L.C.8 — tooltip-only per-planet rows (no population needed anymore — the toolbar
+  // gets every aggregate from `empireAggregate`). Just enough data so each resource chip can
+  // surface a "where is this resource?" tooltip on hover.
+  const topToolbarTooltips = useMemo(
     () =>
       ownedPlanets.map((p) => ({
         planetId: p.planet.id,
         planetLabel: `${p.planet.biome.emoji} ${String(p.planet.id)}`,
         inventory: p.inventory,
-        population: p.population,
       })),
     [ownedPlanets],
   )
@@ -975,7 +986,8 @@ export function PlayPage() {
         <TopToolbar
           humanCivId={sim.state.humanCivId}
           humanCivLabel={humanCivState.displayName}
-          ownedPlanets={topToolbarPlanets}
+          empire={empireAggregate}
+          ownedPlanetTooltips={topToolbarTooltips}
           currentTick={sim.state.currentTick}
         />
         {/* PHASE 16.13.9: 3D GalaxyView is the always-on /play canvas. Legacy 2D TilePlacementGrid
@@ -1097,17 +1109,21 @@ export function PlayPage() {
 
         <Toasts toasts={toasts} onDismiss={dismissToast} />
 
+        {/* PHASE 17.L.C.6 — dock zone overlay. Renders left / right / bottom dock ghost
+            rectangles whenever any panel is being dragged. Drop near a zone → snap. */}
+        <DockZoneOverlay />
+
         <TelemetryRack
           activePads={activePads}
           miningBeacons={allHumanBeacons}
           activeFlights={[...sim.state.flights.values()]}
-          resourceTotals={empireTotals.resources}
-          populationTotal={empireTotals.pop}
+          resourceTotals={empireAggregate.resourcesTotal}
+          populationTotal={empireAggregate.populationTotal}
           empireTechs={humanCivState.empire.researchedTechs.size}
           currentTick={sim.state.currentTick}
           activePlanetInventory={activePlanet.inventory}
           sparklines={sim.state.sparklines}
-          empirePersonalEquip={empirePersonalEquip}
+          empirePersonalEquip={empireAggregate.personalEquip}
           activePlanetBuildings={activePlanet.buildingsByDef}
           techProductionMultiplier={techEffects.buildingProductionMultiplier}
         />
@@ -1587,6 +1603,73 @@ export function PlayPage() {
             </div>
           </div>
         ) : null}
+
+        {/* PHASE 17.L.C.4 — Planet Summary popup. Opens whenever the player clicks a planet
+            row in PlanetPicker (also fires focus-and-zoom). Renders if summaryPlanetId AND
+            the 'planetSummary' panel is open. Closing the panel keeps summaryPlanetId so
+            re-opening from another path resumes on the same planet. */}
+        {openPanels.has('planetSummary') &&
+          summaryPlanetId &&
+          (() => {
+            const summaryPlanet = sim.state.planets.get(summaryPlanetId)
+            if (!summaryPlanet || summaryPlanet.civId !== sim.state.humanCivId) return null
+            const buildingTotal = [...summaryPlanet.buildingsByDef.values()].reduce(
+              (s, n) => s + n,
+              0,
+            )
+            const tilesUsed = summaryPlanet.buildingsByTile.size + summaryPlanet.launchPads.size
+            return (
+              <PanelFrame
+                panelId="planetSummary"
+                title="Planet Summary"
+                emoji="🪐"
+                onClose={() => closePanel('planetSummary')}
+                variant="centered"
+                width={440}
+              >
+                <PlanetSummaryPanel
+                  planetLabel={String(summaryPlanet.planet.id)}
+                  biomeEmoji={summaryPlanet.planet.biome.emoji}
+                  biomeName={summaryPlanet.planet.biome.name}
+                  population={summaryPlanet.population}
+                  inventory={summaryPlanet.inventory}
+                  inventoryCapacityTier={summaryPlanet.inventoryCapacityTier}
+                  buildingCountTotal={buildingTotal}
+                  tilesTotal={summaryPlanet.planet.tiles.length}
+                  tilesUsed={tilesUsed}
+                  onOpenInventory={handleOpenPlanetInventory}
+                />
+              </PanelFrame>
+            )
+          })()}
+
+        {/* PHASE 17.L.C.4 — Planet Inventory popup (upgradeable). Opens from the 🗄 button
+            inside PlanetSummaryPanel. Renders the per-resource cap bars + the
+            scaling-cost upgrade button. */}
+        {openPanels.has('planetInventory') &&
+          summaryPlanetId &&
+          (() => {
+            const invPlanet = sim.state.planets.get(summaryPlanetId)
+            if (!invPlanet || invPlanet.civId !== sim.state.humanCivId) return null
+            return (
+              <PanelFrame
+                panelId="planetInventory"
+                title="Planet Inventory"
+                emoji="🗄"
+                onClose={() => closePanel('planetInventory')}
+                variant="centered"
+                width={620}
+              >
+                <PlanetInventoryPanel
+                  planetLabel={String(invPlanet.planet.id)}
+                  inventory={invPlanet.inventory}
+                  inventoryCapacityTier={invPlanet.inventoryCapacityTier}
+                  onUpgradeCapacity={handleUpgradePlanetCapacity}
+                  lastUpgradeFeedback={inventoryFeedback}
+                />
+              </PanelFrame>
+            )
+          })()}
 
         {/* PHASE 17.L.A.7+A.8 — Launch Manifest Modal. Opens when player clicks Launch in
             ShipBuildPanel; closes on cancel or confirm-then-launch. Looks up the pad's planet

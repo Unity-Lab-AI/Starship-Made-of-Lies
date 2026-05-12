@@ -46,6 +46,9 @@ import {
   startResearchAction,
   tickMatch,
   triggerLastHopeManually,
+  upgradePlanetCapacityAction,
+  type UpgradePlanetCapacityInputs,
+  type UpgradePlanetCapacityResult,
 } from './MatchSim'
 
 const DEFAULT_TICK_MS = 200
@@ -114,6 +117,12 @@ export interface UseMatchSimResult {
   // PHASE 17.L.A.12 — Q11 LOCKED. Per-building-def mode toggle (auto / paused / disassembly).
   // QuotasPanel building rows invoke this when player flips the dropdown.
   readonly setBuildingMode: (input: Omit<SetBuildingModeInputs, 'state'>) => boolean
+  // PHASE 17.L.C.4 — planet inventory capacity tier upgrade. PlanetInventoryPanel upgrade
+  // button invokes this. Returns the action result (ok + newTier + optional reason for
+  // failure) so the UI can render the right toast / disabled-state.
+  readonly upgradePlanetCapacity: (
+    input: Omit<UpgradePlanetCapacityInputs, 'state'>,
+  ) => UpgradePlanetCapacityResult
   // PHASE 17.L.A.13 — Q12 LOCKED. Manual save + load callbacks. Auto-save runs internally
   // based on config.saveMode. saveMatchNow returns true on successful localStorage write.
   readonly saveMatchNow: () => boolean
@@ -429,6 +438,17 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     return ok
   }, [])
 
+  // PHASE 17.L.C.4 — planet capacity tier upgrade. Bump tickCount on success so panel
+  // re-renders with the new cap + cost-for-next-tier.
+  const upgradePlanetCapacity = useCallback(
+    (input: Omit<UpgradePlanetCapacityInputs, 'state'>): UpgradePlanetCapacityResult => {
+      const result = upgradePlanetCapacityAction({ ...input, state: stateRef.current })
+      if (result.ok) setTickCount((n) => n + 1)
+      return result
+    },
+    [],
+  )
+
   // PHASE 17.L.A.13 — Q12 LOCKED. Save / load callbacks. saveMatchNow returns boolean for
   // toast feedback; loadSavedMatch swaps stateRef + bumps tickCount so every panel re-renders
   // with the restored data.
@@ -479,6 +499,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     setShipDutyPercent,
     setPlanetQuota,
     setBuildingMode,
+    upgradePlanetCapacity,
     saveMatchNow,
     loadSavedMatch,
     clearSavedMatch: clearSavedMatchCallback,

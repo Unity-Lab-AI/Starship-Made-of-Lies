@@ -1,12 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  type CitizenTier,
-  type CivId,
-  type PlanetId,
-  type ResourceId,
-  CITIZEN_TIERS,
-  RESOURCES,
-} from '@smol/shared'
+import { type CivId, type PlanetId, type ResourceId, CITIZEN_TIERS, RESOURCES } from '@smol/shared'
+import { type EmpireAggregate } from '../../match/empireSelectors'
 import './top-toolbar.css'
 
 interface PlanetInventoryLike {
@@ -14,48 +8,39 @@ interface PlanetInventoryLike {
   readonly stocks: ReadonlyMap<ResourceId, number>
 }
 
-interface PlanetPopulationLike {
-  readonly planetId: PlanetId
-  readonly tierCounts: Record<CitizenTier, number>
-}
-
-interface OwnedPlanetSnapshot {
+interface OwnedPlanetTooltipRow {
   readonly planetId: PlanetId
   readonly planetLabel: string
   readonly inventory: PlanetInventoryLike
-  readonly population: PlanetPopulationLike
 }
 
 interface TopToolbarProps {
   readonly humanCivId: CivId
   readonly humanCivLabel: string
-  readonly ownedPlanets: ReadonlyArray<OwnedPlanetSnapshot>
+  // PHASE 17.L.C.8 — single-source aggregate computed in PlayPage via selectEmpireAggregate.
+  // TopToolbar used to walk per-planet snapshots itself and compute totals; that duplicated
+  // the loop that PlayPage's empireTotals + empirePersonalEquip were also running. Now every
+  // consumer reads the same precomputed bundle so the toolbar resource count + the Telemetry
+  // POWER slot + the new PlanetSummary panel never disagree.
+  readonly empire: EmpireAggregate
+  // Per-planet rows kept around solely for the tooltip on each resource chip (so the player can
+  // see which planet holds how much of a resource without opening a panel). PlayPage passes a
+  // light prop with just inventory.stocks + label, no population needed here anymore.
+  readonly ownedPlanetTooltips: ReadonlyArray<OwnedPlanetTooltipRow>
   readonly currentTick: number
 }
 
 const DISPLAYED_RESOURCES: ReadonlyArray<ResourceId> = RESOURCES.map((r) => r.id)
 const NONZERO_THRESHOLD = 0.5
 
-export function TopToolbar({ humanCivLabel, ownedPlanets, currentTick }: TopToolbarProps) {
-  const aggregateStocks = useMemo(() => {
-    const total = new Map<ResourceId, number>()
-    for (const planet of ownedPlanets) {
-      for (const [resourceId, amount] of planet.inventory.stocks) {
-        total.set(resourceId, (total.get(resourceId) ?? 0) + amount)
-      }
-    }
-    return total
-  }, [ownedPlanets])
-
-  const aggregateTiers = useMemo(() => {
-    const total: Record<CitizenTier, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-    for (const planet of ownedPlanets) {
-      for (const tier of [1, 2, 3, 4, 5] as CitizenTier[]) {
-        total[tier] += planet.population.tierCounts[tier] ?? 0
-      }
-    }
-    return total
-  }, [ownedPlanets])
+export function TopToolbar({
+  humanCivLabel,
+  empire,
+  ownedPlanetTooltips,
+  currentTick,
+}: TopToolbarProps) {
+  const aggregateStocks = empire.stocksByResource
+  const aggregateTiers = empire.tierCounts
 
   const prevStocksRef = useRef<Map<ResourceId, number>>(new Map())
   const prevTickRef = useRef<number>(currentTick)
@@ -80,12 +65,7 @@ export function TopToolbar({ humanCivLabel, ownedPlanets, currentTick }: TopTool
     prevTickRef.current = currentTick
   }, [aggregateStocks, currentTick])
 
-  const totalPopulation =
-    aggregateTiers[1] +
-    aggregateTiers[2] +
-    aggregateTiers[3] +
-    aggregateTiers[4] +
-    aggregateTiers[5]
+  const totalPopulation = empire.populationTotal
 
   const visibleResources = useMemo(() => {
     return RESOURCES.filter((def) => (aggregateStocks.get(def.id) ?? 0) > 0)
@@ -104,7 +84,7 @@ export function TopToolbar({ humanCivLabel, ownedPlanets, currentTick }: TopTool
           const delta = deltas.get(def.id) ?? 0
           const deltaClass =
             delta > 0 ? 'top-toolbar__delta--up' : delta < 0 ? 'top-toolbar__delta--down' : ''
-          const perPlanet = ownedPlanets
+          const perPlanet = ownedPlanetTooltips
             .map((p) => ({ id: p.planetLabel, qty: p.inventory.stocks.get(def.id) ?? 0 }))
             .filter((row) => row.qty > 0)
             .sort((a, b) => b.qty - a.qty)
@@ -138,7 +118,7 @@ export function TopToolbar({ humanCivLabel, ownedPlanets, currentTick }: TopTool
       <div className="top-toolbar__citizens" role="list" aria-label="Citizen Tiers">
         <div
           className="top-toolbar__citizen-total"
-          title={`Total population across ${ownedPlanets.length} planet${ownedPlanets.length === 1 ? '' : 's'}`}
+          title={`Total population across ${empire.ownedPlanetCount} planet${empire.ownedPlanetCount === 1 ? '' : 's'}`}
         >
           <span aria-hidden>👥</span>
           <span>{formatNumber(totalPopulation)}</span>

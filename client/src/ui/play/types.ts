@@ -27,6 +27,13 @@ export type PanelId =
   | 'productionChains'
   // PHASE 17.L.A.9 — Q13 LOCKED. Top-down tracking-cam minimap + telemetry for one flight.
   | 'trackingCamera'
+  // PHASE 17.L.C.4 — Planet summary popup (per-tier citizen counts + main resources at top +
+  // 🗄 Open Inventory button). Opens from the 📍 Planets panel "View" button or the galaxy
+  // planet-click in selectedPlanetId workflow.
+  | 'planetSummary'
+  // PHASE 17.L.C.4 — Planet inventory popup with upgradeable per-resource storage caps.
+  // Opens via the button inside PlanetSummaryPanel.
+  | 'planetInventory'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -59,6 +66,8 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'techDetail', emoji: '🔍', label: 'Tech Detail' },
   { id: 'productionChains', emoji: '🔗', label: 'Production Chains' },
   { id: 'trackingCamera', emoji: '📹', label: 'Tracking Camera' },
+  { id: 'planetSummary', emoji: '🪐', label: 'Planet Summary' },
+  { id: 'planetInventory', emoji: '🗄', label: 'Planet Inventory' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },
