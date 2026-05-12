@@ -746,10 +746,15 @@ export function PlayPage() {
         ])
         return
       }
+      // PHASE 17.L.A.11 — Q5 LOCKED. Mining mode + assignedTargets thread through from the
+      // LaunchManifestModal's Mining Mode picker. For non-mining variants submission.flightKind
+      // stays 'oneway' so legacy behavior is unchanged.
       const ok = sim.launchShipFromPad({
         padId: req.padId,
         targetPlanetId: req.targetPlanetId,
         targetingMode: currentTargetingMode,
+        flightKind: submission.flightKind,
+        assignedTargets: submission.assignedTargets,
       })
       if (!ok) {
         setToasts((current) => [
@@ -1460,6 +1465,16 @@ export function PlayPage() {
             }
           }
           const manifestPad = manifestPlanet?.launchPads.get(launchManifestRequest.padId) ?? null
+          // PHASE 17.L.A.11 — Q5 LOCKED. Multi-planet rotation candidate list for the Mining
+          // Mode picker. Every non-home reachable planet shows up; the current target is
+          // flagged so the player knows which row was the original pick.
+          const miningRotationCandidates = [...sim.state.planets.values()]
+            .filter((p) => p.planet.id !== manifestPlanet?.planet.id)
+            .map((p) => ({
+              id: p.planet.id,
+              label: `${p.planet.biome.emoji} ${String(p.planet.id)}`,
+              isCurrentTarget: p.planet.id === launchManifestRequest.targetPlanetId,
+            }))
           return (
             <LaunchManifestModal
               open={true}
@@ -1469,6 +1484,7 @@ export function PlayPage() {
               targetPlanetLabel={launchManifestRequest.targetPlanetLabel}
               onCancel={handleManifestCancel}
               onConfirm={handleManifestConfirm}
+              miningRotationCandidates={miningRotationCandidates}
             />
           )
         })()}

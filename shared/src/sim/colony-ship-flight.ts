@@ -62,8 +62,43 @@ export type FlightPhase =
   // (per user verbatim) — drifts on last-known velocity through toroidal space until it
   // collides with a planet (applyDetonationAoE at impact) or burns out after MAX_HULK_TICKS.
   | 'EMPTY_HULK'
+  // PHASE 17.L.A.11 — shuttle hold-state. Set by tickShuttleLeg when an OUTBOUND shuttle
+  // flight reaches its target — the ship "lands and mines" for extractingTicksRemaining ticks
+  // before flipping to INBOUND. tickFlight returns the arc-end position with no progression
+  // during EXTRACTING so the ship visually sits at the target.
+  | 'EXTRACTING'
 
 export type ColonyShipOutcome = PadOutcome
+
+// PHASE 17.L.A.11 — Q5 PHASE 17 LOCKED ("all three yes"). Three mining-flight modes:
+//
+//   • 'oneway'         — fire-and-forget. Ship completes its arc, lands at target, mines
+//                        whatever cargo it can extract, and stays there (or drifts). Player
+//                        recovers later via a separate retrieval flight if they want.
+//                        Default for all non-mining colony-ship variants — they fly oneway
+//                        by nature (suicide ships / weapon platforms / final colony ships).
+//   • 'shuttle-single' — auto-recall loop. Ship reaches target, EXTRACTING countdown loads
+//                        cargo, then flips to INBOUND back to home, deposits cargo, then
+//                        relaunches OUTBOUND to the same target. Cycles indefinitely until
+//                        the player aborts. UMS UnityBeacon shuttle-cycle parity.
+//   • 'shuttle-multi'  — multi-planet rotation. Same auto-recall loop but cycles between
+//                        `assignedTargets[]` round-robin. UMS multi-planet route parity.
+//
+// FlightKind is set at launch via the LaunchManifestModal's Mining Mode picker (visible
+// only when the loaded variant is SHIP_MINING). Non-mining variants always launch oneway.
+export type FlightKind = 'oneway' | 'shuttle-single' | 'shuttle-multi'
+
+// PHASE 17.L.A.11 — shuttle leg discriminator. null for oneway flights (the leg concept
+// doesn't apply). For shuttle flights, tracks which half of the cycle the ship is in:
+//
+//   • OUTBOUND   — flying from home to current target. Normal CLIMB → COAST → TARGET phases.
+//   • EXTRACTING — at the target, mining ore. extractingTicksRemaining counts down. When 0,
+//                  cargo is loaded and the leg flips to INBOUND.
+//   • INBOUND    — flying from target back to home. Normal CLIMB → COAST → TARGET phases
+//                  but with the arc reversed. On terminal "hit" at home, cargo deposits to
+//                  the home inventory + next cycle starts (OUTBOUND to the same or next
+//                  assigned target depending on flightKind).
+export type ShuttleLeg = 'OUTBOUND' | 'EXTRACTING' | 'INBOUND' | null
 
 // PHASE 16.33 — UMS 6 targeting modes per SMOL_REFERENCE_MISSILE.md UnityMissile.cs spec.
 // Each mode reflects a different guidance package that biases the per-flight dispersion radius:
@@ -245,8 +280,39 @@ export interface ColonyShipFlight {
   // crew side. Map<ResourceId, number> — sum-of-values gated by def.payload.cargoCapacity on
   // the pad side (loadCargoFromInventory). On TARGET_HIT outcomes the cargo deposits into the
   // target planet inventory (colonization bootstrap). On other outcomes (signal-loss / abort /
-  // intercept / crash) the cargo is lost — same way as the citizens.
-  readonly cargoAboard: ReadonlyMap<ResourceId, number>
+  // intercept / crash) the cargo is lost — same way as the citizens. Also mutated by shuttle
+  // mining (PHASE 17.L.A.11) — extraction at target fills, deposit at home empties.
+  cargoAboard: Map<ResourceId, number>
+  // PHASE 17.L.A.11 — Q5 PHASE 17 LOCKED ("all three yes"). Three mining-flight modes —
+  // see FlightKind doc-comment above. Defaults to 'oneway' for legacy launches that don't
+  // set this (every non-mining variant + AI/auto-fire paths). Player-driven mining launches
+  // pick the mode via the LaunchManifestModal Mining Mode picker.
+  readonly flightKind: FlightKind
+  // PHASE 17.L.A.11 — home planet id for shuttle modes. Mirrors fromPlanetId at launch but
+  // stays stable across OUTBOUND ↔ INBOUND leg flips (the fresh-flight construction swaps
+  // fromPlanetId per leg). Cargo deposits land here on INBOUND arrival. Set equal to
+  // fromPlanetId for oneway flights (effectively unused).
+  readonly homePlanetId: PlanetId
+  // PHASE 17.L.A.11 — list of mining targets for shuttle modes. Always non-empty for shuttle
+  // flights — single-target shuttles get `[target]` (idx always 0); multi-target shuttles get
+  // `[target1, target2, ...]` with idx advancing per cycle. Empty for oneway flights (the
+  // single target lives in targetPlanetId / trueTargetPosition).
+  readonly assignedTargets: ReadonlyArray<PlanetId>
+  // PHASE 17.L.A.11 — current position in the assignedTargets rotation. Always 0 for oneway
+  // and shuttle-single. shuttle-multi increments wrapping mod assignedTargets.length when a
+  // home-return completes.
+  currentAssignedTargetIdx: number
+  // PHASE 17.L.A.11 — shuttle leg discriminator — see ShuttleLeg doc-comment above. null
+  // for oneway flights. shuttle flights start as 'OUTBOUND' and cycle through the legs.
+  shuttleLeg: ShuttleLeg
+  // PHASE 17.L.A.11 — counter for completed home-return cycles. Bumps each time the ship
+  // makes it back home with cargo deposited. Used by the MiningFleetPanel for the "Cycles:
+  // N" readout and by the AI to evaluate "should I recall this shuttle".
+  shuttleCyclesCompleted: number
+  // PHASE 17.L.A.11 — countdown ticks while shuttleLeg === 'EXTRACTING'. Decrements by 1
+  // per tick. When it hits 0, cargo is loaded onto cargoAboard + the leg flips to INBOUND.
+  // Constant duration regardless of variant for v1; tuned by EXTRACTING_TICKS.
+  extractingTicksRemaining: number
 }
 
 export interface FlightCreateOptions {
@@ -277,6 +343,17 @@ export interface FlightCreateOptions {
   // for legacy AI / auto-fire paths that don't surface the LaunchManifestModal. Snapshot copy
   // (caller's Map is not retained) so subsequent pad resets don't mutate the in-flight cargo.
   readonly cargoAboard?: ReadonlyMap<ResourceId, number>
+  // PHASE 17.L.A.11 — mining flight mode. Defaults to 'oneway' when omitted so existing
+  // AI/auto-fire/colony-ship launches stay oneway. Player-driven mining launches via the
+  // LaunchManifestModal supply shuttle-single or shuttle-multi.
+  readonly flightKind?: FlightKind
+  // PHASE 17.L.A.11 — planet rotation for shuttle modes. Defaults to empty array (oneway).
+  // For shuttle-single, expect a single-element array. For shuttle-multi, 2+ entries.
+  readonly assignedTargets?: ReadonlyArray<PlanetId>
+  // PHASE 17.L.A.11 — stable home planet id for shuttle modes. Falls back to fromPlanetId
+  // when omitted. tickShuttleLeg uses this to figure out where the INBOUND leg flies back to
+  // since fromPlanetId flips per leg as the ship cycles.
+  readonly homePlanetId?: PlanetId
 }
 
 export const BASE_TRAVEL_SPEED_PER_TICK = 5
@@ -394,9 +471,23 @@ export function newColonyShipFlight(opts: FlightCreateOptions): ColonyShipFlight
     targetingMode,
     // PHASE 17.L.A.7 — snapshot the cargo manifest into a fresh Map so the pad can be
     // recycled (cargoLoaded.clear() on next print) without disturbing the in-flight ship's
-    // cargo state. ReadonlyMap exposure (interface side) prevents downstream tick logic
-    // from mutating; the underlying instance is still a Map for fast iteration.
+    // cargo state. The Map is mutable on the flight (shuttle mining mutates it on extraction
+    // + deposit cycles per PHASE 17.L.A.11); the launch-time snapshot prevents that.
     cargoAboard: opts.cargoAboard ? new Map(opts.cargoAboard) : new Map(),
+    // PHASE 17.L.A.11 — mining-flight 3-mode discriminator. Defaults to 'oneway' so every
+    // legacy AI / auto-fire / non-mining variant stays oneway. shuttle modes start with
+    // shuttleLeg = 'OUTBOUND' so the post-arrival recycle handler knows to flip to EXTRACTING.
+    // homePlanetId defaults to fromPlanetId (the launch planet stays as home across legs).
+    flightKind: opts.flightKind ?? 'oneway',
+    assignedTargets: opts.assignedTargets ? [...opts.assignedTargets] : [],
+    currentAssignedTargetIdx: 0,
+    shuttleLeg:
+      opts.flightKind === 'shuttle-single' || opts.flightKind === 'shuttle-multi'
+        ? 'OUTBOUND'
+        : null,
+    shuttleCyclesCompleted: 0,
+    extractingTicksRemaining: 0,
+    homePlanetId: opts.homePlanetId ?? opts.fromPlanetId,
   }
 }
 
@@ -492,6 +583,29 @@ export function tickFlight(flight: ColonyShipFlight): FlightTickResult {
       distToTarget: vec3Distance(frozenPos, flight.trueTargetPosition),
       closingSpeed: 0,
       signalLost: true,
+    }
+  }
+
+  // PHASE 17.L.A.11 — EXTRACTING hold-state. Shuttle flight has landed at its target and is
+  // mining for `extractingTicksRemaining` ticks. tickShuttleLeg owns the countdown + INBOUND
+  // transition; tickFlight just freezes the arc position so the visual doesn't drift. Life
+  // support / power / crew starvation still drain — a shuttle stranded at a hostile mining
+  // target can still lose its crew, but the ship doesn't budge from the target until tickShuttleLeg
+  // flips it INBOUND with a fresh return arc.
+  if (flight.phase === 'EXTRACTING') {
+    const arcEndPos = pointAlongArc(flight.arc, 1)
+    tickLifeSupportAndCrew(flight)
+    tickPowerSystem(flight)
+    return {
+      phaseChanged: false,
+      newPhase: flight.phase,
+      currentPosition: arcEndPos,
+      progress: 1,
+      outcome: null,
+      altitude: vec3Length(arcEndPos),
+      distToTarget: vec3Distance(arcEndPos, flight.trueTargetPosition),
+      closingSpeed: 0,
+      signalLost: false,
     }
   }
 
@@ -923,4 +1037,173 @@ export function computeDetonationAoE(flight: ColonyShipFlight): FlightDetonation
   const radius = 80 + Math.sqrt(totalEnergy) * 14
   const magnitude = totalEnergy * (def.suicideShip ? 1.4 : 1.0)
   return { radius, magnitude, fuelEnergy, payloadEnergy, citizenEnergy }
+}
+
+// ============================================================================
+// PHASE 17.L.A.11 — Three-mode mining (Q5 PHASE 17 LOCKED: "all three yes")
+// ============================================================================
+//
+// Three flight modes governed by ColonyShipFlight.flightKind:
+//   - 'oneway'         : default, no shuttle behavior; existing tickFlight handles normally
+//   - 'shuttle-single' : auto-recall to ONE target indefinitely
+//   - 'shuttle-multi'  : auto-recall rotating through assignedTargets[] round-robin
+//
+// State machine (only runs for non-oneway flights):
+//   OUTBOUND ──[ phase reaches DETONATE at target ]──► EXTRACTING
+//   EXTRACTING ──[ extractingTicksRemaining hits 0 ]──► INBOUND (fresh flight, arc reversed)
+//   INBOUND ──[ phase reaches DETONATE at home ]──► OUTBOUND (fresh flight, advance target)
+//
+// Cargo flow:
+//   - At EXTRACTING completion: cargoAboard fills with `def.payload.cargoCapacity` of the
+//     ctx-supplied extractedCargoResource (the target planet's primary mineable).
+//   - At INBOUND home-arrival: cargoToDeposit returns the full cargoAboard Map for caller
+//     to merge into the home planet's inventory.
+
+const EXTRACTING_DURATION_TICKS = 60
+
+export interface ShuttleLegTickContext {
+  // Galactic-space position of the home planet (cargo deposits here on INBOUND arrival).
+  readonly homePlanetPosition: Vec3
+  // Galactic-space position of the NEXT target for the upcoming leg. For shuttle-single this
+  // is always the same as flight.trueTargetPosition (when going OUTBOUND) or the home (when
+  // INBOUND). For shuttle-multi, the caller looks up the next planet in the rotation. Null
+  // when the next target is unavailable (planet destroyed / conquered / unreachable).
+  readonly nextOutboundTargetPosition: Vec3 | null
+  // Planet id matching nextOutboundTargetPosition. Threaded through so the fresh flight's
+  // targetPlanetId is correct for downstream display + fog-of-war. Null when target gone.
+  readonly nextOutboundTargetPlanetId: PlanetId | null
+  // PRNG bound to the next leg's signal-loss seed so dispersion stays deterministic per cycle.
+  readonly nextLegSignalLossSeed: number
+  // Primary cargo resource extracted at the current target. Caller picks via biome / resource
+  // node availability. Null = no mineable resource available → cycle returns empty.
+  readonly extractedCargoResource: ResourceId | null
+}
+
+export interface ShuttleLegTickResult {
+  // When non-null, caller MUST swap state.flights[flight.id] = freshFlight. Carries the same
+  // flight id so existing flight-tracking subscribers keep working. Returned on every leg
+  // transition that requires a new arc (OUTBOUND→EXTRACTING is in-place; EXTRACTING→INBOUND
+  // and INBOUND→OUTBOUND return a fresh flight).
+  readonly freshFlight: ColonyShipFlight | null
+  // When non-null, caller deposits these resources into the home planet inventory. Fires
+  // on the INBOUND→OUTBOUND transition (deposit happens at home-arrival, before relaunch).
+  readonly cargoToDeposit: ReadonlyMap<ResourceId, number> | null
+  // True when the shuttle cycle terminated (target unreachable / shuttle-multi targets empty).
+  // Caller leaves the flight in its terminal DETONATE state.
+  readonly terminated: boolean
+}
+
+const SHUTTLE_NULL_RESULT: ShuttleLegTickResult = {
+  freshFlight: null,
+  cargoToDeposit: null,
+  terminated: false,
+}
+
+// PHASE 17.L.A.11 — shuttle leg post-process. Call AFTER tickFlight per-tick. No-op for
+// oneway flights. Drives the OUTBOUND → EXTRACTING → INBOUND → OUTBOUND cycle for shuttle
+// modes. Returns either { freshFlight, cargoToDeposit, terminated } so the caller can
+// swap flight + deposit cargo.
+export function tickShuttleLeg(
+  flight: ColonyShipFlight,
+  ctx: ShuttleLegTickContext,
+): ShuttleLegTickResult {
+  if (flight.flightKind === 'oneway') return SHUTTLE_NULL_RESULT
+
+  const m = flight as { -readonly [K in keyof ColonyShipFlight]: ColonyShipFlight[K] }
+
+  // EXTRACTING countdown — once the ship "lands" at target, it spends N ticks mining.
+  if (flight.shuttleLeg === 'EXTRACTING') {
+    if (flight.extractingTicksRemaining > 0) {
+      m.extractingTicksRemaining = flight.extractingTicksRemaining - 1
+      return SHUTTLE_NULL_RESULT
+    }
+    // Extraction done. Fill cargo + spawn INBOUND fresh flight.
+    const def = flightDef(flight)
+    const cap = def.payload.cargoCapacity
+    if (ctx.extractedCargoResource && cap > 0) {
+      const existing = flight.cargoAboard.get(ctx.extractedCargoResource) ?? 0
+      flight.cargoAboard.set(ctx.extractedCargoResource, existing + cap)
+    }
+    const targetPos = flight.trueTargetPosition
+    const fresh = newColonyShipFlight({
+      id: flight.id,
+      variantId: flight.variantId,
+      launchingCivId: flight.launchingCivId,
+      fromPlanetId: flight.targetPlanetId,
+      targetPlanetId: flight.homePlanetId,
+      fromPosition: targetPos,
+      targetPosition: ctx.homePlanetPosition,
+      travelRadius: 1000,
+      citizensAboard: flight.crewAlive,
+      signalLossSeed: ctx.nextLegSignalLossSeed,
+      flightKind: flight.flightKind,
+      assignedTargets: flight.assignedTargets,
+      homePlanetId: flight.homePlanetId,
+      cargoAboard: flight.cargoAboard,
+      ...(flight.customBuild ? { customBuild: flight.customBuild } : {}),
+      ...(flight.selfDestructInstalled ? { selfDestructInstalled: true } : {}),
+      targetingMode: flight.targetingMode,
+    })
+    const fm = fresh as { -readonly [K in keyof ColonyShipFlight]: ColonyShipFlight[K] }
+    fm.shuttleLeg = 'INBOUND'
+    fm.shuttleCyclesCompleted = flight.shuttleCyclesCompleted
+    fm.currentAssignedTargetIdx = flight.currentAssignedTargetIdx
+    return { freshFlight: fresh, cargoToDeposit: null, terminated: false }
+  }
+
+  // OUTBOUND arrival at target → in-place flip to EXTRACTING (clears terminal phase).
+  if (flight.shuttleLeg === 'OUTBOUND' && flight.phase === 'DETONATE') {
+    m.shuttleLeg = 'EXTRACTING'
+    m.extractingTicksRemaining = EXTRACTING_DURATION_TICKS
+    m.phase = 'TARGET'
+    m.outcome = null
+    return SHUTTLE_NULL_RESULT
+  }
+
+  // INBOUND arrival at home → deposit cargo + spawn next OUTBOUND fresh flight (or terminate).
+  if (flight.shuttleLeg === 'INBOUND' && flight.phase === 'DETONATE') {
+    const cargoToDeposit = new Map(flight.cargoAboard)
+    flight.cargoAboard.clear()
+    m.shuttleCyclesCompleted = flight.shuttleCyclesCompleted + 1
+
+    // Advance multi-target idx — pick next planet in rotation. For shuttle-single, idx stays 0.
+    let nextIdx = flight.currentAssignedTargetIdx
+    if (flight.flightKind === 'shuttle-multi' && flight.assignedTargets.length > 0) {
+      nextIdx = (flight.currentAssignedTargetIdx + 1) % flight.assignedTargets.length
+    }
+    m.currentAssignedTargetIdx = nextIdx
+
+    if (!ctx.nextOutboundTargetPosition || !ctx.nextOutboundTargetPlanetId) {
+      // Next target gone — terminate the shuttle cycle. Caller leaves the flight in DETONATE.
+      m.shuttleLeg = null
+      return { freshFlight: null, cargoToDeposit, terminated: true }
+    }
+
+    const fresh = newColonyShipFlight({
+      id: flight.id,
+      variantId: flight.variantId,
+      launchingCivId: flight.launchingCivId,
+      fromPlanetId: flight.homePlanetId,
+      targetPlanetId: ctx.nextOutboundTargetPlanetId,
+      fromPosition: ctx.homePlanetPosition,
+      targetPosition: ctx.nextOutboundTargetPosition,
+      travelRadius: 1000,
+      citizensAboard: flight.crewAlive,
+      signalLossSeed: ctx.nextLegSignalLossSeed,
+      flightKind: flight.flightKind,
+      assignedTargets: flight.assignedTargets,
+      homePlanetId: flight.homePlanetId,
+      cargoAboard: new Map(),
+      ...(flight.customBuild ? { customBuild: flight.customBuild } : {}),
+      ...(flight.selfDestructInstalled ? { selfDestructInstalled: true } : {}),
+      targetingMode: flight.targetingMode,
+    })
+    const fm = fresh as { -readonly [K in keyof ColonyShipFlight]: ColonyShipFlight[K] }
+    fm.shuttleLeg = 'OUTBOUND'
+    fm.shuttleCyclesCompleted = flight.shuttleCyclesCompleted + 1
+    fm.currentAssignedTargetIdx = nextIdx
+    return { freshFlight: fresh, cargoToDeposit, terminated: false }
+  }
+
+  return SHUTTLE_NULL_RESULT
 }

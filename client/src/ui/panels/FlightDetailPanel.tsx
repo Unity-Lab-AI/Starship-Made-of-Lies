@@ -73,6 +73,8 @@ function phaseDescription(phase: ColonyShipFlight['phase']): string {
       return 'out of signal range — LASER_HOME beacon active, help never coming'
     case 'EMPTY_HULK':
       return 'crew dead, no auto-guidance — drifting on last velocity through wrapped space'
+    case 'EXTRACTING':
+      return 'landed at target — mining cargo before return leg'
   }
 }
 

@@ -19,6 +19,9 @@ const PHASE_LABEL: Readonly<Record<FlightPhase, string>> = {
   // EMPTY_HULK = crew dead, drifting on last velocity through wrapped space.
   STRANDED: 'Stranded — LASER_HOME',
   EMPTY_HULK: 'Empty Hulk — Drifting',
+  // PHASE 17.L.A.11 — shuttle hold-state. Ship has landed at its mining target and is
+  // extracting cargo for a countdown of ticks before flipping to INBOUND return leg.
+  EXTRACTING: 'Extracting — Mining Cargo',
 }
 
 const PHASE_GLYPH: Readonly<Record<FlightPhase, string>> = {
@@ -32,6 +35,7 @@ const PHASE_GLYPH: Readonly<Record<FlightPhase, string>> = {
   CRASH_LANDED: '💥',
   STRANDED: '🛰️',
   EMPTY_HULK: '🪦',
+  EXTRACTING: '⛏️',
 }
 
 export function ColonyShipFlightPanel({ flights, onAfterAction }: ColonyShipFlightPanelProps) {
