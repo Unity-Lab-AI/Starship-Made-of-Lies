@@ -2583,6 +2583,77 @@ export function redirectFlightAction(inputs: RedirectFlightInputs): boolean {
   return true
 }
 
+// PHASE 17.L.C.1 — mid-flight reactor refuel via god-control. Endgame-tier per user verbatim
+// 2026-05-11 "god control refuel sound like endgaem tech" — gated on the same
+// TECH_GOD_CONTROL (forbidden tier-4) + BLDG_GOD_CONTROL combo that powers redirect. Player
+// picks any owned planet as the radioactive source; the planet pays def.reactorFuelAmount of
+// def.reactorFuelType from its inventory; the in-flight ship's reactorFuelRemaining refills
+// back to reactorFuelAtLaunch. Reactor variants only — solar/battery flights return false.
+// Closes the loop with PHASE 17.L.A.1 reactor-fuel drain → STRANDED: now the player has an
+// (expensive, endgame) way to rescue a stranded reactor ship instead of watching it die.
+export interface RefuelReactorInputs {
+  readonly state: MatchState
+  readonly flightId: string
+  readonly sourcePlanetId: PlanetId
+}
+
+export function refuelReactorFromGodControlAction(inputs: RefuelReactorInputs): boolean {
+  const flight = inputs.state.flights.get(inputs.flightId)
+  if (!flight) return false
+  // Only human-launched flights; AI doesn't use god control (yet).
+  if (flight.launchingCivId !== inputs.state.humanCivId) return false
+  // Reactor variants only — solar/battery flights have reactorFuelAtLaunch = 0 per A.1.
+  if (flight.reactorFuelAtLaunch <= 0) return false
+  // Reject terminal phases. STRANDED + EMPTY_HULK are NOT terminal — refueling a stranded
+  // reactor ship is exactly the rescue use case this action exists for.
+  if (
+    flight.phase === 'DETONATE' ||
+    flight.phase === 'INTERCEPTED' ||
+    flight.phase === 'ABORTED' ||
+    flight.phase === 'CRASH_LANDED' ||
+    flight.phase === 'EMPTY_HULK'
+  ) {
+    return false
+  }
+  // God-control endgame gate: TECH_GOD_CONTROL researched + BLDG_GOD_CONTROL installed.
+  const civState = inputs.state.civs.get(flight.launchingCivId)
+  if (!civState) return false
+  if (!civState.empire.researchedTechs.has(TECH_GOD_CONTROL)) return false
+  let hasGodControlBuilding = false
+  for (const planetId of civState.empire.controlledPlanetIds) {
+    const planet = inputs.state.planets.get(planetId)
+    if (planet && (planet.buildingsByDef.get(BLDG_GOD_CONTROL) ?? 0) > 0) {
+      hasGodControlBuilding = true
+      break
+    }
+  }
+  if (!hasGodControlBuilding) return false
+  // Source planet must be owned by the human civ + have enough of the radioactive.
+  const sourcePlanet = inputs.state.planets.get(inputs.sourcePlanetId)
+  if (!sourcePlanet || sourcePlanet.civId !== inputs.state.humanCivId) return false
+  const def = getColonyShipDef(flight.variantId)
+  if (!def.reactorFuelType || def.reactorFuelAmount <= 0) return false
+  const available = stockOf(sourcePlanet.inventory, def.reactorFuelType)
+  if (available < def.reactorFuelAmount) {
+    pushEvent(inputs.state, {
+      atTick: inputs.state.currentTick,
+      civId: civState.civId,
+      kind: 'launch',
+      message: `🕹️ God-control refuel aborted: ${String(sourcePlanet.planet.id)} needs ${def.reactorFuelAmount} ${String(def.reactorFuelType)} (have ${available})`,
+    })
+    return false
+  }
+  consumeResource(sourcePlanet.inventory, def.reactorFuelType, def.reactorFuelAmount)
+  flight.reactorFuelRemaining = flight.reactorFuelAtLaunch
+  pushEvent(inputs.state, {
+    atTick: inputs.state.currentTick,
+    civId: civState.civId,
+    kind: 'launch',
+    message: `🕹️ God-control refueled reactor on ${String(flight.id)} (consumed ${def.reactorFuelAmount} ${String(def.reactorFuelType)} from ${String(sourcePlanet.planet.id)})`,
+  })
+  return true
+}
+
 // PHASE 16.31 — convenience check exposed to UI so the FlightDetailPanel "Select for Redirect"
 // button + GalaxyView right-click handler can gate visibility without re-computing the check
 // each frame. Returns true when the human civ has god control researched AND installed.

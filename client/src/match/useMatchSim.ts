@@ -26,6 +26,7 @@ import {
   launchShipFromPadAction,
   placeBuildingAction,
   redirectFlightAction,
+  refuelReactorFromGodControlAction,
   startResearchAction,
   tickMatch,
   triggerLastHopeManually,
@@ -68,6 +69,10 @@ export interface UseMatchSimResult {
   // PHASE 16.31: gate check exposed to UI so the FlightDetailPanel can show / hide the
   // "Select for Redirect" button + the PlayPage hint banner.
   readonly godControlReady: boolean
+  // PHASE 17.L.C.1 — endgame-tier god-control reactor refuel. Same gate as redirect.
+  // Consumes def.reactorFuelAmount of def.reactorFuelType from the flight's source planet
+  // and refills reactorFuelRemaining back to reactorFuelAtLaunch. Returns true on success.
+  readonly refuelReactor: (flightId: string) => boolean
   // PHASE 17.J.9 — set per-tier ship-duty allocation percentage on a specific planet. The
   // CitizensPanel slider invokes this on every change. Persisted in PlanetPopulation.
   readonly setShipDutyPercent: (
@@ -295,6 +300,21 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
 
   const godControlReady = isHumanGodControlReady(stateRef.current)
 
+  // PHASE 17.L.C.1 — endgame-tier god-control reactor refuel. Same gate as redirect
+  // (TECH_GOD_CONTROL forbidden tier-4 + BLDG_GOD_CONTROL). v1 uses the flight's source
+  // planet as the radioactive source by default; future revisions can add a planet-picker.
+  const refuelReactor = useCallback((flightId: string): boolean => {
+    const flight = stateRef.current.flights.get(flightId)
+    if (!flight) return false
+    const ok = refuelReactorFromGodControlAction({
+      state: stateRef.current,
+      flightId,
+      sourcePlanetId: flight.fromPlanetId,
+    })
+    if (ok) setTickCount((n) => n + 1)
+    return ok
+  }, [])
+
   // PHASE 17.J.9 — apply a slider change immediately. Doesn't bump tickCount because the
   // slider drag would fire 20× per second; volunteer-pool readouts derive on next natural tick.
   const setShipDutyPercent = useCallback(
@@ -331,6 +351,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     abortFlightById,
     redirectFlight,
     godControlReady,
+    refuelReactor,
     setShipDutyPercent,
   }
 }

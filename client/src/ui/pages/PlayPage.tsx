@@ -1295,6 +1295,7 @@ export function PlayPage() {
                   onClose={() => setSelectedFlightId(null)}
                   godControlReady={sim.godControlReady}
                   onSelectForRedirect={(fid) => setRedirectModeFlightId(fid)}
+                  onRefuelReactor={(fid) => sim.refuelReactor(fid)}
                 />
               )
             })()
