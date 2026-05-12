@@ -30,18 +30,33 @@ const buildingEmojiTextureCache = new Map<string, THREE.CanvasTexture>()
 function getEmojiTexture(emoji: string): THREE.CanvasTexture {
   const cached = buildingEmojiTextureCache.get(emoji)
   if (cached) return cached
+  // HOTFIX 17.L.D.19 — canvas size bumped 128 -> 256 for crispness at hex-filling sprite
+  // sizes (D.16 sized sprites to hexScale * 1.55 = up to 248 world units; the 128-pixel
+  // texture was undersampled at that scale).
   const canvas = document.createElement('canvas')
-  canvas.width = 128
-  canvas.height = 128
+  const SIZE = 256
+  canvas.width = SIZE
+  canvas.height = SIZE
   const ctx = canvas.getContext('2d')!
-  ctx.fillStyle = 'rgba(0,0,0,0)'
-  ctx.fillRect(0, 0, 128, 128)
-  ctx.font = '96px sans-serif'
+  // HOTFIX 17.L.D.19 — clearRect (not fillRect with transparent) for the reset. Previous
+  // code set fillStyle='rgba(0,0,0,0)' which is transparent black; on Windows Firefox + some
+  // browsers, when fillText runs LATER with that same fillStyle, the color-emoji glyph alpha
+  // gets multiplied by 0 → glyph renders fully transparent. The sprite then sees an empty
+  // texture and falls back to the SpriteMaterial's default white color (the "microscopic
+  // white rectangle" the user reported). clearRect is the correct API for resetting to
+  // transparent + fillStyle must be opaque before fillText so emoji glyphs render with
+  // their embedded colors at full alpha.
+  ctx.clearRect(0, 0, SIZE, SIZE)
+  ctx.font = `${Math.floor(SIZE * 0.78)}px sans-serif`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(emoji, 64, 70)
+  // Opaque white fillStyle. Color-emoji glyphs use their embedded color regardless of
+  // fillStyle's RGB, but the alpha must be 1 or the glyph won't show.
+  ctx.fillStyle = 'rgba(255,255,255,1)'
+  ctx.fillText(emoji, SIZE / 2, SIZE * 0.55)
   const tex = new THREE.CanvasTexture(canvas)
   tex.anisotropy = 4
+  tex.needsUpdate = true
   buildingEmojiTextureCache.set(emoji, tex)
   return tex
 }
