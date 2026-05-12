@@ -23,6 +23,7 @@ import {
   loadMatchFromStorage,
   saveMatchToStorage,
 } from './saveLoad'
+import { recordReplaySnapshot } from './replay'
 import { applyAchievementUnlocks } from './achievementStorage'
 import { applyMatchScores } from './leaderboardStorage'
 import {
@@ -212,6 +213,10 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     const interval = DEFAULT_TICK_MS / speed
     const handle = setInterval(() => {
       tickMatch(stateRef.current)
+      // PHASE 18.3 — replay buffer capture. recordReplaySnapshot is a no-op except on the
+      // 60-tick interval boundary, so this stays cheap on every tick. Buffer is bounded so
+      // memory doesn't grow unbounded in a 10-24hr match.
+      recordReplaySnapshot(stateRef.current, initialConfig.seed)
       // PHASE 17.1.6 — drive the salvo coord on every sim tick (not real-time). When the
       // coord exists, run tickSalvo against the planet's pads with launchShipFromPadAction
       // wired as the launchFn so STAGGERED_LAUNCH actually creates flights. Auto-fire-loop
@@ -292,6 +297,10 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
       setTickCount((n) => n + 1)
     }, interval)
     return () => clearInterval(handle)
+    // PHASE 18.3 — initialConfig.seed is stable across the match lifetime (it's captured
+    // from the initial MatchConfig); excluding it from deps keeps the interval handle from
+    // tearing down/re-creating every tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, speed])
 
   // PHASE 17.L.A.13 — Q12 LOCKED. Auto-save interval driven by config.saveMode. 'off' /
