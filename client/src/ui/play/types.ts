@@ -38,6 +38,10 @@ export type PanelId =
   // grouped by planet. Read-only inspection in v1; active-settlement-switch lands with
   // 17.13.6 aggregate-vs-detail toggle when per-settlement state lives in sim.
   | 'settlements'
+  // PHASE 17.12.7 — Hall of Champions in-game wiring. Real localStorage-backed leaderboards
+  // (NEVER mock per the no-mock-player-data LAW). Match-end scores persist + the panel
+  // surfaces top-10 per global category.
+  | 'hallOfChampions'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -73,6 +77,7 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'planetSummary', emoji: '🪐', label: 'Planet Summary' },
   { id: 'planetInventory', emoji: '🗄', label: 'Planet Inventory' },
   { id: 'settlements', emoji: '🏘', label: 'Settlements' },
+  { id: 'hallOfChampions', emoji: '🏛️', label: 'Hall of Champions' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },

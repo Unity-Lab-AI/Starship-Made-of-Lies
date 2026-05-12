@@ -18,6 +18,7 @@ import {
   saveMatchToStorage,
 } from './saveLoad'
 import { applyAchievementUnlocks } from './achievementStorage'
+import { applyMatchScores } from './leaderboardStorage'
 import {
   type BuildShipFromBlueprintInputs,
   type BuildShipInputs,
@@ -183,14 +184,21 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
   const lastPersistedMatchIdRef = useRef<string | null>(null)
   useEffect(() => {
     if (stateRef.current.phase !== 'ENDED') return
-    if (stateRef.current.achievementUnlocksThisMatch.length === 0) return
     if (lastPersistedMatchIdRef.current === stateRef.current.matchId) return
+    // Persist achievement unlocks + leaderboard scores together so re-renders past match-end
+    // don't double-write. Single guard ref per match keyed on matchId.
     lastPersistedMatchIdRef.current = stateRef.current.matchId
-    applyAchievementUnlocks(
-      stateRef.current.achievementUnlocksThisMatch,
-      stateRef.current.currentTick,
-      stateRef.current.matchId,
-    )
+    if (stateRef.current.achievementUnlocksThisMatch.length > 0) {
+      applyAchievementUnlocks(
+        stateRef.current.achievementUnlocksThisMatch,
+        stateRef.current.currentTick,
+        stateRef.current.matchId,
+      )
+    }
+    // PHASE 17.12.7 — persist match-end scores into the Hall of Champions store.
+    if (stateRef.current.matchEndScoresPending.length > 0) {
+      applyMatchScores(stateRef.current.matchEndScoresPending)
+    }
   }, [tickCount])
 
   const togglePause = useCallback(() => setRunning((r) => !r), [])

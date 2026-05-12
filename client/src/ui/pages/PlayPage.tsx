@@ -56,6 +56,8 @@ import { GalaxyView } from '../../render/scene/GalaxyView'
 import { BuildPicker } from '../play/BuildPicker'
 import { getAudioSystem } from '../../audio/AudioSystem'
 import { type SfxEventId } from '../../audio/sfxManifest'
+import { loadGlobalCategorySnapshots } from '../../match/leaderboardStorage'
+import { HallOfChampionsPanel } from '../panels/HallOfChampionsPanel'
 import { CampaignPicker } from '../play/CampaignPicker'
 import { DockZoneOverlay } from '../play/DockZoneOverlay'
 import { HUDOverlay } from '../play/HUDOverlay'
@@ -1790,6 +1792,26 @@ export function PlayPage() {
             </div>
           </div>
         ) : null}
+
+        {/* PHASE 17.12.7 — Hall of Champions in-game panel. localStorage-backed leaderboards
+            (NEVER mock per the no-mock-player-data LAW). Match-end scores persist + the panel
+            surfaces top-10 per global category. Refresh on panel open via sim.tickCount dep so
+            the player sees their latest scores reflected after match end. */}
+        {openPanels.has('hallOfChampions') && (
+          <PanelFrame
+            panelId="hallOfChampions"
+            title="Hall of Champions"
+            emoji="🏛️"
+            onClose={() => closePanel('hallOfChampions')}
+            variant="centered"
+            width={620}
+          >
+            <HallOfChampionsPanel
+              boards={loadGlobalCategorySnapshots(10)}
+              highlightCategoryId="mostPlanetsControlled"
+            />
+          </PanelFrame>
+        )}
 
         {/* PHASE 17.13.5 — Settlements picker. Read-only list of every settlement on every
             owned planet, grouped by planet. Active-settlement-switch lands in 17.13.6 when
