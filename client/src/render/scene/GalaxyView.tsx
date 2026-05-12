@@ -410,17 +410,18 @@ export function GalaxyView({
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
       raycaster.setFromCamera(ndc, cameraState.camera)
 
-      // PHASE 16.23: in-flight ship cone selection. Try flight pick FIRST so a click on a
-      // visible flight cone opens the FlightDetailPanel before falling through to surface /
-      // planet picks. Per user verbatim "ships should be selectable" + UMS UnityMissile.cs
-      // UNITY_MSL broadcast spec.
-      const flightCones: THREE.Object3D[] = []
-      for (const entry of flightArcHandle.entries.values()) flightCones.push(entry.progressDot)
-      if (flightCones.length > 0) {
-        const flightHits = raycaster.intersectObjects(flightCones, false)
+      // PHASE 16.23 + PHASE 17.12 (ship-emoji sprite swap): in-flight ship-emoji sprite
+      // selection. Try flight pick FIRST so a click on a visible flight sprite opens the
+      // FlightDetailPanel before falling through to surface / planet picks. Sprites support
+      // raycast intersection out-of-the-box; the userData.kind = 'flight' contract from the
+      // sprite-construction site is what we filter on here.
+      const flightSprites: THREE.Object3D[] = []
+      for (const entry of flightArcHandle.entries.values()) flightSprites.push(entry.progressSprite)
+      if (flightSprites.length > 0) {
+        const flightHits = raycaster.intersectObjects(flightSprites, false)
         const fHit = flightHits[0]
         if (
-          fHit?.object instanceof THREE.Mesh &&
+          fHit?.object instanceof THREE.Sprite &&
           fHit.object.userData.kind === 'flight' &&
           onSelectFlightRef.current
         ) {

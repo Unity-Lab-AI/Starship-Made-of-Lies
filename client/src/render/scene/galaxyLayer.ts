@@ -758,8 +758,42 @@ export function syncDetonationFlashes(
 export interface FlightArcEntry {
   readonly flightId: string
   readonly line: THREE.Line
-  readonly progressDot: THREE.Mesh
+  // PHASE 17.12 (user verbatim 2026-05-12 "remember ship emojis for the ships once launched")
+  // — the in-flight marker is now a billboarded emoji sprite carrying the colony-ship
+  // variant's emoji (🚀 / 💣 / 🛡️ / 🛰️ / etc) instead of a generic civ-colored cone. Sprite
+  // always faces the camera so the emoji is always legible regardless of viewing angle.
+  readonly progressSprite: THREE.Sprite
   readonly arcPoints: THREE.Vector3[]
+  // Cache the emoji used to build this sprite's texture so we can detect variant changes
+  // (e.g. flight phase transitions that swap the variant key) without rebuilding every frame.
+  emojiKey: string
+}
+
+// PHASE 17.12 (ship-emoji directive) — texture cache for variant emojis. One CanvasTexture
+// per unique emoji glyph, reused across every flight sprite that ships that variant. Same
+// 256-px canvas + opaque-alpha fillStyle pattern as surfaceLayer's building-emoji helper so
+// color-emoji glyphs render correctly on Firefox / Chrome / Safari.
+const flightEmojiTextureCache = new Map<string, THREE.CanvasTexture>()
+
+function getFlightEmojiTexture(emoji: string): THREE.CanvasTexture {
+  const cached = flightEmojiTextureCache.get(emoji)
+  if (cached) return cached
+  const canvas = document.createElement('canvas')
+  const SIZE = 256
+  canvas.width = SIZE
+  canvas.height = SIZE
+  const ctx = canvas.getContext('2d')!
+  ctx.clearRect(0, 0, SIZE, SIZE)
+  ctx.font = `${Math.floor(SIZE * 0.78)}px sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = 'rgba(255,255,255,1)'
+  ctx.fillText(emoji, SIZE / 2, SIZE * 0.55)
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.anisotropy = 4
+  tex.needsUpdate = true
+  flightEmojiTextureCache.set(emoji, tex)
+  return tex
 }
 
 export interface FlightArcLayerHandle {
@@ -778,8 +812,11 @@ export function buildFlightArcLayer(galaxyCenter: THREE.Vector3): FlightArcLayer
       for (const entry of entries.values()) {
         entry.line.geometry.dispose()
         ;(entry.line.material as THREE.Material).dispose()
-        entry.progressDot.geometry.dispose()
-        ;(entry.progressDot.material as THREE.Material).dispose()
+        // PHASE 17.12 — sprites carry the shared CanvasTexture from the module-level cache.
+        // We dispose the SpriteMaterial (per-flight) but NOT the texture (shared across all
+        // flights of the same variant — disposed on full layer teardown via cache iteration
+        // if needed; entry-level disposal doesn't touch textures).
+        ;(entry.progressSprite.material as THREE.Material).dispose()
       }
       entries.clear()
     },
@@ -835,6 +872,11 @@ export function syncFlightArcs(
     const flightDef = resolveFlightDef(flight)
     const isCounter = flightDef.canIntercept
 
+    // PHASE 17.12 — variant emoji drives the in-flight sprite glyph. resolveFlightDef carries
+    // emoji on the def (🚀 / 💣 / 🛡️ / 🛰️ / 🔬 / etc); fallback ⚙️ for the unlikely case where
+    // a flight predates a def update.
+    const variantEmoji = flightDef.emoji ?? '⚙️'
+
     let entry = handle.entries.get(flightIdStr)
     if (!entry) {
       const points = arcPoints(
@@ -855,63 +897,69 @@ export function syncFlightArcs(
       const line = new THREE.Line(geom, mat)
       line.computeLineDistances()
       handle.group.add(line)
-      // PHASE 16.x complete-3D-world-space: progress marker is now a directional cone
-      // (oriented along arc tangent), not a sphere. Reads as a ship traveling its arc.
-      // PHASE 16.29: counters use a smaller cone (interceptor missile, not colony ship).
-      const coneRadius = isCounter ? 8 : 14
-      const coneHeight = isCounter ? 22 : 36
-      const dotGeom = new THREE.ConeGeometry(coneRadius, coneHeight, 6)
-      const dotMat = new THREE.MeshStandardMaterial({
-        color: civColor,
-        emissive: civColor,
-        emissiveIntensity: isCounter ? 1.1 : 0.7,
-        roughness: 0.35,
-        metalness: 0.4,
+      // PHASE 17.12 — per user verbatim 2026-05-12 "remember ship emojis for the ships once
+      // launched". Replace the generic civ-colored cone with a billboarded sprite carrying
+      // the variant's emoji glyph. Sprite always faces the camera so the emoji is legible
+      // from any angle. Civ color rides on the SpriteMaterial.color tint — color-emoji glyphs
+      // ignore the tint (their embedded color wins) so the visual reads as "🚀 in faction
+      // dash trail" without compromising emoji legibility.
+      const spriteSize = isCounter ? 40 : 64
+      const spriteMat = new THREE.SpriteMaterial({
+        map: getFlightEmojiTexture(variantEmoji),
+        color: 0xffffff,
+        depthTest: false,
+        transparent: true,
       })
-      const dot = new THREE.Mesh(dotGeom, dotMat)
-      // PHASE 16.23: tag the cone mesh so GalaxyView's raycaster can pick it up and fire
-      // onSelectFlight(flightId) → opens FlightDetailPanel with crew/supplies/fuel/speed
-      // per UMS UnityMissile.cs UNITY_MSL broadcast spec.
-      dot.userData = { kind: 'flight', flightId: flightIdStr }
-      handle.group.add(dot)
-      entry = { flightId: flightIdStr, line, progressDot: dot, arcPoints: points }
+      const sprite = new THREE.Sprite(spriteMat)
+      sprite.scale.set(spriteSize, spriteSize, 1)
+      sprite.renderOrder = 10
+      // PHASE 16.23 raycast contract — userData lets GalaxyView's raycaster identify clicks
+      // on the in-flight marker and fire onSelectFlight(flightId) for the FlightDetailPanel.
+      sprite.userData = { kind: 'flight', flightId: flightIdStr }
+      handle.group.add(sprite)
+      entry = {
+        flightId: flightIdStr,
+        line,
+        progressSprite: sprite,
+        arcPoints: points,
+        emojiKey: variantEmoji,
+      }
       handle.entries.set(flightIdStr, entry)
     } else {
-      // Update arc if planet positions changed (rare); just update color if needed
+      // Update arc color if civ color changed (rare); swap sprite texture if variant emoji
+      // changed (e.g. a phase transition that re-resolved the def).
       const mat = entry.line.material as THREE.LineDashedMaterial
       if (mat.color.getHex() !== civColor) mat.color.setHex(civColor)
-      const dotMat = entry.progressDot.material as THREE.MeshStandardMaterial
-      if (dotMat.color.getHex() !== civColor) {
-        dotMat.color.setHex(civColor)
-        dotMat.emissive.setHex(civColor)
+      if (entry.emojiKey !== variantEmoji) {
+        const spriteMat = entry.progressSprite.material as THREE.SpriteMaterial
+        spriteMat.map = getFlightEmojiTexture(variantEmoji)
+        spriteMat.needsUpdate = true
+        entry.emojiKey = variantEmoji
       }
     }
-    // Place progress dot along arc + orient along tangent so the cone "flies forward"
+    // Place sprite along arc — sprites always face the camera so we don't need tangent
+    // rotation. Phase-tinted material opacity for terminal phases (REENTRY/TARGET/DETONATE
+    // pulse, INTERCEPTED/ABORTED/CRASH_LANDED dim) replaces the emissiveIntensity pulse the
+    // cone used.
     const segIdx = Math.floor(progress * (entry.arcPoints.length - 1))
     const seg = entry.arcPoints[Math.min(entry.arcPoints.length - 1, segIdx)]
     if (seg) {
-      entry.progressDot.position.copy(seg)
-      const nextSeg = entry.arcPoints[Math.min(entry.arcPoints.length - 1, segIdx + 1)] ?? seg
-      if (nextSeg !== seg) {
-        const dir = nextSeg.clone().sub(seg).normalize()
-        // Cone's local +Y points "up"; align +Y with travel direction
-        const up = new THREE.Vector3(0, 1, 0)
-        const q = new THREE.Quaternion().setFromUnitVectors(up, dir)
-        entry.progressDot.quaternion.copy(q)
-      }
+      entry.progressSprite.position.copy(seg)
     }
-    // Phase-tinted emissive pulse for terminal phases (REENTRY/TARGET/DETONATE).
-    const dotMat = entry.progressDot.material as THREE.MeshStandardMaterial
+    const spriteMat = entry.progressSprite.material as THREE.SpriteMaterial
     const phase = flight.phase
     if (phase === 'TARGET' || phase === 'DETONATE') {
-      dotMat.emissiveIntensity = 1.1 + 0.4 * Math.sin(performance.now() / 100)
+      spriteMat.opacity = 0.85 + 0.15 * Math.sin(performance.now() / 100)
     } else if (phase === 'REENTRY') {
-      dotMat.emissiveIntensity = 0.9 + 0.2 * Math.sin(performance.now() / 200)
+      spriteMat.opacity = 0.9 + 0.1 * Math.sin(performance.now() / 200)
     } else if (phase === 'INTERCEPTED' || phase === 'ABORTED' || phase === 'CRASH_LANDED') {
-      dotMat.emissiveIntensity = 0.25
+      spriteMat.opacity = 0.4
     } else {
-      dotMat.emissiveIntensity = 0.7
+      spriteMat.opacity = 1.0
     }
+    // civColor remains tied to the dash line (so the player sees whose ship is whose); the
+    // sprite stays white-tinted so the emoji renders its embedded colors at full saturation.
+    void civColor
 
     // Animate dash offset for "moving forward" feel
     const mat = entry.line.material as THREE.LineDashedMaterial
@@ -924,11 +972,12 @@ export function syncFlightArcs(
   for (const [id, entry] of handle.entries) {
     if (alive.has(id)) continue
     handle.group.remove(entry.line)
-    handle.group.remove(entry.progressDot)
+    handle.group.remove(entry.progressSprite)
     entry.line.geometry.dispose()
     ;(entry.line.material as THREE.Material).dispose()
-    entry.progressDot.geometry.dispose()
-    ;(entry.progressDot.material as THREE.Material).dispose()
+    // Sprite has no per-flight geometry to dispose; SpriteMaterial.map is the shared cache
+    // texture which lives module-level (don't dispose). Only the SpriteMaterial itself.
+    ;(entry.progressSprite.material as THREE.Material).dispose()
     handle.entries.delete(id)
   }
 }
