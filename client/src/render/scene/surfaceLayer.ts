@@ -145,21 +145,22 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
   const hexScale = TILE_HEX_SCALE_BY_TIER[planet.sizeTier]
   const tileGeom = new THREE.CircleGeometry(hexScale, 6)
   // CircleGeometry sits in the XY plane with normal +Z. We rotate per-instance so +Z aligns with tile.normal.
-  // HOTFIX 17.L.D.15 — emissiveIntensity on the tile material so surface tiles glow with
-  // their biome color even when no directional light reaches the camera-facing hemisphere.
-  // Per user verbatim "black as charcoal mesh ... when i zoom into them all i see is
-  // blackness". Combined with the renderer's ACES tone-mapping + sRGB color-space, this
-  // guarantees the surface is readable across Firefox / Chromium / Safari. Vertex colors
-  // are reused for both diffuse and emissive (Three.js MeshStandardMaterial does this when
-  // vertexColors=true and emissive is set on the material).
-  const tileMat = new THREE.MeshStandardMaterial({
-    vertexColors: true,
-    roughness: 0.85,
-    metalness: 0.05,
-    flatShading: true,
+  // HOTFIX 17.L.D.17 — hex tile material is now FULLY TRANSPARENT. Per user verbatim "the
+  // hexs are black ... they should be a green color or the color of the planet with no
+  // decrenable visual disfrence but the butuild circle icon when mousing over". The
+  // visible-tile-grid approach (vertexColors with per-instance biome color) wasn't reading
+  // correctly through ACES tone mapping in D.15 — tiles came out black instead of biome-
+  // tinted. Player only wants the hover ring to indicate hex bounds. The transparent
+  // material keeps the InstancedMesh raycastable (Three.js raycasting is geometry-based, not
+  // material-based) so click-to-place still works; the planet biome color shows through
+  // unobstructed. Building emoji sprites + resource node sprites still render normally on
+  // top because they're separate Object3Ds.
+  const tileMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0,
     side: THREE.DoubleSide,
-    emissive: 0x222222,
-    emissiveIntensity: 0.35,
+    depthWrite: false,
   })
   const tilesMesh = new THREE.InstancedMesh(tileGeom, tileMat, planet.tiles.length)
   tilesMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
