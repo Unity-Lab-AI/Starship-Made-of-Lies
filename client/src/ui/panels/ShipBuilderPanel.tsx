@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  COLONY_SHIPS,
   type ColonyShipBuild,
   type ColonyShipVariantId,
   type LaunchPad,
@@ -13,6 +14,7 @@ import {
   SHIP_PIECES,
   SHIP_PROBE,
   SHIP_STANDARD,
+  getColonyShipDef,
   piecesBySlot,
   resolveShipBuild,
   stockOf,
@@ -38,6 +40,12 @@ interface SavedBlueprint {
   readonly name: string
   readonly pieces: ReadonlyArray<string>
   readonly savedAt: number
+  // PHASE 17.L.A.5 — player-pickable base variant override. When set, replaces the
+  // inferBaseVariantFromStats heuristic at print time so the blueprint resolves to the
+  // explicit catalog variant (suicideShip / canIntercept / render color / emoji flow
+  // through unchanged). When omitted, fallback to the heuristic — preserves backwards
+  // compatibility for blueprints saved before this field existed.
+  readonly baseVariantOverride?: ColonyShipVariantId
 }
 
 function loadBlueprints(): ReadonlyArray<SavedBlueprint> {
@@ -101,6 +109,11 @@ function emptySelections(): Record<ShipPieceSlot, string | null> {
 // variant id stored on the pad/flight so downstream code (render layer, suicide-ship flag,
 // can-intercept flag) has a stable reference. Blueprint stats override the per-tick numbers
 // via flightDef() — this just resolves "what KIND of ship is this".
+//
+// PHASE 17.L.A.5 — when a saved blueprint carries a `baseVariantOverride`, that takes
+// precedence over this heuristic. The player chose explicitly which catalog variant their
+// blueprint should resolve to. This stays as the fallback for legacy blueprints + the
+// "Auto-detect" dropdown choice.
 function inferBaseVariantFromStats(stats: ResolvedShipStats): ColonyShipVariantId {
   if (stats.explosiveYield > 0) return SHIP_EXPLOSIVE
   if (stats.citizenCapacity >= 800) return SHIP_HEAVY
@@ -199,6 +212,31 @@ export function ShipBuilderPanel({
     setSaved(updated)
     persistBlueprints(updated)
     setStatusMessage(`Deleted blueprint "${bp.name}".`)
+  }
+
+  // PHASE 17.L.A.5 — set the base-variant override on an existing saved blueprint. Live-saves
+  // to localStorage so the choice persists across sessions. Pass null to clear back to the
+  // heuristic-based auto-detect.
+  const handleSetBaseVariantOverride = (
+    bp: SavedBlueprint,
+    next: ColonyShipVariantId | null,
+  ): void => {
+    const updated = saved.map<SavedBlueprint>((entry) => {
+      if (entry.id !== bp.id) return entry
+      if (next === null) {
+        const { baseVariantOverride: _omit, ...rest } = entry
+        void _omit
+        return rest
+      }
+      return { ...entry, baseVariantOverride: next }
+    })
+    setSaved(updated)
+    persistBlueprints(updated)
+    setStatusMessage(
+      next === null
+        ? `Reset "${bp.name}" base variant to auto-detect.`
+        : `Set "${bp.name}" base variant to ${next}.`,
+    )
   }
 
   const handleClear = () => {
@@ -360,6 +398,19 @@ export function ShipBuilderPanel({
                 .slice(0, 3)
                 .map((c) => `${c.amount} ${String(c.resource)}`)
                 .join(' · ')
+              // PHASE 17.L.A.5 — resolved base variant for this blueprint. If the player set
+              // a `baseVariantOverride` it wins; otherwise fall back to the stats heuristic.
+              // baseVariant flows into print → ColonyShipFlight for render color + suicideShip
+              // flag + canIntercept flag + emoji. Resolved stats from bpResolved still drive
+              // the per-tick numbers.
+              const inferredVariant = inferBaseVariantFromStats(bpResolved.stats)
+              const resolvedBaseVariant = bp.baseVariantOverride ?? inferredVariant
+              const resolvedBaseVariantDef = getColonyShipDef(resolvedBaseVariant)
+              const inferredVariantDef = getColonyShipDef(inferredVariant)
+              const isAutoDetect = bp.baseVariantOverride === undefined
+              const variantLabel = isAutoDetect
+                ? `🔮 Auto: ${inferredVariantDef.emoji} ${inferredVariantDef.name}`
+                : `🔧 ${resolvedBaseVariantDef.emoji} ${resolvedBaseVariantDef.name}`
               const printTitle = !canPrint
                 ? idlePads.length === 0
                   ? 'No idle pads on this planet — wait for a pad to reach IDLE or GONE state'
@@ -367,13 +418,13 @@ export function ShipBuilderPanel({
                     ? `Missing techs: ${bpResolved.missingTechs.map(String).join(', ')}`
                     : 'Cannot afford — check Total Cost above'
                 : selectedPadId !== null
-                  ? `Print on pad ${String(selectedPadId)}`
-                  : 'Print on first idle pad'
+                  ? `Print on pad ${String(selectedPadId)} as ${resolvedBaseVariantDef.name}`
+                  : `Print on first idle pad as ${resolvedBaseVariantDef.name}`
               return (
                 <li key={bp.id} className="ship-builder-panel__library-row">
                   <span className="ship-builder-panel__library-name">{bp.name}</span>
                   <span className="ship-builder-panel__library-meta">
-                    {bp.pieces.length} parts{topCosts ? ` · ${topCosts}` : ''}
+                    {bp.pieces.length} parts{topCosts ? ` · ${topCosts}` : ''} · {variantLabel}
                   </span>
                   <button
                     type="button"
@@ -383,6 +434,24 @@ export function ShipBuilderPanel({
                   >
                     Load
                   </button>
+                  <select
+                    className="ship-builder-panel__library-variant-picker"
+                    value={bp.baseVariantOverride ?? ''}
+                    onChange={(e) => {
+                      const v = e.target.value
+                      handleSetBaseVariantOverride(bp, v === '' ? null : (v as ColonyShipVariantId))
+                    }}
+                    title={
+                      'Pick which catalog variant this blueprint resolves to. Drives render color, emoji, suicide-ship flag, and can-intercept flag. Stats from the build still apply.'
+                    }
+                  >
+                    <option value="">🔮 Auto-detect ({inferredVariantDef.name})</option>
+                    {COLONY_SHIPS.map((def) => (
+                      <option key={String(def.id)} value={String(def.id)}>
+                        {def.emoji} {def.name}
+                      </option>
+                    ))}
+                  </select>
                   {idlePads.length > 1 ? (
                     <select
                       className="ship-builder-panel__library-pad-picker"
@@ -415,10 +484,9 @@ export function ShipBuilderPanel({
                         setStatusMessage('No idle pads on this planet.')
                         return
                       }
-                      const baseVariant = inferBaseVariantFromStats(bpResolved.stats)
                       const ok = onPrintBlueprint(
                         pad.id,
-                        baseVariant,
+                        resolvedBaseVariant,
                         bp.name,
                         bp.pieces,
                         bpResolved.stats,
@@ -426,7 +494,7 @@ export function ShipBuilderPanel({
                       )
                       setStatusMessage(
                         ok
-                          ? `Printing "${bp.name}" on pad ${String(pad.id)}.`
+                          ? `Printing "${bp.name}" on pad ${String(pad.id)} as ${resolvedBaseVariantDef.name}.`
                           : 'Print failed — pad busy or inventory short.',
                       )
                     }}

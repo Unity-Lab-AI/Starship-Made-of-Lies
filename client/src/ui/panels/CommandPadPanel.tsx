@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   type ColonyShipVariantId,
   type LaunchPad,
+  type PadTargetWaypoint,
   type PlanetId,
   type Theme,
   getColonyShipDef,
@@ -39,6 +40,15 @@ export interface CommandPadPanelProps {
   // state; panel just exposes the toggle button.
   readonly autoFireLoopActive?: boolean
   readonly onToggleAutoFireLoop?: () => void
+  // PHASE 17.L.B.9 — waypoint queue editor (Q6 PHASE 17 LOCKED). Targetable planet roster
+  // sourced from the active galaxy. Player builds + reorders + deletes target waypoints on
+  // the controller pad through this surface; queue feeds LAUNCHALL + COPYTGT mass actions.
+  readonly targetablePlanets?: ReadonlyArray<{
+    readonly id: PlanetId
+    readonly label: string
+    readonly isEnemy: boolean
+  }>
+  readonly onSetWaypoints?: (waypoints: ReadonlyArray<PadTargetWaypoint>) => void
 }
 
 interface PadCounters {
@@ -103,6 +113,8 @@ export function CommandPadPanel({
   salvoRoundPhaseLabel,
   autoFireLoopActive,
   onToggleAutoFireLoop,
+  targetablePlanets,
+  onSetWaypoints,
 }: CommandPadPanelProps) {
   const counters = useMemo(() => tallyPads(pads), [pads])
   const controllerPad = pads[0] ?? null
@@ -168,6 +180,14 @@ export function CommandPadPanel({
             </span>
           )}
         </div>
+      )}
+
+      {controllerPad && targetablePlanets && onSetWaypoints && (
+        <WaypointQueueEditor
+          controllerPad={controllerPad}
+          targetablePlanets={targetablePlanets}
+          onSetWaypoints={onSetWaypoints}
+        />
       )}
 
       <section className="command-pad__actions">
@@ -287,5 +307,182 @@ export function CommandPadPanel({
         <code>SMOL_REFERENCE_PAD.md</code> §Salvo Stagger.
       </p>
     </div>
+  )
+}
+
+// PHASE 17.L.B.9 — Waypoint queue editor. Q6 PHASE 17 LOCKED answer required this surface to
+// close out CommandPadPanel: "Full UMS parity — Set Pad Controller button → controller-mode
+// panel with Build All / Arm All / Launch All / Abort All + per-slave-pad status table +
+// waypoint queue editor." Mass-action buttons + per-pad tally already shipped; this is the
+// missing drag-reorder GPS-targets editor. Live-saves on every mutation (UMS UnityPad
+// CustomData live-read parity).
+interface WaypointQueueEditorProps {
+  readonly controllerPad: LaunchPad
+  readonly targetablePlanets: ReadonlyArray<{
+    readonly id: PlanetId
+    readonly label: string
+    readonly isEnemy: boolean
+  }>
+  readonly onSetWaypoints: (waypoints: ReadonlyArray<PadTargetWaypoint>) => void
+}
+
+function WaypointQueueEditor({
+  controllerPad,
+  targetablePlanets,
+  onSetWaypoints,
+}: WaypointQueueEditorProps) {
+  const [newPlanetId, setNewPlanetId] = useState<string>('')
+  const [newLabel, setNewLabel] = useState<string>('')
+
+  const planetById = useMemo(() => {
+    const map = new Map<string, { id: PlanetId; label: string; isEnemy: boolean }>()
+    for (const p of targetablePlanets) map.set(String(p.id), p)
+    return map
+  }, [targetablePlanets])
+
+  const queue = controllerPad.targetQueue
+
+  const commit = (next: ReadonlyArray<PadTargetWaypoint>): void => {
+    onSetWaypoints(next)
+  }
+
+  const moveUp = (idx: number): void => {
+    if (idx <= 0) return
+    const next = [...queue]
+    const above = next[idx - 1]
+    const current = next[idx]
+    if (!above || !current) return
+    next[idx - 1] = current
+    next[idx] = above
+    commit(next)
+  }
+
+  const moveDown = (idx: number): void => {
+    if (idx >= queue.length - 1) return
+    const next = [...queue]
+    const below = next[idx + 1]
+    const current = next[idx]
+    if (!below || !current) return
+    next[idx + 1] = current
+    next[idx] = below
+    commit(next)
+  }
+
+  const remove = (idx: number): void => {
+    const next = queue.filter((_, i) => i !== idx)
+    commit(next)
+  }
+
+  const addWaypoint = (): void => {
+    if (!newPlanetId) return
+    const target = planetById.get(newPlanetId)
+    if (!target) return
+    const label = newLabel.trim()
+    const waypoint: PadTargetWaypoint = label
+      ? { targetPlanetId: target.id, label }
+      : { targetPlanetId: target.id }
+    commit([...queue, waypoint])
+    setNewPlanetId('')
+    setNewLabel('')
+  }
+
+  return (
+    <section className="command-pad__waypoints">
+      <h4 className="command-pad__actions-title">Waypoint queue</h4>
+      {queue.length === 0 ? (
+        <p className="command-pad__waypoints-empty">
+          No waypoints set. Add a target planet below — the queue feeds LAUNCHALL and COPYTGT.
+        </p>
+      ) : (
+        <ol className="command-pad__waypoints-list">
+          {queue.map((wp, idx) => {
+            const target = planetById.get(String(wp.targetPlanetId))
+            const planetLabel = target?.label ?? String(wp.targetPlanetId)
+            const isActive = idx === controllerPad.activeTargetIdx
+            return (
+              <li
+                key={`${String(wp.targetPlanetId)}-${idx}`}
+                className={
+                  isActive
+                    ? 'command-pad__waypoints-row command-pad__waypoints-row--active'
+                    : 'command-pad__waypoints-row'
+                }
+              >
+                <span className="command-pad__waypoints-index">{idx + 1}.</span>
+                <span className="command-pad__waypoints-label">
+                  {wp.label ? `${wp.label} · ` : ''}
+                  {planetLabel}
+                  {target?.isEnemy ? ' (enemy)' : ''}
+                  {isActive ? ' ← active' : ''}
+                </span>
+                <button
+                  type="button"
+                  className="command-pad__waypoints-btn"
+                  onClick={() => moveUp(idx)}
+                  disabled={idx === 0}
+                  title="Move this waypoint up"
+                  aria-label="Move up"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  className="command-pad__waypoints-btn"
+                  onClick={() => moveDown(idx)}
+                  disabled={idx === queue.length - 1}
+                  title="Move this waypoint down"
+                  aria-label="Move down"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  className="command-pad__waypoints-btn command-pad__waypoints-btn--danger"
+                  onClick={() => remove(idx)}
+                  title="Remove this waypoint"
+                  aria-label="Remove waypoint"
+                >
+                  ✕
+                </button>
+              </li>
+            )
+          })}
+        </ol>
+      )}
+      <div className="command-pad__waypoints-add">
+        <select
+          className="command-pad__waypoints-planet-select"
+          value={newPlanetId}
+          onChange={(e) => setNewPlanetId(e.target.value)}
+          aria-label="Pick target planet"
+        >
+          <option value="">— pick target planet —</option>
+          {targetablePlanets.map((p) => (
+            <option key={String(p.id)} value={String(p.id)}>
+              {p.label}
+              {p.isEnemy ? ' (enemy)' : ''}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          className="command-pad__waypoints-label-input"
+          value={newLabel}
+          onChange={(e) => setNewLabel(e.target.value)}
+          placeholder="optional label..."
+          aria-label="Optional waypoint label"
+          maxLength={40}
+        />
+        <button
+          type="button"
+          className="command-pad__btn"
+          onClick={addWaypoint}
+          disabled={!newPlanetId}
+          title="Add this waypoint to the controller pad's target queue"
+        >
+          + Add
+        </button>
+      </div>
+    </section>
   )
 }

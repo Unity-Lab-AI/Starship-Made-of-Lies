@@ -3,10 +3,12 @@ import {
   type CivId,
   type ColonyShipVariantId,
   type LootDropId,
+  type PadTargetWaypoint,
   type PlanetId,
   abortFlight,
   resetPadCitizenLoad,
   setShipDutyPercent as setShipDutyPercentImpl,
+  setTargetQueue,
 } from '@smol/shared'
 import {
   type BuildShipFromBlueprintInputs,
@@ -57,6 +59,12 @@ export interface UseMatchSimResult {
   readonly controllerLaunchAll: (planetId: PlanetId) => number
   readonly controllerAbortAll: (planetId: PlanetId) => number
   readonly controllerCopyTarget: (planetId: PlanetId) => number
+  // PHASE 17.L.B.9 — waypoint queue editor mutator. Replaces the controller pad's target queue
+  // on the named planet. UI surface lives in CommandPadPanel as the WaypointQueueEditor sub-section.
+  readonly setControllerWaypoints: (
+    planetId: PlanetId,
+    waypoints: ReadonlyArray<PadTargetWaypoint>,
+  ) => boolean
   // PHASE 16.23: user-driven per-flight abort. Player clicks an in-flight cone in 3D, the
   // FlightDetailPanel opens, the ABORT button fires this with the flight id. Per UMS
   // UnityPad.cs DETONATE:{padID} IGC message — manual self-destruct. PHASE 16.24 will
@@ -268,6 +276,25 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     return touched
   }, [])
 
+  // PHASE 17.L.B.9 — waypoint queue editor mutator. Rewrites the controller pad's targetQueue
+  // wholesale; activeTargetIdx resets to 0 via shared setTargetQueue. Q6 PHASE 17 LOCKED:
+  // "drag-reorder GPS-targets editor surface ... pad.targetQueue data exists but no UI mutator".
+  // This is the missing mutator. Returns true on success, false if planet missing / not human-owned
+  // / no pads on planet. UI live-saves on every mutation (UMS UnityPad CustomData live-read parity).
+  const setControllerWaypoints = useCallback(
+    (planetId: PlanetId, waypoints: ReadonlyArray<PadTargetWaypoint>): boolean => {
+      const state = stateRef.current
+      const planet = padsOnPlanet(state, planetId)
+      if (!planet) return false
+      const controller = [...planet.launchPads.values()][0]
+      if (!controller) return false
+      setTargetQueue(controller, waypoints)
+      setTickCount((n) => n + 1)
+      return true
+    },
+    [],
+  )
+
   // PHASE 16.23: per-flight abort fired from FlightDetailPanel's "💀 ABORT (self-destruct)"
   // button. Look up flight by id, call shared abortFlight() — flips phase to ABORTED +
   // outcome to ABORTED. Per UMS UnityPad.cs DETONATE:{padID} IGC manual self-destruct.
@@ -348,6 +375,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     controllerLaunchAll,
     controllerAbortAll,
     controllerCopyTarget,
+    setControllerWaypoints,
     abortFlightById,
     redirectFlight,
     godControlReady,

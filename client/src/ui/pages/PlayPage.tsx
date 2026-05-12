@@ -231,6 +231,22 @@ export function PlayPage() {
       label: `${String(p.planet.id)} (${p.civId})`,
     }))
 
+  // PHASE 17.L.B.9 — targetable-planet roster for the CommandPadPanel waypoint queue editor.
+  // Same source as `otherPlanetsForLaunch` (every non-human-owned planet in the galaxy) but
+  // typed with raw PlanetId + an isEnemy flag so the editor can flag enemy targets visually.
+  // Unclaimed / neutral planets stay in the list because targeting them is valid (claim ship).
+  const targetablePlanetsForCommandPad = [...sim.state.planets.values()]
+    .filter((p) => p.civId !== sim.state.humanCivId)
+    .map((p) => {
+      const ownerCiv = p.civId !== null ? sim.state.civs.get(p.civId) : null
+      const ownerLabel = ownerCiv ? ` ${ownerCiv.theme.emoji} ${ownerCiv.theme.name}` : ' unclaimed'
+      return {
+        id: p.planet.id,
+        label: `${String(p.planet.id)} ·${ownerLabel}`,
+        isEnemy: p.civId !== null,
+      }
+    })
+
   const lootDropsOnOurPlanets: LootDrop[] = []
   for (const drop of sim.state.lootDrops.values()) {
     const p = sim.state.planets.get(drop.planetId)
@@ -1175,6 +1191,10 @@ export function PlayPage() {
               }
               autoFireLoopActive={autoFireLoopActive}
               onToggleAutoFireLoop={() => setAutoFireLoopActive((v) => !v)}
+              targetablePlanets={targetablePlanetsForCommandPad}
+              onSetWaypoints={(waypoints) =>
+                sim.setControllerWaypoints(activePlanet.planet.id, waypoints)
+              }
             />
           </PanelFrame>
         )}
