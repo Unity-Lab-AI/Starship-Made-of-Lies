@@ -196,3 +196,52 @@
   border-color: #d44a4a;
   color: #d44a4a;
 }
+
+/* PHASE 17.13.3 — Annex adjacent tiles UI */
+.settlements-panel__annex {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.35rem 0.5rem;
+  background: rgba(255, 215, 130, 0.04);
+  border-left: 2px solid var(--accent, #d4a13a);
+  border-radius: 3px;
+}
+
+.settlements-panel__annex-label {
+  font-size: 0.72rem;
+  color: var(--text-mute, rgba(255, 255, 255, 0.7));
+}
+
+.settlements-panel__annex-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.settlements-panel__annex-btn {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 3px;
+  border: 1px solid var(--accent, #d4a13a);
+  background: transparent;
+  color: var(--accent, #d4a13a);
+  cursor: pointer;
+}
+
+.settlements-panel__annex-btn:hover:enabled {
+  background: var(--accent, #d4a13a);
+  color: #0c1014;
+}
+
+.settlements-panel__annex-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.settlements-panel__annex-overflow {
+  font-size: 0.68rem;
+  font-style: italic;
+  opacity: 0.6;
+}

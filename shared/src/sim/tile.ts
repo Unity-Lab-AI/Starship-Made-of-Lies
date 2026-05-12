@@ -52,6 +52,45 @@ export function geodesicNeighbors(tile: Tile, allTiles: ReadonlyArray<Tile>): Ti
   return out
 }
 
+// PHASE 17.13.3 — geodesic N-ring BFS. Returns every tile reachable from the seed in ≤ `rings`
+// hex-edges, including the seed itself (ring 0). Used by `placeBuildingCanonical` to compute
+// the initial controlled-tile set for a freshly-founded settlement (3-ring radius per the
+// user's "3 ring radius of adjacent tiles" spec). Replaces the prior 6-nearest-by-euclidean
+// approximation that worked on a sphere but didn't respect the actual hex grid topology.
+//
+// Includes the seed in the result so callers can do `tilesWithinHexRings(seed, all, 3)` and
+// immediately get the full settlement footprint without an extra concat.
+export function tilesWithinHexRings(
+  seed: Tile,
+  allTiles: ReadonlyArray<Tile>,
+  rings: number,
+): Tile[] {
+  if (rings < 0) return []
+  const out: Tile[] = [seed]
+  if (rings === 0) return out
+  const visited = new Set<number>([seed.faceIndex])
+  let frontier: number[] = [seed.faceIndex]
+  for (let r = 1; r <= rings; r++) {
+    const next: number[] = []
+    for (const fi of frontier) {
+      const tile = allTiles[fi]
+      if (!tile) continue
+      for (const n of tile.neighbors) {
+        if (visited.has(n)) continue
+        visited.add(n)
+        const found = allTiles[n]
+        if (found) {
+          out.push(found)
+          next.push(n)
+        }
+      }
+    }
+    if (next.length === 0) break
+    frontier = next
+  }
+  return out
+}
+
 export function geodesicDistance(
   a: Tile,
   b: Tile,

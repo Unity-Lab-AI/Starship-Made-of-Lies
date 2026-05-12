@@ -1,5 +1,11 @@
 import { useState } from 'react'
-import { type PlanetId, type Settlement, type SettlementId } from '@smol/shared'
+import {
+  ANNEX_PROPAGANDA_COST,
+  type PlanetId,
+  type Settlement,
+  type SettlementId,
+  type TileId,
+} from '@smol/shared'
 import './SettlementsPanel.css'
 
 // PHASE 17.13.5 — settlement picker UI. Lists every settlement across every owned planet,
@@ -13,10 +19,26 @@ import './SettlementsPanel.css'
 // opens an inline editor; submitting an empty value restores the themed default. The rename
 // is dispatched through the onRenameSettlement callback to the sim's renameSettlementAction.
 
+// PHASE 17.13.3 — per-settlement annex preview. PlayPage walks each settlement and surfaces
+// the candidate tiles (owned-by-this-civ + adjacent-to-settlement-territory + not-already-in-
+// this-settlement) so the panel can render an Annex button per tile. Capped to a reasonable
+// row count to avoid a 50-button blob; full tile picker UI on the surface renderer ships with
+// PHASE 17.13.4 settlement-boundary tinting.
+export interface SettlementAnnexCandidate {
+  readonly tileId: TileId
+  readonly tileLabel: string
+}
+
 export interface SettlementGroupSnapshot {
   readonly planetId: PlanetId
   readonly planetLabel: string
   readonly settlements: ReadonlyArray<Settlement>
+  // PHASE 17.13.3 — annex candidates per settlement on this planet. Empty array when no tiles
+  // are eligible (planet edge, already maxed, etc.).
+  readonly annexCandidatesBySettlementId?: ReadonlyMap<
+    SettlementId,
+    ReadonlyArray<SettlementAnnexCandidate>
+  >
 }
 
 interface SettlementsPanelProps {
@@ -30,6 +52,12 @@ interface SettlementsPanelProps {
     settlementId: SettlementId,
     newName: string,
   ) => boolean
+  // PHASE 17.13.3 — optional annex callback. PlayPage wires this to sim.annexTile. Falls back
+  // to read-only mode when omitted (preserves panel reusability for other contexts).
+  readonly onAnnexTile?: (planetId: PlanetId, settlementId: SettlementId, tileId: TileId) => void
+  // PHASE 17.13.3 — current human planet propaganda stock (per planet group). Used to grey out
+  // the Annex button when stock < ANNEX_PROPAGANDA_COST.
+  readonly propagandaStockByPlanetId?: ReadonlyMap<PlanetId, number>
 }
 
 export function SettlementsPanel({
@@ -37,6 +65,8 @@ export function SettlementsPanel({
   activeSettlementId,
   onSelectSettlement,
   onRenameSettlement,
+  onAnnexTile,
+  propagandaStockByPlanetId,
 }: SettlementsPanelProps) {
   const [renamingId, setRenamingId] = useState<SettlementId | null>(null)
   const [renameDraft, setRenameDraft] = useState('')
@@ -94,6 +124,44 @@ export function SettlementsPanel({
                         </span>
                         {active && <span className="settlements-panel__active-badge">VIEWING</span>}
                       </button>
+                      {onAnnexTile &&
+                        (() => {
+                          const candidates =
+                            group.annexCandidatesBySettlementId?.get(settlement.id) ?? []
+                          if (candidates.length === 0) return null
+                          const propagandaStock =
+                            propagandaStockByPlanetId?.get(group.planetId) ?? 0
+                          const canAfford = propagandaStock >= ANNEX_PROPAGANDA_COST
+                          return (
+                            <div className="settlements-panel__annex">
+                              <span className="settlements-panel__annex-label">
+                                Adjacent tiles ({candidates.length}) — {ANNEX_PROPAGANDA_COST}{' '}
+                                propaganda each:
+                              </span>
+                              <div className="settlements-panel__annex-buttons">
+                                {candidates.slice(0, 8).map((c) => (
+                                  <button
+                                    key={String(c.tileId)}
+                                    type="button"
+                                    className="settlements-panel__annex-btn"
+                                    disabled={!canAfford}
+                                    aria-label={`Annex ${c.tileLabel} for ${ANNEX_PROPAGANDA_COST} propaganda materials`}
+                                    onClick={() =>
+                                      onAnnexTile(group.planetId, settlement.id, c.tileId)
+                                    }
+                                  >
+                                    + {c.tileLabel}
+                                  </button>
+                                ))}
+                                {candidates.length > 8 && (
+                                  <span className="settlements-panel__annex-overflow">
+                                    +{candidates.length - 8} more
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })()}
                       {onRenameSettlement &&
                         (editing ? (
                           <form
