@@ -1,0 +1,129 @@
+.settlements-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.4rem 0.25rem;
+  min-width: 360px;
+}
+
+.settlements-panel__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
+}
+
+.settlements-panel__header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.settlements-panel__count {
+  font-size: 0.75rem;
+  color: var(--text-soft, rgba(255, 255, 255, 0.7));
+  font-variant-numeric: tabular-nums;
+}
+
+.settlements-panel__empty {
+  margin: 0.4rem 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-mute, rgba(255, 255, 255, 0.55));
+}
+
+.settlements-panel__group-list,
+.settlements-panel__settlement-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.settlements-panel__group-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-soft, rgba(255, 255, 255, 0.75));
+}
+
+.settlements-panel__row {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr auto auto auto;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  transition:
+    background 120ms,
+    border-color 120ms;
+}
+
+.settlements-panel__row:hover {
+  background: rgba(212, 161, 58, 0.1);
+  border-color: rgba(212, 161, 58, 0.4);
+}
+
+.settlements-panel__row--active {
+  border-color: var(--accent, #d4a13a);
+  background: rgba(212, 161, 58, 0.15);
+}
+
+.settlements-panel__row--capital {
+  font-weight: 600;
+}
+
+.settlements-panel__emoji {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.settlements-panel__name {
+  font-size: 0.88rem;
+}
+
+.settlements-panel__status {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-soft, rgba(255, 255, 255, 0.7));
+}
+
+.settlements-panel__tiles {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-soft, rgba(255, 255, 255, 0.65));
+}
+
+.settlements-panel__active-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: var(--accent, #d4a13a);
+  color: var(--accent-text, #0c1014);
+}
+
+.settlements-panel__hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text-mute, rgba(255, 255, 255, 0.55));
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--ui-border, rgba(255, 255, 255, 0.08));
+}

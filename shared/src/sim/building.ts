@@ -80,6 +80,11 @@ export const BLDG_MINING_OUTPOST = buildingDefId('miningOutpost')
 // UX in PlayPage. Requires TECH_GOD_CONTROL researched + at least one BLDG_GOD_CONTROL on any
 // owned planet for the redirect action to validate.
 export const BLDG_GOD_CONTROL = buildingDefId('godControl')
+// PHASE 17.13.2 — Civic Center. Founds a new settlement on placement, claiming a 3-ring
+// radius of adjacent owned tiles as the settlement's territory. Cost is significant
+// (200 ingots + 100 bricks + 50 components + 1000 propaganda materials) — prevents
+// settlement-spam per the user spec.
+export const BLDG_CIVIC_CENTER = buildingDefId('civicCenter')
 
 export const BUILDINGS: ReadonlyArray<BuildingDef> = [
   {
@@ -471,6 +476,22 @@ export const BUILDINGS: ReadonlyArray<BuildingDef> = [
     citizenSlots: 12,
     description:
       'Endgame override infrastructure. Select an in-flight colony ship and right-click any planet to redirect it mid-arc. Requires TECH_GOD_CONTROL researched.',
+  },
+  {
+    id: BLDG_CIVIC_CENTER,
+    name: 'Civic Center',
+    emoji: '🏛️',
+    category: 'utility',
+    buildCost: [
+      { resource: RESOURCE_INGOTS, amount: 200 },
+      { resource: RESOURCE_BRICKS, amount: 100 },
+      { resource: RESOURCE_COMPONENTS, amount: 50 },
+      { resource: RESOURCE_PROPAGANDA_MATERIALS, amount: 1000 },
+    ],
+    buildTimeTicks: 220,
+    citizenSlots: 10,
+    description:
+      'Founds a new settlement on this tile. Claims a 3-ring radius of adjacent owned tiles as the new settlement territory. Heavy propaganda cost prevents settlement-spam.',
   },
 ]
 

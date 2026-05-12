@@ -34,6 +34,10 @@ export type PanelId =
   // PHASE 17.L.C.4 — Planet inventory popup with upgradeable per-resource storage caps.
   // Opens via the button inside PlanetSummaryPanel.
   | 'planetInventory'
+  // PHASE 17.13.5 — Settlements picker. Lists every settlement across every owned planet,
+  // grouped by planet. Read-only inspection in v1; active-settlement-switch lands with
+  // 17.13.6 aggregate-vs-detail toggle when per-settlement state lives in sim.
+  | 'settlements'
 
 export type ToolbarButtonDef = {
   readonly id: PanelId | 'galaxy' | 'quit'
@@ -68,6 +72,7 @@ export const TOOLBAR_BUTTONS: ReadonlyArray<ToolbarButtonDef> = [
   { id: 'trackingCamera', emoji: '📹', label: 'Tracking Camera' },
   { id: 'planetSummary', emoji: '🪐', label: 'Planet Summary' },
   { id: 'planetInventory', emoji: '🗄', label: 'Planet Inventory' },
+  { id: 'settlements', emoji: '🏘', label: 'Settlements' },
   { id: 'ai', emoji: '🤖', label: 'AI Players' },
   { id: 'events', emoji: '📜', label: 'Events', hotkey: 'X' },
   { id: 'planets', emoji: '📍', label: 'Planets', hotkey: 'G' },
