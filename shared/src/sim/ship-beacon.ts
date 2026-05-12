@@ -9,17 +9,16 @@ export type ShipBeaconStatus =
   | 'OFFLOADING'
   | 'NO_SIGNAL'
 
-// PHASE 17.L.A.11 (Q5 PHASE 17 LOCKED: "all three yes") — planet-local mining mode.
-// Mirrors the interplanetary FlightKind in colony-ship-flight.ts but operates on
-// MiningShip auto-shuttles cycling between home tile and resource deposits on the same
-// planet. The mode dictates the AT_DEPOSIT_DRILLING transition + multi-deposit queue:
-//   • 'shuttle-single' (default) — closest non-depleted node, cycle home-to-deposit-to-home.
-//   • 'shuttle-multi'  — rotate through up to 3 closest non-depleted nodes per cycle,
-//                        partial-fill each, return when cargo full or all visited.
-//   • 'oneway'         — ship parks AT the deposit, drills directly into PlanetInventory
-//                        (bypassing cargo cap), retires to IDLE when the deposit depletes.
-//                        Trade-off: sustained extraction at the cost of losing the ship.
-export type MiningShipMode = 'shuttle-single' | 'shuttle-multi' | 'oneway'
+// PHASE 17.L 2026-05-12 — planet-local mining mode. Two-mode set after user design
+// correction "mining ships dont break … resource nodes are endless" — `oneway` (ship
+// sacrifice mode) was removed because there's nothing to sacrifice for. Ships are durable
+// assets that cycle indefinitely; the picker just lets the player optimize throughput
+// shape (single vs. multi-deposit rotation).
+//   • 'shuttle-single' (default) — closest node, cycle home → deposit → home.
+//   • 'shuttle-multi'             — rotate through up to 3 closest nodes per cycle, partial-
+//                                   fill each, return when cargo full. Better for clustered
+//                                   small deposits + mixed-resource extraction per cycle.
+export type MiningShipMode = 'shuttle-single' | 'shuttle-multi'
 
 export interface ShipBeaconBroadcast {
   readonly id: string

@@ -270,3 +270,60 @@ export function planetEmptyTiles(planet: Planet): Tile[] {
 export function planetActiveResourceNodes(planet: Planet): ResourceNode[] {
   return planet.resourceNodes.filter((n) => n.amountRemaining > 0)
 }
+
+// PHASE 17.L 2026-05-12 — starting-planet basic-space-tech guarantee.
+//
+// Per user design contract: "every starting planet has the resource nodes needed to get to
+// space and the resources needed to get high tier tech has to be mined on secondary planets
+// forcing multiplanet colonization". Tier-0 hostility weight changes (resource-node.ts
+// `defaultProfileForHostilityTier`) make the basic-tech resource set (stone + rareMetals +
+// gas) more likely organically, but this function is the deterministic safety net — if the
+// random gen rolled a planet without one of the required resources, plant a 'common'-tier
+// node onto an empty tile here. Idempotent: only adds resources NOT already present.
+//
+// High-tier resources (exoticAlloys / ancientTech) are deliberately NOT in the required set —
+// they remain locked to tier-3 hostility worlds, forcing the player to colonize secondary
+// planets to unlock late-game tech (the "multi-planet colonization is mandatory" mandate).
+export function addStartingPlanetEconomy(planet: Planet, rng: () => number): void {
+  const present = new Set<ResourceId>()
+  for (const n of planet.resourceNodes) present.add(n.resourceId)
+  const missing: ResourceId[] = []
+  if (!present.has(DEPOSIT_RESOURCE_CATALOG.stone)) missing.push(DEPOSIT_RESOURCE_CATALOG.stone)
+  if (!present.has(DEPOSIT_RESOURCE_CATALOG.rareMetals)) {
+    missing.push(DEPOSIT_RESOURCE_CATALOG.rareMetals)
+  }
+  if (!present.has(DEPOSIT_RESOURCE_CATALOG.gas)) missing.push(DEPOSIT_RESOURCE_CATALOG.gas)
+  if (missing.length === 0) return
+
+  // Pick unused tiles for the new nodes. Falls back to ANY tile when every face has a node
+  // already (degenerate planet); the duplicate placement is acceptable — the goal is the
+  // RESOURCE BEING MINEABLE, not visual tile uniqueness.
+  const usedFaceIndices = new Set<number>()
+  for (const n of planet.resourceNodes) usedFaceIndices.add(n.tileFaceIndex)
+  const candidates: Tile[] = planet.tiles.filter((t) => !usedFaceIndices.has(t.faceIndex))
+  const fallbackTiles = candidates.length > 0 ? candidates : planet.tiles
+  for (const resourceId of missing) {
+    if (fallbackTiles.length === 0) break
+    const tileIdx = Math.floor(rng() * fallbackTiles.length)
+    const tile = fallbackTiles[tileIdx]
+    if (!tile) continue
+    const baseAmount = tierBaseAmount('common')
+    const initialAmount = Math.round(baseAmount * (0.9 + rng() * 0.3))
+    const worldPosition: Vec3 = {
+      x: planet.position.x + tile.centroid.x,
+      y: planet.position.y + tile.centroid.y,
+      z: planet.position.z + tile.centroid.z,
+    }
+    planet.resourceNodes.push({
+      id: `${planet.id}-starter-${String(resourceId)}`,
+      resourceId,
+      initialAmount,
+      amountRemaining: initialAmount,
+      tier: 'common',
+      worldPosition,
+      tileFaceIndex: tile.faceIndex,
+    })
+    // Mark this face as used in case the same call needs to add multiple missing resources.
+    usedFaceIndices.add(tile.faceIndex)
+  }
+}
