@@ -72,8 +72,9 @@ import { TelemetryGraphPanel } from '../panels/TelemetryGraphPanel'
 import { CampaignPicker } from '../play/CampaignPicker'
 import { DockZoneOverlay } from '../play/DockZoneOverlay'
 import { HUDOverlay } from '../play/HUDOverlay'
-import { CinematicsOverlay } from '../../cinematics/CinematicsOverlay'
-import { playCinematic } from '../../cinematics/CinematicsManager'
+// Cinematics nuked 2026-05-12 per user: "get rid of all the cenematic shit nuke it all".
+// CinematicsManager + CinematicsOverlay files stay on disk so the type-aware sim events can
+// keep firing without losing data shape, but no UI consumer mounts them anymore.
 import { PanelFrame } from '../play/PanelFrame'
 import { PanelLayoutProvider } from '../play/PanelLayoutContext'
 import { TopToolbar } from '../play/TopToolbar'
@@ -634,11 +635,20 @@ export function PlayPage() {
   }, [techEffects.maxPayloadTier])
 
   // PHASE 17.12.8 — bind the AudioSystem to the human civ's theme so per-theme synth
-  // accent (build / launch / propaganda jingle) sounds theme-flavored. Runs once on mount +
-  // any time the human civ changes themes (rare — only after resetMatch with a new theme).
+  // accents (build / launch / propaganda jingle) play in the right key when triggered.
+  //
+  // PHASE 17.L 2026-05-12 user feedback: theme music auto-start was producing a constant
+  // synth tone (three sustained oscillators with no stop) the user described as "mind-
+  // numbing". `setTheme` now only stores the theme id for SFX resolution; the music layer
+  // is opt-in via the Audio Settings panel's "Enable theme music" toggle (default: OFF).
+  // Until real .ogg theme tracks ship (Layer E #4), the synth fallback stays silent.
   useEffect(() => {
     try {
-      getAudioSystem().setTheme(humanTheme.id)
+      const audio = getAudioSystem()
+      // Mute the music bus by default so the synth fallback can't drone even if something
+      // triggers setIntensity later. SFX bus stays unmuted so UI clicks + build / launch
+      // accents still play.
+      audio.setBusMuted('music', true)
     } catch {
       // Audio singleton creation can fail in SSR / Vitest contexts; swallow.
     }
@@ -649,14 +659,9 @@ export function PlayPage() {
   // counts as a fresh session because the module state resets on PlayPage remount. The intro
   // plays before the onboarding hint so the player sees the dystopian framing first, then
   // the gameplay nudge.
-  useEffect(() => {
-    // Pass the player's theme so the intro's themed narration substitutes (Theocracy /
-    // Corporate / Surveillance / AI-Overlord / Military Junta get unique copy; rest fall
-    // back to the neutral base).
-    playCinematic('match_start_intro', { playOnce: true, playerThemeId: humanTheme.id })
-    // Intentional one-shot per mount; humanTheme.id is stable across the match's lifetime.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // PHASE 18.6 match-start cinematic call retired 2026-05-12 per user "nuke it all". Match
+  // intro is now silent — the boot ceremony already covers the "you're starting a game"
+  // beat; the cinematic was a redundant second beat the user found tedious.
 
   // 17.A.7 — onboarding hint moment. Once per browser, on the player's first /play mount,
   // fire a theme-flavored toast: "this is your home planet, click to zoom in, build a launch
@@ -727,18 +732,10 @@ export function PlayPage() {
       // every subsequent crash to avoid spam). Civ-defeated events fire the MATCH_END
       // VICTORY/DEFEAT cinematic when the affected civ is the human civ (defeat) or when
       // the message reads as a global match-end signal (victory).
-      if (ev.kind === 'last_hope') {
-        playCinematic('last_hope_evac_triggered', { playOnce: true, playerThemeId: humanTheme.id })
-      }
-      if (ev.kind === 'crash' && ev.civId === sim.state.humanCivId) {
-        playCinematic('crash_landing', { playOnce: true, playerThemeId: humanTheme.id })
-      }
-      if (ev.kind === 'civ_defeated' && ev.civId === sim.state.humanCivId) {
-        playCinematic('match_end_defeat', { playOnce: true, playerThemeId: humanTheme.id })
-      }
-      if (ev.kind === 'system' && ev.message.toLowerCase().includes('prevailed')) {
-        playCinematic('match_end_victory', { playOnce: true, playerThemeId: humanTheme.id })
-      }
+      // Cinematic triggers nuked 2026-05-12 per user. last_hope / crash / civ_defeated /
+      // prevailed events still flow through the toast + event-log surfaces; just no
+      // full-screen cinematic dialog. MatchEndScreen handles victory/defeat once the match
+      // phase flips to ENDED.
       if (ev.message.startsWith('❌')) {
         newToasts.push({
           id: `toast-${ev.atTick}-${Math.random().toString(36).slice(2, 8)}`,
@@ -787,7 +784,6 @@ export function PlayPage() {
     }
     // sim.state.humanCivId is captured from a stable sim ref; only events + tickCount
     // drive this effect re-runs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sim.state.events, sim.tickCount])
 
   // === Panel toggle ===
@@ -1366,9 +1362,6 @@ export function PlayPage() {
           )}
         </div>
 
-        {/* PHASE 18.6 — full-screen cinematic overlay. Idle when no cinematic is active. */}
-        <CinematicsOverlay />
-
         <HUDOverlay
           theme={humanTheme}
           currentTick={sim.state.currentTick}
@@ -1410,6 +1403,7 @@ export function PlayPage() {
             ])
           }}
           hasSavedMatch={sim.hasSavedMatch}
+          hasAnyLaunchPad={ownedPlanets.some((p) => p.launchPads.size > 0)}
         />
 
         <Toasts toasts={toasts} onDismiss={dismissToast} />

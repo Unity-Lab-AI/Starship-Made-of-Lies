@@ -25,25 +25,12 @@
   padding: 4.5rem 1rem 7rem;
 }
 
-/* === HUD TOP HEADER === */
+/* === HUD TOP HEADER === RETIRED 2026-05-12 per user "get rid of the fucking header".
+   The .hud-header rule below stays as `display: none` defense-in-depth in case any
+   straggler call site renders one — should never fire, but cheaper than a runtime crash. */
 
 .hud-header {
-  position: absolute;
-  top: 0.6rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  font-size: 0.85rem;
-  max-width: calc(100vw - 2rem);
+  display: none;
 }
 
 .hud-header__quit {
@@ -243,6 +230,57 @@
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.3);
   opacity: 1;
+}
+
+/* PHASE 17.L 2026-05-12 — categorized toolbar. The category row replaces the flat 30-button
+   wall; clicking a category expands its sub-row above. */
+.hud-toolbar__btn--category {
+  min-width: 4.5rem;
+  font-weight: 600;
+}
+
+.hud-toolbar__btn--has-open {
+  /* Visual hint that this category contains at least one open panel — subtle accent border
+     so the player can find their open panel's category at a glance. */
+  border-color: rgba(212, 161, 58, 0.5);
+}
+
+.hud-toolbar__btn--danger {
+  border-color: rgba(220, 70, 70, 0.45);
+}
+.hud-toolbar__btn--danger:hover {
+  background: rgba(220, 70, 70, 0.2);
+  border-color: rgba(220, 70, 70, 0.85);
+}
+
+.hud-toolbar-expanded {
+  position: absolute;
+  bottom: 5.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.8rem;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 161, 58, 0.5);
+  border-radius: 14px;
+  max-width: calc(100vw - 2rem);
+}
+
+.hud-toolbar-expanded__tick {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  color: var(--fg-secondary, #a8a8b8);
+  padding: 0.25rem 0.55rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  margin-right: 0.4rem;
 }
 
 .hud-toolbar__btn-emoji {
