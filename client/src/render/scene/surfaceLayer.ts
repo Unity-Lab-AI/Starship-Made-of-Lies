@@ -145,12 +145,21 @@ export function buildSurfaceLayer(planet: Planet): SurfaceLayerHandle {
   const hexScale = TILE_HEX_SCALE_BY_TIER[planet.sizeTier]
   const tileGeom = new THREE.CircleGeometry(hexScale, 6)
   // CircleGeometry sits in the XY plane with normal +Z. We rotate per-instance so +Z aligns with tile.normal.
+  // HOTFIX 17.L.D.15 — emissiveIntensity on the tile material so surface tiles glow with
+  // their biome color even when no directional light reaches the camera-facing hemisphere.
+  // Per user verbatim "black as charcoal mesh ... when i zoom into them all i see is
+  // blackness". Combined with the renderer's ACES tone-mapping + sRGB color-space, this
+  // guarantees the surface is readable across Firefox / Chromium / Safari. Vertex colors
+  // are reused for both diffuse and emissive (Three.js MeshStandardMaterial does this when
+  // vertexColors=true and emissive is set on the material).
   const tileMat = new THREE.MeshStandardMaterial({
     vertexColors: true,
-    roughness: 0.9,
+    roughness: 0.85,
     metalness: 0.05,
     flatShading: true,
     side: THREE.DoubleSide,
+    emissive: 0x222222,
+    emissiveIntensity: 0.35,
   })
   const tilesMesh = new THREE.InstancedMesh(tileGeom, tileMat, planet.tiles.length)
   tilesMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
