@@ -11,15 +11,18 @@ import { KeybindingsPanel } from '../panels/KeybindingsPanel'
 import './SubPage.css'
 import './SettingsPage.css'
 
-type SettingsTab = 'audio' | 'accessibility' | 'camera' | 'keybinds' | 'about'
+type SettingsTab = 'audio' | 'accessibility' | 'camera' | 'keybinds' | 'game' | 'about'
 
 const TABS: ReadonlyArray<{ id: SettingsTab; label: string; emoji: string }> = [
   { id: 'audio', label: 'Audio', emoji: '🔊' },
   { id: 'accessibility', label: 'Accessibility', emoji: '♿' },
   { id: 'camera', label: 'Camera', emoji: '🎮' },
   { id: 'keybinds', label: 'Keybinds', emoji: '⌨️' },
+  { id: 'game', label: 'Game', emoji: '🎯' },
   { id: 'about', label: 'About', emoji: 'ℹ️' },
 ]
+
+const ONBOARDING_KEY = 'smol.onboarding.firstPlay.v1'
 
 export function SettingsPage() {
   const [tab, setTab] = useState<SettingsTab>('audio')
@@ -55,6 +58,7 @@ export function SettingsPage() {
           {tab === 'accessibility' && <AccessibilitySettingsPanel initial={accessibilityInitial} />}
           {tab === 'camera' && <CameraSettingsPanel />}
           {tab === 'keybinds' && <KeybindingsPanel initial={keybindMapInitial} />}
+          {tab === 'game' && <GameSettingsPanel />}
           {tab === 'about' && (
             <div className="settings-page__about">
               <h2>SMoL Alpha v0.01.0</h2>
@@ -90,6 +94,53 @@ export function SettingsPage() {
           )}
         </section>
       </main>
+    </div>
+  )
+}
+
+function GameSettingsPanel() {
+  const [onboardingDone, setOnboardingDone] = useState<boolean>(() => {
+    try {
+      return window.localStorage.getItem(ONBOARDING_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+
+  const handleReplayOnboarding = () => {
+    try {
+      window.localStorage.removeItem(ONBOARDING_KEY)
+      setOnboardingDone(false)
+    } catch {
+      // localStorage unavailable
+    }
+  }
+
+  return (
+    <div className="settings-page__game">
+      <h2>Game Settings</h2>
+      <section className="settings-page__game-section">
+        <h3>Onboarding</h3>
+        <p className="settings-page__game-help">
+          The welcome hint shows once on your first match. Clear it here to see it again on the next
+          /play load — useful for demos or new players sharing your account.
+        </p>
+        <div className="settings-page__game-row">
+          <span className="settings-page__game-status">
+            Status:{' '}
+            <strong>{onboardingDone ? '✓ Already seen' : '○ Will show on next match'}</strong>
+          </span>
+          <button
+            type="button"
+            className="settings-page__game-btn"
+            onClick={handleReplayOnboarding}
+            disabled={!onboardingDone}
+            title="Clear the localStorage flag so the onboarding hint fires again on the next /play mount"
+          >
+            🔄 Replay onboarding hint
+          </button>
+        </div>
+      </section>
     </div>
   )
 }
