@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './theme/ThemeProvider'
+import { TermsGate } from './ui/gates/TermsGate'
 import { TitleScreen } from './ui/title/TitleScreen'
 import { NewGamePage } from './ui/pages/NewGamePage'
 import { MultiplayerPage } from './ui/pages/MultiplayerPage'
@@ -19,21 +20,27 @@ export function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<TitleScreen />} />
-          <Route path="/new-game" element={<NewGamePage />} />
-          <Route path="/play" element={<PlayPage />} />
-          <Route path="/multiplayer" element={<MultiplayerPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/achievements" element={<AchievementsPage />} />
-          <Route path="/wiki" element={<WikiPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/preview" element={<PreviewPage />} />
-          <Route path="/signin" element={<SignInPage />} />
-          <Route path="/auth/google/callback" element={<GoogleOAuthCallbackPage />} />
-        </Routes>
+        {/* PHASE 17.L.D (HOTFIX 2026-05-12) — TermsGate wraps the entire route tree. Until
+            the visitor clicks Agree on first load, only the gate modal renders. Disagree
+            redirects to google.com. Acceptance persists in localStorage so the gate is a
+            one-shot. */}
+        <TermsGate>
+          <Routes>
+            <Route path="/" element={<TitleScreen />} />
+            <Route path="/new-game" element={<NewGamePage />} />
+            <Route path="/play" element={<PlayPage />} />
+            <Route path="/multiplayer" element={<MultiplayerPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/achievements" element={<AchievementsPage />} />
+            <Route path="/wiki" element={<WikiPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/preview" element={<PreviewPage />} />
+            <Route path="/signin" element={<SignInPage />} />
+            <Route path="/auth/google/callback" element={<GoogleOAuthCallbackPage />} />
+          </Routes>
+        </TermsGate>
       </BrowserRouter>
     </ThemeProvider>
   )
