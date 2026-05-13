@@ -96,12 +96,19 @@ const TABS: ReadonlyArray<{ readonly id: TabId; readonly emoji: string; readonly
     { id: 'preview', emoji: '👁', label: 'Preview' },
   ]
 
-// Compact ⓘ tooltip icon. Uses the browser-native title attribute so we get a free, accessible
-// hover tooltip with no JS deps or popper / floating-ui dance. Adequate for short hint text.
+// PHASE 17.L.D.11 (HOTFIX 2026-05-13) — InfoTip rebuilt as a real CSS popover per user
+// verbatim *"no tool tips are working and the information just looks like palin ol text write
+// ups now"*. Native `title=` tooltips have ~1s delay, are OS-skinned, often invisible in
+// screenshot capture / mobile / accessibility contexts, and made the rich hint copy LOOK
+// absent. Now hover/focus surfaces a styled popover (`.new-game-page__info-tip-pop`) that
+// pops up from the ⓘ icon with the full hint text. Zero JS deps; pure CSS :hover + :focus-within.
 function InfoTip({ text }: { readonly text: string }) {
   return (
-    <span className="new-game-page__info-tip" title={text} aria-label={text} role="img">
-      ⓘ
+    <span className="new-game-page__info-tip" tabIndex={0} role="button" aria-label={text}>
+      <span aria-hidden>ⓘ</span>
+      <span className="new-game-page__info-tip-pop" role="tooltip">
+        {text}
+      </span>
     </span>
   )
 }
@@ -303,8 +310,11 @@ export function NewGamePage() {
                     </option>
                   ))}
                 </select>
-                <InfoTip text="More planets = more enemies, more colonization targets, longer matches. Each system has one star (Sun)." />
+                <InfoTip text="More planets = more enemies, more colonization targets, longer matches. Each system has one star (Sun). Tiny is the fastest playtest, Large is the marathon saga." />
               </div>
+              <p className="new-game-page__field-hint">
+                More planets = more enemies, longer matches, bigger saga.
+              </p>
               <p className="new-game-page__theme-note">
                 🎭 Your government theme is rolled by fate at match start. You can&apos;t see it,
                 can&apos;t choose it, can&apos;t re-roll it. Every civilization plays the hand
@@ -330,8 +340,11 @@ export function NewGamePage() {
                   className="new-game-page__control new-game-page__control--slider"
                 />
                 <span className="new-game-page__field-value">{aiCount}</span>
-                <InfoTip text="0 = solo sandbox. 1–11 = hostile AI civs you race against. Each plays its own playstyle archetype at its own difficulty." />
+                <InfoTip text="0 = solo sandbox (no enemies, build your civ in peace). 1–11 = hostile AI civs you race against. Each AI rolls its own playstyle archetype + difficulty curve, set below." />
               </div>
+              <p className="new-game-page__field-hint">
+                0 = solo sandbox · 1-11 = hostile enemies you race against.
+              </p>
 
               {aiCount > 0 && (
                 <>
@@ -427,8 +440,11 @@ export function NewGamePage() {
                     {coopMode ? 'Allied' : 'Free-for-all'}
                   </span>
                 </label>
-                <InfoTip text="Co-op: human players share a tech pool and the AI is hostile to your alliance. Free-for-all: every civ for itself." />
+                <InfoTip text="Co-op: human players share a tech pool and the AI is hostile to your alliance. Free-for-all: every civ for itself, no permanent alliances. Diplomacy and caravan trades remain available in either mode." />
               </div>
+              <p className="new-game-page__field-hint">
+                Co-op = humans share a tech pool · Free-for-all = every civ for itself.
+              </p>
 
               <div className="new-game-page__field-row">
                 <label htmlFor="fog-of-war" className="new-game-page__label">
@@ -445,8 +461,11 @@ export function NewGamePage() {
                     {fogOfWarEnabled ? 'Hidden until contact' : 'OFF — everything visible'}
                   </span>
                 </label>
-                <InfoTip text="ON: enemy planets stay hidden until you launch at them OR they launch at you. OFF: every civilization is visible on the galactic map from match start." />
+                <InfoTip text="ON: enemy planets stay hidden until you launch at them OR they launch at you (UMS-faithful intel model). OFF: every civilization is visible on the galactic map from match start (god-mode debug)." />
               </div>
+              <p className="new-game-page__field-hint">
+                ON = enemies hidden until contact · OFF = god-view, everything visible from tick 1.
+              </p>
 
               <div className="new-game-page__field-row">
                 <label htmlFor="save-mode" className="new-game-page__label">
@@ -465,8 +484,11 @@ export function NewGamePage() {
                   <option value="auto-5min">Auto-save every 5 minutes</option>
                   <option value="auto-15min">Auto-save every 15 minutes</option>
                 </select>
-                <InfoTip text="Auto-saves to local browser storage. Manual 💾 button still works regardless of mode. Off means match state lives only in memory and dies when you close the tab." />
+                <InfoTip text="Auto-saves to local browser storage. Manual 💾 toolbar button still works regardless of mode. Off means match state lives only in memory and dies when you close the tab — pick that for quick playtests where you don't care about resuming." />
               </div>
+              <p className="new-game-page__field-hint">
+                Saves go to local browser storage. Off = tab close kills the match.
+              </p>
 
               <div className="new-game-page__field-row">
                 <label htmlFor="random-events" className="new-game-page__label">
@@ -485,8 +507,11 @@ export function NewGamePage() {
                   <option value="medium">Medium — moderate (~one per civ per minute)</option>
                   <option value="high">High — frequent (~one per civ every 25 sec)</option>
                 </select>
-                <InfoTip text="Solar Flares / Plague Outbreaks / Refugee Waves / Ancient Tech Discoveries / etc. fire across the galaxy. Up to 2 / 4 / 6 active per civ at low / medium / high intensity." />
+                <InfoTip text="Galactic events fire across the whole galaxy: Solar Flares, Plague Outbreaks, Refugee Waves, Ancient Tech Discoveries, Resource Booms, Civil Unrest, and more. Up to 2 / 4 / 6 active per civ at low / medium / high. Off disables the system entirely." />
               </div>
+              <p className="new-game-page__field-hint">
+                Solar Flares / Plagues / Refugee Waves / Ancient Tech / etc. fire across the galaxy.
+              </p>
             </div>
           )}
 
