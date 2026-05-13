@@ -374,7 +374,9 @@ function main() {
   fs.writeFileSync(readmePath, buildIndexReadme(themeCount, sfxCount), 'utf-8')
   console.log(`  ✓ ${path.relative(ROOT, readmePath)}`)
 
-  console.log(`\n✓ Generated ${themeCount} theme + ${sfxCount} SFX = ${themeCount + sfxCount} drop-in folders.`)
+  console.log(
+    `\n✓ Generated ${themeCount} theme + ${sfxCount} SFX = ${themeCount + sfxCount} drop-in folders.`,
+  )
 }
 
 main()
