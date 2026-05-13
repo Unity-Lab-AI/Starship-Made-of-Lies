@@ -1,8 +1,9 @@
 import { type BuildingDefId } from '../types/index'
 import {
+  BLDG_APARTMENT,
   BLDG_BATTERY_BANK,
+  BLDG_CATHEDRAL,
   BLDG_FACTORY,
-  BLDG_LAB,
   BLDG_LAUNCH_PAD,
   BLDG_LUMBER_CAMP,
   BLDG_MINE,
@@ -231,11 +232,17 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     tier: 0,
     visibility: 'mainstream',
     category: 'industrial',
-    description: 'Radio + television + print media. Propaganda baseline infrastructure.',
+    description:
+      'Radio + television + print media + organized congregations. Propaganda baseline infrastructure. Unlocks TV Station and theme-flavored Cathedral.',
     prerequisites: [],
     costPoints: 30,
     effects: {
-      unlockBuildings: [BLDG_TV_STATION],
+      // PHASE 17.L.D.10 (HOTFIX 2026-05-13) — BLDG_CATHEDRAL added per user verbatim *"check
+      // for other shit like that not gated correctly"*. Was previously absent from every tech's
+      // unlockBuildings AND from TECH_GATED_BUILDINGS, so Cathedral was default-buildable from
+      // match start despite being theme-flavored late-game indoctrination infrastructure. Now
+      // gated behind Mass Communication (same tier-0 propaganda foundation as TV Station).
+      unlockBuildings: [BLDG_TV_STATION, BLDG_CATHEDRAL],
       propagandaPowerMultiplier: 1.2,
     },
   },
@@ -276,11 +283,16 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     tier: 1,
     visibility: 'mainstream',
     category: 'information',
-    description: 'Digital logic + early computation. Unlocks dedicated research labs.',
+    // PHASE 17.L.D.10 (HOTFIX 2026-05-13) — Lab REMOVED from this tech's unlockBuildings per
+    // user verbatim *"we need a sciecence research point generating building to start with so
+    // we can fucking do somthing as far as un l;ocking tech"*. Lab is now baseline-unlocked
+    // (see placement.ts TECH_GATED_BUILDINGS). Computing keeps its researchSpeedMultiplier so
+    // it remains valuable to research; it's just no longer the gate-keeper for the building.
+    description:
+      'Digital logic + early computation. Accelerates research throughput across every Lab and University on the empire.',
     prerequisites: [TECH_MASS_PRODUCTION, TECH_ELECTRIC_POWER],
     costPoints: 60,
     effects: {
-      unlockBuildings: [BLDG_LAB],
       researchSpeedMultiplier: 1.2,
     },
   },
@@ -712,11 +724,18 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     visibility: 'mainstream',
     category: 'industrial',
     description:
-      'Mass-scale manufacturing infrastructure. Production lines absorb shock losses; output climbs across every industrial building.',
+      'Mass-scale manufacturing infrastructure + dense urban housing. Production lines absorb shock losses; output climbs across every industrial building. Unlocks high-density Apartment Complex.',
     prerequisites: [TECH_MASS_PRODUCTION, TECH_ELECTRIC_POWER],
     costPoints: 60,
     effects: {
       buildingProductionMultiplier: 1.2,
+      // PHASE 17.L.D.10 (HOTFIX 2026-05-13) — BLDG_APARTMENT added per user verbatim *"check
+      // for other shit like that not gated correctly"*. Apartment was default-buildable from
+      // match start (absent from every tech's unlockBuildings AND from TECH_GATED_BUILDINGS).
+      // Apartment is high-density housing (32 citizens vs Home's 8) at heavier cost — clearly
+      // a tier-1 industrial-scale construction project. Now properly gated behind Heavy
+      // Industry tech (tier 1, mainstream, industrial).
+      unlockBuildings: [BLDG_APARTMENT],
     },
   },
   {

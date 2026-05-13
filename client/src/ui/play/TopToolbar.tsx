@@ -28,6 +28,13 @@ interface TopToolbarProps {
   // light prop with just inventory.stocks + label, no population needed here anymore.
   readonly ownedPlanetTooltips: ReadonlyArray<OwnedPlanetTooltipRow>
   readonly currentTick: number
+  // PHASE 17.L.D.10 (HOTFIX 2026-05-13) — research pool + per-tick accrual surfaced in the
+  // top toolbar per user verbatim *"we need research point counter along with the resource
+  // bar info"*. Pool is the empire-wide currency for tech purchases; per-tick rate is what
+  // tickCivResearch deposits each tick. Same data the Tech Tree panel shows in its header,
+  // mirrored here so the player sees it without opening the panel.
+  readonly researchPointsPool: number
+  readonly researchPointsPerTick: number
   // PHASE 17.L 2026-05-12 user feedback — pause/speed migrate from the (now-nuked) hud-header
   // into this bar, anchored to the far right (opposite the resources block). Always-visible
   // so the player can pause / scrub speed without opening any popover.
@@ -52,6 +59,8 @@ export function TopToolbar({
   empire,
   ownedPlanetTooltips,
   currentTick,
+  researchPointsPool,
+  researchPointsPerTick,
   running,
   speed,
   togglePause,
@@ -95,6 +104,25 @@ export function TopToolbar({
       <div className="top-toolbar__civ" title={`Tick ${currentTick}`}>
         <span className="top-toolbar__civ-label">{humanCivLabel}</span>
         <span className="top-toolbar__civ-tick">t {currentTick}</span>
+      </div>
+
+      {/* PHASE 17.L.D.10 (HOTFIX 2026-05-13) — research pool chip lives at the start of the
+          resource row so the player sees it before scanning every stock. Tooltip surfaces
+          the per-tick rate + the "click Tech Tree to spend" hint. Float values floored for
+          display; sim keeps the float-precision pool. */}
+      <div
+        className="top-toolbar__research"
+        title={`🔬 Research pool: ${Math.floor(researchPointsPool).toLocaleString()} pts · +${researchPointsPerTick.toLocaleString()}/tick from your scientists. Open the Tech Tree panel to spend the pool on a tech.`}
+      >
+        <span className="top-toolbar__research-emoji" aria-hidden>
+          🔬
+        </span>
+        <span className="top-toolbar__research-count">
+          {Math.floor(researchPointsPool).toLocaleString()}
+        </span>
+        <span className="top-toolbar__research-rate">
+          +{researchPointsPerTick.toLocaleString()}/t
+        </span>
       </div>
 
       <div className="top-toolbar__resources" role="list">

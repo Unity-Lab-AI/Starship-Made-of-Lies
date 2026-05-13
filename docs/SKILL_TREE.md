@@ -32,9 +32,9 @@
    │   NO_SIGNAL crawl-home + solar recharge       ✅ Shipped    │
    │   Workforce sliders (5 categories)            ✅ Shipped    │
    │   Citizen tier system (5-tier)                ✅ Shipped    │
-   │   Tech tree (62 nodes)                        ✅ Shipped    │
+   │   Tech tree (61 nodes)                        ✅ Shipped    │
    │   Government themes (20)                      ✅ Shipped    │
-   │   20 colony ship variants                     ✅ Shipped    │
+   │   19 colony ship variants                     ✅ Shipped    │
    │   Pad state machine + salvo stagger           ✅ Shipped    │
    │   6 targeting modes (GPS/ANT/SEN/LID/MAN/SAT) ✅ Shipped    │
    │   Counter-colony-ship interception            ✅ Shipped    │
