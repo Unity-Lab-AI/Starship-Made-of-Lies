@@ -86,7 +86,7 @@ export function TechTreePanel({
         {researchPointsPerTick !== undefined && (
           <span className="tech-tree-panel__pool">
             🔬 Pool: <strong>{Math.floor(empire.researchPointsPool).toLocaleString()}</strong> pts ·
-            +<strong>{researchPointsPerTick.toLocaleString()}</strong>/t
+            +<strong>{formatRate(researchPointsPerTick)}</strong>/t
           </span>
         )}
       </header>
@@ -134,6 +134,15 @@ export function TechTreePanel({
       </div>
     </section>
   )
+}
+
+// PHASE 17.L.D.12 — research-rate formatter shared with TopToolbar. Sub-1 rates need
+// decimal precision; integer floor hides accrual.
+function formatRate(rate: number): string {
+  if (rate <= 0) return '0'
+  if (rate < 1) return rate.toFixed(2)
+  if (rate < 10) return rate.toFixed(1)
+  return Math.floor(rate).toLocaleString()
 }
 
 type TechRenderState = 'researched' | 'researchable' | 'hinted' | 'visible' | 'hidden'

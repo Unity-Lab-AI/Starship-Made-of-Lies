@@ -636,6 +636,13 @@ export function PlayPage() {
   // tickCivResearch applies each tick: per-planet generatePlanetResearchPoints +
   // aggregateEmpireResearchPoints + RESEARCH_POINT_DIVISOR throttle. useMemo'd so the
   // per-planet loop only runs when sim state changes — not on every render.
+  //
+  // PHASE 17.L.D.12 (HOTFIX 2026-05-13) — returns the FLOAT rate (not floored). 2 starter
+  // Labs produce 0.16 pts/tick → the previous `Math.floor` display rounded that to 0 and
+  // made the chip lie about progress per user verbatim *"shows 0 even though i have a
+  // bunch of labcoat emoji buildings"*. Sim now also accumulates the float into the pool
+  // (was pre-floored to 0 there too). Display formatter in TopToolbar / TechTreePanel
+  // handles sub-1 rates with 2 decimal places.
   const researchPointsPerTick = useMemo<number>(() => {
     const perPlanetPoints: number[] = []
     for (const planetId of humanCivState.empire.controlledPlanetIds) {
@@ -651,7 +658,7 @@ export function PlayPage() {
       )
     }
     const raw = aggregateEmpireResearchPoints(humanCivState.empire, perPlanetPoints)
-    return Math.max(0, Math.floor(raw / RESEARCH_POINT_DIVISOR))
+    return Math.max(0, raw / RESEARCH_POINT_DIVISOR)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sim.state, sim.state.currentTick, humanCivState.empire])
 

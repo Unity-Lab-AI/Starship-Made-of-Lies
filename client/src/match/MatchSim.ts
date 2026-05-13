@@ -1554,7 +1554,20 @@ function tickCivResearch(state: MatchState, civState: MatchCivState): void {
   // PHASE 17.B.4 — research throttle for the locked 10-24h saga. Same costPoints, fewer
   // points/tick = each tech takes RESEARCH_POINT_DIVISOR× longer to research. Keeps the
   // tech.ts cost numbers intact while making "rush to galactic apex" a real long climb.
-  const aggregate = Math.max(0, Math.floor(rawAggregate / RESEARCH_POINT_DIVISOR))
+  //
+  // PHASE 17.L.D.12 (HOTFIX 2026-05-13) — was `Math.floor(rawAggregate / RESEARCH_POINT_DIVISOR)`
+  // pre-floored to integer BEFORE deposit. With 2 starter Labs the rate is
+  // 30 raw / 200 = 0.15 per tick → floor = 0 → early-return → pool NEVER GREW. Even 10
+  // labs only generated 158/200 = 0.79 → floor 0. Per user verbatim *"major problem the
+  // research building isnt generating reasearch points for me at the slow rate it should
+  // shows 0 even though i have a bunch of labcoat emoji buildings"*. The `researchPointsPool`
+  // field is already typed `number` (float) — it always supported sub-1 deposits, the bug
+  // was the gatekeeper before tickResearch. Now we pass the float rate through; the pool
+  // accumulates fractional points each tick, hits tier-0's 30pt threshold around tick ~200
+  // at 2 starter Labs (~40 sec @ 5Hz tick rate) matching the balance-constants comment's
+  // "Tier-0 (30 pts): ~400 ticks = 80 sec wall-clock" intent (the comment math used a
+  // pre-bump rate; current rate is roughly 2× that, putting tier-0 at ~40 sec).
+  const aggregate = rawAggregate / RESEARCH_POINT_DIVISOR
   if (aggregate <= 0) return
   // PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — pool-model rewrite. tickResearch now just adds
   // points to empire.researchPointsPool; it never auto-completes a tech (completion happens
