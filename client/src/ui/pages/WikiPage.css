@@ -175,6 +175,42 @@
   font-size: 0.9rem;
 }
 
+/* PHASE 17.L.D.10 — wired-vs-flavor tags + clarifying note on the Themes detail panel.
+ * Replaces the previous over-claiming layout where every propaganda string looked equally
+ * load-bearing. */
+.wiki-page__wired-tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.5rem;
+  background: rgba(60, 200, 90, 0.18);
+  color: rgb(120, 220, 140);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.wiki-page__flavor-tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.5rem;
+  background: rgba(140, 140, 160, 0.18);
+  color: rgb(180, 180, 200);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.wiki-page__detail-note {
+  margin: 0.5rem 0 0.75rem;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 .wiki-page__tiers {
   margin: 0.5rem 0 0 1.25rem;
   padding: 0;

@@ -631,6 +631,37 @@ export function PlayPage() {
     [sim.state, sim.state.currentTick],
   )
 
+  // PHASE 17.L.D.10 (HOTFIX 2026-05-13) — research pool accrual rate, shared between
+  // TopToolbar (always visible) and the Tech Tree panel (opened on demand). Mirrors the math
+  // tickCivResearch applies each tick: per-planet generatePlanetResearchPoints +
+  // aggregateEmpireResearchPoints + RESEARCH_POINT_DIVISOR throttle. useMemo'd so the
+  // per-planet loop only runs when sim state changes — not on every render.
+  //
+  // PHASE 17.L.D.12 (HOTFIX 2026-05-13) — returns the FLOAT rate (not floored). 2 starter
+  // Labs produce 0.16 pts/tick → the previous `Math.floor` display rounded that to 0 and
+  // made the chip lie about progress per user verbatim *"shows 0 even though i have a
+  // bunch of labcoat emoji buildings"*. Sim now also accumulates the float into the pool
+  // (was pre-floored to 0 there too). Display formatter in TopToolbar / TechTreePanel
+  // handles sub-1 rates with 2 decimal places.
+  const researchPointsPerTick = useMemo<number>(() => {
+    const perPlanetPoints: number[] = []
+    for (const planetId of humanCivState.empire.controlledPlanetIds) {
+      const ps = sim.state.planets.get(planetId)
+      if (!ps) continue
+      perPlanetPoints.push(
+        generatePlanetResearchPoints({
+          workforce: ps.workforce,
+          totalCitizens: availableWorkers(ps.population),
+          faction: ps.faction,
+          buildingCounts: ps.buildingsByDef,
+        }),
+      )
+    }
+    const raw = aggregateEmpireResearchPoints(humanCivState.empire, perPlanetPoints)
+    return Math.max(0, raw / RESEARCH_POINT_DIVISOR)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sim.state, sim.state.currentTick, humanCivState.empire])
+
   const activePads = useMemo(
     () => [...activePlanet.launchPads.values()],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1300,6 +1331,8 @@ export function PlayPage() {
           empire={empireAggregate}
           ownedPlanetTooltips={topToolbarTooltips}
           currentTick={sim.state.currentTick}
+          researchPointsPool={humanCivState.empire.researchPointsPool}
+          researchPointsPerTick={researchPointsPerTick}
           running={sim.running}
           speed={sim.speed}
           togglePause={sim.togglePause}
@@ -1509,27 +1542,7 @@ export function PlayPage() {
             <TechTreePanel
               empire={humanCivState.empire}
               selectedTechId={selectedTechId}
-              researchPointsPerTick={(() => {
-                // PHASE 17.L.D (HOTFIX 2026-05-12) — mirror tickCivResearch math so the
-                // player sees the same rate the sim is actually applying each tick. Per-
-                // planet generatePlanetResearchPoints + aggregateEmpireResearchPoints +
-                // RESEARCH_POINT_DIVISOR throttle.
-                const perPlanetPoints: number[] = []
-                for (const planetId of humanCivState.empire.controlledPlanetIds) {
-                  const ps = sim.state.planets.get(planetId)
-                  if (!ps) continue
-                  perPlanetPoints.push(
-                    generatePlanetResearchPoints({
-                      workforce: ps.workforce,
-                      totalCitizens: availableWorkers(ps.population),
-                      faction: ps.faction,
-                      buildingCounts: ps.buildingsByDef,
-                    }),
-                  )
-                }
-                const raw = aggregateEmpireResearchPoints(humanCivState.empire, perPlanetPoints)
-                return Math.max(0, Math.floor(raw / RESEARCH_POINT_DIVISOR))
-              })()}
+              researchPointsPerTick={researchPointsPerTick}
               onSelectTech={(techId) => {
                 setSelectedTechId(techId)
                 // HOTFIX 17.L.D.14 — auto-open the detail panel on first tech click so the

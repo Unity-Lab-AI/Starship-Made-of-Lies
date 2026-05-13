@@ -28,6 +28,13 @@ interface TopToolbarProps {
   // light prop with just inventory.stocks + label, no population needed here anymore.
   readonly ownedPlanetTooltips: ReadonlyArray<OwnedPlanetTooltipRow>
   readonly currentTick: number
+  // PHASE 17.L.D.10 (HOTFIX 2026-05-13) — research pool + per-tick accrual surfaced in the
+  // top toolbar per user verbatim *"we need research point counter along with the resource
+  // bar info"*. Pool is the empire-wide currency for tech purchases; per-tick rate is what
+  // tickCivResearch deposits each tick. Same data the Tech Tree panel shows in its header,
+  // mirrored here so the player sees it without opening the panel.
+  readonly researchPointsPool: number
+  readonly researchPointsPerTick: number
   // PHASE 17.L 2026-05-12 user feedback — pause/speed migrate from the (now-nuked) hud-header
   // into this bar, anchored to the far right (opposite the resources block). Always-visible
   // so the player can pause / scrub speed without opening any popover.
@@ -52,6 +59,8 @@ export function TopToolbar({
   empire,
   ownedPlanetTooltips,
   currentTick,
+  researchPointsPool,
+  researchPointsPerTick,
   running,
   speed,
   togglePause,
@@ -95,6 +104,25 @@ export function TopToolbar({
       <div className="top-toolbar__civ" title={`Tick ${currentTick}`}>
         <span className="top-toolbar__civ-label">{humanCivLabel}</span>
         <span className="top-toolbar__civ-tick">t {currentTick}</span>
+      </div>
+
+      {/* PHASE 17.L.D.10 (HOTFIX 2026-05-13) — research pool chip lives at the start of the
+          resource row so the player sees it before scanning every stock. Tooltip surfaces
+          the per-tick rate + the "click Tech Tree to spend" hint.
+          PHASE 17.L.D.12 — formatRate uses 2-decimal precision for sub-1 rates so the
+          player SEES progress when scientists deposit 0.16/tick from 2 starter Labs
+          instead of the chip lying with "+0/t". */}
+      <div
+        className="top-toolbar__research"
+        title={`🔬 Research pool: ${Math.floor(researchPointsPool).toLocaleString()} pts · +${formatRate(researchPointsPerTick)}/tick from your scientists. Open the Tech Tree panel to spend the pool on a tech.`}
+      >
+        <span className="top-toolbar__research-emoji" aria-hidden>
+          🔬
+        </span>
+        <span className="top-toolbar__research-count">
+          {Math.floor(researchPointsPool).toLocaleString()}
+        </span>
+        <span className="top-toolbar__research-rate">+{formatRate(researchPointsPerTick)}/t</span>
       </div>
 
       <div className="top-toolbar__resources" role="list">
@@ -220,4 +248,15 @@ function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000) return `${(n / 1000).toFixed(1)}k`
   return `${Math.round(n)}`
+}
+
+// PHASE 17.L.D.12 — research-rate formatter. Sub-1 rates need decimal precision so the
+// player sees progress (2 starter Labs → 0.16/tick); rounding to int hides accrual + makes
+// the chip appear stuck at 0. Pattern: <1 → 2 decimals · <10 → 1 decimal · ≥10 → integer
+// with locale separators.
+function formatRate(rate: number): string {
+  if (rate <= 0) return '0'
+  if (rate < 1) return rate.toFixed(2)
+  if (rate < 10) return rate.toFixed(1)
+  return Math.floor(rate).toLocaleString()
 }

@@ -124,6 +124,8 @@ import {
   generateGalaxy,
   generatePlanetResearchPoints,
   getBuildingDef,
+  isBuildingUnlocked,
+  unlocksForBuilding,
   getColonyShipDef,
   getTheme,
   getThemePolish,
@@ -495,14 +497,30 @@ const STARTING_WATER = 8000
 // can sustain their starting population.
 const FOOD_PER_CITIZEN_PER_TICK = 0.05
 const WATER_PER_CITIZEN_PER_TICK = 0.02
-const STARTING_WOOD = 80
-const STARTING_STONE = 80
-const STARTING_PLANKS = 200
-const STARTING_BRICKS = 50
+// PHASE 17.L.D.10 (HOTFIX 2026-05-12) — starter material amounts bumped per user verbatim
+// *"make sure players have enough starting resources to build what they need with out starving
+// them"*. Mental simulation of first-30-tick build loop after the pre-built starter buildings:
+//   * 200 PLANKS used to be tight — barely enough for 2-3 more Farms + 2-3 more Homes before
+//     refinery production kicked in. Bump to 300 lets the player establish ~10 outbuildings.
+//   * 50 BRICKS was the breaking point — Aqueducts cost 25 each (1 max from starter), Homes
+//     eat 10 each (5 max). Bump to 120 gives room for ~3 more Aqueducts + Homes + a School
+//     before Refinery starts producing bricks from stone.
+//   * 60 COMPONENTS only bought 1 Solar Array (40); Foundry/Factory/Battery Bank all gated.
+//     Bump to 120 lets player build Solar + start saving for a Factory.
+//   * 25 ELECTRONICS only afforded 2 Labs (10 each). Bump to 60 enables Lab + early
+//     University planning (20).
+//   * 80 WOOD + 80 STONE were enough for ~2 Refineries (40+30 each) but tight before the
+//     freebie Lumber Camp / Quarry caught up. Bump to 200 each gives ~4 Refineries worth
+//     of buffer.
+//   * Other amounts unchanged — they were already sized fine for first-30-tick play.
+const STARTING_WOOD = 200
+const STARTING_STONE = 200
+const STARTING_PLANKS = 300
+const STARTING_BRICKS = 120
 const STARTING_METALS = 400
 const STARTING_INGOTS = 200
-const STARTING_COMPONENTS = 60
-const STARTING_ELECTRONICS = 25
+const STARTING_COMPONENTS = 120
+const STARTING_ELECTRONICS = 60
 const STARTING_PROPAGANDA = 80
 const STARTING_FUEL = 80
 const STARTING_AMMO = 200
@@ -1536,7 +1554,20 @@ function tickCivResearch(state: MatchState, civState: MatchCivState): void {
   // PHASE 17.B.4 — research throttle for the locked 10-24h saga. Same costPoints, fewer
   // points/tick = each tech takes RESEARCH_POINT_DIVISOR× longer to research. Keeps the
   // tech.ts cost numbers intact while making "rush to galactic apex" a real long climb.
-  const aggregate = Math.max(0, Math.floor(rawAggregate / RESEARCH_POINT_DIVISOR))
+  //
+  // PHASE 17.L.D.12 (HOTFIX 2026-05-13) — was `Math.floor(rawAggregate / RESEARCH_POINT_DIVISOR)`
+  // pre-floored to integer BEFORE deposit. With 2 starter Labs the rate is
+  // 30 raw / 200 = 0.15 per tick → floor = 0 → early-return → pool NEVER GREW. Even 10
+  // labs only generated 158/200 = 0.79 → floor 0. Per user verbatim *"major problem the
+  // research building isnt generating reasearch points for me at the slow rate it should
+  // shows 0 even though i have a bunch of labcoat emoji buildings"*. The `researchPointsPool`
+  // field is already typed `number` (float) — it always supported sub-1 deposits, the bug
+  // was the gatekeeper before tickResearch. Now we pass the float rate through; the pool
+  // accumulates fractional points each tick, hits tier-0's 30pt threshold around tick ~200
+  // at 2 starter Labs (~40 sec @ 5Hz tick rate) matching the balance-constants comment's
+  // "Tier-0 (30 pts): ~400 ticks = 80 sec wall-clock" intent (the comment math used a
+  // pre-bump rate; current rate is roughly 2× that, putting tier-0 at ~40 sec).
+  const aggregate = rawAggregate / RESEARCH_POINT_DIVISOR
   if (aggregate <= 0) return
   // PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — pool-model rewrite. tickResearch now just adds
   // points to empire.researchPointsPool; it never auto-completes a tech (completion happens
@@ -2595,6 +2626,30 @@ function placeBuildingCanonical(
         civId: planet.civId,
         kind: 'system',
         message: `❌ Build failed — unknown building "${String(defId)}"`,
+      })
+    }
+    return false
+  }
+  // PHASE 17.L.D.10 (HOTFIX 2026-05-12) — tech-prereq gate. Per user verbatim *"the tech needs
+  // to be figured out ie industiral tech has lumber camp in it and isnt researched but i can
+  // fucking buikld a lumber camp without it reserached so wtf?? may figure aout the gating
+  // and progression lines"*. placeBuildingCanonical previously validated owner / occupancy /
+  // resources but never consulted the tech tree — Lumber Camp / Quarry / Mine / Refinery /
+  // Foundry / Factory / Lab / University / etc. all landed without their gating tech researched.
+  // Now we look up the building's civ-side empire and consult isBuildingUnlocked (which
+  // delegates to TECH_GATED_BUILDINGS + aggregateEffects); buildings the player hasn't
+  // researched fail with a "requires X" message naming the gating tech. seedStarterBuildings
+  // bypasses this path entirely (direct map mutation) so spawn freebies still grandfather in.
+  const civState = state.civs.get(planet.civId)
+  if (civState && !isBuildingUnlocked(defId, civState.empire.researchedTechs)) {
+    if (!suppressEvents) {
+      const gatingTech = unlocksForBuilding(defId)[0]
+      const techHint = gatingTech ? ` — research ${gatingTech.emoji} ${gatingTech.name} first` : ''
+      pushEvent(state, {
+        atTick: state.currentTick,
+        civId: planet.civId,
+        kind: 'system',
+        message: `🔒 Can't build ${def.emoji} ${def.name} — tech locked${techHint}`,
       })
     }
     return false

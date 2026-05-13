@@ -202,9 +202,16 @@ export const BUILDINGS: ReadonlyArray<BuildingDef> = [
     name: 'Research Lab',
     emoji: '🥼',
     category: 'research',
+    // PHASE 17.L.D.10 (HOTFIX 2026-05-13) — buildCost was 30 bricks + 10 electronics. Per user
+    // verbatim *"still cant build it it takes electronics so i need some to start withj"*.
+    // Electronics is gated behind Factory which is gated behind Mass Production tech — that
+    // chain defeated the prior fix of making Lab baseline-buildable (the BUILDING was
+    // baseline-unlocked but the COST still required tier-3 industry). Now Lab uses only
+    // planks + bricks so it's truly bootstrap-able from the starter inventory (300 planks /
+    // 120 bricks lets the player build ~6-10 additional labs from match start).
     buildCost: [
+      { resource: RESOURCE_PLANKS, amount: 25 },
       { resource: RESOURCE_BRICKS, amount: 30 },
-      { resource: RESOURCE_ELECTRONICS, amount: 10 },
     ],
     buildTimeTicks: 80,
     citizenSlots: 4,

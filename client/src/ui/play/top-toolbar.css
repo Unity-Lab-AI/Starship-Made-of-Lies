@@ -75,6 +75,47 @@
   background: rgba(212, 161, 58, 0.12);
 }
 
+/* PHASE 17.L.D.10 — research pool chip lives alongside the resource bar so the player
+ * always sees how much research currency they have + how fast it accrues. Visually
+ * distinct from regular resource chips (purple/violet hue) so the eye doesn't confuse
+ * pool points with stockpiled materials. */
+.top-toolbar__research {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.18rem 0.5rem;
+  margin-right: 0.4rem;
+  background: rgba(140, 100, 220, 0.16);
+  border: 1px solid rgba(160, 130, 240, 0.36);
+  border-radius: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: background 120ms;
+}
+
+.top-toolbar__research:hover {
+  background: rgba(160, 130, 240, 0.26);
+}
+
+.top-toolbar__research-emoji {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.top-toolbar__research-count {
+  font-weight: 700;
+  color: rgb(220, 200, 255);
+  font-variant-numeric: tabular-nums;
+}
+
+.top-toolbar__research-rate {
+  font-size: 0.72rem;
+  color: rgb(180, 160, 230);
+  font-variant-numeric: tabular-nums;
+  margin-left: 0.1rem;
+  opacity: 0.9;
+}
+
 .top-toolbar__resource-emoji {
   font-size: 0.95rem;
   line-height: 1;

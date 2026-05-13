@@ -91,11 +91,15 @@ export function WikiPage() {
         <section className="wiki-page__panel">
           {section === 'themes' && (
             <div>
-              <h2>20 government themes</h2>
+              <h2>20 government archetypes</h2>
               <p className="wiki-page__intro">
-                Every civilization rolls a random theme — you cannot choose. Each theme reskins
-                propaganda copy, citizen tier names, building names, faction labels, and AI
-                personality. Click a theme to preview its palette + tagline.
+                Every civilization rolls a random <strong>government</strong> at match start — you
+                cannot choose, cannot see it before play, cannot re-roll. What each government
+                ACTUALLY changes in alpha:{' '}
+                <strong>citizen tier names, building name/emoji reskins, palette colors</strong>,
+                and a couple of propaganda-flavored achievement labels. Most other propaganda
+                strings exist as flavor reference for designers/lore — they aren't yet surfaced in
+                the player UI. Click a government below to preview its data.
               </p>
               <div className="wiki-page__theme-search">
                 <input
@@ -143,27 +147,56 @@ export function WikiPage() {
                   <em>{theme.tagline}</em>
                 </p>
                 <p>{theme.description}</p>
-                <h4>Propaganda</h4>
-                <dl className="wiki-page__propaganda">
-                  <dt>Recruitment slogan</dt>
-                  <dd>"{theme.propaganda.recruitmentSlogan}"</dd>
-                  <dt>One-way trip cover name</dt>
-                  <dd>"{theme.propaganda.oneWayTripCoverName}"</dd>
-                  <dt>Volunteer epithet</dt>
-                  <dd>"{theme.propaganda.volunteerEpithet}"</dd>
-                  <dt>Enemy epithet</dt>
-                  <dd>"{theme.propaganda.enemyEpithet}"</dd>
-                  <dt>Victory announcement</dt>
-                  <dd>"{theme.propaganda.victoryAnnouncement}"</dd>
-                  <dt>Defeat excuse</dt>
-                  <dd>"{theme.propaganda.defeatExcuse}"</dd>
-                </dl>
-                <h4>Citizen tiers</h4>
+                <h4>
+                  Citizen tier names <span className="wiki-page__wired-tag">✅ wired</span>
+                </h4>
+                <p className="wiki-page__detail-note">
+                  Replaces the generic Worker / Skilled / Privileged / Elite / Pinnacle labels
+                  everywhere in the UI (Citizens panel, ship Launch Manifest, tier counter chips).
+                </p>
                 <ol className="wiki-page__tiers">
                   {([1, 2, 3, 4, 5] as const).map((t) => (
                     <li key={t}>{theme.citizenTierNames[t]}</li>
                   ))}
                 </ol>
+                <h4>
+                  Propaganda flavor{' '}
+                  <span className="wiki-page__flavor-tag">📝 mostly reference</span>
+                </h4>
+                <p className="wiki-page__detail-note">
+                  Only <strong>Volunteer epithet</strong> and <strong>Enemy epithet</strong>{' '}
+                  currently surface in the player UI (achievement labels like "N{' '}
+                  <em>{theme.propaganda.volunteerEpithet}</em>s Recruited"). The other strings ship
+                  as canon reference for cinematics / match-end screens / future propaganda
+                  campaigns — they aren't wired yet, so don't expect them in alpha play.
+                </p>
+                <dl className="wiki-page__propaganda">
+                  <dt>
+                    Volunteer epithet <span className="wiki-page__wired-tag">✅ wired</span>
+                  </dt>
+                  <dd>"{theme.propaganda.volunteerEpithet}"</dd>
+                  <dt>
+                    Enemy epithet <span className="wiki-page__wired-tag">✅ wired</span>
+                  </dt>
+                  <dd>"{theme.propaganda.enemyEpithet}"</dd>
+                  <dt>
+                    Recruitment slogan <span className="wiki-page__flavor-tag">📝 reference</span>
+                  </dt>
+                  <dd>"{theme.propaganda.recruitmentSlogan}"</dd>
+                  <dt>
+                    One-way trip cover name{' '}
+                    <span className="wiki-page__flavor-tag">📝 reference</span>
+                  </dt>
+                  <dd>"{theme.propaganda.oneWayTripCoverName}"</dd>
+                  <dt>
+                    Victory announcement <span className="wiki-page__flavor-tag">📝 reference</span>
+                  </dt>
+                  <dd>"{theme.propaganda.victoryAnnouncement}"</dd>
+                  <dt>
+                    Defeat excuse <span className="wiki-page__flavor-tag">📝 reference</span>
+                  </dt>
+                  <dd>"{theme.propaganda.defeatExcuse}"</dd>
+                </dl>
               </article>
             </div>
           )}
@@ -188,6 +221,7 @@ export function WikiPage() {
                   clickableStates={['researched', 'researchable', 'hinted', 'visible']}
                   selectedTechId={selectedTechId}
                   onSelectTech={(id) => setSelectedTechId((cur) => (cur === id ? null : id))}
+                  referenceMode
                 />
               </div>
               <aside className="wiki-page__tech-detail">
@@ -211,6 +245,59 @@ export function WikiPage() {
                 current alpha balance — they will be re-tuned as playtesting reveals pacing issues.
                 Where a number appears here, the sim uses the same value at runtime.
               </p>
+
+              <article>
+                <h3>🚀 First 30 ticks — what you start with</h3>
+                <p>
+                  Every new match seeds your home planet with a stable starter economy so you don't
+                  death-spiral on tick 1.
+                </p>
+                <p>
+                  <strong>Pre-built starter buildings (no cost — spawn freebies):</strong>
+                </p>
+                <ul>
+                  <li>
+                    <strong>6 🌾 Farms</strong> — ~64.8 food/tick supply vs ~50/tick demand at 1000
+                    pop. +14.8/t surplus.
+                  </li>
+                  <li>
+                    <strong>3 💧 Aqueducts</strong> — ~54 water/tick vs ~20/tick demand. +34/t
+                    surplus.
+                  </li>
+                  <li>
+                    <strong>4 🏠 Homes</strong> — housing headroom for growth past the 1000 cap.
+                  </li>
+                  <li>
+                    <strong>1 🪵 Lumber Camp</strong> — wood inflow so building chains can scale.
+                  </li>
+                  <li>
+                    <strong>1 ⛏️ Quarry</strong> — stone inflow.
+                  </li>
+                  <li>
+                    <strong>1 ☀️ Solar Array</strong> — energy presence.
+                  </li>
+                  <li>
+                    <strong>2 🥼 Research Labs</strong> — research pool accrual at 2× the
+                    no-building rate. <em>Lab is now baseline-buildable</em> (PHASE 17.L.D.10) so
+                    you can build more labs from tick 1 without any tech prereq.
+                  </li>
+                </ul>
+                <p>
+                  <strong>Starter inventory (stocks):</strong> 8000 food · 8000 water · 200 wood ·
+                  200 stone · 300 planks · 120 bricks · 400 metals · 200 ingots · 120 components ·
+                  60 electronics · 80 propaganda materials · 80 fuel · 200 ammunition.
+                </p>
+                <p>
+                  <strong>Starter research pool:</strong> 30 points pre-seeded so you can buy{' '}
+                  <strong>Industrial Logistics</strong> (cost 30) on tick 1 to unlock the Mine +
+                  Refinery + Lumber Camp + Quarry chain. AI civs get the same seed so they aren't
+                  paralyzed at match start either.
+                </p>
+                <p className="wiki-page__pro-tip">
+                  💡 Recommended first research: Industrial Logistics → Combustion Engines (Power
+                  Plant) → Mass Production (Factory + Foundry) → Computing (more Labs).
+                </p>
+              </article>
 
               <article>
                 <h3>👥 Citizens — 5-tier population</h3>
@@ -298,12 +385,24 @@ export function WikiPage() {
               </article>
 
               <article>
-                <h3>🏗 Building catalog — 30 buildings</h3>
+                <h3>🏗 Building catalog — 29 buildings</h3>
                 <p>
-                  <strong>7 baseline-unlocked</strong> at match start: Farm, Aqueduct, Lumber Camp,
-                  Quarry, Home, School, Solar Array. Everything else is tech-gated. Locked buildings
-                  appear greyed in the Build picker with a "🧬 Requires: &lt;TechName&gt;" hint so
-                  you know exactly what to research.
+                  <strong>6 baseline-unlocked</strong> at match start (buildable without any tech):
+                  Farm, Aqueduct, Home, <strong>🥼 Research Lab</strong>, School, Solar Array.
+                  Mining Outpost is also foundational + always available. Everything else is
+                  tech-gated.
+                </p>
+                <p>
+                  Lumber Camp + Quarry are gated behind <strong>Industrial Logistics</strong> (your
+                  starter research pool covers it) — the freebie 1 Lumber Camp + 1 Quarry from the
+                  pre-built starter set grandfather in, but you must research Industrial Logistics
+                  to build ADDITIONAL ones.
+                </p>
+                <p>
+                  Locked buildings render greyed in the Build picker with a "🧬 Requires:
+                  &lt;TechName&gt;" hint so you know exactly what to research. Attempting to build a
+                  locked building from the placement action fires a "🔒 Can't build X — research Y
+                  first" event in the bottom panel.
                 </p>
                 <p>
                   Categories: <strong>food</strong> (Farm), <strong>extraction</strong> (Lumber
@@ -312,14 +411,52 @@ export function WikiPage() {
                   Apartment), <strong>propaganda</strong> (School, University, Cathedral,
                   Re-education Center, Corporate Promotions Office, TV Station),{' '}
                   <strong>utility</strong> (Aqueduct, Solar Array, Power Plant, Battery Bank,
-                  Reactors, God Control, Civic Center), <strong>defense</strong> (Mine Field,
-                  Counter-Missile Pad), <strong>launch</strong> (Launch Pad).
+                  Fission/Fusion/Antimatter Reactor, God Control, Civic Center),{' '}
+                  <strong>defense</strong> (Mine Field, Counter-Missile Pad),{' '}
+                  <strong>launch</strong> (Launch Pad).
                 </p>
+              </article>
+
+              <article>
+                <h3>🔗 Resource chain — raw to advanced</h3>
                 <p>
-                  Most buildings consume per-tick inputs + produce outputs. The chain bootstraps
-                  from raw materials (wood / stone / metals from extraction) through intermediate
-                  goods (planks / bricks / ingots from Refinery + Foundry) to advanced goods
-                  (components / electronics / ammunition from Factory).
+                  Extraction produces raw materials. Industry refines them. Most builds need
+                  intermediate or advanced goods.
+                </p>
+                <ul>
+                  <li>
+                    <strong>🪵 Lumber Camp</strong> → wood. <strong>⛏️ Quarry</strong> → stone.{' '}
+                    <strong>🪨 Mine</strong> → metals + rare metals.
+                  </li>
+                  <li>
+                    <strong>🏭 Refinery</strong> consumes wood / stone / metals → produces planks /
+                    bricks / ingots. Bootstrap-able from starter inventory (40 wood + 30 stone + 20
+                    metals — all in starter).
+                  </li>
+                  <li>
+                    <strong>⚒️ Foundry</strong> consumes bricks + metals → produces ingots + alloys.
+                    Tier-2 industry; Mass Production tech.
+                  </li>
+                  <li>
+                    <strong>🏗️ Factory</strong> consumes ingots + components → produces components /
+                    electronics / ammunition / propaganda materials. Tier-3 industry.
+                  </li>
+                  <li>
+                    <strong>⚡ Power Plant</strong> burns fuel for energy (constant draw).{' '}
+                    <strong>☢️ Fission</strong> / <strong>🌟 Fusion</strong> /{' '}
+                    <strong>💠 Antimatter</strong> reactors consume their tier-specific radioactive
+                    resource at 4× / 8× / 16× a Power Plant's throughput. Reactor variants on colony
+                    ships consume radioactives at launch (validated in the Launch Manifest).
+                  </li>
+                  <li>
+                    <strong>🔋 Battery Bank</strong> stockpiles surplus fuel; surfaces in the Planet
+                    Energy panel as capacity cap. Gated behind Electric Power.
+                  </li>
+                </ul>
+                <p className="wiki-page__pro-tip">
+                  💡 Refinery is the brick producer — you can't build a Foundry without bricks
+                  first. Research Industrial Logistics → place a Refinery → wait for ingots/planks
+                  to accrue → THEN research Mass Production for Factory + Foundry.
                 </p>
               </article>
 
@@ -392,8 +529,10 @@ export function WikiPage() {
               <article>
                 <h3>🌐 Tech tree — {TECH_NODES.length} nodes</h3>
                 <p>
-                  5 tiers (0-4) × 7 categories (industrial, information, biological, control,
-                  spacefaring, energy, forbidden). 3 visibility states:
+                  5 tiers (0-4) × 7 categories: <strong>industrial</strong>,{' '}
+                  <strong>information</strong>, <strong>spacefaring</strong>,{' '}
+                  <strong>advanced</strong>, <strong>farFuture</strong>, <strong>control</strong>,{' '}
+                  <strong>forbidden</strong>. 3 visibility states:
                 </p>
                 <ul>
                   <li>
@@ -412,6 +551,12 @@ export function WikiPage() {
                   Two apex paths win the match: <strong>Singularity</strong> (mainstream) or{' '}
                   <strong>Reality Editing</strong> (forbidden), both gated on ≥ 10 controlled
                   planets via the Apex Check requirement.
+                </p>
+                <p className="wiki-page__pro-tip">
+                  💡 The Tech tree tab (top of this Wiki) shows the full {TECH_NODES.length}-node
+                  reference catalog including Suppressed and Forbidden nodes — in-match those stay
+                  hidden until prereqs / conquest gates trigger, but the Wiki is reference material
+                  and reveals everything.
                 </p>
               </article>
 
@@ -482,19 +627,15 @@ export function WikiPage() {
               </article>
 
               <article>
-                <h3>🎭 Themes — 20 governments, rolled by fate</h3>
+                <h3>🎭 Governments — see the Themes tab</h3>
                 <p>
-                  Every civilization gets a random government theme at match start. You cannot see
-                  it, cannot choose it, cannot re-roll it. Each theme reskins propaganda copy,
-                  citizen tier names, building names, faction labels, and AI personality. See the
-                  Themes tab for the full roster.
-                </p>
-                <p>
-                  Government archetypes include Theocracy, Corporate, Military Junta, Cult,
-                  Surveillance State, Warlord, Eco-utopia, Tech-utopia, and 12 more variants. Each
-                  has unique propaganda strings (recruitment slogan, one-way trip cover name,
-                  volunteer epithet, enemy epithet, victory announcement, defeat excuse) + flavored
-                  citizen tier names.
+                  Every civilization rolls a random government archetype at match start. Honest
+                  alpha scope: what's wired today = citizen tier names + building name/emoji reskins
+                  + palette colors + 2 propaganda-flavored achievement labels (volunteer epithet +
+                  enemy epithet). Everything else (recruitment slogan, one-way trip cover name,
+                  victory announcement, defeat excuse, theme-specific cinematics) ships as flavor
+                  reference for designers — not yet surfaced to players. Full roster + which strings
+                  are wired vs reference is in the <strong>Themes</strong> tab above.
                 </p>
               </article>
 

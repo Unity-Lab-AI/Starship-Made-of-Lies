@@ -10,8 +10,7 @@ import {
   BLDG_AQUEDUCT,
   BLDG_FARM,
   BLDG_HOME,
-  BLDG_LUMBER_CAMP,
-  BLDG_QUARRY,
+  BLDG_LAB,
   BLDG_SCHOOL,
   BLDG_SOLAR_ARRAY,
   BUILDINGS,
@@ -31,12 +30,29 @@ import './play-shell.css'
 // design a mine-laying variant → launch from a pad workflow. Per user verbatim *"mine fields
 // are emjoi spaceships launched one at a time after printing and design work of what type of
 // starship u are using for the mine fireld options"*.
+//
+// PHASE 17.L.D.10 (HOTFIX 2026-05-12) — BLDG_LUMBER_CAMP + BLDG_QUARRY REMOVED from baseline.
+// Per user verbatim *"industiral tech has lumber camp in it and isnt researched but i can
+// fucking buikld a lumber camp without it reserached so wtf??"*. Both are listed in
+// placement.ts TECH_GATED_BUILDINGS — they require TECH_INDUSTRIAL_LOGISTICS researched. The
+// UI used to declare them baseline-unlocked which contradicted the sim contract. Now they
+// render as locked + show the 🧬 prereq hint until the tech is researched. Pre-built starter
+// instances (1 Lumber Camp + 1 Quarry from seedStarterBuildings) still grandfather in because
+// seedStarterBuildings bypasses placeBuildingCanonical entirely. Player has to research
+// Industrial Logistics (30 pts → covered by the 30-pt research seed) to build ADDITIONAL
+// Lumber Camps / Quarries on top of the freebies.
+// PHASE 17.L.D.10 (HOTFIX 2026-05-13, REV 2) — BLDG_LAB ADDED to baseline. Per user verbatim
+// *"we need a sciecence research point generating building to start with so we can fucking do
+// somthing as far as un l;ocking tech, currently there is no way to unlick computing without
+// having a research pooint poroducing building of starting spawn teir"*. Was gated behind
+// TECH_COMPUTING (60+60+60 = 180 pts climb before research scaled past the 2 starter Labs);
+// now baseline. TECH_COMPUTING still ships its researchSpeedMultiplier×1.2 effect so it
+// remains valuable, just no longer the unlock for the building.
 const BASELINE_UNLOCKED: ReadonlySet<BuildingDefId> = new Set([
   BLDG_FARM,
   BLDG_AQUEDUCT,
-  BLDG_LUMBER_CAMP,
-  BLDG_QUARRY,
   BLDG_HOME,
+  BLDG_LAB,
   BLDG_SCHOOL,
   BLDG_SOLAR_ARRAY,
 ])

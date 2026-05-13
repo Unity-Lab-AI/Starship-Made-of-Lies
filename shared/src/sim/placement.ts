@@ -94,29 +94,31 @@ export function canPlaceBuildingOnTile(ctx: PlacementContext): PlacementResult {
   return { canPlace: true }
 }
 
-const TECH_GATED_BUILDINGS: ReadonlySet<string> = new Set([
-  'lumberCamp',
-  'quarry',
-  'mine',
-  'refinery',
-  'foundry',
-  'factory',
-  'lab',
-  'university',
-  'reeducationCenter',
-  'corpPromotionsOffice',
-  'tvStation',
-  'powerPlant',
-  'launchPad',
-  'counterMissilePad',
-  // PHASE 17.B + super-review fix: miningOutpost INTENTIONALLY ungated. Per the new economy
-  // (17.B.2) miners are produced by outposts, not given for free at match start. Gating the
-  // outpost behind tech meant no civ could mine until they researched tier-2 — economy
-  // starved before launch. Outpost is now foundational, available from match start.
-])
+// PHASE 17.L.D.10 (HOTFIX 2026-05-13, REV 3) — was a HAND-CURATED string set that drifted
+// from tech.ts reality. Per user verbatim *"check for other shit like that not gated
+// correctly"*. Reactor variants (Fission / Fusion / Antimatter), Battery Bank, God Control,
+// and several others were unlocked by techs in tech.ts but absent from this string set —
+// `isBuildingTechGated` returned false → sim-side gate skipped them entirely (UI hid them
+// by accident via the unlockedSet derivation, but any non-UI placement path bypassed the
+// gate). Refactored to derive the set DYNAMICALLY from TECH_NODES so the two sources of
+// truth can never drift again. Any building listed in any tech's `effects.unlockBuildings`
+// is automatically tech-gated; buildings absent from every tech are baseline-buildable.
+//
+// Baseline (not tech-gated) intentionally: Farm, Aqueduct, Lab (post-17.L.D.10), School,
+// Home, Solar Array, Mining Outpost (foundational per 17.B.2), Civic Center (baseline +
+// cost-gated for settlement spam), Mine Field (launched-ship-only per 17.12.2; filtered out
+// of BuildPicker upstream so the build path never sees it).
+const TECH_GATED_BUILDINGS: ReadonlySet<BuildingDefId> = (() => {
+  const set = new Set<BuildingDefId>()
+  for (const node of TECH_NODES) {
+    if (!node.effects.unlockBuildings) continue
+    for (const b of node.effects.unlockBuildings) set.add(b)
+  }
+  return set
+})()
 
 function isBuildingTechGated(buildingDefId: BuildingDefId): boolean {
-  return TECH_GATED_BUILDINGS.has(buildingDefId as unknown as string)
+  return TECH_GATED_BUILDINGS.has(buildingDefId)
 }
 
 export function listPlaceableBuildings(

@@ -18,6 +18,12 @@ interface TechTreePanelProps {
   // even before any tech completes. Caller (PlayPage) computes this from the same selector
   // tickCivResearch uses so the display matches sim behavior exactly.
   readonly researchPointsPerTick?: number
+  // PHASE 17.L.D.10 (HOTFIX 2026-05-13) — reference mode for the Wiki page. Bypasses
+  // visibility filtering so every TECH_NODE renders as 'visible' regardless of prereqs or
+  // conquest gates. The Wiki is reference material, not gameplay — the player should be able
+  // to inspect every tech including Forbidden ones. In-match callers leave this false so the
+  // gameplay reveal (hint → known → researched) stays intact.
+  readonly referenceMode?: boolean
 }
 
 const TIERS: ReadonlyArray<TechTier> = [0, 1, 2, 3, 4]
@@ -41,6 +47,7 @@ export function TechTreePanel({
   clickableStates = DEFAULT_CLICKABLE_STATES,
   selectedTechId = null,
   researchPointsPerTick,
+  referenceMode = false,
 }: TechTreePanelProps) {
   // HOTFIX 17.L.D.14 — selection state is now OWNED BY PARENT. The embedded detail sidebar
   // moved to its own movable TechDetailPanel (per user verbatim "needs to be its own panel
@@ -79,7 +86,7 @@ export function TechTreePanel({
         {researchPointsPerTick !== undefined && (
           <span className="tech-tree-panel__pool">
             🔬 Pool: <strong>{Math.floor(empire.researchPointsPool).toLocaleString()}</strong> pts ·
-            +<strong>{researchPointsPerTick.toLocaleString()}</strong>/t
+            +<strong>{formatRate(researchPointsPerTick)}</strong>/t
           </span>
         )}
       </header>
@@ -95,7 +102,15 @@ export function TechTreePanel({
             <h3 className="tech-tree-panel__tier-heading">Tier {tier}</h3>
             <ul className="tech-tree-panel__tier-list">
               {TECH_NODES.filter((n) => n.tier === tier).map((node) => {
-                const state = getTechState(node, empire, knownIds, hintedIds, researchable)
+                const rawState = getTechState(node, empire, knownIds, hintedIds, researchable)
+                // PHASE 17.L.D.10 — reference mode promotes every non-researched node to
+                // 'visible' so the Wiki shows the full catalog (no '???' chips, no hidden
+                // Forbidden tier-4 nodes). In-match callers (referenceMode=false) keep the
+                // gameplay reveal pipeline intact.
+                const state =
+                  referenceMode && rawState !== 'researched' && rawState !== 'researchable'
+                    ? ('visible' as TechRenderState)
+                    : rawState
                 return (
                   <TechNodeChip
                     key={node.id}
@@ -119,6 +134,15 @@ export function TechTreePanel({
       </div>
     </section>
   )
+}
+
+// PHASE 17.L.D.12 — research-rate formatter shared with TopToolbar. Sub-1 rates need
+// decimal precision; integer floor hides accrual.
+function formatRate(rate: number): string {
+  if (rate <= 0) return '0'
+  if (rate < 1) return rate.toFixed(2)
+  if (rate < 10) return rate.toFixed(1)
+  return Math.floor(rate).toLocaleString()
 }
 
 type TechRenderState = 'researched' | 'researchable' | 'hinted' | 'visible' | 'hidden'

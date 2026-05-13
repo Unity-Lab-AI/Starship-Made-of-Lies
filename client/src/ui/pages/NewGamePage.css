@@ -30,6 +30,11 @@
   flex-wrap: wrap;
 }
 
+/* PHASE 17.L.D.11 (HOTFIX 2026-05-13) — tab styling overhaul per user verbatim *"the tabs
+   are off to the side no tool tips are working and the information just looks like palin ol
+   text write ups now"*. Was: inactive tabs were bare text with transparent borders — visually
+   indistinguishable from regular text labels until hovered. Now every tab gets a visible
+   border + subtle background by default so the tab strip actually reads as a tab strip. */
 .new-game-page__tab {
   flex: 1 1 0;
   min-width: 8rem;
@@ -37,9 +42,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  padding: 0.55rem 0.85rem;
-  background: transparent;
-  border: 1px solid transparent;
+  padding: 0.6rem 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.15));
   border-radius: 6px;
   color: var(--text-soft, #c8c8d6);
   font-family: inherit;
@@ -50,7 +55,8 @@
 }
 
 .new-game-page__tab:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(212, 161, 58, 0.1);
+  border-color: rgba(212, 161, 58, 0.4);
   color: var(--text-hero, #e6e6f0);
 }
 
@@ -74,7 +80,7 @@
 
 .new-game-page__pane {
   flex: 1;
-  min-height: 420px;
+  min-height: 260px;
   padding: 1.5rem 1.75rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.1));
@@ -193,8 +199,13 @@
   color: var(--text-soft, #c8c8d6);
 }
 
-/* ⓘ info tip. Hover reveals title-attribute tooltip natively. */
+/* PHASE 17.L.D.11 (HOTFIX 2026-05-13) — info-tip rebuilt as a REAL CSS popover. Native
+   `title` attribute tooltips don't reliably surface (~1s delay, OS-skinned, easy to miss),
+   so the user complaint was "no tool tips are working". Now the ⓘ is a tooltip *wrapper*
+   `<span class="info-tip"><span class="info-tip-pop">...</span></span>` — hover/focus on
+   the wrapper reveals the styled popover with the actual hint text. No JS deps. */
 .new-game-page__info-tip {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -210,10 +221,72 @@
   transition: all 140ms ease;
 }
 
-.new-game-page__info-tip:hover {
+.new-game-page__info-tip:hover,
+.new-game-page__info-tip:focus-within {
   color: var(--ui-glow, #d4a13a);
   border-color: var(--ui-glow, #d4a13a);
   background: rgba(212, 161, 58, 0.12);
+}
+
+.new-game-page__info-tip-pop {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 20;
+  min-width: 18rem;
+  max-width: 22rem;
+  padding: 0.7rem 0.85rem;
+  background: rgba(20, 22, 30, 0.98);
+  border: 1px solid var(--ui-glow, #d4a13a);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+  color: var(--text-hero, #e6e6f0);
+  font-size: 0.85rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 0s linear 140ms;
+  pointer-events: none;
+}
+
+.new-game-page__info-tip:hover .new-game-page__info-tip-pop,
+.new-game-page__info-tip:focus-within .new-game-page__info-tip-pop {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 0s linear 0s;
+}
+
+.new-game-page__info-tip-pop::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  right: 0.4rem;
+  border: 6px solid transparent;
+  border-bottom-color: var(--ui-glow, #d4a13a);
+}
+
+/* Inline hint text shown UNDER each field row by default (not hidden in tooltip). Provides
+   one-line context so the player doesn't have to hover-discover what every control does.
+   The margin-left aligns the hint under the control column (12rem label + 0.85rem gap). */
+.new-game-page__field-hint {
+  margin: -0.4rem 0 0.15rem calc(12rem + 0.85rem);
+  font-size: 0.82rem;
+  color: var(--text-mute, #9595a8);
+  font-style: italic;
+  line-height: 1.4;
+  max-width: 42rem;
 }
 
 /* === Theme-rolled note (Galaxy tab) === */
