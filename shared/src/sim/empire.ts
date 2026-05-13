@@ -1,4 +1,4 @@
-import { type CivId, type PlanetId } from '../types/index'
+import { type BuildingDefId, type CivId, type PlanetId } from '../types/index'
 import { getBiome } from '../gen/biome'
 import { type TechEffects, type TechId, type TechNode, TECH_NODES, getTechNode } from './tech'
 
@@ -27,6 +27,15 @@ export interface Empire {
   // newly captured planets). Undiscovered planets render greyed-out + no civ flag in the 3D
   // galaxy view for the human civ. AI civs use this same set when scoring targets.
   discoveredPlanetIds: Set<PlanetId>
+  // PHASE 17.L.D.19 (2026-05-13) — "ever built" set keyed by BuildingDefId. Flipped on the
+  // FIRST placement of each def (placeBuildingCanonical + seedStarterBuildings both bump
+  // it). Demolishing the last instance does NOT clear the flag — once you've built one,
+  // you've "proven the prototype" and that knowledge sticks. Used by isTechResearchable to
+  // gate advanced techs behind real engineering progression. Per user verbatim *"some
+  // things need to be gated behind actually building the prerequisite building like the
+  // launch pad and command center before getting in to the differnt tech for the differnt
+  // rockets ships when one starts the design process"*.
+  everBuiltBuildings: Set<BuildingDefId>
 }
 
 export function newEmpire(civId: CivId, startingPlanetId: PlanetId): Empire {
@@ -41,7 +50,25 @@ export function newEmpire(civId: CivId, startingPlanetId: PlanetId): Empire {
     capturedPlanetIds: new Set<PlanetId>(),
     ancientTechCount: 0,
     discoveredPlanetIds: new Set<PlanetId>([startingPlanetId]),
+    everBuiltBuildings: new Set<BuildingDefId>(),
   }
+}
+
+// PHASE 17.L.D.19 (2026-05-13) — record building construction for tech-prereq gating.
+// Called from placeBuildingCanonical + seedStarterBuildings. Idempotent (Set semantics).
+export function recordBuildingConstructed(empire: Empire, defId: BuildingDefId): void {
+  empire.everBuiltBuildings.add(defId)
+}
+
+// PHASE 17.L.D.19 — building-prereq check for techs. Returns true when every def listed in
+// node.requiredBuildings has been built at least once by this empire (across all planets).
+export function meetsBuildingRequirements(empire: Empire, node: TechNode): boolean {
+  const reqs = node.requiredBuildings
+  if (!reqs || reqs.length === 0) return true
+  for (const req of reqs) {
+    if (!empire.everBuiltBuildings.has(req)) return false
+  }
+  return true
 }
 
 // PHASE 16.38 — discovery hook. Idempotent — calling with an already-discovered planet is a
@@ -100,6 +127,11 @@ export function isTechResearchable(empire: Empire, techId: TechId): boolean {
   }
   if (!meetsConquestGate(empire, node)) return false
   if (!meetsApexCheck(empire, node)) return false
+  // PHASE 17.L.D.19 (2026-05-13) — building-prereq gate. Advanced ship-progression techs
+  // (Orbital Mechanics / Fusion Propulsion / Antimatter) require the player to have built
+  // a Launch Pad first — you can't research the next-gen rocket without having flown the
+  // current one.
+  if (!meetsBuildingRequirements(empire, node)) return false
   return true
 }
 

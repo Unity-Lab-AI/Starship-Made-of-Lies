@@ -199,6 +199,7 @@ import {
   recordColonyShipLaunch,
   recordDeath,
   recordShipBeacon,
+  recordBuildingConstructed,
   recordPlanetGain,
   recordPlanetLoss,
   recordSparklineSample,
@@ -607,7 +608,7 @@ export function createMatch(config: MatchConfig): MatchState {
   const humanHomePlanetState = makePlanetState(humanHomePlanet, humanCivId, String(humanTheme.id))
   // PHASE 17.L.D (HOTFIX 2026-05-12) — pre-build starter economy. See seedStarterBuildings
   // jsdoc for the exact roster + balance rationale.
-  seedStarterBuildings(humanHomePlanetState)
+  seedStarterBuildings(humanHomePlanetState, humanEmpire)
   planets.set(humanHomePlanet.id, humanHomePlanetState)
 
   const playstyles: ReadonlyArray<PlaystyleArchetype> = [
@@ -661,7 +662,7 @@ export function createMatch(config: MatchConfig): MatchState {
     })
     const aiHomePlanetState = makePlanetState(homePlanet, aiId, String(aiTheme.id))
     // PHASE 17.L.D (HOTFIX 2026-05-12) — same starter-economy seed as the human civ.
-    seedStarterBuildings(aiHomePlanetState)
+    seedStarterBuildings(aiHomePlanetState, empire)
     planets.set(homePlanet.id, aiHomePlanetState)
 
     aiRegistry.register(
@@ -850,7 +851,7 @@ function makePlanetState(planet: Planet, ownerId: CivId, ownerThemeId?: string):
 // Lab is baseline-buildable from match start (no tech prereq, planks+bricks cost), so the
 // 2 freebies are just a HEAD-START on research throughput, not a tech-bypass. Player can
 // build additional Labs from tick 1 without researching anything.
-function seedStarterBuildings(planetState: MatchPlanetState): void {
+function seedStarterBuildings(planetState: MatchPlanetState, empire?: Empire): void {
   const STARTER_PLAN: ReadonlyArray<{ defId: BuildingDefId; count: number }> = [
     { defId: BLDG_FARM, count: 6 },
     { defId: BLDG_AQUEDUCT, count: 3 },
@@ -884,6 +885,10 @@ function seedStarterBuildings(planetState: MatchPlanetState): void {
         (planetState.buildingsByDef.get(entry.defId) ?? 0) + 1,
       )
       planetState.buildingsByTile.set(tile.id, entry.defId)
+      // PHASE 17.L.D.19 — starter freebies count toward "ever built" for tech-prereq gating.
+      // Doesn't matter for the current set (Farm/Aqueduct/Home/etc. don't gate any tech) but
+      // keeps the contract consistent in case a future starter roster includes a gating def.
+      if (empire) recordBuildingConstructed(empire, entry.defId)
     }
   }
 }
@@ -2769,6 +2774,11 @@ function placeBuildingCanonical(
   tile.occupancy = 'building'
   planet.buildingsByDef.set(defId, (planet.buildingsByDef.get(defId) ?? 0) + 1)
   planet.buildingsByTile.set(tile.id, defId)
+  // PHASE 17.L.D.19 (2026-05-13) — record "ever built" for tech-prereq gating.
+  // Demolishing the last instance does NOT clear the flag — once you've flown the prototype,
+  // the engineering knowledge sticks. Advanced ship-design techs (Orbital Mechanics, Fusion
+  // Propulsion, Antimatter) check this set via isTechResearchable.
+  if (civState) recordBuildingConstructed(civState.empire, defId)
   if (defId === BLDG_LAUNCH_PAD) {
     // PHASE 17.12.4 — auto-assign per-planet pad ordinal (UMS SETUPMOD wizard equivalent).
     // First pad on the planet gets #1, second #2, etc. UI renders pads as "Pad #N" via the

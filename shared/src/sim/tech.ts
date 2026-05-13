@@ -73,6 +73,13 @@ export interface TechNode {
   readonly costPoints: number
   readonly conquestGate?: ConquestGate
   readonly requiresApexCheck?: boolean
+  // PHASE 17.L.D.19 (2026-05-13) — engineering-progression gate. Listed building defs must
+  // have been built at least once by this civ (empire.everBuiltBuildings) before the tech
+  // can be researched. Per user verbatim *"some things need to be gated behind actually
+  // building the prerequisite building like the launch pad and command center before
+  // getting in to the differnt tech for the differnt rockets ships"*. Demolition does NOT
+  // clear the "ever built" flag — once you've flown the prototype, the knowledge sticks.
+  readonly requiredBuildings?: ReadonlyArray<BuildingDefId>
   readonly effects: TechEffects
 }
 
@@ -370,8 +377,10 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     tier: 2,
     visibility: 'mainstream',
     category: 'spacefaring',
-    description: 'Trans-orbit trajectory + station-keeping. Unlocks Tier 2 colony ship variants.',
+    description:
+      'Trans-orbit trajectory + station-keeping. Unlocks Tier 2 colony ship variants. Requires a Launch Pad built first — you have to fly the basic rocket before the next-gen one.',
     prerequisites: [TECH_AEROSPACE],
+    requiredBuildings: [BLDG_LAUNCH_PAD],
     costPoints: 100,
     effects: {
       // PHASE 16.25: def.id tokens (was capitalized name fragments that failed multi-word
@@ -548,8 +557,9 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     visibility: 'mainstream',
     category: 'advanced',
     description:
-      'Antimatter containment + weaponization. Unlocks Tier 3 colony ships + lava biome + the Antimatter Reactor.',
+      'Antimatter containment + weaponization. Unlocks Tier 3 colony ships + lava biome + the Antimatter Reactor. Requires a Launch Pad built first.',
     prerequisites: [TECH_FUSION_POWER, TECH_ORBITAL_MECHANICS],
+    requiredBuildings: [BLDG_LAUNCH_PAD],
     costPoints: 200,
     effects: {
       unlockBiomes: ['lava'],
@@ -1021,8 +1031,9 @@ export const TECH_NODES: ReadonlyArray<TechNode> = [
     visibility: 'mainstream',
     category: 'spacefaring',
     description:
-      'Fusion-torch drives + magneto-plasma thrust. Bumps maximum colony-ship payload tier as faster ships carry more.',
+      'Fusion-torch drives + magneto-plasma thrust. Bumps maximum colony-ship payload tier as faster ships carry more. Requires a Launch Pad built first.',
     prerequisites: [TECH_PLASMA_PHYSICS, TECH_ORBITAL_MECHANICS],
+    requiredBuildings: [BLDG_LAUNCH_PAD],
     costPoints: 200,
     effects: {
       colonyShipPayloadTier: 3,
