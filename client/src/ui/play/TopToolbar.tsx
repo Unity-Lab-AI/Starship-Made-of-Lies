@@ -53,7 +53,14 @@ interface TopToolbarProps {
 }
 
 const DISPLAYED_RESOURCES: ReadonlyArray<ResourceId> = RESOURCES.map((r) => r.id)
-const NONZERO_THRESHOLD = 0.5
+// PHASE 17.L.D.21 (2026-05-13) — lowered from 0.5 → 0.005 per user verbatim *"we need to
+// always see the neg draws and positive amoutns on resources not just go dead once they
+// max out"*. The cap-removal half of the fix (inventory-capacity.ts bumped to 1B baseline)
+// stops stocks from clamping; this half ensures even tiny flow rates (e.g. 0.075 research
+// pts/tick, 0.1 fuel/tick on a single panel) still surface as a +/- delta chip in the
+// toolbar instead of being suppressed below threshold. formatRate already handles sub-1
+// rendering via toFixed(2).
+const NONZERO_THRESHOLD = 0.005
 
 export function TopToolbar({
   humanCivLabel,
@@ -155,7 +162,7 @@ export function TopToolbar({
               {delta !== 0 && (
                 <span className={`top-toolbar__delta ${deltaClass}`}>
                   {delta > 0 ? '+' : ''}
-                  {delta.toFixed(1)}/t
+                  {formatRate(delta)}/t
                 </span>
               )}
             </div>
@@ -246,6 +253,11 @@ export function TopToolbar({
 }
 
 function formatNumber(n: number): string {
+  // PHASE 17.L.D.21 (2026-05-13) — added B suffix per cap-removal to 1B baseline. Without
+  // this branch, a 1-billion stock rendered as "1000.0M" which broke chip layout and read
+  // wrong to the eye. Now 1B → "1.0B", 100M → "100.0M", 32.5k → "32.5k", small ints
+  // unchanged.
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)}B`
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000) return `${(n / 1000).toFixed(1)}k`
   return `${Math.round(n)}`

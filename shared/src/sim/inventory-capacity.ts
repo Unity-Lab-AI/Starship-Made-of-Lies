@@ -16,38 +16,38 @@ import {
 // clamps each stock to its tier-derived cap so the upgrade has real bite — surplus production
 // past cap is lost. UMS UnityInventory's [QUOTAS] section is the direct ancestor of this model.
 
-// Base per-category caps at TIER_1. Raw materials are cheap and abundant → high cap. Strategic
-// late-game resources are precious + dangerous → low cap. Tiered upgrades multiply these
-// uniformly so the relative scarcity ordering holds across the entire match.
+// PHASE 17.L.D.21 (2026-05-13) — caps lifted to 1 billion per user verbatim *"i never said
+// to put limits on the resources they sould generate till they hit 1 billion"* +
+// *"resources are maxing out i never said to put limits on the resources"*. Previous
+// per-category 600-8000 base caps + 1.6× tier multiplier were the wrong design — they made
+// the resource display "go dead" once a stock hit cap (production tick clamped surplus to
+// 0, so the +N/-N delta showed 0 instead of the actual generation rate). With a 1B baseline
+// the cap is effectively never reached at realistic per-tick production rates, so deltas
+// always render live and resources accumulate freely. The tier-upgrade UI stays alive but
+// is now a no-op (every resource sits at 1B regardless of tier) — proper future cleanup
+// can rip the tier-upgrade panel entirely, but for now we keep the structure so other call
+// sites don't break. Battery-bank fuel cap (FUEL_RAW_STOCKPILE_BASELINE + per-bank capacity)
+// stays separate — that's a meaningful gameplay-choice mechanic, not a generic cap.
+const UNIVERSAL_RESOURCE_CAP = 1_000_000_000
+
+// Kept for back-compat with any caller that still references the by-category map. Every
+// category resolves to the universal cap so behavior is uniform.
 const BASE_CAP_BY_CATEGORY: Readonly<Record<ResourceCategory, number>> = {
-  raw: 5000,
-  refined: 3500,
-  component: 2000,
-  product: 1200,
-  strategic: 600,
+  raw: UNIVERSAL_RESOURCE_CAP,
+  refined: UNIVERSAL_RESOURCE_CAP,
+  component: UNIVERSAL_RESOURCE_CAP,
+  product: UNIVERSAL_RESOURCE_CAP,
+  strategic: UNIVERSAL_RESOURCE_CAP,
 }
 
-// Per-resource overrides for resources whose category cap is wrong for the gameplay shape we
-// want. Food + water carry the population so their caps need to be generous even at tier 1 to
-// avoid bottlenecking early-game growth. Antimatter is a strategic resource but a planet only
-// ever wants a few hundred units, so the strategic base is already correct.
-const PER_RESOURCE_BASE_CAP_OVERRIDE: ReadonlyMap<string, number> = new Map([
-  ['food', 8000],
-  ['water', 8000],
-  // PHASE 17.L.A.2 — battery-bank fuel cap interaction lives separately. The fuel cap here is
-  // the planet-wide STORAGE cap (silo size); battery banks add per-tick reserve on top. Both
-  // are enforced; production-tick clamps to whichever is reached first.
-  ['fuel', 4000],
-])
+// Kept for back-compat. No overrides applied — universal cap wins.
+const PER_RESOURCE_BASE_CAP_OVERRIDE: ReadonlyMap<string, number> = new Map()
 
-// Capacity tier multiplier. Each upgrade multiplies every per-resource cap by this factor so
-// the curve compounds — tier 2 = 1.6×, tier 3 = 2.56×, tier 4 = 4.1×, tier 5 = 6.5×, tier 6 =
-// 10.5×, etc. Aggressive enough that the upgrade FEELS worthwhile + cheap-enough to bother
-// pursuing mid-game.
-const TIER_MULTIPLIER = 1.6
+// Kept for back-compat with tier-upgrade UI; multiplier is 1.0 so tiers no longer scale.
+const TIER_MULTIPLIER = 1.0
 
-// Hard maximum tier. Beyond 8 the storage caps run into millions per resource which trivializes
-// the game's scarcity loop. If late-game empires push past this we can raise it; v1 caps at 8.
+// Kept exported for any UI that still references it. Tier itself is meaningless now but
+// the constant stays so panels that branch on tier still compile.
 export const MAX_INVENTORY_CAPACITY_TIER = 8
 
 // Per-tier upgrade cost. Doubles per tier so each successive upgrade is genuinely a strategic

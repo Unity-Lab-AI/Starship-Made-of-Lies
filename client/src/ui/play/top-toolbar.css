@@ -51,18 +51,30 @@
 }
 
 .top-toolbar__resources {
+  /* PHASE 17.L.D.21 (2026-05-13) — bumped gap + wrapping enabled per user verbatim *"need
+     to make sure resources have proper spacing too for incease number size"*. With the
+     1B cap raise, resource counts can render as "1.0B" / "950.0M" / "32.5k"; the old
+     single-line flex with 0.55rem gaps cramped chips together and clipped the right end.
+     Now: wider gap so chips breathe, allow wrap so an overflow row drops to a second line
+     instead of getting cut off behind the citizen tiers / pause cluster. */
   display: flex;
-  gap: 0.55rem;
+  gap: 0.7rem;
+  row-gap: 0.35rem;
   align-items: center;
   flex: 1 1 auto;
+  flex-wrap: wrap;
   min-width: 0;
 }
 
 .top-toolbar__resource {
   display: flex;
   align-items: center;
-  gap: 0.2rem;
-  padding: 0.18rem 0.42rem;
+  gap: 0.3rem;
+  /* PHASE 17.L.D.21 — bumped horizontal padding so the count + delta have breathing room
+     when magnitude grows. Min-width gives each chip a stable footprint so the eye doesn't
+     have to re-track positions when a counter ticks past a power-of-10 boundary. */
+  padding: 0.22rem 0.6rem;
+  min-width: 5.5rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
