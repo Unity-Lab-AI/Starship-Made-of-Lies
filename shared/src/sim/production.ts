@@ -82,11 +82,16 @@ export interface BuildingProduction {
 }
 
 const BUILDING_PRODUCTION: ReadonlyMap<BuildingDefId, BuildingProduction> = new Map([
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — farm + aqueduct outputs bumped 3-4× per user playtest
+  // *"farms arent producing enoutgh food"*. New per-citizen consumption is 0.05 food/tick +
+  // 0.02 water/tick (MatchSim.ts), so 1000 citizens need ~50 food + ~20 water per tick. Farm
+  // 12/tick × 0.9 workforce mult = 10.8/tick → ~5 farms feed 1000 pop. Aqueduct 20/tick ×
+  // 0.9 = 18/tick → ~2 aqueducts hydrate 1000 pop. Balance scales linearly with pop growth.
   [
     BLDG_FARM,
     {
       inputs: [{ resource: RESOURCE_WATER, amount: 1 }],
-      outputs: [{ resource: RESOURCE_FOOD, amount: 4 }],
+      outputs: [{ resource: RESOURCE_FOOD, amount: 12 }],
       biomeHintKey: 'food',
     },
   ],
@@ -94,7 +99,7 @@ const BUILDING_PRODUCTION: ReadonlyMap<BuildingDefId, BuildingProduction> = new 
     BLDG_AQUEDUCT,
     {
       inputs: [],
-      outputs: [{ resource: RESOURCE_WATER, amount: 5 }],
+      outputs: [{ resource: RESOURCE_WATER, amount: 20 }],
       biomeHintKey: 'water',
     },
   ],

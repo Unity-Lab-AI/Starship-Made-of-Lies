@@ -271,7 +271,16 @@ export function PlayPage() {
   // planet the player is inspecting (independent of selectedPlanetId so the build canvas stays
   // on whatever planet they were on). inventoryFeedback surfaces upgrade-action results into
   // the PlanetInventoryPanel as a one-line acknowledgement.
-  const [summaryPlanetId, setSummaryPlanetId] = useState<PlanetId | null>(null)
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — user playtest *"planet summary and planet inventory
+  // also is not opening, i shoudl be able to open the summary at any time"*. Previously
+  // initialized to null, so clicking the Intel toolbar → Planet Summary button opened the
+  // openPanels state but the render gate `summaryPlanetId && ...` short-circuited and
+  // nothing visible appeared. Now lazy-initialize to the human civ's home planet so the
+  // toolbar button opens on the home world by default; PlanetPicker still lets the player
+  // switch to other planets.
+  const [summaryPlanetId, setSummaryPlanetId] = useState<PlanetId | null>(
+    () => sim.state.civs.get(sim.state.humanCivId)?.homePlanetId ?? null,
+  )
   const [inventoryFeedback, setInventoryFeedback] = useState<string | null>(null)
 
   // PHASE 17.13.5 — active settlement for the picker UI. v1 read-only — picking a settlement
@@ -2172,6 +2181,32 @@ export function PlayPage() {
               0,
             )
             const tilesUsed = summaryPlanet.buildingsByTile.size + summaryPlanet.launchPads.size
+            // PHASE 17.L.D (HOTFIX 2026-05-12) — compute per-tick demand + supply for the
+            // demand counter UI. Demand = pop × per-citizen consumption (matches the sim
+            // constants in MatchSim.ts). Supply is a coarse approximation: farms/aqueducts ×
+            // base output × food-slider workforce mult (0.5 + slider). Good enough for the
+            // player to size their farm/aqueduct count — the sim's actual production still
+            // ticks via the production system; this is just a heads-up display.
+            const totalPopForFlows = [
+              ...Object.values(summaryPlanet.population.tierCounts as Record<string, number>),
+            ].reduce((s, n) => s + n, 0)
+            const FOOD_PER_CITIZEN = 0.05
+            const WATER_PER_CITIZEN = 0.02
+            const FARM_OUTPUT = 12
+            const AQUEDUCT_OUTPUT = 20
+            const foodSliderMult = 0.5 + summaryPlanet.workforce.sliders.food
+            const farmCount =
+              [...summaryPlanet.buildingsByDef.entries()].find(
+                ([id]) => String(id) === 'farm',
+              )?.[1] ?? 0
+            const aqueductCount =
+              [...summaryPlanet.buildingsByDef.entries()].find(
+                ([id]) => String(id) === 'aqueduct',
+              )?.[1] ?? 0
+            const foodDemandPerTick = Math.ceil(totalPopForFlows * FOOD_PER_CITIZEN)
+            const foodSupplyPerTick = Math.round(farmCount * FARM_OUTPUT * foodSliderMult)
+            const waterDemandPerTick = Math.ceil(totalPopForFlows * WATER_PER_CITIZEN)
+            const waterSupplyPerTick = Math.round(aqueductCount * AQUEDUCT_OUTPUT * foodSliderMult)
             return (
               <PanelFrame
                 panelId="planetSummary"
@@ -2192,6 +2227,10 @@ export function PlayPage() {
                   tilesTotal={summaryPlanet.planet.tiles.length}
                   tilesUsed={tilesUsed}
                   onOpenInventory={handleOpenPlanetInventory}
+                  foodDemandPerTick={foodDemandPerTick}
+                  foodSupplyPerTick={foodSupplyPerTick}
+                  waterDemandPerTick={waterDemandPerTick}
+                  waterSupplyPerTick={waterSupplyPerTick}
                   settlements={[...summaryPlanet.settlements.values()]}
                   tiles={summaryPlanet.planet.tiles}
                   buildingsByTile={summaryPlanet.buildingsByTile}
@@ -2223,6 +2262,8 @@ export function PlayPage() {
                   inventoryCapacityTier={invPlanet.inventoryCapacityTier}
                   onUpgradeCapacity={handleUpgradePlanetCapacity}
                   lastUpgradeFeedback={inventoryFeedback}
+                  buildingsByDef={invPlanet.buildingsByDef}
+                  launchPads={invPlanet.launchPads}
                 />
               </PanelFrame>
             )

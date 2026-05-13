@@ -12,8 +12,13 @@ import {
   tierPromotionMultiplierFromQoL,
 } from './quality-of-life'
 
-const STARVATION_KILL_RATE_BASE = 0.02
-const DEHYDRATION_KILL_RATE_BASE = 0.025
+// PHASE 17.L.D (HOTFIX 2026-05-12) — user playtest verbatim *"i has a citizxen crash again
+// lost 2/3 of my citizens before i could even build a farm"*. Previous rates (0.02 / 0.025)
+// were SO lethal that with 1000 pop and a 30-tick farm build, the player lost ~666 citizens
+// before their first farm completed. New rates softened 4× so the player has real recovery
+// runway when their food/water economy hits a transient shortfall.
+const STARVATION_KILL_RATE_BASE = 0.005
+const DEHYDRATION_KILL_RATE_BASE = 0.006
 const PROMOTION_RATE_BASE_PER_TICK = 0.002
 
 export interface StarvationTickInputs {
