@@ -42,10 +42,14 @@ export function TechDetailPanel({
   onSelectTech,
   onStartResearch,
 }: TechDetailPanelProps) {
-  const researchable = useMemo(
-    () => new Set(getResearchableTechs(empire).map((n) => n.id)),
-    [empire],
-  )
+  // PHASE 17.L.D.19 (2026-05-13) — DROPPED useMemo. Per user verbatim *"warning system
+  // says mass communication is prerequisite but i have it already and its still locked
+  // out"*. Root cause: `empire.researchedTechs` is a Set mutated in place by the sim;
+  // empire object reference never changes; useMemo with `[empire]` never re-fires.
+  // Result: researched Mass Comm wasn't surfacing into the researchable Set, so Warning
+  // System's "🔒 Locked (prereqs needed)" status stuck. Inlined the computation —
+  // TECH_NODES is ~60 entries, filter is cheap.
+  const researchable = new Set(getResearchableTechs(empire).map((n) => n.id))
 
   // Reverse-prereq index — "Unlocks" list = every tech that has the selected tech as a prereq.
   const unlocksByTechId = useMemo(() => {

@@ -109,6 +109,11 @@ export function ShipBuilderPanel({
     [selections],
   )
 
+  // PHASE 17.L.D.19 (2026-05-13) — `researchedTechs` is a Set mutated in place by the
+  // sim; passing it directly as a useMemo dep means the ref never changes and the memo
+  // never re-fires when a new tech is researched. Use `.size` as a stable signal that
+  // changes monotonically as techs land. Same fix as TechDetailPanel + QuotasPanel.
+  const researchedTechsSize = researchedTechs.size
   const resolved = useMemo(() => {
     if (pickedIds.length === 0) return null
     const build: ColonyShipBuild = {
@@ -117,7 +122,8 @@ export function ShipBuilderPanel({
       pieces: pickedIds,
     }
     return resolveShipBuild(build, researchedTechs)
-  }, [pickedIds, researchedTechs, blueprintName])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickedIds, researchedTechsSize, blueprintName])
 
   const validation = useMemo(() => {
     if (pickedIds.length === 0)
