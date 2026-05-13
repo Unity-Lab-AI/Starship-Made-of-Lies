@@ -16,7 +16,11 @@ import {
   COLONY_SHIPS,
   RESOURCE_FUEL,
   RESOURCE_PROPAGANDA_MATERIALS,
+  RESEARCH_POINT_DIVISOR,
   THEMES,
+  aggregateEmpireResearchPoints,
+  availableWorkers,
+  generatePlanetResearchPoints,
   stockOf,
   accountId as accountIdValue,
   aggregateEffects,
@@ -1505,6 +1509,27 @@ export function PlayPage() {
             <TechTreePanel
               empire={humanCivState.empire}
               selectedTechId={selectedTechId}
+              researchPointsPerTick={(() => {
+                // PHASE 17.L.D (HOTFIX 2026-05-12) — mirror tickCivResearch math so the
+                // player sees the same rate the sim is actually applying each tick. Per-
+                // planet generatePlanetResearchPoints + aggregateEmpireResearchPoints +
+                // RESEARCH_POINT_DIVISOR throttle.
+                const perPlanetPoints: number[] = []
+                for (const planetId of humanCivState.empire.controlledPlanetIds) {
+                  const ps = sim.state.planets.get(planetId)
+                  if (!ps) continue
+                  perPlanetPoints.push(
+                    generatePlanetResearchPoints({
+                      workforce: ps.workforce,
+                      totalCitizens: availableWorkers(ps.population),
+                      faction: ps.faction,
+                      buildingCounts: ps.buildingsByDef,
+                    }),
+                  )
+                }
+                const raw = aggregateEmpireResearchPoints(humanCivState.empire, perPlanetPoints)
+                return Math.max(0, Math.floor(raw / RESEARCH_POINT_DIVISOR))
+              })()}
               onSelectTech={(techId) => {
                 setSelectedTechId(techId)
                 // HOTFIX 17.L.D.14 — auto-open the detail panel on first tech click so the
@@ -1537,6 +1562,7 @@ export function PlayPage() {
               empire={humanCivState.empire}
               selectedTechId={selectedTechId}
               onSelectTech={(techId) => setSelectedTechId(techId)}
+              onStartResearch={(techId) => sim.startResearchTech({ techId: String(techId) })}
             />
           </PanelFrame>
         )}

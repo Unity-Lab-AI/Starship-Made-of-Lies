@@ -13,6 +13,11 @@ interface TechTreePanelProps {
   readonly onSelectTech?: (techId: TechNode['id']) => void
   readonly clickableStates?: ReadonlyArray<TechRenderState>
   readonly selectedTechId?: TechNode['id'] | null
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — per-tick research point accumulation rate for the
+  // human empire. Surfaced in the header so the player sees they ARE accumulating points
+  // even before any tech completes. Caller (PlayPage) computes this from the same selector
+  // tickCivResearch uses so the display matches sim behavior exactly.
+  readonly researchPointsPerTick?: number
 }
 
 const TIERS: ReadonlyArray<TechTier> = [0, 1, 2, 3, 4]
@@ -35,6 +40,7 @@ export function TechTreePanel({
   onSelectTech,
   clickableStates = DEFAULT_CLICKABLE_STATES,
   selectedTechId = null,
+  researchPointsPerTick,
 }: TechTreePanelProps) {
   // HOTFIX 17.L.D.14 — selection state is now OWNED BY PARENT. The embedded detail sidebar
   // moved to its own movable TechDetailPanel (per user verbatim "needs to be its own panel
@@ -63,6 +69,12 @@ export function TechTreePanel({
               · <strong>{visibility.hiddenForbiddenCount}</strong> forbidden hidden
             </>
           ) : null}
+          {researchPointsPerTick !== undefined && (
+            <>
+              {' '}
+              · 🔬 <strong>{researchPointsPerTick.toLocaleString()}</strong> pts/t
+            </>
+          )}
         </span>
       </header>
 
