@@ -13,6 +13,7 @@ import {
   type TargetingMode,
   type ThemeId,
   type Tile,
+  type TileId,
   COLONY_SHIPS,
   RESOURCE_FUEL,
   RESOURCE_PROPAGANDA_MATERIALS,
@@ -65,6 +66,7 @@ import { TilePlacementGrid } from '../panels/TilePlacementGrid'
 import { BootSequencePanel } from '../panels/BootSequencePanel'
 import { GalaxyView } from '../../render/scene/GalaxyView'
 import { BuildPicker } from '../play/BuildPicker'
+import { BuildingInfoPanel } from '../panels/BuildingInfoPanel'
 import { getAudioSystem } from '../../audio/AudioSystem'
 import { type SfxEventId } from '../../audio/sfxManifest'
 import { loadGlobalCategorySnapshots } from '../../match/leaderboardStorage'
@@ -228,6 +230,13 @@ export function PlayPage() {
   // until the player either waits it out or hits Space. World view + sim renders only after.
   const [bootReady, setBootReady] = useState(false)
   const [buildMode, setBuildMode] = useState<BuildingDefId | null>(null)
+  // PHASE 17.L.D.16 (2026-05-13) — demolish-mode toggle. When ON, tile clicks on owned built
+  // tiles trigger demolishBuildingAction (100% buildCost refund). Mutually exclusive with
+  // build mode — toggling demolish on clears buildMode, picking a building clears demolish.
+  const [demolishMode, setDemolishMode] = useState<boolean>(false)
+  // Tile-id of a building the player clicked to INSPECT (when both modes are off). Opens
+  // the BuildingInfoPanel with stats + demolish button. null when no building is inspected.
+  const [inspectedBuildingTileId, setInspectedBuildingTileId] = useState<TileId | null>(null)
   const [selectedPlanetId, setSelectedPlanetId] = useState<PlanetId | null>(null)
   // PHASE 17.L.D.13 (HOTFIX 2026-05-11) — focus-and-zoom request for GalaxyView. Set when
   // the player clicks a row in PlanetPicker; GalaxyView watches the nonce and fires its
@@ -874,6 +883,10 @@ export function PlayPage() {
   // === Action handlers ===
   const handleSelectBuilding = (defId: BuildingDefId): void => {
     setBuildMode(defId)
+    // PHASE 17.L.D.16 — picking a building turns OFF demolish mode (modes are mutually
+    // exclusive). Also clears any building inspection so the cursor's intent is clean.
+    setDemolishMode(false)
+    setInspectedBuildingTileId(null)
     closePanel('build')
   }
 
@@ -882,13 +895,32 @@ export function PlayPage() {
   }, [])
 
   const handleTileClick = (tile: Tile): void => {
-    if (!buildMode) return
-    if (tile.occupancy !== 'empty') return
-    sim.placeBuilding({
-      planetId: activePlanet.planet.id,
-      tileId: tile.id,
-      defId: buildMode,
-    })
+    // PHASE 17.L.D.16 (2026-05-13) — three-mode tile click router. Priority: demolish-mode
+    // first (recycle any built tile), then build-mode (place on empty tile), then default
+    // inspect-mode (open BuildingInfoPanel if a building exists on the tile).
+    if (demolishMode) {
+      if (
+        tile.occupancy === 'building' ||
+        tile.occupancy === 'launchPad' ||
+        tile.occupancy === 'mine'
+      ) {
+        sim.demolishBuilding({ planetId: activePlanet.planet.id, tileId: tile.id })
+      }
+      return
+    }
+    if (buildMode) {
+      if (tile.occupancy !== 'empty') return
+      sim.placeBuilding({
+        planetId: activePlanet.planet.id,
+        tileId: tile.id,
+        defId: buildMode,
+      })
+      return
+    }
+    // Default: inspect any built tile.
+    if (activePlanet.buildingsByTile.has(tile.id)) {
+      setInspectedBuildingTileId(tile.id)
+    }
   }
 
   // PHASE 16.13.10: surface tile click in 3D GalaxyView. The clicked planet drives the target;
@@ -903,18 +935,38 @@ export function PlayPage() {
   // BUILDING WISHED TO BE PLACED"*.
   const handleSurfaceTileClick = useCallback(
     (planetId: PlanetId, tile: Tile, shiftHeld: boolean): void => {
-      if (!buildMode) return
-      if (tile.occupancy !== 'empty') return
-      const ok = sim.placeBuilding({
-        planetId,
-        tileId: tile.id,
-        defId: buildMode,
-      })
-      if (ok && !shiftHeld) {
-        setBuildMode(null)
+      // PHASE 17.L.D.16 (2026-05-13) — same three-mode router as handleTileClick. Demolish
+      // first, build second, inspect default. Shift-held only matters for chain-building so
+      // it stays gated under build-mode.
+      const ps = sim.state.planets.get(planetId)
+      if (demolishMode) {
+        if (
+          tile.occupancy === 'building' ||
+          tile.occupancy === 'launchPad' ||
+          tile.occupancy === 'mine'
+        ) {
+          sim.demolishBuilding({ planetId, tileId: tile.id })
+        }
+        return
+      }
+      if (buildMode) {
+        if (tile.occupancy !== 'empty') return
+        const ok = sim.placeBuilding({
+          planetId,
+          tileId: tile.id,
+          defId: buildMode,
+        })
+        if (ok && !shiftHeld) {
+          setBuildMode(null)
+        }
+        return
+      }
+      // Default: inspect any built tile on the clicked planet.
+      if (ps?.buildingsByTile.has(tile.id)) {
+        setInspectedBuildingTileId(tile.id)
       }
     },
-    [buildMode, sim],
+    [buildMode, demolishMode, sim],
   )
 
   const handleSelectCampaign = (archetype: CampaignArchetype): void => {
@@ -1490,8 +1542,44 @@ export function PlayPage() {
             onClose={() => closePanel('build')}
             currentBuildMode={buildMode}
             theme={humanTheme}
+            demolishMode={demolishMode}
+            onToggleDemolishMode={() => {
+              // Toggle demolish on; if turning ON, clear any active build-mode + inspection
+              // so the cursor's intent is unambiguous. If turning OFF, just clear demolish.
+              setDemolishMode((cur) => {
+                const next = !cur
+                if (next) {
+                  setBuildMode(null)
+                  setInspectedBuildingTileId(null)
+                }
+                return next
+              })
+            }}
           />
         )}
+        {/* PHASE 17.L.D.16 — building inspection panel. Opens when player clicks a built
+            tile while in default (non-build, non-demolish) mode. Shows def stats +
+            production + demolish button. */}
+        {inspectedBuildingTileId !== null &&
+          (() => {
+            const inspected = activePlanet.buildingsByTile.get(inspectedBuildingTileId)
+            if (!inspected) return null
+            return (
+              <BuildingInfoPanel
+                planetId={activePlanet.planet.id}
+                tileId={inspectedBuildingTileId}
+                defId={inspected}
+                onClose={() => setInspectedBuildingTileId(null)}
+                onDemolish={() => {
+                  sim.demolishBuilding({
+                    planetId: activePlanet.planet.id,
+                    tileId: inspectedBuildingTileId,
+                  })
+                  setInspectedBuildingTileId(null)
+                }}
+              />
+            )
+          })()}
         {openPanels.has('campaigns') && (
           <CampaignPicker
             inventory={activePlanet.inventory}
