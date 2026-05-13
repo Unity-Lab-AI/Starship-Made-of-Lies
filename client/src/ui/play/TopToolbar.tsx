@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { type CivId, type PlanetId, type ResourceId, CITIZEN_TIERS, RESOURCES } from '@smol/shared'
 import { type EmpireAggregate } from '../../match/empireSelectors'
+import { formatRate } from '../../util/format'
 import './top-toolbar.css'
 
 interface PlanetInventoryLike {
@@ -250,13 +251,5 @@ function formatNumber(n: number): string {
   return `${Math.round(n)}`
 }
 
-// PHASE 17.L.D.12 — research-rate formatter. Sub-1 rates need decimal precision so the
-// player sees progress (2 starter Labs → 0.16/tick); rounding to int hides accrual + makes
-// the chip appear stuck at 0. Pattern: <1 → 2 decimals · <10 → 1 decimal · ≥10 → integer
-// with locale separators.
-function formatRate(rate: number): string {
-  if (rate <= 0) return '0'
-  if (rate < 1) return rate.toFixed(2)
-  if (rate < 10) return rate.toFixed(1)
-  return Math.floor(rate).toLocaleString()
-}
+// PHASE 17.L.D.13.I — formatRate dedupe. Was defined inline here AND in TechTreePanel.tsx;
+// extracted to client/src/util/format.ts so future changes only touch one place.
