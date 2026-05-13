@@ -51,6 +51,8 @@ import {
   launchShipFromPadAction,
   loadPadManifestAction,
   placeBuildingAction,
+  demolishBuildingAction,
+  type DemolishBuildingInputs,
   manualIndigenousParleyAction,
   type ManualParleyInputs,
   type ManualParleyResult,
@@ -88,6 +90,7 @@ export interface UseMatchSimResult {
   readonly togglePause: () => void
   readonly setSpeed: (s: 1 | 2 | 4 | 8) => void
   readonly placeBuilding: (input: Omit<PlaceBuildingInputs, 'state'>) => boolean
+  readonly demolishBuilding: (input: Omit<DemolishBuildingInputs, 'state'>) => boolean
   readonly startResearchTech: (input: Omit<StartResearchInputs, 'state'>) => boolean
   readonly launchCampaign: (input: Omit<LaunchCampaignInputs, 'state'>) => boolean
   readonly buildShip: (input: Omit<BuildShipInputs, 'state'>) => boolean
@@ -360,6 +363,13 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
 
   const placeBuilding = useCallback((input: Omit<PlaceBuildingInputs, 'state'>) => {
     const ok = placeBuildingAction({ ...input, state: stateRef.current })
+    if (ok) setTickCount((n) => n + 1)
+    return ok
+  }, [])
+  // PHASE 17.L.D.16 — demolish action with 100% buildCost refund. Bumps tickCount so React
+  // re-renders the BuildPicker + TopToolbar with the refunded resources visible immediately.
+  const demolishBuilding = useCallback((input: Omit<DemolishBuildingInputs, 'state'>) => {
+    const ok = demolishBuildingAction({ ...input, state: stateRef.current })
     if (ok) setTickCount((n) => n + 1)
     return ok
   }, [])
@@ -760,6 +770,7 @@ export function useMatchSim(initialConfig: MatchConfig): UseMatchSimResult {
     togglePause,
     setSpeed,
     placeBuilding,
+    demolishBuilding,
     startResearchTech,
     launchCampaign,
     buildShip,

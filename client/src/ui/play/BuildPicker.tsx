@@ -78,6 +78,11 @@ interface BuildPickerProps {
   // PHASE 17.12.1 — theme drives per-building name + emoji reskins. When omitted (legacy
   // callers), the raw def.name + def.emoji ship through unchanged.
   readonly theme?: Theme
+  // PHASE 17.L.D.16 (2026-05-13) — demolish mode toggle. When demolish mode is active, the
+  // player clicks any built-on tile and the building is recycled with 100% buildCost refund.
+  // BuildPicker exposes the button; PlayPage owns the boolean state + routes tile clicks.
+  readonly demolishMode: boolean
+  readonly onToggleDemolishMode: () => void
 }
 
 export function BuildPicker({
@@ -87,6 +92,8 @@ export function BuildPicker({
   onClose,
   currentBuildMode,
   theme,
+  demolishMode,
+  onToggleDemolishMode,
 }: BuildPickerProps) {
   const unlockedSet = useMemo<ReadonlySet<BuildingDefId>>(() => {
     const set = new Set<BuildingDefId>(BASELINE_UNLOCKED)
@@ -120,8 +127,26 @@ export function BuildPicker({
       extraClass="build-picker"
     >
       <p className="build-picker__hint">
-        Pick a building, then click any empty owned tile to place it. ESC to cancel.
+        {demolishMode
+          ? '🔨 DEMOLISH MODE — click any owned built tile to recycle the building (100% refund). Click Demolish again to cancel.'
+          : 'Pick a building, then click any empty owned tile to place it. ESC to cancel.'}
       </p>
+      {/* PHASE 17.L.D.16 — demolish mode toggle. Visually distinct (red border + danger icon)
+          so the player understands this is a destructive-but-refundable action. When active,
+          tile clicks demolish instead of placing. */}
+      <button
+        type="button"
+        className={`build-picker__demolish-toggle${demolishMode ? ' build-picker__demolish-toggle--active' : ''}`}
+        onClick={onToggleDemolishMode}
+        aria-pressed={demolishMode}
+      >
+        <span aria-hidden>🔨</span>
+        <span>
+          {demolishMode
+            ? 'Demolish mode — ON (click a building to recycle)'
+            : 'Demolish (recycle 100% of buildCost)'}
+        </span>
+      </button>
       <div className="build-picker__grid">
         {cards.map(({ def, affordable, unlocked, unlockingTech }) => (
           <BuildCard

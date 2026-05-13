@@ -1,0 +1,68 @@
+/* PHASE 17.L.D.16 — BuildingInfoPanel styles. Opens when player clicks a built tile in
+ * inspect mode (neither buildMode nor demolishMode active). Shows def stats + production
+ * + a Demolish button that triggers 100% refund. */
+
+.building-info-panel__desc {
+  margin: 0 0 0.85rem;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.building-info-panel__stats {
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.building-info-panel__stats dt {
+  font-weight: 600;
+  color: var(--text-hero);
+  font-size: 0.85rem;
+}
+
+.building-info-panel__stats dd {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.building-info-panel__cost-list {
+  margin: 0;
+  padding: 0 0 0 1.2rem;
+  list-style: disc;
+}
+
+.building-info-panel__cost-list li {
+  margin: 0.1rem 0;
+}
+
+.building-info-panel__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.building-info-panel__demolish-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  background: rgba(180, 60, 60, 0.18);
+  border: 1px solid rgba(220, 80, 80, 0.55);
+  border-radius: 5px;
+  color: rgb(240, 200, 200);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.building-info-panel__demolish-btn:hover {
+  background: rgba(220, 80, 80, 0.32);
+  border-color: rgb(240, 100, 100);
+  color: white;
+  box-shadow: 0 0 12px rgba(240, 100, 100, 0.4);
+}

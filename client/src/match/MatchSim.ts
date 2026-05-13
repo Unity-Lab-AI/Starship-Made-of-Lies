@@ -2955,6 +2955,119 @@ export function placeBuildingAction(inputs: PlaceBuildingInputs): boolean {
   return placeBuildingCanonical(inputs.state, planet, inputs.defId, inputs.tileId, false)
 }
 
+// PHASE 17.L.D.16 (2026-05-13) — demolish action with 100% buildCost refund. Per user
+// verbatim *"they need to be able to be recycled even the starting buildings with a easy
+// way of deleteing... and demolition/recycle where u get the goods 100% back to your
+// stockpile"*. Walks the tile's buildCost from the building's def, returns every unit to
+// the planet inventory, clears the tile back to 'empty', decrements buildingsByDef +
+// removes the buildingsByTile entry. Special-cases:
+//   - LaunchPad: delete the LaunchPad state entry + padId index
+//   - MineField: clear the MineField world-position entry
+//   - CivicCenter: cannot demolish if the planet only has 1 settlement (would orphan tiles)
+// Starter freebies refund their NORMAL buildCost (the freebie path bypassed the deduction,
+// so refunding the standard cost is a one-time bonus the player can "cash out" the freebies
+// for — acceptable trade since the player chose to demolish their head-start).
+export interface DemolishBuildingInputs {
+  readonly state: MatchState
+  readonly planetId: PlanetId
+  readonly tileId: TileId
+}
+
+export function demolishBuildingAction(inputs: DemolishBuildingInputs): boolean {
+  const planet = inputs.state.planets.get(inputs.planetId)
+  if (!planet) {
+    pushEvent(inputs.state, {
+      atTick: inputs.state.currentTick,
+      civId: inputs.state.humanCivId,
+      kind: 'system',
+      message: `❌ Demolish failed — planet "${String(inputs.planetId)}" not found`,
+    })
+    return false
+  }
+  if (planet.civId !== inputs.state.humanCivId) {
+    pushEvent(inputs.state, {
+      atTick: inputs.state.currentTick,
+      civId: inputs.state.humanCivId,
+      kind: 'system',
+      message: `❌ Can't demolish there — you don't own ${String(inputs.planetId)}`,
+    })
+    return false
+  }
+  const tile = planet.planet.tiles.find((t) => t.id === inputs.tileId)
+  if (!tile) {
+    pushEvent(inputs.state, {
+      atTick: inputs.state.currentTick,
+      civId: inputs.state.humanCivId,
+      kind: 'system',
+      message: `❌ Demolish failed — tile not found`,
+    })
+    return false
+  }
+  const defId = planet.buildingsByTile.get(tile.id)
+  if (!defId) {
+    pushEvent(inputs.state, {
+      atTick: inputs.state.currentTick,
+      civId: inputs.state.humanCivId,
+      kind: 'system',
+      message: `❌ Nothing to demolish on this tile`,
+    })
+    return false
+  }
+  // Refuse to demolish the capital Civic Center if it's the only settlement on the planet
+  // (would orphan every other tile + break settlement bookkeeping). Player must found a new
+  // settlement first.
+  if (defId === BLDG_CIVIC_CENTER) {
+    const civicCenters = planet.buildingsByDef.get(BLDG_CIVIC_CENTER) ?? 0
+    if (civicCenters <= 1) {
+      pushEvent(inputs.state, {
+        atTick: inputs.state.currentTick,
+        civId: inputs.state.humanCivId,
+        kind: 'system',
+        message: `❌ Can't demolish the only Civic Center — found another settlement first`,
+      })
+      return false
+    }
+  }
+  const def = getBuildingDef(defId)
+  // Refund 100% of buildCost to the planet inventory.
+  for (const cost of def.buildCost) {
+    const cur = stockOf(planet.inventory, cost.resource)
+    planet.inventory.stocks.set(cost.resource, cur + cost.amount)
+  }
+  // Clean up per-building-type side state.
+  if (defId === BLDG_LAUNCH_PAD) {
+    planet.launchPads.delete(tile.id)
+    inputs.state.padIdToPlanetIdIndex.delete(tile.id)
+  }
+  if (defId === BLDG_MINE_FIELD) {
+    planet.mineFields = planet.mineFields.filter((mf) => {
+      // Remove the mine field whose world position matches this tile's centroid.
+      const tileWorldX = planet.planet.position.x + tile.centroid.x
+      const tileWorldY = planet.planet.position.y + tile.centroid.y
+      const tileWorldZ = planet.planet.position.z + tile.centroid.z
+      const dx = mf.position.x - tileWorldX
+      const dy = mf.position.y - tileWorldY
+      const dz = mf.position.z - tileWorldZ
+      return Math.hypot(dx, dy, dz) > 1
+    })
+  }
+  // Decrement counts + clear tile.
+  planet.buildingsByDef.set(defId, Math.max(0, (planet.buildingsByDef.get(defId) ?? 0) - 1))
+  planet.buildingsByTile.delete(tile.id)
+  tile.occupancy = 'empty'
+  // Also clear the outpost build-progress counter if this was a mining outpost so a future
+  // outpost on the same tile doesn't inherit the timer.
+  planet.outpostBuildTicks.delete(tile.id)
+  const refundSummary = def.buildCost.map((c) => `+${c.amount} ${String(c.resource)}`).join(', ')
+  pushEvent(inputs.state, {
+    atTick: inputs.state.currentTick,
+    civId: planet.civId,
+    kind: 'system',
+    message: `🔨 Demolished ${def.emoji} ${def.name} — refunded ${refundSummary || 'nothing'}`,
+  })
+  return true
+}
+
 export interface StartResearchInputs {
   readonly state: MatchState
   readonly techId: string

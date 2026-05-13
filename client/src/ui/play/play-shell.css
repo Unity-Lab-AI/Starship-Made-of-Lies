@@ -511,6 +511,39 @@
   gap: 0.5rem;
 }
 
+/* PHASE 17.L.D.16 — demolish-mode toggle. Sits between the hint paragraph and the build
+ * card grid. Red border by default (destructive action), pulses + fills red when active. */
+.build-picker__demolish-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin: 0 0 0.6rem;
+  padding: 0.55rem 0.85rem;
+  background: rgba(180, 60, 60, 0.12);
+  border: 1px solid rgba(220, 80, 80, 0.45);
+  border-radius: 6px;
+  color: rgb(240, 200, 200);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.build-picker__demolish-toggle:hover {
+  background: rgba(220, 80, 80, 0.22);
+  border-color: rgba(240, 100, 100, 0.75);
+}
+
+.build-picker__demolish-toggle--active {
+  background: rgba(220, 60, 60, 0.45);
+  border-color: rgb(240, 100, 100);
+  color: white;
+  box-shadow: 0 0 12px rgba(240, 100, 100, 0.5);
+}
+
 .build-card,
 .campaign-card {
   display: flex;
