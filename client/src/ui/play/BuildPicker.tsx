@@ -5,6 +5,7 @@ import {
   type Empire,
   type PlanetInventory,
   type TechId,
+  type TechNode,
   type Theme,
   BLDG_AQUEDUCT,
   BLDG_FARM,
@@ -14,6 +15,7 @@ import {
   BLDG_SCHOOL,
   BLDG_SOLAR_ARRAY,
   BUILDINGS,
+  TECH_NODES,
   aggregateEffects,
   getThemedBuildingEmoji,
   getThemedBuildingName,
@@ -38,6 +40,18 @@ const BASELINE_UNLOCKED: ReadonlySet<BuildingDefId> = new Set([
   BLDG_SCHOOL,
   BLDG_SOLAR_ARRAY,
 ])
+
+// PHASE 17.L.D (HOTFIX 2026-05-12) — reverse lookup: which tech unlocks this building. Used
+// to render a "🧬 Requires: TechName" hint on locked build cards so the player can see what
+// they need to research instead of the building being invisible. Returns the first tech that
+// lists the building in its effects.unlockBuildings; in practice each building is unlocked
+// by exactly one tech.
+function findTechUnlockingBuilding(buildingId: BuildingDefId): TechNode | null {
+  for (const node of TECH_NODES) {
+    if (node.effects.unlockBuildings?.includes(buildingId)) return node
+  }
+  return null
+}
 
 interface BuildPickerProps {
   readonly empire: Empire
@@ -65,11 +79,19 @@ export function BuildPicker({
     return set
   }, [empire.researchedTechs])
 
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — user verbatim *"im not seeing anywhere how to unlock
+  // the different parts for my spaceships or the differetn space ships or the launch pads
+  // and command pads and the mininers no way to build them or research them"*. Previously
+  // the filter was `.unlocked || currentBuildMode` which HID every tech-gated building from
+  // the picker. Player couldn't see Launch Pad, Mining Outpost, reactors, etc. existed.
+  // Now every building renders; locked ones are visually de-emphasized + show a 🧬
+  // tech-prereq hint so the player knows exactly what to research.
   const cards = BUILDINGS.map((b) => ({
     def: b,
     unlocked: unlockedSet.has(b.id),
     affordable: b.buildCost.every((c) => stockOf(inventory, c.resource) >= c.amount),
-  })).filter((entry) => entry.unlocked || entry.def.id === currentBuildMode)
+    unlockingTech: unlockedSet.has(b.id) ? null : findTechUnlockingBuilding(b.id),
+  }))
 
   return (
     <PanelFrame
@@ -85,16 +107,20 @@ export function BuildPicker({
         Pick a building, then click any empty owned tile to place it. ESC to cancel.
       </p>
       <div className="build-picker__grid">
-        {cards.map(({ def, affordable }) => (
+        {cards.map(({ def, affordable, unlocked, unlockingTech }) => (
           <BuildCard
             key={String(def.id)}
             def={def}
             inventory={inventory}
             affordable={affordable}
+            unlocked={unlocked}
+            unlockingTech={unlockingTech}
             selected={currentBuildMode === def.id}
             displayName={(theme && getThemedBuildingName(theme, def.id)) ?? def.name}
             displayEmoji={(theme && getThemedBuildingEmoji(theme, def.id)) ?? def.emoji}
-            onClick={() => onSelect(def.id)}
+            onClick={() => {
+              if (unlocked) onSelect(def.id)
+            }}
           />
         ))}
       </div>
@@ -106,6 +132,8 @@ interface BuildCardProps {
   readonly def: BuildingDef
   readonly inventory: PlanetInventory
   readonly affordable: boolean
+  readonly unlocked: boolean
+  readonly unlockingTech: TechNode | null
   readonly selected: boolean
   // PHASE 17.12.1 — theme-overridden display name + emoji. Falls back to def.name / def.emoji
   // when the active theme has no override for this building.
@@ -118,39 +146,64 @@ function BuildCard({
   def,
   inventory,
   affordable,
+  unlocked,
+  unlockingTech,
   selected,
   displayName,
   displayEmoji,
   onClick,
 }: BuildCardProps) {
+  const className = [
+    'build-card',
+    selected ? 'build-card--selected' : '',
+    !unlocked ? 'build-card--locked' : '',
+    unlocked && !affordable ? 'build-card--unaffordable' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+  const title = unlocked
+    ? def.description
+    : unlockingTech
+      ? `🔒 Locked — research ${unlockingTech.emoji} ${unlockingTech.name} to unlock.\n\n${def.description}`
+      : `🔒 Locked.\n\n${def.description}`
   return (
     <button
       type="button"
-      className={`build-card ${selected ? 'build-card--selected' : ''} ${affordable ? '' : 'build-card--unaffordable'}`}
+      className={className}
       onClick={onClick}
-      title={def.description}
+      disabled={!unlocked}
+      title={title}
     >
       <span className="build-card__emoji" aria-hidden>
         {displayEmoji}
       </span>
       <span className="build-card__name">{displayName}</span>
-      <ul className="build-card__costs">
-        {def.buildCost.map((cost) => {
-          const have = stockOf(inventory, cost.resource)
-          const enough = have >= cost.amount
-          return (
-            <li
-              key={String(cost.resource)}
-              className={`build-card__cost ${enough ? '' : 'build-card__cost--short'}`}
-            >
-              {cost.amount} {String(cost.resource)}
-            </li>
-          )
-        })}
-      </ul>
-      <span className="build-card__slots">
-        {def.citizenSlots > 0 ? `👤 ${def.citizenSlots}` : ''}
-      </span>
+      {!unlocked && unlockingTech && (
+        <span className="build-card__lock-hint">
+          🧬 {unlockingTech.emoji} {unlockingTech.name}
+        </span>
+      )}
+      {unlocked && (
+        <ul className="build-card__costs">
+          {def.buildCost.map((cost) => {
+            const have = stockOf(inventory, cost.resource)
+            const enough = have >= cost.amount
+            return (
+              <li
+                key={String(cost.resource)}
+                className={`build-card__cost ${enough ? '' : 'build-card__cost--short'}`}
+              >
+                {cost.amount} {String(cost.resource)}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      {unlocked && (
+        <span className="build-card__slots">
+          {def.citizenSlots > 0 ? `👤 ${def.citizenSlots}` : ''}
+        </span>
+      )}
     </button>
   )
 }

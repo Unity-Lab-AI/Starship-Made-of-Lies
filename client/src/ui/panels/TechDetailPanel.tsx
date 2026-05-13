@@ -13,6 +13,8 @@
 import { useMemo } from 'react'
 import {
   type Empire,
+  COLONY_SHIPS,
+  getBuildingDef,
   getResearchableTechs,
   getTechNode,
   TECH_NODES,
@@ -161,6 +163,64 @@ export function TechDetailPanel({
           )}
         </section>
       )}
+
+      {/* PHASE 17.L.D (HOTFIX 2026-05-12) — In-game content unlocks. Shows concrete
+          buildings + ship variants + payload tier this tech delivers, so the player can see
+          "research this and you'll get 🚀 Launch Pad + ⛏ Mining Outpost + Scout/Surveyor
+          ships" instead of having to guess from a vague description. */}
+      {(() => {
+        const eff = selectedNode.effects
+        const buildingDefs = (eff.unlockBuildings ?? [])
+          .map((id) => {
+            try {
+              return getBuildingDef(id)
+            } catch {
+              return null
+            }
+          })
+          .filter((d): d is NonNullable<typeof d> => d !== null)
+        const shipDefs = (eff.unlockColonyShipVariants ?? [])
+          .map((vid) => COLONY_SHIPS.find((s) => String(s.id) === vid))
+          .filter((s): s is NonNullable<typeof s> => s !== undefined)
+        const payloadTier = eff.colonyShipPayloadTier
+        const hasContent = buildingDefs.length > 0 || shipDefs.length > 0 || payloadTier
+        if (!hasContent) return null
+        return (
+          <section className="tech-tree-panel__detail-section">
+            <h4>Unlocks in-game content</h4>
+            {buildingDefs.length > 0 && (
+              <div className="tech-tree-panel__unlock-group">
+                <strong>🏗 Buildings:</strong>
+                <ul className="tech-tree-panel__unlock-chips">
+                  {buildingDefs.map((b) => (
+                    <li key={String(b.id)} className="tech-tree-panel__unlock-chip">
+                      {b.emoji} {b.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {shipDefs.length > 0 && (
+              <div className="tech-tree-panel__unlock-group">
+                <strong>🚀 Colony ships:</strong>
+                <ul className="tech-tree-panel__unlock-chips">
+                  {shipDefs.map((s) => (
+                    <li key={String(s.id)} className="tech-tree-panel__unlock-chip">
+                      {s.emoji} {s.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {payloadTier && (
+              <div className="tech-tree-panel__unlock-group">
+                <strong>📦 Max colony ship payload tier:</strong>{' '}
+                <span className="tech-tree-panel__unlock-chip">T{payloadTier}</span>
+              </div>
+            )}
+          </section>
+        )
+      })()}
 
       <section className="tech-tree-panel__detail-section">
         <h4>Prerequisites ({prereqList.length})</h4>
