@@ -859,13 +859,25 @@ function seedStarterBuildings(planetState: MatchPlanetState): void {
     { defId: BLDG_SOLAR_ARRAY, count: 1 },
     { defId: BLDG_LAB, count: 2 },
   ]
+  // PHASE 17.L.D.17 (2026-05-13) — farthest-point spread placement. Per user verbatim
+  // *"the starting buildings(the ones the player starts with) being built and located on
+  // the individual hex locations.. its fucked they are all bunched together not even
+  // placed individually on each hex ! buildings can only be placed on hexs of the planet
+  // not just crammed into the planet with now order"*. Previous loop used `.find()` which
+  // always returned the lowest face-index empty owned tile. Icosphere subdivision emits
+  // faces clustered by parent icosahedron face, so face indices 0-17 form a single tight
+  // patch on the planet surface — 18 starter buildings landed on the same corner. New
+  // strategy: track placed tiles, then for each next pick choose the empty-owned tile
+  // whose squared-distance to its NEAREST already-placed tile is MAXIMIZED. This is
+  // greedy farthest-point sampling, gives even spread across the sphere, O(N*M) cheap
+  // for N≈80 candidates × M≤18 placements.
+  const placed: Tile[] = []
   for (const entry of STARTER_PLAN) {
     for (let i = 0; i < entry.count; i++) {
-      const tile = planetState.planet.tiles.find(
-        (t) => t.ownerCivId === planetState.civId && t.occupancy === 'empty',
-      )
-      if (!tile) return // ran out of tiles — bail gracefully (tiny galaxies may have <18 tiles per planet)
+      const tile = pickNextSpreadTile(planetState, placed)
+      if (!tile) return // ran out of empty owned tiles — bail gracefully (tiny planets)
       tile.occupancy = 'building'
+      placed.push(tile)
       planetState.buildingsByDef.set(
         entry.defId,
         (planetState.buildingsByDef.get(entry.defId) ?? 0) + 1,
@@ -873,6 +885,35 @@ function seedStarterBuildings(planetState: MatchPlanetState): void {
       planetState.buildingsByTile.set(tile.id, entry.defId)
     }
   }
+}
+
+function pickNextSpreadTile(
+  planetState: MatchPlanetState,
+  alreadyPlaced: ReadonlyArray<Tile>,
+): Tile | null {
+  let bestTile: Tile | null = null
+  let bestScore = -Infinity
+  for (const candidate of planetState.planet.tiles) {
+    if (candidate.ownerCivId !== planetState.civId) continue
+    if (candidate.occupancy !== 'empty') continue
+    if (alreadyPlaced.length === 0) {
+      // No anchors yet — first placement just grabs this candidate.
+      return candidate
+    }
+    let minSqDist = Infinity
+    for (const used of alreadyPlaced) {
+      const dx = candidate.centroid.x - used.centroid.x
+      const dy = candidate.centroid.y - used.centroid.y
+      const dz = candidate.centroid.z - used.centroid.z
+      const sq = dx * dx + dy * dy + dz * dz
+      if (sq < minSqDist) minSqDist = sq
+    }
+    if (minSqDist > bestScore) {
+      bestScore = minSqDist
+      bestTile = candidate
+    }
+  }
+  return bestTile
 }
 
 // PHASE 17.B.2 — outpost-driven miner spawning. Auto-spawn at match start violated the
