@@ -59,7 +59,9 @@ async function main() {
   try {
     pngToIco = require('png-to-ico')
   } catch {
-    console.warn('png-to-ico not installed — skipping icon.ico generation. Run: pnpm add -D png-to-ico')
+    console.warn(
+      'png-to-ico not installed — skipping icon.ico generation. Run: pnpm add -D png-to-ico',
+    )
   }
 
   if (!fs.existsSync(TAURI_ICONS_DIR)) fs.mkdirSync(TAURI_ICONS_DIR, { recursive: true })
