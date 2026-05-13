@@ -1,0 +1,50 @@
+# GitHub Linguist overrides — keep the language-stat bar honest.
+#
+# GitHub computes the language percentages on the public repo page (smol.unityailab.com /
+# Unity-Lab-AI/Starship-Made-of-Lies) by walking every committed file and bucketing by
+# extension via `github-linguist`. Without overrides the legacy UMS reference dump in
+# `_ums-reference/references/{mdk2,modapi,pbapi}/` (30,454 third-party Space Engineers HTML
+# documentation files preserved per the "we nuke nothing but track it all" rule until
+# PHASE 15) dominates the stats and makes the repo look ~98% HTML.
+#
+# The active SMoL project is TypeScript + React + CSS. These attributes tell linguist:
+#   - `linguist-vendored`     → excluded from stats entirely (treated as vendor/third-party)
+#   - `linguist-documentation`→ also excluded; flagged as reference docs not source
+#   - `linguist-generated`    → also excluded; flagged as generated/transformed output
+#
+# Stacking all three is belt-and-suspenders — any one of them excludes the path. Linguist
+# re-runs on every push; the public-repo language bar updates within a few minutes of the
+# next push to main.
+
+# === UMS-era reference material (Space Engineers Mod API + PB Scripting API + MDK2 docs) ===
+# Third-party HTML docs preserved as reference until PHASE 15 (UMS nuke). Excluded from
+# stats because they're external documentation, not project source code.
+_ums-reference/**           linguist-vendored linguist-documentation linguist-generated
+
+# === Build / dist output (if ever committed by accident) ===
+client/dist/**              linguist-generated
+server/dist/**              linguist-generated
+shared/dist/**              linguist-generated
+**/node_modules/**          linguist-vendored
+
+# === Lock files + minified bundles ===
+pnpm-lock.yaml              linguist-generated
+package-lock.json           linguist-generated
+*.min.js                    linguist-generated
+*.min.css                   linguist-generated
+*.map                       linguist-generated
+
+# === Line endings — keep Windows-friendly auto-CRLF for the few legacy files that need it,
+#     but force LF on every source extension so cross-platform team (Gee/Red/Sponge/Alfreddo)
+#     doesn't end up with churn from line-ending diffs on every commit.
+*.ts                        text eol=lf
+*.tsx                       text eol=lf
+*.js                        text eol=lf
+*.cjs                       text eol=lf
+*.mjs                       text eol=lf
+*.css                       text eol=lf
+*.json                      text eol=lf
+*.md                        text eol=lf
+*.html                      text eol=lf
+*.yml                       text eol=lf
+*.yaml                      text eol=lf
