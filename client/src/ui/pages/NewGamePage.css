@@ -140,6 +140,24 @@
   outline-offset: 1px;
 }
 
+/* PHASE 17.L.D (HOTFIX 2026-05-12) — user verbatim *"the drop downs need to be black text
+   on white they are currently light grey on white and hard to read unless you highlight a
+   selection"*. The OS-rendered <option> popup uses white system background but the option
+   text inherited the parent <select>'s light-grey color, making unselected rows nearly
+   invisible. Explicit black-on-white on every option element fixes contrast in the open
+   dropdown. Highlighted row keeps its accent treatment. */
+.new-game-page__control option,
+.new-game-page__ai-select option {
+  background: #ffffff;
+  color: #000000;
+}
+
+.new-game-page__control option:checked,
+.new-game-page__ai-select option:checked {
+  background: var(--ui-glow, #d4a13a);
+  color: #000000;
+}
+
 .new-game-page__control--slider {
   padding: 0;
   background: transparent;
