@@ -843,8 +843,12 @@ function makePlanetState(planet: Planet, ownerId: CivId, ownerThemeId?: string):
 //   - 1 Quarry (stone inflow same reason)
 //   - 1 Solar Array (energy presence)
 //   - 2 Labs (research building multiplier 2 × LAB_MULTIPLIER = 2× the no-building rate)
-// Labs are normally tech-gated behind TECH_COMPUTING; pre-built labs grandfather in
-// without requiring the tech (player can still only BUILD additional labs after research).
+//
+// PHASE 17.L.D.13.J (2026-05-13) — stale-comment fix. Pre-17.L.D.10.F Lab was tech-gated
+// behind TECH_COMPUTING and the freebie 2 Labs grandfathered in past the gate. Post-fix:
+// Lab is baseline-buildable from match start (no tech prereq, planks+bricks cost), so the
+// 2 freebies are just a HEAD-START on research throughput, not a tech-bypass. Player can
+// build additional Labs from tick 1 without researching anything.
 function seedStarterBuildings(planetState: MatchPlanetState): void {
   const STARTER_PLAN: ReadonlyArray<{ defId: BuildingDefId; count: number }> = [
     { defId: BLDG_FARM, count: 6 },

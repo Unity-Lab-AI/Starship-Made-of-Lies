@@ -6,6 +6,7 @@ import {
   type TechNode,
   type TechTier,
 } from '@smol/shared'
+import { formatRate } from '../../util/format'
 import './TechTreePanel.css'
 
 interface TechTreePanelProps {
@@ -136,14 +137,8 @@ export function TechTreePanel({
   )
 }
 
-// PHASE 17.L.D.12 — research-rate formatter shared with TopToolbar. Sub-1 rates need
-// decimal precision; integer floor hides accrual.
-function formatRate(rate: number): string {
-  if (rate <= 0) return '0'
-  if (rate < 1) return rate.toFixed(2)
-  if (rate < 10) return rate.toFixed(1)
-  return Math.floor(rate).toLocaleString()
-}
+// PHASE 17.L.D.13.I — formatRate moved to client/src/util/format.ts so TopToolbar and this
+// file share one definition (DRY).
 
 type TechRenderState = 'researched' | 'researchable' | 'hinted' | 'visible' | 'hidden'
 

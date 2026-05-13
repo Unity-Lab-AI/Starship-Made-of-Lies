@@ -22,16 +22,21 @@ import { TechTreePanel } from '../panels/TechTreePanel'
 import './SubPage.css'
 import './WikiPage.css'
 
-type WikiSection = 'themes' | 'tech' | 'mechanics'
+// PHASE 17.L.D.13.D (2026-05-13) — section id + label finally renamed `themes` → `governments`
+// per the LAW-tagged memory `feedback_themes_are_governments_global_rename.md` (user verbatim
+// *"they arent themes they are govenrments"*). Internal `Theme` / `ThemeId` types stay
+// untouched (dev jargon); only the user-facing nav label was the holdout. Section content
+// already uses "government" framing in the intro paragraph; this fixes the tab nav itself.
+type WikiSection = 'governments' | 'tech' | 'mechanics'
 
 const SECTIONS: ReadonlyArray<{ id: WikiSection; label: string; emoji: string }> = [
-  { id: 'themes', label: 'Themes', emoji: '🎭' },
+  { id: 'governments', label: 'Governments', emoji: '🎭' },
   { id: 'tech', label: 'Tech tree', emoji: '🌐' },
   { id: 'mechanics', label: 'Mechanics', emoji: '📜' },
 ]
 
 export function WikiPage() {
-  const [section, setSection] = useState<WikiSection>('themes')
+  const [section, setSection] = useState<WikiSection>('governments')
   const [selectedThemeId, setSelectedThemeId] = useState<ThemeId>(THEMES[0]!.id)
   const [selectedTechId, setSelectedTechId] = useState<TechId | null>(null)
   const [themeSearch, setThemeSearch] = useState('')
@@ -89,7 +94,7 @@ export function WikiPage() {
         </nav>
 
         <section className="wiki-page__panel">
-          {section === 'themes' && (
+          {section === 'governments' && (
             <div>
               <h2>20 government archetypes</h2>
               <p className="wiki-page__intro">
