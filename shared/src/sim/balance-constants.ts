@@ -36,6 +36,16 @@ export const MATCH_LENGTH_TICKS_EPIC = 432_000 // 24h
 // accelerate by stacking labs/universities or sliding more workforce to research.
 export const RESEARCH_POINT_DIVISOR = 200
 
+// PHASE 17.L.D.19 (2026-05-13) — recycle → research conversion rate. Per user verbatim
+// *"recycle amount to transper into .00001 reserach points"*. Every unit of raw material
+// recovered by a building running in 'disassembly' mode now drops 0.00001 research points
+// into the civ's pool. Intentionally tiny — disassembly is meant to recover raw materials,
+// not be a fast research path; this trickle is a flavor mechanic ("studying the recovered
+// scrap teaches us something") that rewards keeping recycle loops running but never
+// substitutes for real Lab/University throughput. A planet recycling ~100 Components/tick
+// would add 0.001 research pts/tick — vs. 0.075/tick from 2 starter Labs (the baseline).
+export const RECYCLE_RESEARCH_CONVERSION_RATE = 0.00001
+
 // --- AI decision intervals ------------------------------------------------------------
 
 // Multiplies AIDifficultyConfig.decisionIntervalTicks. Easy 12 → 30 ticks (~6 sec per

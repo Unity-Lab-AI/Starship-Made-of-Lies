@@ -10,7 +10,6 @@
 // Direct UMS UnityInventory.QueueMissing + RecycleExcess carryover. UI mirrors the UMS
 // quotas section in inventory CustomData (per SMOL_REFERENCE_INVENTORY.md §quotas).
 
-import { useMemo } from 'react'
 import {
   type BuildingDefId,
   type BuildingProductionMode,
@@ -51,6 +50,9 @@ const QUOTA_ELIGIBLE: ReadonlySet<string> = new Set(
 const DISASSEMBLY_BUILDING_IDS: ReadonlySet<string> = new Set(['refinery', 'foundry', 'factory'])
 
 const MAX_QUOTA = 100000
+// PHASE 17.L.D.19 — slider stride; numeric input uses step=1 so the player can type any
+// whole-number target. Stride only governs slider granularity, not what's allowed in the
+// number field.
 const QUOTA_STEP = 100
 
 export function QuotasPanel({
@@ -62,30 +64,29 @@ export function QuotasPanel({
   onSetQuota,
   onSetBuildingMode,
 }: QuotasPanelProps) {
-  const quotaRows = useMemo(
-    () =>
-      RESOURCES.filter((r) => QUOTA_ELIGIBLE.has(String(r.id))).map((r) => ({
-        resource: r.id,
-        emoji: r.emoji,
-        name: r.name,
-        stock: stockOf(inventory, r.id),
-        target: quotas.get(r.id) ?? 0,
-      })),
-    [inventory, quotas],
-  )
+  // PHASE 17.L.D.19 (2026-05-13) — DROPPED useMemo. Per user verbatim *"im unable to use
+  // the cslide bars and unable to input values for max production"*. Root cause: `quotas`
+  // / `buildingsByDef` / `buildingModes` are MUTATED IN PLACE by the sim — the Map
+  // reference never changes, so useMemo's reference-equality deps never re-fired. The
+  // controlled sliders saw the stale `row.target` on re-render and snapped back to it,
+  // looking like the input did nothing. Inlining the row computation reads the live Map
+  // every render. Resource + building counts are tiny — no perf concern.
+  const quotaRows = RESOURCES.filter((r) => QUOTA_ELIGIBLE.has(String(r.id))).map((r) => ({
+    resource: r.id,
+    emoji: r.emoji,
+    name: r.name,
+    stock: stockOf(inventory, r.id),
+    target: quotas.get(r.id) ?? 0,
+  }))
 
-  const buildingRows = useMemo(
-    () =>
-      BUILDINGS.filter((b) => getBuildingProduction(b.id) !== null)
-        .filter((b) => (buildingsByDef.get(b.id) ?? 0) > 0)
-        .map((b) => {
-          const count = buildingsByDef.get(b.id) ?? 0
-          const mode = buildingModes.get(b.id) ?? 'auto'
-          const canDisassemble = DISASSEMBLY_BUILDING_IDS.has(String(b.id))
-          return { defId: b.id, emoji: b.emoji, name: b.name, count, mode, canDisassemble }
-        }),
-    [buildingsByDef, buildingModes],
-  )
+  const buildingRows = BUILDINGS.filter((b) => getBuildingProduction(b.id) !== null)
+    .filter((b) => (buildingsByDef.get(b.id) ?? 0) > 0)
+    .map((b) => {
+      const count = buildingsByDef.get(b.id) ?? 0
+      const mode = buildingModes.get(b.id) ?? 'auto'
+      const canDisassemble = DISASSEMBLY_BUILDING_IDS.has(String(b.id))
+      return { defId: b.id, emoji: b.emoji, name: b.name, count, mode, canDisassemble }
+    })
 
   const activeQuotaCount = quotas.size
   const overrideModeCount = buildingModes.size
@@ -95,7 +96,9 @@ export function QuotasPanel({
       <p className="quotas-panel__intro">
         Active planet: <strong>{planetLabel}</strong>. Quotas throttle producers — buildings making
         a resource at-or-above its quota idle in auto-mode. Building modes override default behavior
-        per building type. UMS UnityInventory.QueueMissing + RecycleExcess parity.
+        per building type. Every unit recovered by a Disassembly-mode building also drops{' '}
+        <strong>0.00001 research points</strong> into the civ pool (slow trickle, not a substitute
+        for Labs).
       </p>
 
       <section className="quotas-panel__section">
@@ -139,7 +142,7 @@ export function QuotasPanel({
                     type="number"
                     min={0}
                     max={MAX_QUOTA}
-                    step={QUOTA_STEP}
+                    step={1}
                     value={row.target}
                     onChange={(e) => onSetQuota(row.resource, Number(e.target.value))}
                     className="quotas-panel__quota-input"

@@ -76,6 +76,7 @@ import {
   MINING_OUTPOST_SHIP_COST_FUEL,
   MINING_OUTPOST_SHIP_COST_INGOTS,
   MINING_OUTPOST_SHIP_INTERVAL_TICKS,
+  RECYCLE_RESEARCH_CONVERSION_RATE,
   RESEARCH_POINT_DIVISOR,
   RESOURCE_AMMUNITION,
   RESOURCE_BRICKS,
@@ -1379,7 +1380,7 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
     computeFuelSurplusPerTick(planetState, techEffects.buildingProductionMultiplier) < 0
 
   if (buildings.length > 0) {
-    tickPlanetProduction({
+    const prodResult = tickPlanetProduction({
       buildings,
       biome: planetState.planet.biome,
       workforce: planetState.workforce.sliders,
@@ -1398,6 +1399,16 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
       // with requiredTechs not in the set are skipped while baseline outputs still emit.
       researchedTechs: civState.empire.researchedTechs,
     })
+    // PHASE 17.L.D.19 (2026-05-13) — recycle-to-research conversion. Per user verbatim
+    // *"recycle amount to transper into .00001 reserach points"*. Every unit recovered
+    // by disassembly-mode buildings this tick adds RECYCLE_RESEARCH_CONVERSION_RATE
+    // (0.00001) points into the civ's research pool. tickResearch is the canonical
+    // pool deposit; passing a float is safe (pool is typed `number`).
+    let totalRecycled = 0
+    for (const amount of prodResult.recycledByResource.values()) totalRecycled += amount
+    if (totalRecycled > 0) {
+      tickResearch(civState.empire, totalRecycled * RECYCLE_RESEARCH_CONVERSION_RATE)
+    }
   }
 
   // PHASE 17.L.A.2 — fuel-stockpile cap from Battery Banks. Cap = batteryCount ×
