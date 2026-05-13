@@ -185,12 +185,14 @@ xcodebuild -workspace App.xcworkspace -scheme App -configuration Release archive
 
 GitHub Actions workflows under `.github/workflows/`:
 
-| Workflow            | Triggers                                       | Output                                   |
-| ------------------- | ---------------------------------------------- | ---------------------------------------- |
-| `ci.yml`            | Every push + PR                                | Lint + typecheck + format check          |
-| `build-web.yml`     | push to `main` / `develop` / `release/*` + PRs | Vite production bundle + artifact upload |
-| `build-desktop.yml` | push to `release/*` + manual dispatch          | Tauri Win/Mac/Linux 3-runner matrix      |
-| `build-mobile.yml`  | push to `release/*` + manual dispatch          | Capacitor Android (Ubuntu) + iOS (macOS) |
+| Workflow                | Triggers                              | Output                                                                                      |
+| ----------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `ci.yml`                | Every push + PR                       | Lint + typecheck + format check                                                             |
+| `deploy-demo-pages.yml` | push to `main` + manual dispatch      | Builds client with `VITE_SMOL_DEMO_MODE=true` + deploys to GitHub Pages (static demo build) |
+| `build-desktop.yml`     | push to `release/*` + manual dispatch | Tauri Win/Mac/Linux 3-runner matrix                                                         |
+| `build-mobile.yml`      | push to `release/*` + manual dispatch | Capacitor Android (Ubuntu) + iOS (macOS)                                                    |
+
+PHASE 17.L.D.15 (2026-05-13) — `build-web.yml` removed. It duplicated the `pnpm run build:web` step that `deploy-demo-pages.yml` already runs; its only output was a 14-day-retention artifact that no downstream workflow consumed. Cutting it brings each GitFlow cascade (push to develop + push to main) from 5 workflow runs down to 3 (CI on develop, CI + Deploy on main).
 
 **Required GitHub repo secrets** for full release builds:
 
