@@ -51,6 +51,32 @@ export function BootSequencePanel({
     return () => window.clearInterval(handle)
   }, [running, sequence.finished, tickIntervalMs])
 
+  // PHASE 17.L.D.18 (2026-05-13) — auto-scroll the boot list so the active (running) row
+  // stays visible as the ceremony advances. Per user verbatim *"and the boot up needs to
+  // scroll with the ok registered items of the boot ceremony"*. Before this fix, with
+  // max-height: 14rem on .boot-panel__list, rows past the visible window stayed hidden;
+  // the player saw the same top few checks the whole time while progress crept past them.
+  // We track the latest non-pending row (running if any, else the highest completed) and
+  // scrollIntoView({ block: 'nearest' }) it on each render. 'nearest' avoids scrolling the
+  // outer page; 'smooth' on the behavior keeps the eye continuity.
+  const listRef = useRef<HTMLUListElement | null>(null)
+  const activeRowRef = useRef<HTMLLIElement | null>(null)
+  const activeIdx = (() => {
+    let lastNonPending = -1
+    for (let i = 0; i < sequence.states.length; i++) {
+      const status = sequence.states[i]!.status
+      if (status === 'running') return i
+      if (status !== 'pending') lastNonPending = i
+    }
+    return lastNonPending
+  })()
+
+  useEffect(() => {
+    const row = activeRowRef.current
+    if (!row) return
+    row.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [activeIdx])
+
   // PHASE 17.L.A.14 — fire onFinished once when the sequence transitions to finished. Tracked
   // via ref to avoid re-firing across re-renders when the prop function identity is stable.
   const firedFinishedRef = useRef(false)
@@ -101,9 +127,13 @@ export function BootSequencePanel({
             style={{ width: `${Math.round(progress * 100)}%` }}
           />
         </div>
-        <ul className="boot-panel__list">
-          {sequence.states.map((state) => (
-            <li key={state.check.id} className={`boot-panel__row boot-panel__row--${state.status}`}>
+        <ul className="boot-panel__list" ref={listRef}>
+          {sequence.states.map((state, idx) => (
+            <li
+              key={state.check.id}
+              ref={idx === activeIdx ? activeRowRef : null}
+              className={`boot-panel__row boot-panel__row--${state.status}`}
+            >
               <span className="boot-panel__row-glyph">{glyphForStatus(state.status)}</span>
               <span className="boot-panel__row-label">
                 {getThemedBootLabel(state.check, theme)}
