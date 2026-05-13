@@ -1,0 +1,92 @@
+name: Deploy — GitHub Pages (Demo build)
+
+# PHASE 17.L.D.14 — static demo deploy to GitHub Pages. Builds the client bundle with
+# VITE_SMOL_DEMO_MODE=true so the Multiplayer menu item + route are hidden + a DEMO BUILD
+# badge renders under the Quit button. The repo's `base` path is set to the GitHub Pages
+# subpath (/Starship-Made-of-Lies/) so all asset URLs resolve correctly under the
+# unity-lab-ai.github.io/Starship-Made-of-Lies/ URL.
+#
+# Triggers:
+#   - push to main (every prod cascade auto-redeploys the demo)
+#   - manual workflow_dispatch (force a re-deploy from any commit)
+#
+# Backend workspaces (server/) are NEVER deployed — GitHub Pages is static-only. Only
+# client/dist gets published.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# GitHub Pages permissions per the official action contract.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only ONE concurrent deploy. New pushes cancel an in-flight job (we want the latest
+# state on the live demo, not a stale half-deploy from 5 commits ago).
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build demo bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build asset manifest
+        run: node tools/build-asset-manifest.cjs
+
+      - name: Build demo bundle (VITE_SMOL_DEMO_MODE=true, GitHub Pages base path)
+        run: pnpm run build:web
+        env:
+          # Tells Vite to emit asset URLs prefixed with the repo name so they resolve under
+          # https://unity-lab-ai.github.io/Starship-Made-of-Lies/<assets>. If the org or repo
+          # ever renames, update this AND the DEMO_BUILD_URL constant in
+          # client/src/config/buildMode.ts together.
+          SMOL_BASE_PATH: /Starship-Made-of-Lies/
+          # Flips MainMenu + MultiplayerPage into demo-only mode at build time. Tree-shaker
+          # eliminates the unreachable multiplayer branches from the static bundle.
+          VITE_SMOL_DEMO_MODE: 'true'
+
+      - name: Inject SPA fallback (404.html copy of index.html)
+        # GitHub Pages serves static files only — no server-side rewrites. React Router uses
+        # client-side routing, so direct navigation to /wiki / /play / etc. would 404 without
+        # this fallback. Copying index.html to 404.html makes GitHub Pages serve the SPA shell
+        # for any unknown path; React Router then handles the route on the client side.
+        run: cp client/dist/index.html client/dist/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: client/dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

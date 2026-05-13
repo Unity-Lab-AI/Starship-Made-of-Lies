@@ -41,11 +41,31 @@
   background: linear-gradient(to bottom, rgba(5, 9, 18, 0.8), transparent);
 }
 
+/* PHASE 17.L.D.14 — bumped the bottom utility bar visibility per user verbatim *"im still
+   not seeing the terms of service and pricacy notices as links at the bottom of the landing
+   page"*. Previously: 0.85rem + var(--text-mute) on a dark gradient → links were technically
+   there but visually invisible. Now: solid dark backdrop strip + thin top border + 1rem font
+   + text-hero color on links so they read as a clear "Privacy · Terms · Discord · GitHub"
+   utility row. */
 .utility-bar--bottom {
   margin-top: auto;
-  background: linear-gradient(to top, rgba(5, 9, 18, 0.85), transparent);
-  font-size: 0.85rem;
-  color: var(--text-mute);
+  background: rgba(5, 9, 18, 0.92);
+  border-top: 1px solid rgba(58, 142, 255, 0.25);
+  font-size: 1rem;
+  color: var(--text-soft);
+  padding: 1.1rem 2rem;
+}
+
+.utility-bar--bottom .utility-links a {
+  color: var(--text-hero);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.utility-bar--bottom .utility-links a:hover {
+  color: var(--ui-glow);
+  text-decoration: underline;
 }
 
 .logo-link {

@@ -92,3 +92,36 @@
     transform: none;
   }
 }
+
+/* PHASE 17.L.D.14 — DEMO BUILD indicator badge under the Quit button. Lives below the menu
+ * list when the static-demo bundle is in play. Tells the player which features are
+ * unavailable on the GitHub-Pages-hosted demo vs the full server-hosted game. */
+.main-menu__demo-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: min(360px, 100%);
+  margin-top: 1rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(140, 100, 220, 0.18);
+  border: 1px solid rgba(160, 130, 240, 0.45);
+  border-radius: 4px;
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+
+.main-menu__demo-badge-label {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: rgb(220, 200, 255);
+  text-transform: uppercase;
+}
+
+.main-menu__demo-badge-note {
+  font-size: 0.78rem;
+  color: rgb(190, 170, 230);
+  letter-spacing: 0.02em;
+}
