@@ -34,6 +34,8 @@ export function TitleScreen() {
 
       <footer className="utility-bar utility-bar--bottom">
         <nav className="utility-links" aria-label="Bottom utility">
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
           <a href={DISCORD_INVITE_URL} target="_blank" rel="noreferrer noopener">
             Discord
           </a>
