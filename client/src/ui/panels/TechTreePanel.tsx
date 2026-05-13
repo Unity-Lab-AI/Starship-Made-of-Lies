@@ -72,16 +72,16 @@ export function TechTreePanel({
         </span>
         {/* PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — pool counter. Player saves points and
             spends in chunks per tech via the Tech Detail panel's "Research <name>" button.
-            Per-tick rate stays for transparency on how fast the pool refills. */}
-        <span className="tech-tree-panel__pool">
-          🔬 Pool: <strong>{Math.floor(empire.researchPointsPool).toLocaleString()}</strong> pts
-          {researchPointsPerTick !== undefined && (
-            <>
-              {' '}
-              · +<strong>{researchPointsPerTick.toLocaleString()}</strong>/t
-            </>
-          )}
-        </span>
+            Per-tick rate stays for transparency on how fast the pool refills. Only shown when
+            the caller passes researchPointsPerTick — wiki / preview contexts use a mock
+            empire with pool=0 + no tick rate, where the badge would just show "0 pts" which
+            looks broken. */}
+        {researchPointsPerTick !== undefined && (
+          <span className="tech-tree-panel__pool">
+            🔬 Pool: <strong>{Math.floor(empire.researchPointsPool).toLocaleString()}</strong> pts ·
+            +<strong>{researchPointsPerTick.toLocaleString()}</strong>/t
+          </span>
+        )}
       </header>
 
       <p className="tech-tree-panel__hint">
