@@ -98,6 +98,7 @@ import {
   aggregateEmpireResearchPoints,
   applyDeceptionFactionTick,
   applyQoLBirthTick,
+  applyDehydrationDeaths,
   applyStarvationDeaths,
   attemptIndigenousParley,
   buildHumanCoopAlliance,
@@ -475,16 +476,22 @@ export interface MatchConfig {
 }
 
 const HOME_PLANET_STARTING_POP = 1000
-const STARTING_FOOD = 1500
-// PHASE 17.L.D (HOTFIX 2026-05-12) — user playtest: "i built farms and water but citizens are
-// dying supper supper fast i have zero citens in like 60 seconds WTF is this shit!!!!!! and
-// why dont i have food and water to start". Root cause: makePlanetState seeded food but ZERO
-// water. Citizens dehydrate at 2.5%/tick when water/citizen < 0.5 (citizen-lifecycle.ts).
-// With 1000 starting pop and 0 water → mass death in ~60 sim ticks = ~12s wall-clock.
-// Compounds: Farm requires water input → without water, farms can't produce food either.
-// Fix: seed 1500 water on the home planet (same scale as food) so the player has runway to
-// build the first Aqueduct without insta-dying.
-const STARTING_WATER = 1500
+// PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — starting food + water bumped to 8000 each per
+// user playtest *"and also the stockpile shows 0 food again and i has a citizxen crash again
+// lost 2/3 of my citizens before i could even build a farm"*. Combined with the new
+// per-citizen consumption rates below (FOOD_PER_CITIZEN_PER_TICK = 0.05,
+// WATER_PER_CITIZEN_PER_TICK = 0.02), 1000 pop drains 50 food + 20 water per tick = 160 ticks
+// of food runway + 400 ticks of water runway from initial seed alone. That's ~32 sec / 80 sec
+// wall-clock — comfortable buffer for the player to research / build farms / build aqueducts.
+const STARTING_FOOD = 8000
+const STARTING_WATER = 8000
+// PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — per-citizen consumption tunables. Was 1.0/tick
+// (food) baked into the foodConsumed math at the tick site; that meant 1000 citizens drained
+// 1000 food/tick — STARTING_FOOD evaporated in 1.5 ticks (300ms wall-clock). New rates put
+// the food/water economy at a saner cadence so a player with a handful of farms + aqueducts
+// can sustain their starting population.
+const FOOD_PER_CITIZEN_PER_TICK = 0.05
+const WATER_PER_CITIZEN_PER_TICK = 0.02
 const STARTING_WOOD = 80
 const STARTING_STONE = 80
 const STARTING_PLANKS = 200
@@ -1307,9 +1314,15 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
   planetState.activeCampaigns = planetState.activeCampaigns.filter(isCampaignActive)
 
   const totalPop = totalPopulation(planetState.population)
+  // PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — per-citizen food consumption used to be 1.0/
+  // citizen/tick (baked in via `Math.min(foodStock, totalPop)`), draining 1000-pop planets
+  // to zero food in 1.5 ticks. Now scaled by FOOD_PER_CITIZEN_PER_TICK (0.05), so 1000 pop
+  // drains 50 food/tick — matches farm output (~10/tick × 5 farms) and gives the player a
+  // real food economy to manage instead of an instant-death-spiral.
   const foodStock = stockOf(planetState.inventory, RESOURCE_FOOD)
-  const foodPerCitizen = totalPop === 0 ? 1 : foodStock / Math.max(1, totalPop)
-  const foodConsumed = Math.min(foodStock, totalPop)
+  const foodDemand = Math.ceil(totalPop * FOOD_PER_CITIZEN_PER_TICK)
+  const foodPerCitizen = totalPop === 0 ? 1 : foodStock / Math.max(1, foodDemand)
+  const foodConsumed = Math.min(foodStock, foodDemand)
   if (foodConsumed > 0) planetState.inventory.stocks.set(RESOURCE_FOOD, foodStock - foodConsumed)
 
   if (foodPerCitizen < 1) {
@@ -1318,6 +1331,28 @@ function tickPlanet(state: MatchState, planetState: MatchPlanetState): void {
       population: planetState.population,
       foodPerCitizen,
       themeStarvationResistMultiplier: polish.starvationResistMultiplier,
+      ledger: civState.deathLedger,
+    })
+  }
+
+  // PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — water consumption tick. Previously water never
+  // depleted per tick (only via farm input cost), so once a player had 500 water for 1000
+  // citizens (waterPerCitizen=0.5 threshold) they were hydrated forever even if every
+  // aqueduct burned down. Now each citizen drinks WATER_PER_CITIZEN_PER_TICK (0.02), so 1000
+  // pop drains 20 water/tick — matches aqueduct output (~18/tick × 1-2 aqueducts) and forces
+  // ongoing water management. applyDehydrationDeaths fires per existing threshold semantics.
+  const waterStock = stockOf(planetState.inventory, RESOURCE_WATER)
+  const waterDemand = Math.ceil(totalPop * WATER_PER_CITIZEN_PER_TICK)
+  const waterPerCitizen = totalPop === 0 ? 1 : waterStock / Math.max(1, waterDemand)
+  const waterConsumed = Math.min(waterStock, waterDemand)
+  if (waterConsumed > 0)
+    planetState.inventory.stocks.set(RESOURCE_WATER, waterStock - waterConsumed)
+
+  if (waterPerCitizen < 0.5) {
+    applyDehydrationDeaths({
+      tick: state.currentTick,
+      population: planetState.population,
+      waterPerCitizen,
       ledger: civState.deathLedger,
     })
   }

@@ -1,10 +1,14 @@
 import {
   MAX_INVENTORY_CAPACITY_TIER,
+  getBuildingDef,
   getInventoryCapacityUpgradeCost,
   getResourceDef,
   listResourceCapacities,
+  type BuildingDefId,
+  type LaunchPad,
   type PlanetInventory,
   type ResourceCapacityRow,
+  type TileId,
 } from '@smol/shared'
 import './PlanetInventoryPanel.css'
 
@@ -22,6 +26,12 @@ interface PlanetInventoryPanelProps {
   readonly inventoryCapacityTier: number
   readonly onUpgradeCapacity: () => void
   readonly lastUpgradeFeedback?: string | null
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — user verbatim *"planet inventory should be all my
+  // ship componets and buildingsd and pads and shit that is built"*. Buildings count per
+  // type + launch pad roster get rendered alongside resource stocks so this panel becomes
+  // the canonical "what's built on this planet" surface, not just resources.
+  readonly buildingsByDef?: ReadonlyMap<BuildingDefId, number>
+  readonly launchPads?: ReadonlyMap<TileId, LaunchPad>
 }
 
 const CATEGORY_ORDER: ReadonlyArray<string> = [
@@ -46,6 +56,8 @@ export function PlanetInventoryPanel({
   inventoryCapacityTier,
   onUpgradeCapacity,
   lastUpgradeFeedback,
+  buildingsByDef,
+  launchPads,
 }: PlanetInventoryPanelProps) {
   const rows = listResourceCapacities(inventory, inventoryCapacityTier)
   const byCategory = new Map<string, ResourceCapacityRow[]>()
@@ -109,6 +121,54 @@ export function PlanetInventoryPanel({
           </section>
         )
       })}
+
+      {buildingsByDef && buildingsByDef.size > 0 && (
+        <section className="planet-inventory-panel__category" aria-label="Buildings on this planet">
+          <h3 className="planet-inventory-panel__category-title">🏗 Buildings</h3>
+          <ul className="planet-inventory-panel__building-list">
+            {[...buildingsByDef.entries()]
+              .filter(([, count]) => count > 0)
+              .sort((a, b) => b[1] - a[1])
+              .map(([defId, count]) => {
+                let def
+                try {
+                  def = getBuildingDef(defId)
+                } catch {
+                  return null
+                }
+                return (
+                  <li key={String(defId)} className="planet-inventory-panel__building-row">
+                    <span className="planet-inventory-panel__emoji" aria-hidden>
+                      {def.emoji}
+                    </span>
+                    <span className="planet-inventory-panel__name">{def.name}</span>
+                    <span className="planet-inventory-panel__building-count">×{count}</span>
+                  </li>
+                )
+              })}
+          </ul>
+        </section>
+      )}
+
+      {launchPads && launchPads.size > 0 && (
+        <section
+          className="planet-inventory-panel__category"
+          aria-label="Launch pads on this planet"
+        >
+          <h3 className="planet-inventory-panel__category-title">
+            🚀 Launch Pads ({launchPads.size})
+          </h3>
+          <ul className="planet-inventory-panel__pad-list">
+            {[...launchPads.values()].map((pad) => (
+              <li key={String(pad.id)} className="planet-inventory-panel__pad-row">
+                <span aria-hidden>🚀</span>
+                <span className="planet-inventory-panel__pad-id">{String(pad.id)}</span>
+                <span className="planet-inventory-panel__pad-state">{pad.state}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <footer className="planet-inventory-panel__footer">
         {lastUpgradeFeedback && (

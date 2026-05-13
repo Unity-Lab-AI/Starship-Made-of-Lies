@@ -54,6 +54,15 @@ interface PlanetSummaryPanelProps {
   readonly settlements?: ReadonlyArray<Settlement>
   readonly tiles?: ReadonlyArray<Tile>
   readonly buildingsByTile?: ReadonlyMap<TileId, BuildingDefId>
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — user verbatim *"farms arent producing enoutgh food or
+  // i need a demmand counter so i know how many i need"*. Per-tick food + water demand
+  // (consumption) and supply (building output × workforce mult) computed by the host (PlayPage)
+  // so this panel doesn't reach into sim internals. Surplus/shortfall is rendered prominently
+  // so the player sees at a glance how many farms / aqueducts they need to build.
+  readonly foodDemandPerTick?: number
+  readonly foodSupplyPerTick?: number
+  readonly waterDemandPerTick?: number
+  readonly waterSupplyPerTick?: number
 }
 
 // "Main" resources — the anchors the player needs at a glance. Order chosen so survival
@@ -82,6 +91,10 @@ export function PlanetSummaryPanel({
   settlements,
   tiles,
   buildingsByTile,
+  foodDemandPerTick,
+  foodSupplyPerTick,
+  waterDemandPerTick,
+  waterSupplyPerTick,
 }: PlanetSummaryPanelProps) {
   const t = useT()
   const totalPop = (Object.values(population.tierCounts) as ReadonlyArray<number>).reduce(
@@ -224,6 +237,61 @@ export function PlanetSummaryPanel({
                 </li>
               )
             })}
+          </ul>
+        </section>
+      )}
+
+      {/* PHASE 17.L.D (HOTFIX 2026-05-12) — Food + water demand vs supply per tick. Renders
+          only when the host wires the numbers in; falls back gracefully when omitted (legacy
+          callers). Surplus = supply - demand; positive surplus is green, deficit is red. */}
+      {(foodDemandPerTick !== undefined || waterDemandPerTick !== undefined) && (
+        <section className="planet-summary-panel__section" aria-label="Resource flows">
+          <h3 className="planet-summary-panel__section-title">Per-tick flows</h3>
+          <ul className="planet-summary-panel__flow-list">
+            {foodDemandPerTick !== undefined && foodSupplyPerTick !== undefined && (
+              <li className="planet-summary-panel__flow-row">
+                <span className="planet-summary-panel__flow-emoji" aria-hidden>
+                  🍞
+                </span>
+                <span className="planet-summary-panel__flow-label">Food</span>
+                <span className="planet-summary-panel__flow-numbers">
+                  demand <strong>{foodDemandPerTick.toLocaleString()}</strong>/t · supply{' '}
+                  <strong>{foodSupplyPerTick.toLocaleString()}</strong>/t
+                </span>
+                <span
+                  className={`planet-summary-panel__flow-net${
+                    foodSupplyPerTick - foodDemandPerTick >= 0
+                      ? ' planet-summary-panel__flow-net--up'
+                      : ' planet-summary-panel__flow-net--down'
+                  }`}
+                >
+                  {foodSupplyPerTick - foodDemandPerTick >= 0 ? '+' : ''}
+                  {(foodSupplyPerTick - foodDemandPerTick).toLocaleString()}/t
+                </span>
+              </li>
+            )}
+            {waterDemandPerTick !== undefined && waterSupplyPerTick !== undefined && (
+              <li className="planet-summary-panel__flow-row">
+                <span className="planet-summary-panel__flow-emoji" aria-hidden>
+                  💧
+                </span>
+                <span className="planet-summary-panel__flow-label">Water</span>
+                <span className="planet-summary-panel__flow-numbers">
+                  demand <strong>{waterDemandPerTick.toLocaleString()}</strong>/t · supply{' '}
+                  <strong>{waterSupplyPerTick.toLocaleString()}</strong>/t
+                </span>
+                <span
+                  className={`planet-summary-panel__flow-net${
+                    waterSupplyPerTick - waterDemandPerTick >= 0
+                      ? ' planet-summary-panel__flow-net--up'
+                      : ' planet-summary-panel__flow-net--down'
+                  }`}
+                >
+                  {waterSupplyPerTick - waterDemandPerTick >= 0 ? '+' : ''}
+                  {(waterSupplyPerTick - waterDemandPerTick).toLocaleString()}/t
+                </span>
+              </li>
+            )}
           </ul>
         </section>
       )}

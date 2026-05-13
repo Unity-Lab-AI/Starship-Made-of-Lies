@@ -332,3 +332,57 @@
   font-weight: 600;
   margin: 0;
 }
+
+/* PHASE 17.L.D (HOTFIX 2026-05-12) — Food + water per-tick demand/supply rows. */
+.planet-summary-panel__flow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.planet-summary-panel__flow-row {
+  display: grid;
+  grid-template-columns: auto 5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 5px;
+  font-size: 0.88rem;
+}
+
+.planet-summary-panel__flow-emoji {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.planet-summary-panel__flow-label {
+  font-weight: 600;
+  color: var(--text-hero, #e6e6f0);
+}
+
+.planet-summary-panel__flow-numbers {
+  color: var(--text-soft, #c8c8d6);
+  font-variant-numeric: tabular-nums;
+}
+
+.planet-summary-panel__flow-net {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  padding: 0.18rem 0.45rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.planet-summary-panel__flow-net--up {
+  color: #88e090;
+  background: rgba(136, 224, 144, 0.12);
+}
+
+.planet-summary-panel__flow-net--down {
+  color: #e88a8a;
+  background: rgba(232, 138, 138, 0.14);
+}
