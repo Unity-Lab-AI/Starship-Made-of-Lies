@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { THEMES, themeAsCSSVars } from '@smol/shared'
+import { DEMO_BUILD_LABEL, IS_DEMO_BUILD } from '../../config/buildMode'
 import {
   joinSmolMatch,
   mintGuestToken,
@@ -122,6 +123,39 @@ export function MultiplayerPage() {
   const handleJoin = async (): Promise<void> => {
     setBusy(true)
     await attemptJoin(false)
+  }
+
+  // PHASE 17.L.D.14 — demo-build guard. Static demo bundle on GitHub Pages has no backend
+  // (no Colyseus, no auth, no Postgres). Direct navigation to /multiplayer shows a clear
+  // "demo build" notice instead of a dead matchmaking endpoint. Hooks above run regardless
+  // so React's rules-of-hooks stay satisfied even though the guard short-circuits the
+  // render below.
+  if (IS_DEMO_BUILD) {
+    return (
+      <div className="sub-page" style={styleVars as React.CSSProperties}>
+        <header className="sub-page-header">
+          <Link to="/" className="back-link">
+            ← Back
+          </Link>
+          <h1>Multiplayer</h1>
+        </header>
+        <main className="multiplayer-page__content multiplayer-page__demo-notice">
+          <h2>🔒 Not available in {DEMO_BUILD_LABEL}</h2>
+          <p>
+            You&apos;re on the static demo build hosted on GitHub Pages. Multiplayer needs a live
+            server (Colyseus + Express + Postgres) which doesn&apos;t run in a static bundle.
+          </p>
+          <p>
+            <strong>Available in this demo:</strong> single-player matches against AI civs, full
+            tech tree, every government archetype, Wiki, Discord, About, Settings.
+          </p>
+          <p>
+            For multiplayer, run the full game locally (<code>pnpm dev</code> +{' '}
+            <code>pnpm dev:server</code>) or play on the hosted production server when it&apos;s up.
+          </p>
+        </main>
+      </div>
+    )
   }
 
   return (

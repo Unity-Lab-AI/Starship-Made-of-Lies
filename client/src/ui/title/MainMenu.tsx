@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuthSession } from '../../auth/useAuthSession'
+import { DEMO_BUILD_LABEL, IS_DEMO_BUILD } from '../../config/buildMode'
 import { DISCORD_INVITE_URL } from '../../services/community'
 import './MainMenu.css'
 
@@ -34,10 +35,14 @@ export function MainMenu() {
       }
     : { icon: '🔐', label: 'Sign In', to: '/signin' }
 
+  // PHASE 17.L.D.14 — Multiplayer menu item is hidden entirely in demo builds (GitHub Pages
+  // static-host hath no backend; the Colyseus/Express/Postgres server doesn't exist in this
+  // bundle). DEMO BUILD indicator badge renders under the Quit button so the user knows
+  // they're on the static demo, not the full server-hosted game.
   const items: MenuItem[] = [
     { icon: '▶', label: 'Start', to: '/new-game' },
     signInItem,
-    { icon: '◯', label: 'Multiplayer', to: '/multiplayer' },
+    ...(IS_DEMO_BUILD ? [] : [{ icon: '◯', label: 'Multiplayer', to: '/multiplayer' }]),
     { icon: '⚙', label: 'Settings', to: '/settings' },
     { icon: '🏆', label: 'Achievements', to: '/achievements' },
     { icon: '📖', label: 'Wiki', to: '/wiki' },
@@ -98,6 +103,18 @@ export function MainMenu() {
             </button>
           )
         })}
+        {/* PHASE 17.L.D.14 — DEMO BUILD indicator badge under the Quit button. Renders only
+            when VITE_SMOL_DEMO_MODE=true was set at build time (GitHub Pages static bundle).
+            Tells the player they're on the demo, not the full server-hosted game. Includes
+            a one-line caveat about which features are unavailable. */}
+        {IS_DEMO_BUILD ? (
+          <div className="main-menu__demo-badge" role="status" aria-label="Demo build indicator">
+            <span className="main-menu__demo-badge-label">{DEMO_BUILD_LABEL}</span>
+            <span className="main-menu__demo-badge-note">
+              Single-player only · no multiplayer · no cross-device save
+            </span>
+          </div>
+        ) : null}
       </nav>
     </>
   )
