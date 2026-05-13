@@ -270,3 +270,30 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* PHASE 17.L.D (HOTFIX 2026-05-12) — locked ship variant styling. */
+.ship-build-panel__variant--locked {
+  opacity: 0.55;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.18) !important;
+  cursor: not-allowed;
+}
+
+.ship-build-panel__variant--locked:hover {
+  opacity: 0.65;
+  border-color: rgba(212, 161, 58, 0.4) !important;
+  background: rgba(255, 255, 255, 0.04);
+  transform: none;
+}
+
+.ship-build-panel__variant-lock-hint {
+  margin-top: 0.35rem;
+  font-size: 0.74rem;
+  color: var(--ui-glow, #d4a13a);
+  background: rgba(212, 161, 58, 0.1);
+  border: 1px solid rgba(212, 161, 58, 0.3);
+  border-radius: 3px;
+  padding: 0.15rem 0.4rem;
+  font-weight: 600;
+  text-align: center;
+}

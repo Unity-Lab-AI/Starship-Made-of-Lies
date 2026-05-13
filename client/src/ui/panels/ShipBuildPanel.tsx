@@ -5,13 +5,39 @@ import {
   type LaunchPad,
   type PlanetInventory,
   type TechId,
+  type TechNode,
   COLONY_SHIPS,
+  TECH_NODES,
   defaultBuildFromShipDef,
   getShipPiece,
   resolveShipBuild,
   stockOf,
 } from '@smol/shared'
 import './ShipBuildPanel.css'
+
+// PHASE 17.L.D (HOTFIX 2026-05-12) — reverse lookup: which tech unlocks this colony-ship
+// variant (by id) OR the payloadTier required. Returns the first tech that gates this
+// variant; rendered as a 🧬 prereq hint on locked ship cards so the player sees what to
+// research. Variants are gated by either an explicit unlockColonyShipVariants list OR by
+// requiring a payloadTier the player hasn't unlocked yet.
+function findTechUnlockingShipVariant(
+  variantId: ColonyShipVariantId,
+  requiredPayloadTier: 0 | 1 | 2 | 3 | 4,
+  currentMaxPayloadTier: 0 | 1 | 2 | 3 | 4,
+): TechNode | null {
+  // First pass — explicit variant mention.
+  for (const node of TECH_NODES) {
+    if (node.effects.unlockColonyShipVariants?.includes(String(variantId))) return node
+  }
+  // Second pass — first tech that bumps colonyShipPayloadTier to >= required.
+  if (requiredPayloadTier > currentMaxPayloadTier) {
+    for (const node of TECH_NODES) {
+      const tier = node.effects.colonyShipPayloadTier
+      if (tier !== undefined && tier >= requiredPayloadTier) return node
+    }
+  }
+  return null
+}
 
 interface ShipBuildPanelProps {
   readonly pad: LaunchPad | null
@@ -43,13 +69,28 @@ export function ShipBuildPanel({
   const [selectedVariantId, setSelectedVariantId] = useState<ColonyShipVariantId | null>(null)
   const [selectedTarget, setSelectedTarget] = useState<string>('')
 
-  const eligibleShips = useMemo(
-    () => COLONY_SHIPS.filter((s) => s.payloadTierRequired <= maxPayloadTier),
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — user verbatim *"im not seeing anywhere how to unlock
+  // ... the differetn space ships"*. Previously filtered to ships the player could already
+  // build, hiding every locked variant. Now show ALL variants with a locked-state per ship
+  // so the player can see what unlocks where. eligibleShips becomes the buildable subset;
+  // the full list (with locked flag) is what renders.
+  const allShips = useMemo(
+    () =>
+      COLONY_SHIPS.map((s) => {
+        const unlocked = s.payloadTierRequired <= maxPayloadTier
+        return {
+          ship: s,
+          unlocked,
+          unlockingTech: unlocked
+            ? null
+            : findTechUnlockingShipVariant(s.id, s.payloadTierRequired, maxPayloadTier),
+        }
+      }),
     [maxPayloadTier],
   )
 
   const selectedShip = selectedVariantId
-    ? eligibleShips.find((s) => s.id === selectedVariantId)
+    ? (allShips.find((s) => s.ship.id === selectedVariantId)?.ship ?? null)
     : null
 
   const buildBreakdown = useMemo(() => {
@@ -110,36 +151,57 @@ export function ShipBuildPanel({
         </div>
       ) : (
         <div className="ship-build-panel__variants">
-          {eligibleShips.length === 0 ? (
-            <p className="ship-build-panel__empty">
-              No ships unlocked. Research aerospace + orbital mechanics.
-            </p>
-          ) : (
-            <ul className="ship-build-panel__variant-list">
-              {eligibleShips.map((ship) => {
-                const affordable = canAfford(ship)
-                const isSelected = selectedVariantId === ship.id
-                return (
-                  <li
-                    key={String(ship.id)}
-                    className={`ship-build-panel__variant ${isSelected ? 'ship-build-panel__variant--selected' : ''} ${affordable ? '' : 'ship-build-panel__variant--unaffordable'}`}
-                    onClick={() => setSelectedVariantId(ship.id)}
-                  >
-                    <div className="ship-build-panel__variant-head">
-                      <span className="ship-build-panel__variant-emoji">{ship.emoji}</span>
-                      <span className="ship-build-panel__variant-name">{ship.name}</span>
-                      <span className={`ship-build-panel__variant-tier tier-${ship.darknessTier}`}>
-                        T{ship.darknessTier}
-                      </span>
+          <ul className="ship-build-panel__variant-list">
+            {allShips.map(({ ship, unlocked, unlockingTech }) => {
+              const affordable = unlocked && canAfford(ship)
+              const isSelected = selectedVariantId === ship.id
+              const classNames = [
+                'ship-build-panel__variant',
+                isSelected ? 'ship-build-panel__variant--selected' : '',
+                !unlocked ? 'ship-build-panel__variant--locked' : '',
+                unlocked && !affordable ? 'ship-build-panel__variant--unaffordable' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
+              const lockedTitle =
+                !unlocked && unlockingTech
+                  ? `🔒 Locked — research ${unlockingTech.emoji} ${unlockingTech.name} (or unlock payload tier ${ship.payloadTierRequired}) to enable.`
+                  : !unlocked
+                    ? `🔒 Locked — requires colony ship payload tier ${ship.payloadTierRequired}.`
+                    : ship.description
+              return (
+                <li
+                  key={String(ship.id)}
+                  className={classNames}
+                  onClick={() => {
+                    if (unlocked) setSelectedVariantId(ship.id)
+                  }}
+                  title={lockedTitle}
+                >
+                  <div className="ship-build-panel__variant-head">
+                    <span className="ship-build-panel__variant-emoji">{ship.emoji}</span>
+                    <span className="ship-build-panel__variant-name">{ship.name}</span>
+                    <span className={`ship-build-panel__variant-tier tier-${ship.darknessTier}`}>
+                      T{ship.darknessTier}
+                    </span>
+                  </div>
+                  <div className="ship-build-panel__variant-category">
+                    {CATEGORY_LABEL[ship.category] ?? ship.category}
+                  </div>
+                  {!unlocked && unlockingTech && (
+                    <div className="ship-build-panel__variant-lock-hint">
+                      🧬 {unlockingTech.emoji} {unlockingTech.name}
                     </div>
-                    <div className="ship-build-panel__variant-category">
-                      {CATEGORY_LABEL[ship.category] ?? ship.category}
+                  )}
+                  {!unlocked && !unlockingTech && (
+                    <div className="ship-build-panel__variant-lock-hint">
+                      🔒 Payload tier {ship.payloadTierRequired}
                     </div>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
+                  )}
+                </li>
+              )
+            })}
+          </ul>
 
           {selectedShip && buildBreakdown && (
             <div className="ship-build-panel__breakdown">

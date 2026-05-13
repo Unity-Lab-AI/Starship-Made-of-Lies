@@ -413,3 +413,30 @@
 .tech-tree-panel__pool strong {
   color: var(--ui-glow, #d4a13a);
 }
+
+/* PHASE 17.L.D (HOTFIX 2026-05-12) — content-unlock chips in TechDetailPanel. */
+.tech-tree-panel__unlock-group {
+  margin: 0.5rem 0;
+  font-size: 0.86rem;
+  color: var(--text-soft, #c8c8d6);
+}
+
+.tech-tree-panel__unlock-chips {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tech-tree-panel__unlock-chip {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background: rgba(212, 161, 58, 0.12);
+  border: 1px solid rgba(212, 161, 58, 0.35);
+  border-radius: 4px;
+  color: var(--text-hero, #e6e6f0);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
