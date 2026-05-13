@@ -190,9 +190,21 @@ const BUILDING_PRODUCTION: ReadonlyMap<BuildingDefId, BuildingProduction> = new 
     BLDG_LAB,
     {
       // PHASE 17.B.1 — Research is tallied by tickCivResearch (separate system), so the lab
-      // has no resource output here. The operating cost (1 electronics / tick) keeps it from
-      // being a free research producer and gives the player a real upstream-industry pressure.
-      inputs: [{ resource: RESOURCE_ELECTRONICS, amount: 1 }],
+      // has no resource output here.
+      //
+      // PHASE 17.L.D.20 (2026-05-13) — REMOVED the 1-electronics/tick input. Per user
+      // verbatim *"bit of a problem it uses up the electronics then there are none to
+      // build a factory where i assume electronics are made idk idk idk idk i just know i
+      // dont have electronics and am stuck in the production as i cant build what i need
+      // a factory to proceeed"*. Soft-lock chain: 2 starter Labs burn 60 starting
+      // electronics in 30 ticks → Labs idle (allConsumed=false) → research stalls → can't
+      // unlock Assembly Line + Consumer Electronics → can't have Factory emit electronics
+      // → no way out. Lab is the BASELINE-buildable research building (no tech prereq);
+      // it must work without prereq resource gating or the whole research path
+      // dead-locks. Player still pressures industry via Lab build cost (planks+bricks)
+      // and the much-larger downstream tech-tied buildings (University needs Bricks +
+      // requires TECH_PRINTING_PRESS, TV Station drinks electronics, etc.).
+      inputs: [],
       outputs: [],
     },
   ],
@@ -567,6 +579,29 @@ export function tickPlanetProduction(inputs: ProductionTickInputs): ProductionTi
       (input) => stockOf(inputs.inventory, input.resource) >= input.amount,
     )
     if (!allConsumed) {
+      idledBuildingCount += 1
+      continue
+    }
+
+    // PHASE 17.L.D.20 (2026-05-13) — pre-check: skip input consumption when EVERY output
+    // is locked out by tech gates. Without this guard, a player who builds a Factory before
+    // researching Assembly Line / Consumer Electronics drained 2 ingots + 1 plank EVERY
+    // TICK and produced nothing in return. Same trap for Foundry pre-Metallurgy (bricks +
+    // metals wasted), Refinery (always-on for the player) and Antimatter Reactor pre-its
+    // own gating tech. Now: if no output would emit, the building idles cleanly with
+    // resources intact.
+    const hasUngatedOutput =
+      production.outputs.length === 0
+        ? true // utility buildings (Lab post-17.L.D.20) keep working without outputs
+        : production.outputs.some((output) => {
+            if (!output.requiredTechs || output.requiredTechs.length === 0) return true
+            if (!inputs.researchedTechs) return false
+            for (const required of output.requiredTechs) {
+              if (!inputs.researchedTechs.has(required)) return false
+            }
+            return true
+          })
+    if (!hasUngatedOutput) {
       idledBuildingCount += 1
       continue
     }
