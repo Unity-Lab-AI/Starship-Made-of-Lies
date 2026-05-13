@@ -17,7 +17,7 @@ import {
   shouldDecideThisTick,
 } from './ai-difficulty'
 import { type PlaystyleArchetype, type PlaystyleProfile, getPlaystyleProfile } from './ai-archetype'
-import { type Empire, startResearch } from './empire'
+import { type Empire, purchaseResearchFromPool } from './empire'
 import { type Theme } from './themes'
 
 export interface AIControllerSpec {
@@ -120,9 +120,13 @@ export class AIController {
 
   private applyDecisions(snapshot: DecisionSnapshot): ReadonlyArray<string> {
     const applied: string[] = []
-    if (snapshot.chosenResearchTech && this.empire.activeResearchTechId === null) {
-      const ok = startResearch(this.empire, snapshot.chosenResearchTech.id)
-      if (ok) applied.push(`startResearch:${snapshot.chosenResearchTech.id}`)
+    // PHASE 17.L.D (HOTFIX 2026-05-12) — AI now purchases techs from the empire research
+    // point pool instead of setting an activeResearchTechId. The decision tick still picks
+    // chosenResearchTech each pass; this branch tries to BUY it. If the pool is short, the
+    // call is a no-op and the AI tries again next decision tick (eventually saving up).
+    if (snapshot.chosenResearchTech) {
+      const ok = purchaseResearchFromPool(this.empire, snapshot.chosenResearchTech.id)
+      if (ok) applied.push(`purchaseResearch:${snapshot.chosenResearchTech.id}`)
     }
     if (snapshot.chosenBuilding) {
       applied.push(`queueBuild:${snapshot.chosenBuilding.id}`)

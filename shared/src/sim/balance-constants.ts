@@ -26,8 +26,15 @@ export const MATCH_LENGTH_TICKS_EPIC = 432_000 // 24h
 
 // Slows research-point accrual. Tech `costPoints` numbers in tech.ts stay raw so the
 // per-tech rebalance work stays simple; the multiplier here scales the per-tick aggregate
-// downward so reaching the same cost takes longer. Picked 4.0 (mid of the ×3-5 range).
-export const RESEARCH_POINT_DIVISOR = 4
+// downward so reaching the same cost takes longer.
+// PHASE 17.L.D (HOTFIX 2026-05-12) — bumped 4 → 200 (50× slower) per user verbatim *"i was
+// able to just go through and research them all with no rhyme or reason to the points
+// reqwuired"* + *"need ... a slow rate all scaled fopr our game"*. With 1000 starting pop +
+// 15% research workforce = 150 scientists × 0.1 = 15 raw pts/tick. /200 = 0.075/tick pool
+// fill. Tier-0 (30 pts): ~400 ticks = 80 sec wall-clock. Tier-2 (60 pts): ~2.7 min. Tier-4
+// apex techs (500+ pts): ~22+ min. Fits the 10-24h saga at the early end; player can
+// accelerate by stacking labs/universities or sliding more workforce to research.
+export const RESEARCH_POINT_DIVISOR = 200
 
 // --- AI decision intervals ------------------------------------------------------------
 

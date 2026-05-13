@@ -69,10 +69,16 @@ export function TechTreePanel({
               · <strong>{visibility.hiddenForbiddenCount}</strong> forbidden hidden
             </>
           ) : null}
+        </span>
+        {/* PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — pool counter. Player saves points and
+            spends in chunks per tech via the Tech Detail panel's "Research <name>" button.
+            Per-tick rate stays for transparency on how fast the pool refills. */}
+        <span className="tech-tree-panel__pool">
+          🔬 Pool: <strong>{Math.floor(empire.researchPointsPool).toLocaleString()}</strong> pts
           {researchPointsPerTick !== undefined && (
             <>
               {' '}
-              · 🔬 <strong>{researchPointsPerTick.toLocaleString()}</strong> pts/t
+              · +<strong>{researchPointsPerTick.toLocaleString()}</strong>/t
             </>
           )}
         </span>

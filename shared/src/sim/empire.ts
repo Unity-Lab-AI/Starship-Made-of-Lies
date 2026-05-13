@@ -9,6 +9,15 @@ export interface Empire {
   researchedTechs: Set<TechId>
   researchProgress: Map<TechId, number>
   activeResearchTechId: TechId | null
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — pool-currency research model per user verbatim *"i
+  // dont have a pool of them but need one like a resourch that the tech building generates
+  // at a slow rate all scaled fopr our game"*. Each tick, tickResearch adds research points
+  // to this pool. To research a tech the player (or AI) calls purchaseResearchFromPool
+  // which deducts the tech's full costPoints and completes it instantly. Stored as float
+  // so slow per-tick accumulation (e.g. 0.15/tick) still adds up visibly over time; the UI
+  // floors when displaying / checking affordability. Replaces the old per-tech
+  // researchProgress accumulator (kept on the interface for back-compat but unused).
+  researchPointsPool: number
   controlledPlanetIds: Set<PlanetId>
   defeatedCivIds: Set<CivId>
   capturedPlanetIds: Set<PlanetId>
@@ -26,6 +35,7 @@ export function newEmpire(civId: CivId, startingPlanetId: PlanetId): Empire {
     researchedTechs: new Set<TechId>(),
     researchProgress: new Map<TechId, number>(),
     activeResearchTechId: null,
+    researchPointsPool: 0,
     controlledPlanetIds: new Set<PlanetId>([startingPlanetId]),
     defeatedCivIds: new Set<CivId>(),
     capturedPlanetIds: new Set<PlanetId>(),
@@ -146,31 +156,36 @@ export interface ResearchTickResult {
   readonly pointsRemaining: number
 }
 
+// PHASE 17.L.D (HOTFIX 2026-05-12) — REFACTORED to pool-currency model. Was: progresses
+// the empire's activeResearchTechId by `points` and auto-completes when progress hits cost.
+// Now: just adds points to the empire-level researchPointsPool. Completion happens via
+// explicit purchaseResearchFromPool calls (player click or AI purchase decision). Result
+// shape is preserved for back-compat with existing callers but `progressed` / `completed`
+// will always be null since this function no longer drives completion.
 export function tickResearch(empire: Empire, points: number): ResearchTickResult {
-  if (!empire.activeResearchTechId || points <= 0) {
+  if (points <= 0) {
     return { progressed: null, completed: null, pointsApplied: 0, pointsRemaining: 0 }
   }
-  const techId = empire.activeResearchTechId
-  const node = getTechNode(techId)
-  const current = empire.researchProgress.get(techId) ?? 0
-  const next = Math.min(node.costPoints, current + points)
-  empire.researchProgress.set(techId, next)
-  const remaining = Math.max(0, node.costPoints - next)
-  if (next >= node.costPoints) {
-    completeResearch(empire, techId)
-    return {
-      progressed: techId,
-      completed: techId,
-      pointsApplied: next - current,
-      pointsRemaining: remaining,
-    }
-  }
+  empire.researchPointsPool += points
   return {
-    progressed: techId,
+    progressed: null,
     completed: null,
-    pointsApplied: next - current,
-    pointsRemaining: remaining,
+    pointsApplied: points,
+    pointsRemaining: Math.floor(empire.researchPointsPool),
   }
+}
+
+// PHASE 17.L.D (HOTFIX 2026-05-12) — atomic purchase. Validates the tech is researchable
+// (prereqs met + not already researched) AND the empire has enough points in the pool to
+// pay the full costPoints. On success: deducts cost from pool + adds tech to researchedTechs
+// via completeResearch. On failure (locked or unaffordable) returns false without mutating.
+export function purchaseResearchFromPool(empire: Empire, techId: TechId): boolean {
+  if (!isTechResearchable(empire, techId)) return false
+  const node = getTechNode(techId)
+  if (empire.researchPointsPool < node.costPoints) return false
+  empire.researchPointsPool -= node.costPoints
+  completeResearch(empire, techId)
+  return true
 }
 
 export function isBiomeColonizable(biomeId: string, empire: Empire): boolean {
