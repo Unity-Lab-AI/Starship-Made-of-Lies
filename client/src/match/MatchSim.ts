@@ -49,10 +49,12 @@ import {
   AIControllerRegistry,
   AIController as AIControllerCtor,
   BATTERY_BANK_CAPACITY,
+  BLDG_AQUEDUCT,
   BLDG_BATTERY_BANK,
   FUEL_RAW_STOCKPILE_BASELINE,
   BLDG_FACTORY,
   BLDG_FARM,
+  BLDG_HOME,
   BLDG_LAB,
   BLDG_CIVIC_CENTER,
   BLDG_LAUNCH_PAD,
@@ -61,6 +63,8 @@ import {
   BLDG_MINE,
   BLDG_MINE_FIELD,
   BLDG_MINING_OUTPOST,
+  BLDG_QUARRY,
+  BLDG_SOLAR_ARRAY,
   BLDG_TV_STATION,
   CAMPAIGNS,
   COLONY_SHIPS,
@@ -559,6 +563,12 @@ export function createMatch(config: MatchConfig): MatchState {
   // pool fills from tick 1, and once it's >= a tech's costPoints the Tech Detail panel
   // surfaces a "Research <name>" button.
   const humanEmpire = newEmpire(humanCivId, humanHomePlanet.id)
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — starter research pool. Pre-seed enough points to
+  // afford one tier-0 tech immediately (TECH_INDUSTRIAL_LOGISTICS costs 30 pts). Removes the
+  // "no research happening" perception while the slow accrual rate fills the pool toward the
+  // next tech. Combined with pre-built Labs (seeded below in makePlanetState wiring), the
+  // player has a real research economy from tick 1 instead of staring at a 0/30 bar for 80s.
+  humanEmpire.researchPointsPool = 30
   civs.set(humanCivId, {
     civId: humanCivId,
     themeId: config.humanThemeId,
@@ -575,10 +585,11 @@ export function createMatch(config: MatchConfig): MatchState {
     lastHopeEvac: null,
     lastHopeTriggered: false,
   })
-  planets.set(
-    humanHomePlanet.id,
-    makePlanetState(humanHomePlanet, humanCivId, String(humanTheme.id)),
-  )
+  const humanHomePlanetState = makePlanetState(humanHomePlanet, humanCivId, String(humanTheme.id))
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — pre-build starter economy. See seedStarterBuildings
+  // jsdoc for the exact roster + balance rationale.
+  seedStarterBuildings(humanHomePlanetState)
+  planets.set(humanHomePlanet.id, humanHomePlanetState)
 
   const playstyles: ReadonlyArray<PlaystyleArchetype> = [
     'builder',
@@ -610,7 +621,9 @@ export function createMatch(config: MatchConfig): MatchState {
     // PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — pool model: AI also accumulates points into
     // its researchPointsPool from tick 1. AIController.applyDecisions calls
     // purchaseResearchFromPool with the chosenResearchTech each decision tick; once the
-    // pool clears the tech's cost the purchase succeeds. No auto-pick needed.
+    // pool clears the tech's cost the purchase succeeds. Same starter pool seed as the human
+    // civ so AI civs aren't paralyzed at match start either.
+    empire.researchPointsPool = 30
     civs.set(aiId, {
       civId: aiId,
       themeId: aiTheme.id,
@@ -627,7 +640,10 @@ export function createMatch(config: MatchConfig): MatchState {
       lastHopeEvac: null,
       lastHopeTriggered: false,
     })
-    planets.set(homePlanet.id, makePlanetState(homePlanet, aiId, String(aiTheme.id)))
+    const aiHomePlanetState = makePlanetState(homePlanet, aiId, String(aiTheme.id))
+    // PHASE 17.L.D (HOTFIX 2026-05-12) — same starter-economy seed as the human civ.
+    seedStarterBuildings(aiHomePlanetState)
+    planets.set(homePlanet.id, aiHomePlanetState)
 
     aiRegistry.register(
       new AIControllerCtor({
@@ -792,6 +808,48 @@ function makePlanetState(planet: Planet, ownerId: CivId, ownerThemeId?: string):
     // SR2-9: cache tile-by-id lookup once. Tiles are immutable; this Map persists for the
     // life of the planet state.
     tilesById: new Map(planet.tiles.map((t) => [t.id, t])),
+  }
+}
+
+// PHASE 17.L.D (HOTFIX 2026-05-12) — pre-built starter buildings per user verbatim *"i
+// think we should maybe already have the basic building for the player pre built so that
+// food water and houseing are stable so they will need multiple of each building prebuilt
+// on their planet spawn start"*. At match start every civ (human + AI) gets a stable
+// economic foundation on their home planet so they aren't in a death spiral from tick 1.
+// Bypasses the cost-deduction path because these are spawn freebies, not player-driven
+// builds. Counts tuned to comfortably feed + hydrate the 1000-pop starting population:
+//   - 6 Farms (food: 6 × ~10.8/t = 64.8/t supply vs 50/t demand → +15/t surplus)
+//   - 3 Aqueducts (water: 3 × ~18/t = 54/t supply vs 20/t demand → +34/t surplus)
+//   - 4 Homes (extra housing for population growth past the 1000 starting cap)
+//   - 1 Lumber Camp (wood inflow so building chains can scale)
+//   - 1 Quarry (stone inflow same reason)
+//   - 1 Solar Array (energy presence)
+//   - 2 Labs (research building multiplier 2 × LAB_MULTIPLIER = 2× the no-building rate)
+// Labs are normally tech-gated behind TECH_COMPUTING; pre-built labs grandfather in
+// without requiring the tech (player can still only BUILD additional labs after research).
+function seedStarterBuildings(planetState: MatchPlanetState): void {
+  const STARTER_PLAN: ReadonlyArray<{ defId: BuildingDefId; count: number }> = [
+    { defId: BLDG_FARM, count: 6 },
+    { defId: BLDG_AQUEDUCT, count: 3 },
+    { defId: BLDG_HOME, count: 4 },
+    { defId: BLDG_LUMBER_CAMP, count: 1 },
+    { defId: BLDG_QUARRY, count: 1 },
+    { defId: BLDG_SOLAR_ARRAY, count: 1 },
+    { defId: BLDG_LAB, count: 2 },
+  ]
+  for (const entry of STARTER_PLAN) {
+    for (let i = 0; i < entry.count; i++) {
+      const tile = planetState.planet.tiles.find(
+        (t) => t.ownerCivId === planetState.civId && t.occupancy === 'empty',
+      )
+      if (!tile) return // ran out of tiles — bail gracefully (tiny galaxies may have <18 tiles per planet)
+      tile.occupancy = 'building'
+      planetState.buildingsByDef.set(
+        entry.defId,
+        (planetState.buildingsByDef.get(entry.defId) ?? 0) + 1,
+      )
+      planetState.buildingsByTile.set(tile.id, entry.defId)
+    }
   }
 }
 
