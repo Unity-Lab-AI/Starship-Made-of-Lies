@@ -42,10 +42,14 @@ export function TechDetailPanel({
   onSelectTech,
   onStartResearch,
 }: TechDetailPanelProps) {
-  const researchable = useMemo(
-    () => new Set(getResearchableTechs(empire).map((n) => n.id)),
-    [empire],
-  )
+  // PHASE 17.L.D.19 (2026-05-13) — DROPPED useMemo. Per user verbatim *"warning system
+  // says mass communication is prerequisite but i have it already and its still locked
+  // out"*. Root cause: `empire.researchedTechs` is a Set mutated in place by the sim;
+  // empire object reference never changes; useMemo with `[empire]` never re-fires.
+  // Result: researched Mass Comm wasn't surfacing into the researchable Set, so Warning
+  // System's "🔒 Locked (prereqs needed)" status stuck. Inlined the computation —
+  // TECH_NODES is ~60 entries, filter is cheap.
+  const researchable = new Set(getResearchableTechs(empire).map((n) => n.id))
 
   // Reverse-prereq index — "Unlocks" list = every tech that has the selected tech as a prereq.
   const unlocksByTechId = useMemo(() => {
@@ -74,6 +78,16 @@ export function TechDetailPanel({
 
   const isResearched = empire.researchedTechs.has(selectedNode.id)
   const isResearchable = researchable.has(selectedNode.id)
+  // PHASE 17.L.D.19 (2026-05-13) — surface WHY a tech is locked. Three independent gates:
+  // (a) some prereq tech isn't researched, (b) some required building hasn't ever been
+  // built, (c) conquest / apex gates fail. The status pill + button tooltip lean on these
+  // so the player isn't left guessing.
+  const missingPrereqTechs = selectedNode.prerequisites.filter(
+    (p) => !empire.researchedTechs.has(p),
+  )
+  const missingBuildings = (selectedNode.requiredBuildings ?? []).filter(
+    (b) => !empire.everBuiltBuildings.has(b),
+  )
   // PHASE 17.L.D (HOTFIX 2026-05-12) — pool-currency model. Pool fill drives affordability;
   // there's no per-tech progress to track anymore. Floor the pool when displaying so partial
   // ticks don't make the affordability check feel unstable.
@@ -113,7 +127,11 @@ export function TechDetailPanel({
                 ? canAfford
                   ? '🟢 Researchable — pool ready'
                   : '🟡 Researchable — saving up'
-                : '🔒 Locked (prereqs needed)'}
+                : missingBuildings.length > 0
+                  ? `🔒 Locked — must build ${missingBuildings.map((b) => getBuildingDef(b).name).join(' + ')} first`
+                  : missingPrereqTechs.length > 0
+                    ? `🔒 Locked — research ${missingPrereqTechs.map((p) => getTechNode(p).name).join(' + ')} first`
+                    : '🔒 Locked (conditions unmet)'}
           </dd>
         </div>
       </dl>
