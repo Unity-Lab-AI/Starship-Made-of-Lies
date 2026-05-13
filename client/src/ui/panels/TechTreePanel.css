@@ -395,3 +395,21 @@
   cursor: not-allowed;
   transform: none;
 }
+
+/* PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — pool counter in tree-panel header. */
+.tech-tree-panel__pool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.7rem;
+  background: rgba(212, 161, 58, 0.12);
+  border: 1px solid rgba(212, 161, 58, 0.4);
+  border-radius: 4px;
+  font-size: 0.88rem;
+  color: var(--text-soft, #c8c8d6);
+  font-variant-numeric: tabular-nums;
+}
+
+.tech-tree-panel__pool strong {
+  color: var(--ui-glow, #d4a13a);
+}

@@ -72,12 +72,12 @@ export function TechDetailPanel({
 
   const isResearched = empire.researchedTechs.has(selectedNode.id)
   const isResearchable = researchable.has(selectedNode.id)
-  const isActive = empire.activeResearchTechId === selectedNode.id
-  const progressPoints = empire.researchProgress.get(selectedNode.id) ?? 0
-  const progressPct =
-    selectedNode.costPoints > 0
-      ? Math.min(100, Math.round((progressPoints / selectedNode.costPoints) * 100))
-      : 0
+  // PHASE 17.L.D (HOTFIX 2026-05-12) — pool-currency model. Pool fill drives affordability;
+  // there's no per-tech progress to track anymore. Floor the pool when displaying so partial
+  // ticks don't make the affordability check feel unstable.
+  const poolPoints = Math.floor(empire.researchPointsPool)
+  const canAfford = poolPoints >= selectedNode.costPoints
+  const pointsShort = Math.max(0, selectedNode.costPoints - poolPoints)
   const prereqList = selectedNode.prerequisites
   const unlocksList = unlocksByTechId.get(selectedNode.id) ?? []
 
@@ -107,53 +107,56 @@ export function TechDetailPanel({
           <dd>
             {isResearched
               ? '✅ Researched'
-              : isActive
-                ? '🔬 Researching now'
-                : isResearchable
-                  ? '🟢 Researchable now'
-                  : '🔒 Locked (prereqs needed)'}
+              : isResearchable
+                ? canAfford
+                  ? '🟢 Researchable — pool ready'
+                  : '🟡 Researchable — saving up'
+                : '🔒 Locked (prereqs needed)'}
           </dd>
         </div>
       </dl>
 
-      {/* PHASE 17.L.D (HOTFIX 2026-05-12) — Start Research action + progress bar. The
-          progress bar shows current research-points accumulated toward the cost, so the
-          player can see they ARE making progress even before completion. The button is the
-          single action affordance the user asked for — clicking it sets activeResearchTechId
-          via the wired sim.startResearchTech action. */}
+      {/* PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — pool-currency research. Bar shows the
+          empire's POOL of research points relative to this tech's cost; click the button to
+          atomically spend the cost from the pool and complete the tech. No more
+          per-tech accumulator; no more "active research" — every researchable tech can be
+          purchased the moment the pool clears its cost. */}
       {!isResearched && (
         <section className="tech-tree-panel__detail-section tech-tree-panel__detail-research">
           <div className="tech-tree-panel__progress-row">
             <span>
-              Progress: <strong>{progressPoints.toLocaleString()}</strong> /{' '}
-              <strong>{selectedNode.costPoints.toLocaleString()}</strong> points ({progressPct}%)
+              Pool: <strong>{poolPoints.toLocaleString()}</strong> /{' '}
+              <strong>{selectedNode.costPoints.toLocaleString()}</strong> pts
+              {canAfford ? null : ` (need ${pointsShort.toLocaleString()} more)`}
             </span>
           </div>
           <div className="tech-tree-panel__progress-bar" aria-hidden>
             <div
               className="tech-tree-panel__progress-bar-fill"
-              style={{ width: `${progressPct}%` }}
+              style={{
+                width: `${Math.min(100, Math.round((poolPoints / Math.max(1, selectedNode.costPoints)) * 100))}%`,
+              }}
             />
           </div>
           {onStartResearch && (
             <button
               type="button"
               className="tech-tree-panel__start-btn"
-              disabled={!isResearchable || isActive}
+              disabled={!isResearchable || !canAfford}
               onClick={() => onStartResearch(selectedNode.id)}
               title={
-                isActive
-                  ? 'This tech is your active research target — points are accumulating each tick.'
-                  : isResearchable
-                    ? `Set ${selectedNode.name} as your active research target. Points will accumulate each tick until it completes.`
-                    : 'Researching this tech is locked behind prerequisites. Finish the missing prereqs first.'
+                !isResearchable
+                  ? 'Researching this tech is locked behind prerequisites. Finish the missing prereqs first.'
+                  : !canAfford
+                    ? `You need ${pointsShort.toLocaleString()} more research points. The pool fills each tick from your scientists + research buildings.`
+                    : `Spend ${selectedNode.costPoints.toLocaleString()} research points from your pool to immediately complete ${selectedNode.name}.`
               }
             >
-              {isActive
-                ? '🔬 Currently researching'
-                : isResearchable
-                  ? `🔬 Start researching ${selectedNode.name}`
-                  : '🔒 Prereqs needed'}
+              {!isResearchable
+                ? '🔒 Prereqs needed'
+                : !canAfford
+                  ? `💰 Need ${pointsShort.toLocaleString()} more pts`
+                  : `🔬 Research ${selectedNode.name} — ${selectedNode.costPoints.toLocaleString()} pts`}
             </button>
           )}
         </section>

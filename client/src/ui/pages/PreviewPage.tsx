@@ -33,7 +33,6 @@ import {
   SHIP_PILGRIM_VOLUNTEER,
   SHIP_SCOUT,
   SHIP_STANDARD,
-  startResearch,
   TECH_AEROSPACE,
   TECH_COMPUTING,
   TECH_INDUSTRIAL_LOGISTICS,
@@ -102,8 +101,13 @@ export function PreviewPage() {
     e.researchedTechs.add(TECH_INDUSTRIAL_LOGISTICS)
     e.researchedTechs.add(TECH_MASS_PRODUCTION)
     e.researchedTechs.add(TECH_COMPUTING)
-    startResearch(e, TECH_AEROSPACE)
-    e.researchProgress.set(TECH_AEROSPACE, 24)
+    // PHASE 17.L.D (HOTFIX 2026-05-12) — pool model: previously called startResearch then
+    // researchProgress.set(AEROSPACE, 24) to fake a "in progress" preview state. Pool model
+    // has no per-tech progress, so we just set activeResearchTechId (legacy field) for
+    // tree-panel highlight + seed the pool with 24 pts so the preview shows a partial
+    // accumulation toward the next purchase.
+    e.activeResearchTechId = TECH_AEROSPACE
+    e.researchPointsPool = 24
     return e
   }, [startingPlanet.id])
 

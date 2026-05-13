@@ -12,7 +12,6 @@ import {
   getTheme,
   newEmpire,
   planetId as planetIdValue,
-  startResearch,
   themeAsCSSVars,
   TECH_AEROSPACE,
   TECH_COMPUTING,
@@ -55,7 +54,11 @@ export function WikiPage() {
     e.researchedTechs.add(TECH_INDUSTRIAL_LOGISTICS)
     e.researchedTechs.add(TECH_MASS_PRODUCTION)
     e.researchedTechs.add(TECH_COMPUTING)
-    startResearch(e, TECH_AEROSPACE)
+    // PHASE 17.L.D (HOTFIX 2026-05-12) — pool model: legacy startResearch removed in favor
+    // of purchaseResearchFromPool. For wiki preview just set activeResearchTechId directly
+    // (legacy field on the interface) so the tech tree highlights AEROSPACE as the
+    // "currently selected" tech without spending from the (zero) pool.
+    e.activeResearchTechId = TECH_AEROSPACE
     return e
   }, [])
 

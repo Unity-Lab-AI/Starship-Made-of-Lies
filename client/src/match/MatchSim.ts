@@ -90,7 +90,6 @@ import {
   SHIP_SCOUT,
   SHIP_STANDARD,
   TECH_GOD_CONTROL,
-  TECH_INDUSTRIAL_LOGISTICS,
   TECH_SELF_DESTRUCT_SYSTEMS,
   THEMES,
   aggregateActiveCampaignBonus,
@@ -201,7 +200,7 @@ import {
   spawnIndigenousCiv,
   startPrint,
   startPrintFromBlueprint,
-  startResearch,
+  purchaseResearchFromPool,
   clampResourceToCap,
   consumeResource,
   enforceCapacityCaps,
@@ -553,18 +552,13 @@ export function createMatch(config: MatchConfig): MatchState {
   // space. Idempotent enrichment: if the random gen didn't roll stone+rareMetals+gas onto the
   // home world, plant a 'common'-tier node for each missing resource on an empty tile.
   addStartingPlanetEconomy(humanHomePlanet, rng)
-  // PHASE 17.L.D (HOTFIX 2026-05-12) — user playtest: *"the starting builds shoulkd be all
-  // producing enough of what u need to eventually be able to unlock other buioildings and
-  // tech"*. Previously `activeResearchTechId` initialized to null, so the human civ generated
-  // ZERO research per tick until the player manually opened the Tech panel and picked one.
-  // Combined with the 7-baseline-buildings + 22 tech-gated buildings reality, "everything
-  // else is locked and you don't even know you have to pick a tech" was a dead end. Now
-  // auto-pick TECH_INDUSTRIAL_LOGISTICS (tier-0, no prereqs, unlocks Mine + Refinery + the
-  // intermediate-goods chain) as the human civ's starting research so the first tech unlock
-  // happens automatically within the first ~10s of play. AI civs get their own auto-pick
-  // below in the AI-civ-creation loop.
+  // PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — pool-currency model: research points
+  // accumulate into empire.researchPointsPool every tick regardless of any "active tech".
+  // The player (or AI) calls purchaseResearchFromPool to atomically spend the cost on a
+  // researchable tech. Previous auto-pick of TECH_INDUSTRIAL_LOGISTICS no longer needed —
+  // pool fills from tick 1, and once it's >= a tech's costPoints the Tech Detail panel
+  // surfaces a "Research <name>" button.
   const humanEmpire = newEmpire(humanCivId, humanHomePlanet.id)
-  humanEmpire.activeResearchTechId = TECH_INDUSTRIAL_LOGISTICS
   civs.set(humanCivId, {
     civId: humanCivId,
     themeId: config.humanThemeId,
@@ -613,12 +607,10 @@ export function createMatch(config: MatchConfig): MatchState {
     const playstyle = slotCfg?.playstyle ?? playstyles[i % playstyles.length]!
     const difficulty = slotCfg?.difficulty ?? difficulties[i % difficulties.length]!
     const empire = newEmpire(aiId, homePlanet.id)
-    // PHASE 17.L.D (HOTFIX 2026-05-12) — mirror human civ auto-pick. Without an active
-    // research tech the AI civs also generate ZERO research per tick. Pre-seed each with
-    // TECH_INDUSTRIAL_LOGISTICS so they start climbing the tech tree at match start; the
-    // AI controller's own decision pass can switch to a different tech later based on
-    // playstyle (warmonger → weapons branch, researcher → information branch, etc.).
-    empire.activeResearchTechId = TECH_INDUSTRIAL_LOGISTICS
+    // PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — pool model: AI also accumulates points into
+    // its researchPointsPool from tick 1. AIController.applyDecisions calls
+    // purchaseResearchFromPool with the chosenResearchTech each decision tick; once the
+    // pool clears the tech's cost the purchase succeeds. No auto-pick needed.
     civs.set(aiId, {
       civId: aiId,
       themeId: aiTheme.id,
@@ -1488,16 +1480,12 @@ function tickCivResearch(state: MatchState, civState: MatchCivState): void {
   // tech.ts cost numbers intact while making "rush to galactic apex" a real long climb.
   const aggregate = Math.max(0, Math.floor(rawAggregate / RESEARCH_POINT_DIVISOR))
   if (aggregate <= 0) return
-  if (!civState.empire.activeResearchTechId) return
-  const result = tickResearch(civState.empire, aggregate)
-  if (result.completed) {
-    pushEvent(state, {
-      atTick: state.currentTick,
-      civId: civState.civId,
-      kind: 'research',
-      message: `${civState.theme.emoji} ${civState.displayName} researched a new tech.`,
-    })
-  }
+  // PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — pool-model rewrite. tickResearch now just adds
+  // points to empire.researchPointsPool; it never auto-completes a tech (completion happens
+  // via purchaseResearchFromPool on player click or AI decision). The completed-event
+  // surfacing moved into the AI decision branch (applyDecisions logs purchaseResearch:...)
+  // and into the human-side button handler at the call site.
+  tickResearch(civState.empire, aggregate)
 }
 
 function buildAIObservables(state: MatchState, controller: AIController): AITickObservables {
@@ -2855,10 +2843,23 @@ export interface StartResearchInputs {
   readonly techId: string
 }
 
+// PHASE 17.L.D (HOTFIX 2026-05-12, REV 2) — startResearchAction renamed in spirit: this
+// is now the BUY action under the pool-currency model. Checks researchable + pool >= cost,
+// deducts cost from pool, completes tech instantly. Returns false if locked or unaffordable.
+// Pushes a 'research' event into the state log on success so the player gets a toast.
 export function startResearchAction(inputs: StartResearchInputs): boolean {
   const civState = inputs.state.civs.get(inputs.state.humanCivId)
   if (!civState) return false
-  return startResearch(civState.empire, inputs.techId as never)
+  const ok = purchaseResearchFromPool(civState.empire, inputs.techId as never)
+  if (ok) {
+    pushEvent(inputs.state, {
+      atTick: inputs.state.currentTick,
+      civId: civState.civId,
+      kind: 'research',
+      message: `${civState.theme.emoji} ${civState.displayName} researched a new tech.`,
+    })
+  }
+  return ok
 }
 
 export interface LaunchCampaignInputs {
